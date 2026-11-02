@@ -1167,7 +1167,7 @@ namespace eval ::rbc::ELEMENT {
         # Queries or replaces the element display list. With no argument, returns the currently displayed elements in
         # drawing order. With `elemList`, displays only the listed elements and hides all others. The list order
         # determines drawing order; later elements are drawn above earlier elements. Unknown element names are
-        # ignored. An empty list hides all elements.
+        # ignored. Repeated names are included only once, at their first position. An empty list hides all elements.
         # elemList - optional Tcl list of element names to display.
         # Returns: Current element display list.
         # Synopsis:

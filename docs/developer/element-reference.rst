@@ -55,3 +55,16 @@ similarly named helpers in other C files. It does not change C symbols.
    :members:
 
 .. c:namespace-pop::
+
+Lifecycle and display dispatch
+------------------------------
+
+These contracts cover registry ownership, option rollback, staged teardown and
+normal/active rendering. The namespace below is documentation-only.
+
+.. c:namespace-push:: rbcGrElemLifecycle
+
+.. doxygengroup:: element_lifecycle_internals
+   :members:
+
+.. c:namespace-pop::

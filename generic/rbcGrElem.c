@@ -10,7 +10,7 @@
  */
 
 /** @file rbcGrElem.c
- * Pen and palette implementation contracts.
+ * Common element data, palettes, lifecycle and dispatch contracts.
  */
 /** @defgroup palette_internals Element palette internals
  * Private helpers; no new public API.
@@ -26,6 +26,10 @@
 
 /** @defgroup element_data_internals Element data and value-label internals
  * Borrowed arrays, notifications and source-value presentation.
+ */
+
+/** @defgroup element_lifecycle_internals Element lifecycle and display dispatch
+ * Registry ownership, option rollback, teardown and viewport-scoped rendering.
  */
 
 #include "rbcGraph.h"
@@ -3035,26 +3039,12 @@ static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tc
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * NameToElement --
- *
- *      Find the element represented the given name,  returning
- *      a pointer to its data structure via elemPtrPtr.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Obj *nameObj
- *      Element **elemPtrPtr
- *
- * Results:
- *      A standard TCL result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Look up an element by its exact registry name.
+ * Returns TCL_OK and a borrowed record in elemPtrPtr, or TCL_ERROR with a
+ * graph-interpreter diagnostic. Failure leaves the output pointer unchanged.
+ * Hidden and non-displayed elements remain eligible; no reference is retained.
  */
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr) {
     Tcl_HashEntry *hPtr;
@@ -3070,6 +3060,14 @@ static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr
     return TCL_OK;
 }
 
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Initialize Tk-managed element options from component resources.
+ * Repeated calls after success are no-ops. Uses the normalized resource name
+ * and class Element. On failure frees partially initialized options and the
+ * option table; constructor-owned resources remain for the concrete destructor.
+ * Returns TCL_OK or TCL_ERROR. Does not construct derived drawing resources.
+ */
 static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
     char *componentName;
     int result;
@@ -3094,6 +3092,17 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Apply Tk options and validate concrete derived state transactionally.
+ * Requires initialized options. Exposes the option mask and borrowed original
+ * arguments only during concrete configuration. Trackgraphs require a valid
+ * track and a Y axis owned by it; ordinary graphs reject nonempty track names.
+ * Concrete configuration must stage all fallible work before live-state commit.
+ * Failure restores Tk options while preserving the error diagnostic. Success
+ * commits the track, sets optionsConfigured and optionally writes maskPtr.
+ * Clears transient argument pointers on both post-conversion exit paths.
+ */
 static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[],
                                    int *maskPtr) {
     Tk_SavedOptions savedOptions;
@@ -3165,6 +3174,15 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
     return TCL_OK;
 }
 
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Release derived and Tk-owned resources once, retaining the record.
+ * Clears borrowed configuration context, then invokes the concrete destructor
+ * even if option initialization failed. Frees initialized Tk options afterward,
+ * so derived GCs are released before their colors, fonts and bitmaps.
+ * Requires the owning graph's resource-release context, including a usable Tk
+ * window for bitmap options. Does not remove registry or display-list entries.
+ */
 static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
     if (elemPtr->tkResourcesReleased) {
         return;
@@ -3195,7 +3213,13 @@ static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
     elemPtr->tkResourcesReleased = TRUE;
 }
 
-/* Bitmap options require a live Tk window during resource release. */
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Release resources for every registered element before window teardown.
+ * Includes hidden and non-displayed elements. Each release is idempotent through
+ * tkResourcesReleased; element records, names and registry entries survive this
+ * pass. The graph and its Tk window must remain valid throughout traversal.
+ */
 void Rbc_ReleaseElementTkResources(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
@@ -3207,42 +3231,33 @@ void Rbc_ReleaseElementTkResources(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * DestroyElement --
- *
- *      Add a new element to the graph.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Element *elemPtr
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Remove one element and free its record immediately.
+ * Removes bindings and global-legend references, releases concrete and Tk
+ * resources, then removes all matching display-list links and the optional
+ * registry entry. A displayed non-hidden element requests RESET_WORLD/redraw.
+ * Frees the owned name and record; borrowed element pointers become invalid.
+ * Callers destroying the whole registry clear hashPtr before this call.
  */
 static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
-    Rbc_ChainLink *linkPtr;
+    Rbc_ChainLink *linkPtr, *nextPtr;
+    int wasDisplayed = FALSE;
 
     Rbc_DeleteBindings(graphPtr->bindTable, elemPtr);
     Rbc_LegendRemoveElement(graphPtr->legend, elemPtr);
     ReleaseElementResources(graphPtr, elemPtr);
-    /* Remove it also from the element display list */
-    for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
-         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    /* Remove every borrowed display reference before freeing the record. */
+    for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL; linkPtr = nextPtr) {
+        nextPtr = Rbc_ChainNextLink(linkPtr);
         if (elemPtr == Rbc_ChainGetValue(linkPtr)) {
             Rbc_ChainDeleteLink(graphPtr->elements.displayList, linkPtr);
-            if (!elemPtr->hidden) {
-                graphPtr->flags |= RESET_WORLD;
-                Rbc_EventuallyRedrawGraph(graphPtr);
-            }
-            break;
+            wasDisplayed = TRUE;
         }
+    }
+    if (wasDisplayed && !elemPtr->hidden) {
+        graphPtr->flags |= RESET_WORLD;
+        Rbc_EventuallyRedrawGraph(graphPtr);
     }
     /* Remove the element for the graph's hash table of elements */
     if (elemPtr->hashPtr != NULL) {
@@ -3254,27 +3269,16 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
     ckfree((char *)elemPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CreateElement --
- *
- *      Add a new element to the graph.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *      Rbc_Uid classUid
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Construct, register and configure an element from command arguments.
+ * Requires a dispatcher-validated argument vector with the name at objv[3].
+ * Rejects duplicate names, leading hyphens and unsupported trackgraph types.
+ * Registers the concrete record before option initialization; any initialization
+ * or configuration failure destroys it and returns TCL_ERROR.
+ * Success prepends it to the display list, marks mapping and axes dirty, queues
+ * redraw if visible, and returns its name as the Tcl result. Defaults pass
+ * through concrete configuration even when no explicit options are supplied.
  */
 static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Element *elemPtr;
@@ -3332,29 +3336,14 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * RebuildDisplayList --
- *
- *      Given a Tcl list of element names, this procedure rebuilds the
- *      display list, ignoring invalid element names. This list describes
- *      not only only which elements to draw, but in what order.  This is
- *      only important for bar and pie charts.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Tcl_Obj *newListObj - Tcl list of element names
- *
- * Results:
- *      The return value is a standard Tcl result.  Only if the Tcl list
- *      can not be split, a TCL_ERROR is returned and the interpreter
- *      result contains an error message.
- *
- * Side effects:
- *      The graph is eventually redrawn using the new display list.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Replace display membership and order from a Tcl list of names.
+ * Malformed list syntax returns TCL_ERROR before changing the display list.
+ * Otherwise hides all registered elements, appends each recognized name in input
+ * order and unhides it. Unknown names are ignored and their diagnostics cleared.
+ * Repeated names retain only their first occurrence. Returns TCL_OK, sets RESET_WORLD and
+ * schedules redraw; registry ownership is unchanged.
  */
 static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj) {
     Tcl_Size nNames;      /* Number of names found in Tcl name list */
@@ -3378,7 +3367,8 @@ static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj) {
     /* Rebuild the display list, checking that each name it exists
      * (currently ignoring invalid element names).  */
     for (i = 0; i < nNames; i++) {
-        if (NameToElement(graphPtr, nameObjArr[i], &elemPtr) == TCL_OK) {
+        if (NameToElement(graphPtr, nameObjArr[i], &elemPtr) == TCL_OK && elemPtr->hidden) {
+            /* All elements started hidden; an unhidden one is already listed. */
             elemPtr->hidden = FALSE;
             Rbc_ChainAppend(graphPtr->elements.displayList, elemPtr);
         }
@@ -3390,24 +3380,13 @@ static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DestroyElements --
- *
- *      Removes all the graph's elements. This routine is called when
- *      the graph is destroyed.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory allocated for the graph's elements is freed.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Destroy all registered elements and their container structures.
+ * Clears each record's hashPtr before destruction so the registry traversal
+ * remains intact. Then deletes the element and tag tables and display chain.
+ * This is final teardown, not an idempotent reset or reusable initialization.
+ * Resource release must occur in the graph's valid Tk teardown sequence.
  */
 void Rbc_DestroyElements(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
@@ -3425,23 +3404,14 @@ void Rbc_DestroyElements(Graph *graphPtr) {
     Rbc_ChainDestroy(graphPtr->elements.displayList);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_MapElements --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Map visible display-list elements whose geometry is dirty.
+ * Resets bar stacks for trackgraphs or modes other than MODE_INFRONT. Skips
+ * hidden and plotHidden records; MAP_ALL or MAP_ITEM selects each remaining
+ * mapping call. Enters and restores the owning track viewport around dispatch,
+ * then clears MAP_ITEM. Screen mapping sets GRAPH_CHANGED; export mapping does
+ * not. The caller owns layout sequencing and graph-wide flag cleanup.
  */
 void Rbc_MapElements(Graph *graphPtr) {
     Element *elemPtr;
@@ -3476,7 +3446,14 @@ void Rbc_MapElements(Graph *graphPtr) {
     }
 }
 
-/* Clip complete strokes, including native bar borders, at a track viewport. */
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Draw a complete normal or active element within a screen track clip.
+ * Requires a non-NULL track and an already entered track viewport. Intersects
+ * inclusive track bounds with drawable graph dimensions and skips empty bounds.
+ * Dispatches only when the renderer supplies a drawable, then balances clip
+ * and renderer lifetime. Clipping includes native raised bar borders.
+ */
 static void DrawClippedTrackElement(Graph *graphPtr, Drawable drawable, Element *elemPtr, int active) {
     RbcTrack *track = elemPtr->track;
     Rbc_RenderContext *clip;
@@ -3501,26 +3478,12 @@ static void DrawClippedTrackElement(Graph *graphPtr, Drawable drawable, Element 
     Rbc_RenderEnd(clip);
 }
 
-/*
- * -----------------------------------------------------------------
- *
- * Rbc_DrawElements --
- *
- *      Calls the individual element drawing routines for each
- *      element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      Elements are drawn into the drawable (pixmap) which will
- *      eventually be displayed in the graph window.
- *
- * -----------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Draw visible elements in display-list order using mapped geometry.
+ * Skips hidden, plotHidden and collapsed track regions. Enters and restores each
+ * track viewport; scrolled tracks and track bars additionally clip the complete
+ * callback. Does not remap data or manage element lifetime across callbacks.
  */
 void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
     Rbc_ChainLink *linkPtr;
@@ -3545,26 +3508,13 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
     }
 }
 
-/*
- * -----------------------------------------------------------------
- *
- * Rbc_DrawActiveElements --
- *
- *      Calls the individual element drawing routines to display
- *      the active colors for each element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      Elements are drawn into the drawable (pixmap) which will
- *      eventually be displayed in the graph window.
- *
- * -----------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Draw active overlays in display-list order using mapped geometry.
+ * Requires ELEM_ACTIVE in addition to normal visibility and track-size checks.
+ * Uses the same viewport and full-callback clipping policy as Rbc_DrawElements,
+ * but dispatches drawActiveProc. The caller controls ordering relative to the
+ * normal pass and keeps graph, element and mapped resources alive.
  */
 void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
     Rbc_ChainLink *linkPtr;
@@ -3589,25 +3539,14 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
     }
 }
 
-/*
- * -----------------------------------------------------------------
- *
- * Rbc_ElementsExport --
- *
- *      Generates PostScript output for each graph element in the
- *      element display list.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Export normal visible elements through the selected export backend.
+ * Dispatches mapped geometry in display-list order, entering and restoring each
+ * track viewport. Scrolled tracks and track bars wrap the callback in an export
+ * renderer clip. Collapsed tracks are skipped. Only PostScript receives element
+ * comments; the geometry dispatch also supports SVG and PDF.
+ * Does not own exportPtr or perform layout; errors use the export context.
  */
 void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_ChainLink *linkPtr;
@@ -3642,24 +3581,13 @@ void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ActiveElementsExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Export active overlays through the selected export backend.
+ * Uses the visibility, track viewport and clipping policy of Rbc_ElementsExport
+ * with an additional ELEM_ACTIVE check and exportActiveProc dispatch.
+ * Emits active-element comments only for PostScript. The caller owns the export
+ * context and ordering of normal and active passes.
  */
 void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_ChainLink *linkPtr;
@@ -3693,23 +3621,13 @@ void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GraphUpdateNeeded --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_lifecycle_internals
+ * @brief Test visible display-list X/Y vector clients for pending notification.
+ * Returns 1 on the first pending X or Y client, otherwise 0. Does not deliver
+ * notifications, synchronize arrays, mark geometry or schedule redraw.
+ * This is not an exhaustive dirty-state test: it does not inspect weights,
+ * error inputs, concrete polar inputs or elements outside the visible list.
  */
 int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
     Rbc_ChainLink *linkPtr;

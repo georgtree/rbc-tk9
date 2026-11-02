@@ -172,8 +172,10 @@ lifetime protection or make arbitrary Tcl callback reentry safe.</p>
 <span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementSymbolExportProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_ExportContext</span><span class="w"> </span><span class="o">*</span><span class="n">exportPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">,</span>
 <span class="w">                                            </span><span class="kt">int</span><span class="w"> </span><span class="n">symSize</span><span class="p">);</span>
 <span class="k">typedef</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">(</span><span class="n">ElementPointCountProc</span><span class="p">)(</span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">);</span>
+<span class="cm">/* Append owned values to a private result dictionary; never write Tcl variables</span>
+<span class="cm"> * or run callbacks. The caller publishes it after all element reads finish. */</span>
 <span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">ElementClosestInfoProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">ClosestSearch</span><span class="w"> </span><span class="o">*</span><span class="n">searchPtr</span><span class="p">,</span>
-<span class="w">                                    </span><span class="n">Tcl_Obj</span><span class="w"> </span><span class="o">*</span><span class="n">varNameObjPtr</span><span class="p">);</span>
+<span class="w">                                    </span><span class="n">Tcl_Obj</span><span class="w"> </span><span class="o">*</span><span class="n">resultObjPtr</span><span class="p">);</span>
 
 <span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">ElementClosestProc</span><span class="w"> </span><span class="o">*</span><span class="n">closestProc</span><span class="p">;</span>
@@ -534,6 +536,443 @@ failure and cleanup rules.</p>
 </dd></dl>
 
 </section>
+<section id="data-observation-and-value-presentation">
+<h2>Data observation and value presentation<a class="headerlink" href="#data-observation-and-value-presentation" title="Link to this heading">¶</a></h2>
+<p>The documentation-only scope distinguishes private names such as GetIndex from
+similarly named helpers in other C files. It does not change C symbols.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__element__data__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">data</span> <span class="pre">and</span> <span class="pre">value-label</span> <span class="pre">internals</span></span></dt>
+<dd><p>Borrowed arrays, notifications and source-value presentation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.GetElemArrayByteCount">
+<span class="target" id="group__element__data__internals_1gaa6114f095e9ed3cb1fb2b9bb9dd41ab8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemArrayByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elementSize</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteCountPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.GetElemArrayByteCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate element-array multiplication before allocation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter receiving an overflow/size diagnostic. </p></li>
+<li><p><strong>count</strong> – Nonnegative logical element count. </p></li>
+<li><p><strong>elementSize</strong> – Positive byte size of one element. </p></li>
+<li><p><strong>byteCountPtr</strong> – <strong>[out]</strong> Receives the product only on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on representable multiplication, TCL_ERROR otherwise. Zero count is valid and yields zero bytes. Does not allocate memory or validate arithmetic used by the caller to compute count. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.Rbc_ValidateValueCommand">
+<span class="target" id="group__element__data__internals_1ga0d39fd2600b5aa6d307bb5edc53d4af3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ValidateValueCommand</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">commandObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.Rbc_ValidateValueCommand" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate the list structure of an optional value-label command prefix. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for list-syntax errors. </p></li>
+<li><p><strong>commandObjPtr</strong> – Borrowed prefix object; NULL and empty lists are accepted. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK for valid structure, TCL_ERROR otherwise. Does not resolve the command name, execute it, or guarantee that later evaluation succeeds. An empty prefix selects ordinary format-based labels. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.Rbc_GetValueOffset">
+<span class="target" id="group__element__data__internals_1gad26cd3199f8624cffb14cce8929aeedb"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetValueOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsetPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.Rbc_GetValueOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse exactly two signed integer pixel offsets transactionally. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for list/number diagnostics. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed two-element list. </p></li>
+<li><p><strong>offsetPtr</strong> – <strong>[out]</strong> Receives both coordinates only after both integers parse. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success; TCL_ERROR leaves the entire point unchanged. Uses Tcl_GetIntFromObj, not screen-unit conversion or expression evaluation. Negative values are permitted; the resulting ints are stored as doubles. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.Rbc_GetElementValueLabel">
+<span class="target" id="group__element__data__internals_1gae199a49d21b425f42d1915d2743e4a2b"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetElementValueLabel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">commandObjPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">show</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.Rbc_GetElementValueLabel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Obtain a referenced label object from fallback formatting or a callback. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Live element with graph, interpreter, window and name. </p></li>
+<li><p><strong>commandObjPtr</strong> – Optional borrowed command-prefix list. </p></li>
+<li><p><strong>format</strong> – Validated fallback printf format or NULL. </p></li>
+<li><p><strong>show</strong> – Coordinate selection; SHOW_NONE suppresses callback evaluation. </p></li>
+<li><p><strong>index</strong> – Original source index passed to the command. </p></li>
+<li><p><strong>x</strong> – Source X value. </p></li>
+<li><p><strong>y</strong> – Source Y value. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tcl object with one owned reference; caller must Tcl_DecrRefCount it. Copies bounded fallback text first. A nonempty prefix is duplicated and invoked globally with graph path, element name, index, X and Y appended. Successful text is retained without the fallback buffer limit; errors go to the background and retain fallback text. Saves/restores the enclosing interpreter state. Does not preserve drawing records against callback mutation: callbacks must not mutate drawing state or enter nested event loops. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.Rbc_ValidateValueFormat">
+<span class="target" id="group__element__data__internals_1gac989e8f079ea161b02677f121bbd2078"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ValidateValueFormat</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.Rbc_ValidateValueFormat" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate a printf format that receives one double argument. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter receiving a format diagnostic on error. </p></li>
+<li><p><strong>format</strong> – Borrowed NUL-terminated format; NULL selects the default later. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK when accepted, TCL_ERROR otherwise. Permits literal-only text, escaped percent and at most one a/A/e/E/f/F/g/G conversion with optional lowercase l. Limits format length, width and precision to VALUE_FORMAT_LIMIT. Rejects dynamic width/precision and incompatible argument types. Does not format a value or guarantee untruncated output in every buffer. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.FormatValueLabel">
+<span class="target" id="group__element__data__internals_1ga9230aebf9da8cb35dfcc604999f2cf54"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FormatValueLabel</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">buffer</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">bufferSize</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">show</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.FormatValueLabel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format selected source coordinates into a bounded fallback buffer. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>buffer</strong> – Writable storage of bufferSize bytes. </p></li>
+<li><p><strong>bufferSize</strong> – Capacity including terminator; zero performs no writes. </p></li>
+<li><p><strong>format</strong> – Previously validated format, or NULL for percent-g formatting. </p></li>
+<li><p><strong>show</strong> – SHOW_X, SHOW_Y, SHOW_BOTH or a value producing empty text. </p></li>
+<li><p><strong>x</strong> – Source X value. </p></li>
+<li><p><strong>y</strong> – Source Y value. Formats X/Y independently with one double each; BOTH separates results by a comma. Truncation remains terminated and a truncated X prevents Y append. Negative snprintf results clear the affected output. Performs no Tcl callback and does not validate the format; validation must precede this helper. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.SyncElemVector">
+<span class="target" id="group__element__data__internals_1ga26d7ef7d6c40fcb04ea516dd0875dd36"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SyncElemVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.SyncElemVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh a data slot’s borrowed vector storage and cached extrema. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Slot whose vecPtr identifies a live real vector. Copies length, capacity, numeric-array pointer and range from the source. Does not acquire a reference, install callbacks, record a changed interval or schedule redraw. The source vector retains ownership of its numeric array. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.FindRange">
+<span class="target" id="group__element__data__internals_1gaab0285e1f5606cbd08c800854e008335"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.FindRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute finite extrema for a literal element data slot. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Initialized slot with storage for its nonnegative nValues. Returns without changing cached extrema for empty or NULL storage. Otherwise ignores nonfinite values; an all-nonfinite array yields DBL_MAX and -DBL_MAX. Does not compute a positive minimum, despite the historical comment. Does not change the array, allocate memory or notify observers. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.Rbc_FindElemVectorMinimum">
+<span class="target" id="group__element__data__internals_1ga084525300100e1a199b8677f58e3ac3b"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FindElemVectorMinimum</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">minLimit</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.Rbc_FindElemVectorMinimum" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find a finite sample at or above a supplied lower bound. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Slot with valid storage for every value counted by nValues. </p></li>
+<li><p><strong>minLimit</strong> – Lower bound and fallback value when no usable minimum is found. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Smallest qualifying value, or minLimit if the accumulator remains DBL_MAX. A sole qualifying DBL_MAX value is therefore indistinguishable from no match. Does not modify cached extrema or filter minLimit itself. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.RecordElemVectorChange">
+<span class="target" id="group__element__data__internals_1ga32c32246c2f4689c33dadc41cffdf03c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RecordElemVectorChange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">haveRange</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.RecordElemVectorChange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Accumulate a pending source-change interval conservatively. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Initialized element data slot. </p></li>
+<li><p><strong>haveRange</strong> – Nonzero when first/last describe a precise changed range. </p></li>
+<li><p><strong>first</strong> – Inclusive first source index, valid when haveRange is nonzero. </p></li>
+<li><p><strong>last</strong> – Inclusive last source index, valid when haveRange is nonzero. First notification initializes the pending state. Precise intervals are merged by their outer bounds; unknown/full changes set changeAll and clear endpoints. Later precise updates cannot narrow a pending full change. Does not validate indices, fetch data, consume the pending state or request redraw. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.VectorChangedProc">
+<span class="target" id="group__element__data__internals_1ga634f2bb4159261bcb2563a70cdfc0e2a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorNotify" title="Rbc_VectorNotify"><span class="n"><span class="pre">Rbc_VectorNotify</span></span></a><span class="w"> </span><span class="n"><span class="pre">notify</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.VectorChangedProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh or invalidate a stable element slot during vector notification. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter supplied by the vector notification service. </p></li>
+<li><p><strong>clientData</strong> – Stable ElemVector field whose owning element remains live. </p></li>
+<li><p><strong>notify</strong> – UPDATE or DESTROY; other values take the update path. During update, reads the client-specific changed range inside its valid callback scope, records it and refreshes source storage. Destruction records a full change and clears clientId, valueArr and nValues, but does not zero every cached field. Marks axes and mapping dirty; requests backing-store redraw only when neither hidden nor plotHidden. Never draws synchronously. The update path assumes its registered client ID still resolves successfully. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.Rbc_SyncElementVectors">
+<span class="target" id="group__element__data__internals_1ga9460ed8102f574945d80095517ac745f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SyncElementVectors</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.Rbc_SyncElementVectors" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh pending named-vector inputs before synchronous layout/export. </p>
+<p>Refresh element arrays with pending vector updates before layout.</p>
+<p>
+Refresh pending named-vector inputs before synchronous layout/export.</p>
+<p>Does not deliver notifications or run Tcl callbacks. Marks affected mapping and axis ranges dirty; covers coordinates, weights and error vectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph with initialized element registry. Visits registered elements, including hidden ones, and checks common X/Y, weight and six error slots. Pending clients refresh borrowed storage and record a full change, marking mapping, axes and backing store dirty. Does not consume queued notifications, run their callbacks, process events or independently schedule an idle redraw. Literal inputs and nonpending clients are untouched.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.EvalExprListObj">
+<span class="target" id="group__element__data__internals_1gad0a481c9c5083b37f643ce9680ec11e8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EvalExprListObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listObjPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nElemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arrayPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.EvalExprListObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate a Tcl list into a newly owned double array. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for list parsing, expression evaluation and errors. </p></li>
+<li><p><strong>listObjPtr</strong> – Borrowed list object valid throughout evaluation. </p></li>
+<li><p><strong>nElemPtr</strong> – <strong>[out]</strong> Cleared first; receives the list length on success. </p></li>
+<li><p><strong>arrayPtr</strong> – <strong>[out]</strong> Cleared first; receives storage to release with ckfree. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success, TCL_ERROR after releasing partial allocation. Empty input yields zero/NULL. Uses checked byte counts and Tcl_AttemptAlloc. Each entry is a Tcl expression, not merely a literal double: commands and traces can run. The borrowed list-element array is not snapshotted here; callers must not assume staging alone protects it or owner lifetimes across reentry. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.ParseElemVectorPairsObj">
+<span class="target" id="group__element__data__internals_1gad59003b7fd77b27de1f3edec46552645"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseElemVectorPairsObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">xCandidatePtr</span></span>, <span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">yCandidatePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.ParseElemVectorPairsObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Split evaluated alternating coordinates into two owned candidate slots. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for parsing and allocation diagnostics. </p></li>
+<li><p><strong>elemPtr</strong> – Live owner recorded in both candidates. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed list of alternating X/Y expressions. </p></li>
+<li><p><strong>xCandidatePtr</strong> – <strong>[out]</strong> Fresh slot, zeroed before parsing. </p></li>
+<li><p><strong>yCandidatePtr</strong> – <strong>[out]</strong> Distinct fresh slot, zeroed before parsing. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with both arrays and extrema prepared; TCL_ERROR with temporary arrays released. Caller may free both slots after either result. Evaluates the entire list before rejecting odd length. Thus evaluation side effects may already have occurred when odd input fails. Allocates a temporary flat array then separate X/Y arrays; empty input leaves both arrays NULL. Never treats this paired list as a named-vector reference. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.GetIndex">
+<span class="target" id="group__element__data__internals_1ga78107b9eaaa82b83fba8f23a4a2e213b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.GetIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve end or an integer expression against the element point count. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for expression and range diagnostics. </p></li>
+<li><p><strong>elemPtr</strong> – Live element supplying the initial polymorphic point count. </p></li>
+<li><p><strong>string</strong> – Borrowed NUL-terminated index text. </p></li>
+<li><p><strong>indexPtr</strong> – <strong>[out]</strong> Receives the validated Tcl_Size index only on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success, TCL_ERROR for empty data, evaluation/conversion failure or an out-of-range index. Only exact end is special. Other input uses Tcl_ExprObj followed by Tcl_GetSizeIntFromObj and can execute commands/traces. Bounds are captured before evaluation; caller owns callback lifetime and any needed revalidation if data changes during evaluation. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.ClosestErrorValue">
+<span class="target" id="group__element__data__internals_1gabde6875fe6a7f0ab3dea2a4b3c9beab3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestErrorValue</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vectorPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.ClosestErrorValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read one finite, current error-data sample without synchronizing it. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vectorPtr</strong> – Borrowed error-data slot. </p></li>
+<li><p><strong>index</strong> – Source index to inspect. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Assigned only if a valid sample is available. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero on success; zero for pending vector updates, invalid index, NULL storage or nonfinite data. Does not dereference storage while a vector notification is pending. No allocation, callbacks or graph changes occur. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemData.AppendClosestErrors">
+<span class="target" id="group__element__data__internals_1ga32cd60d5edd429639013aaecd8315fc2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendClosestErrors</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemData.AppendClosestErrors" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Collect available source error values in a private result dictionary. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for dictionary errors. </p></li>
+<li><p><strong>elemPtr</strong> – Live selected element with error slots. </p></li>
+<li><p><strong>index</strong> – Selected original source index. </p></li>
+<li><p><strong>resultObjPtr</strong> – Unshared result dictionary owned by the caller. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after collection; TCL_ERROR on dictionary failure. For each axis, a nonempty symmetric vector takes precedence; an unusable sample does not fall back to explicit bounds. Otherwise both low/high values must be usable. Reports source values, not translated bar positions. Copies values into owned Tcl objects without variable writes or script evaluation. The caller must finish all metadata collection before publishing any array fields. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="lifecycle-and-display-dispatch">
+<h2>Lifecycle and display dispatch<a class="headerlink" href="#lifecycle-and-display-dispatch" title="Link to this heading">¶</a></h2>
+<p>These contracts cover registry ownership, option rollback, staged teardown and
+normal/active rendering. The namespace below is documentation-only.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__element__lifecycle__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">lifecycle</span> <span class="pre">and</span> <span class="pre">display</span> <span class="pre">dispatch</span></span></dt>
+<dd><p>Registry ownership, option rollback, teardown and viewport-scoped rendering. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.NameToElement">
+<span class="target" id="group__element__lifecycle__internals_1gaf77053c0ada73921ec7e1e3572f94897"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NameToElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nameObj</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.NameToElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Look up an element by its exact registry name. </p>
+<p>Returns TCL_OK and a borrowed record in elemPtrPtr, or TCL_ERROR with a graph-interpreter diagnostic. Failure leaves the output pointer unchanged. Hidden and non-displayed elements remain eligible; no reference is retained. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.InitElementOptions">
+<span class="target" id="group__element__lifecycle__internals_1ga260dc945fd54126554fb1ceb3ac5340f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitElementOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.InitElementOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize Tk-managed element options from component resources. </p>
+<p>Repeated calls after success are no-ops. Uses the normalized resource name and class Element. On failure frees partially initialized options and the option table; constructor-owned resources remain for the concrete destructor. Returns TCL_OK or TCL_ERROR. Does not construct derived drawing resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.ConfigureElementOptions">
+<span class="target" id="group__element__lifecycle__internals_1ga73b2b0c5cc039d0563d2cd37a477e067"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureElementOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.ConfigureElementOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply Tk options and validate concrete derived state transactionally. </p>
+<p>Requires initialized options. Exposes the option mask and borrowed original arguments only during concrete configuration. Trackgraphs require a valid track and a Y axis owned by it; ordinary graphs reject nonempty track names. Concrete configuration must stage all fallible work before live-state commit. Failure restores Tk options while preserving the error diagnostic. Success commits the track, sets optionsConfigured and optionally writes maskPtr. Clears transient argument pointers on both post-conversion exit paths. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.ReleaseElementResources">
+<span class="target" id="group__element__lifecycle__internals_1ga3b4a6842428448b987706cb617398f2a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseElementResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.ReleaseElementResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release derived and Tk-owned resources once, retaining the record. </p>
+<p>Clears borrowed configuration context, then invokes the concrete destructor even if option initialization failed. Frees initialized Tk options afterward, so derived GCs are released before their colors, fonts and bitmaps. Requires the owning graph’s resource-release context, including a usable Tk window for bitmap options. Does not remove registry or display-list entries. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_ReleaseElementTkResources">
+<span class="target" id="group__element__lifecycle__internals_1ga3d08e786ab77632912fab71cc57a1c72"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleaseElementTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_ReleaseElementTkResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release resources for every registered element before window teardown. </p>
+<p>Includes hidden and non-displayed elements. Each release is idempotent through tkResourcesReleased; element records, names and registry entries survive this pass. The graph and its Tk window must remain valid throughout traversal. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.DestroyElement">
+<span class="target" id="group__element__lifecycle__internals_1gac7f2452e74c4a42eacf0900bddea1aa7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.DestroyElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Remove one element and free its record immediately. </p>
+<p>Removes bindings and global-legend references, releases concrete and Tk resources, then removes all matching display-list links and the optional registry entry. A displayed non-hidden element requests RESET_WORLD/redraw. Frees the owned name and record; borrowed element pointers become invalid. Callers destroying the whole registry clear hashPtr before this call. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.CreateElement">
+<span class="target" id="group__element__lifecycle__internals_1ga012eaca497b135281536fe80f45b3e8d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.CreateElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Construct, register and configure an element from command arguments. </p>
+<p>Requires a dispatcher-validated argument vector with the name at objv[3]. Rejects duplicate names, leading hyphens and unsupported trackgraph types. Registers the concrete record before option initialization; any initialization or configuration failure destroys it and returns TCL_ERROR. Success prepends it to the display list, marks mapping and axes dirty, queues redraw if visible, and returns its name as the Tcl result. Defaults pass through concrete configuration even when no explicit options are supplied. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.RebuildDisplayList">
+<span class="target" id="group__element__lifecycle__internals_1gaaaa036b4f34f8480a123c84511a8e846"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RebuildDisplayList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newListObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.RebuildDisplayList" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace display membership and order from a Tcl list of names. </p>
+<p>Malformed list syntax returns TCL_ERROR before changing the display list. Otherwise hides all registered elements, appends each recognized name in input order and unhides it. Unknown names are ignored and their diagnostics cleared. Repeated names retain only their first occurrence. Returns TCL_OK, sets RESET_WORLD and schedules redraw; registry ownership is unchanged. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_DestroyElements">
+<span class="target" id="group__element__lifecycle__internals_1gaf2510285e747e6cc41746557603cddf8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyElements</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_DestroyElements" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy all registered elements and their container structures. </p>
+<p>Clears each record’s hashPtr before destruction so the registry traversal remains intact. Then deletes the element and tag tables and display chain. This is final teardown, not an idempotent reset or reusable initialization. Resource release must occur in the graph’s valid Tk teardown sequence. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_MapElements">
+<span class="target" id="group__element__lifecycle__internals_1ga451df4051c7c5938dfd4d7ddacbf381c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapElements</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_MapElements" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map visible display-list elements whose geometry is dirty. </p>
+<p>Resets bar stacks for trackgraphs or modes other than MODE_INFRONT. Skips hidden and plotHidden records; MAP_ALL or MAP_ITEM selects each remaining mapping call. Enters and restores the owning track viewport around dispatch, then clears MAP_ITEM. Screen mapping sets GRAPH_CHANGED; export mapping does not. The caller owns layout sequencing and graph-wide flag cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.DrawClippedTrackElement">
+<span class="target" id="group__element__lifecycle__internals_1ga00eadc76e9071ff5f9e10d95a17d737d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawClippedTrackElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">active</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.DrawClippedTrackElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a complete normal or active element within a screen track clip. </p>
+<p>Requires a non-NULL track and an already entered track viewport. Intersects inclusive track bounds with drawable graph dimensions and skips empty bounds. Dispatches only when the renderer supplies a drawable, then balances clip and renderer lifetime. Clipping includes native raised bar borders. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_DrawElements">
+<span class="target" id="group__element__lifecycle__internals_1gaf865e86591e39a68e950b9908fc0682f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawElements</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_DrawElements" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw visible elements in display-list order using mapped geometry. </p>
+<p>Skips hidden, plotHidden and collapsed track regions. Enters and restores each track viewport; scrolled tracks and track bars additionally clip the complete callback. Does not remap data or manage element lifetime across callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_DrawActiveElements">
+<span class="target" id="group__element__lifecycle__internals_1gacaa1ef8ff5a22e85974b0d324e3b77a4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawActiveElements</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_DrawActiveElements" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw active overlays in display-list order using mapped geometry. </p>
+<p>Requires ELEM_ACTIVE in addition to normal visibility and track-size checks. Uses the same viewport and full-callback clipping policy as Rbc_DrawElements, but dispatches drawActiveProc. The caller controls ordering relative to the normal pass and keeps graph, element and mapped resources alive. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_ElementsExport">
+<span class="target" id="group__element__lifecycle__internals_1gadb76bd9661d03268abc366b53bea9428"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ElementsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_ElementsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export normal visible elements through the selected export backend. </p>
+<p>Dispatches mapped geometry in display-list order, entering and restoring each track viewport. Scrolled tracks and track bars wrap the callback in an export renderer clip. Collapsed tracks are skipped. Only PostScript receives element comments; the geometry dispatch also supports SVG and PDF. Does not own exportPtr or perform layout; errors use the export context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_ActiveElementsExport">
+<span class="target" id="group__element__lifecycle__internals_1ga3dec980be8a8863569c1701a319f64cc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ActiveElementsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_ActiveElementsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export active overlays through the selected export backend. </p>
+<p>Uses the visibility, track viewport and clipping policy of Rbc_ElementsExport with an additional ELEM_ACTIVE check and exportActiveProc dispatch. Emits active-element comments only for PostScript. The caller owns the export context and ordering of normal and active passes. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrElemLifecycle.Rbc_GraphUpdateNeeded">
+<span class="target" id="group__element__lifecycle__internals_1gafb4aa7c9c0d17b43dcc261698301b45c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphUpdateNeeded</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrElemLifecycle.Rbc_GraphUpdateNeeded" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test visible display-list X/Y vector clients for pending notification. </p>
+<p>Returns 1 on the first pending X or Y client, otherwise 0. Does not deliver notifications, synchronize arrays, mark geometry or schedule redraw. This is not an exhaustive dirty-state test: it does not inspect weights, error inputs, concrete polar inputs or elements outside the visible list. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -581,6 +1020,45 @@ failure and cleanup rules.</p>
 <li><a class="reference internal" href="#c.ReplaceElemOptionObject"><code class="docutils literal notranslate"><span class="pre">ReplaceElemOptionObject()</span></code></a></li>
 <li><a class="reference internal" href="#c.SetElemDataPairOptionObjects"><code class="docutils literal notranslate"><span class="pre">SetElemDataPairOptionObjects()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_SyncElemDataOptionObjects"><code class="docutils literal notranslate"><span class="pre">Rbc_SyncElemDataOptionObjects()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-observation-and-value-presentation">Data observation and value presentation</a><ul>
+<li><a class="reference internal" href="#c.rbcGrElemData.GetElemArrayByteCount"><code class="docutils literal notranslate"><span class="pre">GetElemArrayByteCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.Rbc_ValidateValueCommand"><code class="docutils literal notranslate"><span class="pre">Rbc_ValidateValueCommand()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.Rbc_GetValueOffset"><code class="docutils literal notranslate"><span class="pre">Rbc_GetValueOffset()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.Rbc_GetElementValueLabel"><code class="docutils literal notranslate"><span class="pre">Rbc_GetElementValueLabel()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.Rbc_ValidateValueFormat"><code class="docutils literal notranslate"><span class="pre">Rbc_ValidateValueFormat()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.FormatValueLabel"><code class="docutils literal notranslate"><span class="pre">FormatValueLabel()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.SyncElemVector"><code class="docutils literal notranslate"><span class="pre">SyncElemVector()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.FindRange"><code class="docutils literal notranslate"><span class="pre">FindRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.Rbc_FindElemVectorMinimum"><code class="docutils literal notranslate"><span class="pre">Rbc_FindElemVectorMinimum()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.RecordElemVectorChange"><code class="docutils literal notranslate"><span class="pre">RecordElemVectorChange()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.VectorChangedProc"><code class="docutils literal notranslate"><span class="pre">VectorChangedProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.Rbc_SyncElementVectors"><code class="docutils literal notranslate"><span class="pre">Rbc_SyncElementVectors()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.EvalExprListObj"><code class="docutils literal notranslate"><span class="pre">EvalExprListObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.ParseElemVectorPairsObj"><code class="docutils literal notranslate"><span class="pre">ParseElemVectorPairsObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.GetIndex"><code class="docutils literal notranslate"><span class="pre">GetIndex()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.ClosestErrorValue"><code class="docutils literal notranslate"><span class="pre">ClosestErrorValue()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemData.AppendClosestErrors"><code class="docutils literal notranslate"><span class="pre">AppendClosestErrors()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lifecycle-and-display-dispatch">Lifecycle and display dispatch</a><ul>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.NameToElement"><code class="docutils literal notranslate"><span class="pre">NameToElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.InitElementOptions"><code class="docutils literal notranslate"><span class="pre">InitElementOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.ConfigureElementOptions"><code class="docutils literal notranslate"><span class="pre">ConfigureElementOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.ReleaseElementResources"><code class="docutils literal notranslate"><span class="pre">ReleaseElementResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_ReleaseElementTkResources"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseElementTkResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.DestroyElement"><code class="docutils literal notranslate"><span class="pre">DestroyElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.CreateElement"><code class="docutils literal notranslate"><span class="pre">CreateElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.RebuildDisplayList"><code class="docutils literal notranslate"><span class="pre">RebuildDisplayList()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_DestroyElements"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyElements()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_MapElements"><code class="docutils literal notranslate"><span class="pre">Rbc_MapElements()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.DrawClippedTrackElement"><code class="docutils literal notranslate"><span class="pre">DrawClippedTrackElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_DrawElements"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawElements()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_DrawActiveElements"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawActiveElements()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_ElementsExport"><code class="docutils literal notranslate"><span class="pre">Rbc_ElementsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_ActiveElementsExport"><code class="docutils literal notranslate"><span class="pre">Rbc_ActiveElementsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrElemLifecycle.Rbc_GraphUpdateNeeded"><code class="docutils literal notranslate"><span class="pre">Rbc_GraphUpdateNeeded()</span></code></a></li>
 </ul>
 </li>
 </ul>

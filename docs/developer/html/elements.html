@@ -285,6 +285,191 @@ to its stable destination. A callback must never retain a pointer to a temporary
 transaction field. Moving the client ID transfers observation ownership, not
 ownership of the named source vector or its storage.</p>
 </section>
+<section id="parsing-allocation-and-extrema">
+<h2>Parsing, allocation and extrema<a class="headerlink" href="#parsing-allocation-and-extrema" title="Link to this heading">¶</a></h2>
+<p>GetElemArrayByteCount rejects negative counts, zero element size and products
+that exceed SIZE_MAX, assigning its result only on success. Zero count is
+valid. This check cannot repair overflow that occurred while a caller computed
+the count before invoking it.</p>
+<p>EvalExprListObj initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc
+for a nonempty result. Each list member is evaluated with Tcl_ExprDouble; an
+error releases the temporary numeric array. The helper borrows the list’s
+object-pointer array across evaluation. It does not take an immutable snapshot
+or add an owner-preservation boundary, so this local allocation cleanup must
+not be confused with protection against callbacks that mutate owners or input
+representations.</p>
+<p>ParseElemVectorPairsObj evaluates the flat input before checking whether its
+length is even. An odd-length failure can therefore follow expression side
+effects; it is not a side-effect-free prevalidation pass. Successful parsing
+uses a temporary flat array followed by separate X and Y arrays, computes
+extrema, and releases the temporary array. This paired-input parser always
+treats input as expressions, unlike Rbc_ParseElemVectorObj’s initial named-vector
+lookup.</p>
+<p>The range helpers have distinct contracts:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 40.0%" />
+<col style="width: 34.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helper</p></th>
+<th class="head"><p>Behavior</p></th>
+<th class="head"><p>Empty/unusable data</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SyncElemVector</p></td>
+<td><p>Borrows source storage and obtains source-maintained extrema</p></td>
+<td><p>Requires a live source vector</p></td>
+</tr>
+<tr class="row-odd"><td><p>FindRange</p></td>
+<td><p>Scans literal data, ignoring nonfinite samples</p></td>
+<td><p>Empty/NULL leaves cached extrema untouched; all-nonfinite nonempty data gives DBL_MAX/-DBL_MAX</p></td>
+</tr>
+<tr class="row-even"><td><p>Rbc_FindElemVectorMinimum</p></td>
+<td><p>Returns the smallest finite value at or above minLimit</p></td>
+<td><p>Returns minLimit if its accumulator remains DBL_MAX</p></td>
+</tr>
+</tbody>
+</table>
+<p>Neither scanning helper computes and stores a separate positive minimum. The
+bounded-minimum helper also treats a sole qualifying DBL_MAX value as its
+unchanged sentinel and returns minLimit. That is current compatibility behavior,
+not a promise that every finite sample has a distinct successful result.</p>
+</section>
+<section id="notification-metadata-and-synchronous-refresh">
+<h2>Notification metadata and synchronous refresh<a class="headerlink" href="#notification-metadata-and-synchronous-refresh" title="Link to this heading">¶</a></h2>
+<p>RecordElemVectorChange merges inclusive source intervals by their outer bounds.
+An unknown/full change dominates later precise ranges until the owning mapping
+code consumes or resets that pending state. The helper itself neither validates
+indices nor fetches data. Reading the vector’s client-specific changed range
+belongs inside VectorChangedProc, while that notification snapshot is valid.</p>
+<p>The destruction notification clears clientId, valueArr and nValues and records
+a full change. It does not zero vecPtr, capacity or extrema. Those remaining
+fields must not be treated as valid source storage after destruction; the
+cleared live-data fields govern subsequent use.</p>
+<p>Rbc_SyncElementVectors visits the registry rather than only the visible display
+list. Pending common X/Y, weight and error inputs refresh their borrowed arrays
+and mark a full change before immediate layout or export. It neither delivers
+nor cancels the queued notification and does not independently queue a redraw.
+VectorChangedProc has a different scheduling policy: it always marks axes and
+mapping dirty, but only schedules backing-store redraw for plotted elements.</p>
+</section>
+<section id="value-label-formatting">
+<h2>Value-label formatting<a class="headerlink" href="#value-label-formatting" title="Link to this heading">¶</a></h2>
+<p>Rbc_ValidateValueFormat accepts literal-only strings, escaped percent signs and
+at most one floating conversion. Formatting passes one double at a time; even
+SHOW_BOTH formats X and Y separately with the same format and joins them with a
+comma. Dynamic widths/precisions and conversions requiring another argument type
+are rejected. Format length, width and precision are each bounded by the current
+VALUE_FORMAT_LIMIT of 200. Validation does not guarantee that every formatted
+number fits the destination buffer.</p>
+<p>FormatValueLabel supplies terminated, bounded fallback text. It avoids appending
+Y when X has already been truncated. Rbc_GetElementValueLabel creates and retains
+that fallback before executing application code. A nonempty command prefix is
+duplicated, then receives graph path, element name, original index, X and Y in
+the global Tcl evaluation context. The returned label owns one Tcl reference
+which the drawing caller must release. Successful callback text is not limited
+to the fallback buffer size.</p>
+<p>Command-prefix validation checks list syntax only; it does not check command
+existence. Empty prefixes retain fallback formatting. Callback errors are
+reported through the background exception mechanism and use fallback text, while
+the enclosing interpreter state is restored. This result preservation is not
+lifetime protection for drawing records: value-label callbacks must not mutate
+drawing state or enter a nested event loop.</p>
+<p>Offsets are a separate parser: Rbc_GetValueOffset requires two signed Tcl ints,
+commits both together, and accepts no screen-unit suffixes. It stores the parsed
+values in the double fields of Point2D without evaluating expressions.</p>
+</section>
+<section id="closest-result-source-values-and-traces">
+<h2>Closest-result source values and traces<a class="headerlink" href="#closest-result-source-values-and-traces" title="Link to this heading">¶</a></h2>
+<p>ClosestErrorValue rejects a pending named-vector update before touching its
+borrowed array. It also rejects out-of-range indices, NULL arrays and nonfinite
+samples. AppendClosestErrors reports the original source error values, including
+explicit low/high bounds, rather than transformed or bar-translated positions.
+A nonempty symmetric-error vector takes precedence; an unusable symmetric sample
+does not fall back to explicit bounds. Explicit low and high must both be usable
+before either is reported for that axis.</p>
+<p>Closest results are collected into a private dictionary before any destination
+array unset or write. The snapshot owns common fields, mapped bar rectangles,
+source error values and concrete line/polar metadata. Concrete closest-info
+callbacks append values to this dictionary without running Tcl scripts.</p>
+<p>Publication clears the same optional error fields and writes snapshot entries in
+collection order. Both unset and write traces may change vectors, delete the
+selected element or destroy the graph: publication makes no further graph or
+element reads. A failing write returns its diagnostic and leaves earlier writes
+in place; this is a stable snapshot, not an atomic Tcl-array transaction. The
+snapshot is released on success and failure. Existing unrelated/stale fields
+other than the six optional error fields retain their previous behavior.</p>
+<p>GetIndex similarly captures the point count before evaluating non-<code class="docutils literal notranslate"><span class="pre">end</span></code> input
+as a Tcl expression. It converts the result to Tcl_Size and checks against those
+captured bounds. A caller that permits data changes during evaluation needs its
+own lifetime and post-callback validity checks. Exact <code class="docutils literal notranslate"><span class="pre">end</span></code> avoids expression
+evaluation; empty elements are rejected before either path.</p>
+</section>
+<section id="registry-and-display-list-ownership">
+<h2>Registry and display-list ownership<a class="headerlink" href="#registry-and-display-list-ownership" title="Link to this heading">¶</a></h2>
+<p>The element registry owns records; the display chain contains borrowed pointers.
+NameToElement searches the registry without filtering visibility. Creating an
+element reserves its registry entry before initializing options, then configures
+both defaults and explicit arguments. Failure destroys the partial record.
+Success prepends the record to the display list and invalidates mapping and axes.
+Trackgraphs accept line, strip and bar elements through this shared path.</p>
+<p>RebuildDisplayList parses the complete Tcl list before replacing membership.
+Malformed syntax leaves the old list intact. Successful parsing clears the chain
+and marks every registered element hidden, then appends recognized names in input
+order and unhides them. Unknown names are ignored; repeated names retain only
+their first occurrence. The temporary hidden state doubles as the membership
+check, so rebuilding needs no additional set or repeated chain scans. This is not
+deletion: omitted elements remain addressable in the registry.</p>
+<p>DestroyElement removes bindings, legend references, resources, all matching
+chain links and the registry entry before freeing the name and record. Rebuilding
+maintains unique membership; destruction also defensively removes every borrowed
+reference, saving the next link before unlinking the current one. Redraw is queued
+once when a non-hidden element was displayed.</p>
+</section>
+<section id="option-initialization-and-resource-lifetime">
+<h2>Option initialization and resource lifetime<a class="headerlink" href="#option-initialization-and-resource-lifetime" title="Link to this heading">¶</a></h2>
+<p>InitElementOptions obtains the element component resource name and uses class
+<code class="docutils literal notranslate"><span class="pre">Element</span></code>. It is a no-op after successful initialization. If Tk option setup
+fails, it frees partially initialized option values and the option table; the
+concrete constructor’s own allocations still need destruction.</p>
+<p>ConfigureElementOptions retains Tk saved options while validating track ownership
+and running concrete configuration. Trackgraph Y axes must belong to the selected
+track; a nonempty track is rejected on ordinary graphs. The original argument
+vector and option mask are borrowed transaction context, cleared before restoring
+options on failure or releasing saved options on success. Concrete configuration
+must still stage derived resources: Tk rollback alone cannot undo arbitrary writes
+to live C fields. The optional output mask is written only on success.</p>
+<p>Resource teardown and record teardown are separate. Rbc_ReleaseElementTkResources
+walks the registry while the Tk window remains usable, including elements omitted
+from the display list. Repeated resource release is guarded. Rbc_DestroyElements
+later destroys records without deleting hash entries during hash traversal, then
+deletes both hash tables and the display chain. That final container destruction
+is not an idempotent operation.</p>
+</section>
+<section id="normal-active-and-export-passes">
+<h2>Normal, active and export passes<a class="headerlink" href="#normal-active-and-export-passes" title="Link to this heading">¶</a></h2>
+<p>The common dispatcher consumes geometry already mapped by concrete elements.
+Normal and active passes share visibility and track-size checks; the active pass
+additionally requires <code class="docutils literal notranslate"><span class="pre">ELEM_ACTIVE</span></code>. The enclosing graph decides pass ordering.
+All these traversals borrow records and are not snapshots that tolerate arbitrary
+callback-driven deletion during drawing.</p>
+<p>Screen track clipping intersects inclusive track bounds with graph dimensions
+before opening the renderer clip. Export uses the track rectangle in export
+geometry. Both normal and active export callbacks support the selected backend;
+only the diagnostic element comments are PostScript-specific. Viewport entry and
+renderer clipping are separate, balanced scopes. Scrolled tracks and track bar
+elements use the full-callback clip; other paths retain their existing concrete
+clipping behavior.</p>
+<p>Rbc_GraphUpdateNeeded is deliberately narrower than a general redraw predicate.
+It checks pending X/Y vector notifications only for visible display-list elements.
+It neither processes notifications nor synchronizes arrays, and does not inspect
+weights, error inputs or concrete polar data slots. Callers needing current data
+must use the appropriate synchronization and layout path, not treat a false result
+as proof that every input is current.</p>
+</section>
 </section>
 
 
@@ -308,6 +493,13 @@ ownership of the named source vector or its storage.</p>
 <li><a class="reference internal" href="#original-arguments-and-repeated-options">Original arguments and repeated options</a></li>
 <li><a class="reference internal" href="#retained-coordinate-representations">Retained coordinate representations</a></li>
 <li><a class="reference internal" href="#callback-boundaries">Callback boundaries</a></li>
+<li><a class="reference internal" href="#parsing-allocation-and-extrema">Parsing, allocation and extrema</a></li>
+<li><a class="reference internal" href="#notification-metadata-and-synchronous-refresh">Notification metadata and synchronous refresh</a></li>
+<li><a class="reference internal" href="#value-label-formatting">Value-label formatting</a></li>
+<li><a class="reference internal" href="#closest-result-source-values-and-traces">Closest-result source values and traces</a></li>
+<li><a class="reference internal" href="#registry-and-display-list-ownership">Registry and display-list ownership</a></li>
+<li><a class="reference internal" href="#option-initialization-and-resource-lifetime">Option initialization and resource lifetime</a></li>
+<li><a class="reference internal" href="#normal-active-and-export-passes">Normal, active and export passes</a></li>
 </ul>
 </li>
 </ul>

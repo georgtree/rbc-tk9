@@ -391,3 +391,74 @@ as a Tcl expression. It converts the result to Tcl_Size and checks against those
 captured bounds. A caller that permits data changes during evaluation needs its
 own lifetime and post-callback validity checks. Exact ``end`` avoids expression
 evaluation; empty elements are rejected before either path.
+
+Registry and display-list ownership
+-----------------------------------
+
+The element registry owns records; the display chain contains borrowed pointers.
+NameToElement searches the registry without filtering visibility. Creating an
+element reserves its registry entry before initializing options, then configures
+both defaults and explicit arguments. Failure destroys the partial record.
+Success prepends the record to the display list and invalidates mapping and axes.
+Trackgraphs accept line, strip and bar elements through this shared path.
+
+RebuildDisplayList parses the complete Tcl list before replacing membership.
+Malformed syntax leaves the old list intact. Successful parsing clears the chain
+and marks every registered element hidden, then appends recognized names in input
+order and unhides them. Unknown names are ignored; repeated names retain only
+their first occurrence. The temporary hidden state doubles as the membership
+check, so rebuilding needs no additional set or repeated chain scans. This is not
+deletion: omitted elements remain addressable in the registry.
+
+DestroyElement removes bindings, legend references, resources, all matching
+chain links and the registry entry before freeing the name and record. Rebuilding
+maintains unique membership; destruction also defensively removes every borrowed
+reference, saving the next link before unlinking the current one. Redraw is queued
+once when a non-hidden element was displayed.
+
+Option initialization and resource lifetime
+-------------------------------------------
+
+InitElementOptions obtains the element component resource name and uses class
+``Element``. It is a no-op after successful initialization. If Tk option setup
+fails, it frees partially initialized option values and the option table; the
+concrete constructor's own allocations still need destruction.
+
+ConfigureElementOptions retains Tk saved options while validating track ownership
+and running concrete configuration. Trackgraph Y axes must belong to the selected
+track; a nonempty track is rejected on ordinary graphs. The original argument
+vector and option mask are borrowed transaction context, cleared before restoring
+options on failure or releasing saved options on success. Concrete configuration
+must still stage derived resources: Tk rollback alone cannot undo arbitrary writes
+to live C fields. The optional output mask is written only on success.
+
+Resource teardown and record teardown are separate. Rbc_ReleaseElementTkResources
+walks the registry while the Tk window remains usable, including elements omitted
+from the display list. Repeated resource release is guarded. Rbc_DestroyElements
+later destroys records without deleting hash entries during hash traversal, then
+deletes both hash tables and the display chain. That final container destruction
+is not an idempotent operation.
+
+Normal, active and export passes
+--------------------------------
+
+The common dispatcher consumes geometry already mapped by concrete elements.
+Normal and active passes share visibility and track-size checks; the active pass
+additionally requires ``ELEM_ACTIVE``. The enclosing graph decides pass ordering.
+All these traversals borrow records and are not snapshots that tolerate arbitrary
+callback-driven deletion during drawing.
+
+Screen track clipping intersects inclusive track bounds with graph dimensions
+before opening the renderer clip. Export uses the track rectangle in export
+geometry. Both normal and active export callbacks support the selected backend;
+only the diagnostic element comments are PostScript-specific. Viewport entry and
+renderer clipping are separate, balanced scopes. Scrolled tracks and track bar
+elements use the full-callback clip; other paths retain their existing concrete
+clipping behavior.
+
+Rbc_GraphUpdateNeeded is deliberately narrower than a general redraw predicate.
+It checks pending X/Y vector notifications only for visible display-list elements.
+It neither processes notifications nor synchronizes arrays, and does not inspect
+weights, error inputs or concrete polar data slots. Callers needing current data
+must use the appropriate synchronization and layout path, not treat a false result
+as proof that every input is current.
