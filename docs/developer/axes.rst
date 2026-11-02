@@ -308,3 +308,102 @@ Y are applied after normalization. The low-level forward coordinate helpers
 expect logarithmic conversion to have happened already; inverse helpers
 convert exponents back to data values. See :doc:`mapping` for clipping and
 viewport responsibilities.
+
+Labels, geometry and presentation
+---------------------------------
+
+Axis presentation has separate measurement and mapping phases. Measurement
+rebuilds the filtered label chain and records text dimensions and perpendicular
+axis thickness. Mapping computes final anchors and cached segments for the
+current plot rectangle. Drawing and export consume those caches; they do not
+invoke the formatter again.
+
+``NewTickLabel`` stores a copied string in the label allocation and initializes
+its anchor to ``DBL_MAX``. Measurement fills its dimensions, but only mapping
+replaces the anchor with a drawable position. ``AxisLayoutUsable`` prevents
+screen drawing, export and picking when either plot range is at most one
+pixel, because mapping was skipped and the cached positions may be stale or
+uninitialized. This is particularly important during resizing with large or
+rotated labels.
+
+Formatter callback boundary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The formatter receives the widget path and the legacy default numeric label.
+The command prefix is duplicated before appending arguments. The callback's
+result is copied into an owned label; the caller's interpreter state is
+restored. Callback errors are reported as background exceptions and normally
+fall back to the default label.
+
+A callback may also delete the axis, destroy the widget or replace layout
+resources. After evaluation, ``Rbc_AllocAxisTickLabel`` checks graph validity
+without dereferencing the old axis pointer. Invalidation releases the newly
+allocated label and returns NULL. ``GetAxisGeometry`` must stop immediately;
+its callers must check callback validity before resuming their own traversal.
+A callback error and callback invalidation are therefore different outcomes.
+Neither a numeric fallback nor preserved graph storage proves an old axis or
+label-chain pointer is still valid.
+
+Geometry and picking
+~~~~~~~~~~~~~~~~~~~~
+
+``GetAxisGeometry`` measures multiline text and rotated bounds, includes tick,
+baseline and title spacing, and stores the orientation-dependent thickness.
+Wide accumulators and clamped conversions protect the stored integer sizes.
+``GetMarginGeometry`` aggregates visible axes and alternate-title requirements.
+For a trackgraph's local Y margin it reserves the maximum per-track sum;
+multiple axes within one track still occupy separate bands.
+
+``AxisOffsets`` chooses title/tick anchors and absolute perpendicular positions
+for the selected margin. Negative tick lengths preserve inward-tick behavior
+by exchanging the baseline and major-tick positions. ``MapAxis`` allocates
+segments for the baseline and in-range major/minor ticks and positions the
+already measured labels. Count overflow or segment allocation failure leaves
+no segment array and is not reported as a Tcl command error.
+
+``Rbc_GetAxisSegments`` is a separate grid interface. It borrows cached ticks
+when available and generates temporary ticks otherwise, including for axes
+without visible rectangular decorations. It returns a caller-owned segment
+array or NULL/zero, and always releases its temporary tick arrays. Grid
+spanning uses the current plot viewport; callers requesting local track grids
+must establish that viewport first.
+
+Picking is containment, not a distance minimization despite the name
+``Rbc_NearestAxis``. It visits axes in registry order and tests tick-label
+polygons, title polygons and the axis line region, recording the matching
+``detail``. It applies the visible scrolling-band checks used by presentation.
+A returned axis is borrowed. ``Rbc_GetFirstAxis`` is simpler still: it returns
+the first chain entry without filtering hidden or pending-deletion records.
+
+Screen and document output
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``DrawAxis`` uses the renderer interface for borders, native text and line
+segments, retaining the native segment fallback when no drawable context is
+available. It also computes scrollbar fractions and queues notification;
+it does not invoke the scroll command synchronously. ``AxisExport`` emits
+cached title, labels and segments through the shared export renderer, without
+scrollbar work. Current screen strokes use projecting caps while exported
+strokes use butt caps; the optional screen axis border is not exported.
+
+Local axes map against their full track world rectangle. When track scrolling
+is enabled, screen output draws into a temporary pixmap and copies back only
+the visible band, including the axis margin. Export applies a corresponding
+clip scope. This keeps partially scrolled text and wide strokes away from
+fixed shared axes without changing their logical positions.
+
+Limit annotations and remaining differences
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Limit annotations are a separate registry-wide pass selected by
+``nFormats``, not by the ordinary visible-axis chain. One format applies to
+both ends; two formats select them independently. Empty format strings omit
+an endpoint. Both screen and export format ``axisRange`` directly, so
+logarithmic annotations currently show exponent values rather than the raw
+data-space results returned by the limits command.
+
+Screen and export use inversion-aware orientation, swap formatted endpoint
+labels for descending axes, and measure spacing with the limits text style.
+Each format stays associated with its numeric endpoint when positions swap;
+an omitted endpoint remains omitted. Tick-font changes do not alter spacing
+between limit annotations when the limits font is unchanged.

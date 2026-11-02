@@ -823,6 +823,199 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 </dd></dl>
 
 </section>
+<section id="labels-geometry-and-presentation">
+<h2>Labels, geometry and presentation<a class="headerlink" href="#labels-geometry-and-presentation" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__axis__presentation"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Axis</span> <span class="pre">labels</span> <span class="pre">and</span> <span class="pre">presentation</span></span></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.LayoutSize">
+<span class="target" id="group__axis__presentation_1ga24d9c7fd27339f6dd68b1323aedafa8b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LayoutSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.LayoutSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clamp a wide layout size to a nonnegative int. </p>
+<p>Returns zero for nonpositive input; otherwise uses Rbc_ClampToInt. Does not alter graph state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.LayoutRange">
+<span class="target" id="group__axis__presentation_1ga3f9175e8b063c3f0b0226b9da635ddb7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LayoutRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.LayoutRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clamp a wide layout range to a positive int. </p>
+<p>Returns one below the minimum usable scalar range; otherwise uses Rbc_ClampToInt. This arithmetic floor does not make collapsed plot geometry drawable. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisRotatedSize">
+<span class="target" id="group__axis__presentation_1ga4961f43cc79d59cdddf0138df447be3f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisRotatedSize</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisRotatedSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round a rotated extent without overflowing int. </p>
+<p>Nonfinite or nonpositive inputs return zero. Values within half a unit of INT_MAX are saturated before ROUND adds its rounding offset; ordinary positive extents retain legacy rounding. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.FreeLabels">
+<span class="target" id="group__axis__presentation_1ga8913b4e8b3eba02de088319be58ff50c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.FreeLabels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release every label in a chain and empty its links. </p>
+<p>Frees the owned TickLabel allocations, then resets the chain. The chain itself remains owned by the axis and reusable. Requires a valid chain. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.NewTickLabel">
+<span class="target" id="group__axis__presentation_1ga77b75d99bdf4062f0fd327d280e8db61"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">TickLabel</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewTickLabel</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.NewTickLabel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a label with its copied string inline. </p>
+<p>Checks allocation-size overflow and uses the fatal allocator. Initializes anchor coordinates to DBL_MAX to mark an unmapped label; dimensions are filled during geometry measurement. The caller owns the allocation and frees it with ckfree. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel">
+<span class="target" id="group__axis__presentation_1ga82a7017e92ebc3cad556645f2ff3bfee"></span><span class="n"><span class="pre">TickLabel</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AllocAxisTickLabel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format and allocate one major-tick label. </p>
+<p>Produces the legacy numeric label first: exponent notation for logarithmic axes, NUMDIGITS significant digits otherwise. A nonempty formatter prefix receives widget path and that label. Preserves interpreter state, reports callback errors in the background and falls back to the numeric label. After evaluation checks graph validity without dereferencing the axis; invalidation frees the candidate and returns NULL. Callers must stop traversing cached axis/layout pointers on NULL. Successful labels are caller-owned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisOffsets">
+<span class="target" id="group__axis__presentation_1ga28a89351f725073f4cdfc1cf8b826dbd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisOffsets</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">axisOffset</span></span>, <span class="n"><span class="pre">AxisInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">infoPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisOffsets" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute baseline, tick and label offsets for one margin band. </p>
+<p>Requires a concrete margin and prepared axis thickness. Updates title rotation/anchor/position, tick anchor and picking region. Accounts for plot and axis borders, alternate titles and line width. Returns absolute baseline/major/minor/label positions in AxisInfo. A negative tick length swaps the baseline and major endpoint to retain inward-tick behavior. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MakeAxisLine">
+<span class="target" id="group__axis__presentation_1ga6ecf41d27c8129bfd49f30da68dfa82a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeAxisLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">line</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MakeAxisLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map the baseline endpoints from the prepared axis range. </p>
+<p>Writes one Segment2D using logical orientation and track-aware coordinate mapping. The line argument is the fixed screen coordinate perpendicular to the axis. Inputs are axis-space bounds, already logarithmic when appropriate. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MakeTick">
+<span class="target" id="group__axis__presentation_1ga04a3e605528cea7b12272adc48189c73"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeTick</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">tick</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">line</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MakeTick" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map one axis-space value to a tick segment. </p>
+<p>Writes the segment between the absolute line and tick screen coordinates. Chooses screen orientation from logical class and inversion. Does not check range membership or convert raw logarithmic values; the caller does so before mapping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MapAxis">
+<span class="target" id="group__axis__presentation_1ga03167bd0b9fefadca5d14f8c25dbad3f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MapAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace cached axis segments and position measured labels. </p>
+<p>Requires prepared tick arrays and the matching filtered label chain when ticks are shown. Computes offsets, releases old segments, checks count/byte overflow and attempts allocation. Failure leaves zero segments and returns without an interpreter error. Maps in-range major/minor ticks and label anchors, including labelOffset. Saves the owned segment array only when nonempty; does not evaluate label callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.DrawAxis">
+<span class="target" id="group__axis__presentation_1ga9773ac635d7f9a6702c567660365bfd1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.DrawAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a mapped axis and queue its scrollbar update. </p>
+<p>Borrows prepared axis geometry. Draws its optional screen border, title, labels and segments through renderer interfaces, with native segment fallback. Screen strokes use projecting caps. When valid scroll geometry exists, updates live min/max and queues scrollbar fractions; the Tcl callback is deferred. Ends all renderer contexts before returning. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisExport">
+<span class="target" id="group__axis__presentation_1ga907b2df6767af2d1adac044bd981cb45"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export mapped title, labels and strokes through the shared renderer. </p>
+<p>Borrows the export context and axis geometry; closes contexts it creates. Uses butt caps for exported segments. Unlike DrawAxis, emits no axis border and performs no scrollbar update. Does not reformat labels or refresh layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MakeGridLine">
+<span class="target" id="group__axis__presentation_1ga77911dd50c4758ef1fa0e000fa134e7f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeGridLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MakeGridLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a tick into a full plot-spanning grid segment. </p>
+<p>Uses axis-space coordinates and logical orientation. The varying coordinate uses track-aware mapping; the other dimension spans the current graph plot rectangle. Callers entering a track must establish the desired viewport first. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_GetAxisSegments">
+<span class="target" id="group__axis__presentation_1gabf3bf952fae62f6ab90cb0e61eefe15d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetAxisSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">minorGrid</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtrPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nSegmentsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate in-range grid segments for an optional axis. </p>
+<p>Initializes outputs to NULL and zero; NULL axes produce no segments. Borrows existing tick arrays or generates temporary ones without installing them on the axis. Includes major ticks and optionally minor ticks, using checked capacity arithmetic and attempted segment allocation. Failure or empty output leaves NULL/zero. Frees temporary ticks on all exits. Successful segments belong to the caller and must be freed with ckfree. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.GetAxisGeometry">
+<span class="target" id="group__axis__presentation_1ga0b22e7c2703234fe1c7ff2767dd70f5f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisGeometry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.GetAxisGeometry" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild labels and measure the perpendicular axis thickness. </p>
+<p>Frees old labels, refreshes generated ticks when shown, filters major-label positions and allocates formatted labels. Stops immediately on formatter invalidation; callers must check graph callback validity before continuing. Measures multiline/rotated labels, baseline, ticks and title using wide size arithmetic, then stores clamped width or height for the orientation. Does not assign final label anchors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.GetMarginGeometry">
+<span class="target" id="group__axis__presentation_1ga0f5f562741671bf59ebc86003136a36f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarginGeometry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Margin</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">marginPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.GetMarginGeometry" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Measure visible axes and alternate-title requirements in one margin. </p>
+<p>Optionally refreshes axis geometry when GET_AXIS_GEOMETRY is set, stopping with zero if a formatter invalidates layout. Stores visible count, thickness, title length and axesOffset. Track-owned Y margins reserve the maximum summed thickness of any track rather than summing all tracks. Applies minimum margin dimensions and clamps wide sums; the return value is not by itself a callback- validity indicator. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_MapAxes">
+<span class="target" id="group__axis__presentation_1gae88c6d158fcba37344cb8f0eff91c829"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_MapAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map visible margin axes after arranging track viewports. </p>
+<p>Calls Rbc_LayoutTracks, then maps nonhidden onscreen axes in margin order. Ordinary axes accumulate margin offsets; track axes use per-track offsets and the full world rectangle inside an entered viewport. Skips empty visible tracks and restores the graph viewport after each local axis. Requires current ranges and measured labels. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisLayoutUsable">
+<span class="target" id="group__axis__presentation_1gaf038dfd84a81d5d1f312a5d7cf19e470"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisLayoutUsable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisLayoutUsable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Check whether both plot ranges permit mapped presentation. </p>
+<p>Returns true only when horizontal and vertical ranges exceed one pixel. Prevents drawing, exporting or picking stale geometry and newly allocated labels with unmapped DBL_MAX anchors. Does not perform layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.DrawTrackAxis">
+<span class="target" id="group__axis__presentation_1gaa080b437abd21e56ecc5065727f6722e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTrackAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.DrawTrackAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Confine local axis output to its visible scrolling band. </p>
+<p>Allocates a graph-sized temporary pixmap and GC, copies the visible band into it, draws the complete axis there and copies only that band back. The band includes the axis margin; inversion switches the clipped direction. Releases temporary resources. Empty bands return immediately. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_DrawAxes">
+<span class="target" id="group__axis__presentation_1ga22c21b044f68764c197b0a5aa1846b80"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_DrawAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw eligible axes with scrolling-track clipping. </p>
+<p>Returns for collapsed plot geometry. Traverses margin chains, skipping hidden/offscreen axes and tracks with collapsed visible rectangles. Uses DrawTrackAxis only for track-owned axes when track scrolling is enabled; otherwise draws directly. Borrows all axis records and does not map them. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AxesExport">
+<span class="target" id="group__axis__presentation_1ga731dcf08fef4f30f4afa0aee0528d6b8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxesExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AxesExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export eligible axes with scrolling-track clip scopes. </p>
+<p>Uses the same collapsed-layout and visibility checks as screen drawing. For scrolling local axes, opens a renderer clip around the visible band including margins, exports the axis and closes the scope. Requires geometry already mapped for the export dimensions. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_DrawAxisLimits">
+<span class="target" id="group__axis__presentation_1gaa36f1b78bc3a9f260395d2809e09c9fd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawAxisLimits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_DrawAxisLimits" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw formatted range annotations around the plot edges. </p>
+<p>Iterates the axis registry in hash order, selecting nFormats rather than margin visibility. Formats axisRange endpoints with bounded snprintf, uses logical orientation plus inversion and swaps labels for descending axes. Measures/draws with limitsTextStyle and updates its rotation/anchor. Logarithmic annotations currently receive exponent values; these are not the data-space limits command results. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AxisLimitsExport">
+<span class="target" id="group__axis__presentation_1gac2a9942433d502558e350e831b322ea9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxisLimitsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AxisLimitsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export formatted range annotations with screen-equivalent endpoint placement. </p>
+<p>Iterates formatted registry axes and formats axisRange endpoints with bounded snprintf. Uses inversion-aware orientation, swaps descending endpoint strings and measures with limitsTextStyle, matching screen placement. Ends its output context even when layout is collapsed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_GetFirstAxis">
+<span class="target" id="group__axis__presentation_1ga84314ac61c64cb626cc06adddd8d1b89"></span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetFirstAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_GetFirstAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow the first record in an axis chain. </p>
+<p>Returns NULL for an empty chain. Performs no hidden/deletion filtering or reference acquisition; callers must apply any additional eligibility requirements. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_NearestAxis">
+<span class="target" id="group__axis__presentation_1gad03b15ecdaed603b7bd1cf68d4affdcd"></span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NearestAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_NearestAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pick the first axis whose label, title or region contains a point. </p>
+<p>Returns NULL for unusable layout or no hit. Iterates registry order, not nearest-distance order; skips hidden/offscreen axes and collapsed or out-of-band scrolling tracks. Tests rotated label polygons, then title polygon, then line region. Sets detail to label, title or line on the borrowed returned record. Requires prepared geometry and does not acquire a reference. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AxisFontsChanged">
+<span class="target" id="group__axis__presentation_1ga881a50ab10f9704ba7b591f0388030dd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxisFontsChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AxisFontsChanged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh configured axis styles after named-font changes. </p>
+<p>Visits all registered configured axes, refreshes text GCs and title dimensions, and marks each AXIS_DIRTY. Does not regenerate tick labels or directly schedule full graph layout; the font-change caller owns subsequent invalidation. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -953,6 +1146,35 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <li><a class="reference internal" href="#c.rbcGrAxisRanges.SweepTicks"><code class="docutils literal notranslate"><span class="pre">SweepTicks()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrAxisRanges.Rbc_ResetAxes"><code class="docutils literal notranslate"><span class="pre">Rbc_ResetAxes()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrAxisRanges.GetMinorTickPosition"><code class="docutils literal notranslate"><span class="pre">GetMinorTickPosition()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#labels-geometry-and-presentation">Labels, geometry and presentation</a><ul>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.LayoutSize"><code class="docutils literal notranslate"><span class="pre">LayoutSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.LayoutRange"><code class="docutils literal notranslate"><span class="pre">LayoutRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.AxisRotatedSize"><code class="docutils literal notranslate"><span class="pre">AxisRotatedSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.FreeLabels"><code class="docutils literal notranslate"><span class="pre">FreeLabels()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.NewTickLabel"><code class="docutils literal notranslate"><span class="pre">NewTickLabel()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel"><code class="docutils literal notranslate"><span class="pre">Rbc_AllocAxisTickLabel()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.AxisOffsets"><code class="docutils literal notranslate"><span class="pre">AxisOffsets()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.MakeAxisLine"><code class="docutils literal notranslate"><span class="pre">MakeAxisLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.MakeTick"><code class="docutils literal notranslate"><span class="pre">MakeTick()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.MapAxis"><code class="docutils literal notranslate"><span class="pre">MapAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.DrawAxis"><code class="docutils literal notranslate"><span class="pre">DrawAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.AxisExport"><code class="docutils literal notranslate"><span class="pre">AxisExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.MakeGridLine"><code class="docutils literal notranslate"><span class="pre">MakeGridLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_GetAxisSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_GetAxisSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.GetAxisGeometry"><code class="docutils literal notranslate"><span class="pre">GetAxisGeometry()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.GetMarginGeometry"><code class="docutils literal notranslate"><span class="pre">GetMarginGeometry()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_MapAxes"><code class="docutils literal notranslate"><span class="pre">Rbc_MapAxes()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.AxisLayoutUsable"><code class="docutils literal notranslate"><span class="pre">AxisLayoutUsable()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.DrawTrackAxis"><code class="docutils literal notranslate"><span class="pre">DrawTrackAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_DrawAxes"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawAxes()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_AxesExport"><code class="docutils literal notranslate"><span class="pre">Rbc_AxesExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_DrawAxisLimits"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawAxisLimits()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_AxisLimitsExport"><code class="docutils literal notranslate"><span class="pre">Rbc_AxisLimitsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_GetFirstAxis"><code class="docutils literal notranslate"><span class="pre">Rbc_GetFirstAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_NearestAxis"><code class="docutils literal notranslate"><span class="pre">Rbc_NearestAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_AxisFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_AxisFontsChanged()</span></code></a></li>
 </ul>
 </li>
 </ul>

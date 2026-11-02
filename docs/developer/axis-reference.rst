@@ -55,3 +55,13 @@ Ranges, coordinates and tick sweeps
    :members:
 
 .. c:namespace-pop::
+
+Labels, geometry and presentation
+---------------------------------
+
+.. c:namespace-push:: rbcGrAxisPresentation
+
+.. doxygengroup:: axis_presentation
+   :members:
+
+.. c:namespace-pop::

@@ -11,6 +11,7 @@
 
 /** @defgroup axis_transactions Axis option transactions */
 /** @defgroup axis_ranges Axis ranges and tick sweeps */
+/** @defgroup axis_presentation Axis labels and presentation */
 /** @defgroup axis_registry Axis registry and lifetime */
 /** @defgroup axis_configuration Axis configuration entry points */
 /** @defgroup axis_commands Axis command dispatch and bindings */
@@ -408,6 +409,12 @@ static RbcGrAxisVirtualOp NamesVirtualOp;
 static RbcGrAxisVirtualOp TransformVirtualOp;
 static RbcGrAxisVirtualOp ViewOp;
 
+/**
+ * @ingroup axis_presentation
+ * @brief Clamp a wide layout size to a nonnegative int.
+ *
+ * Returns zero for nonpositive input; otherwise uses Rbc_ClampToInt. Does not alter graph state.
+ */
 static int LayoutSize(Tcl_WideInt value) {
     if (value <= 0) {
         return 0;
@@ -415,6 +422,13 @@ static int LayoutSize(Tcl_WideInt value) {
     return Rbc_ClampToInt(value);
 }
 
+/**
+ * @ingroup axis_presentation
+ * @brief Clamp a wide layout range to a positive int.
+ *
+ * Returns one below the minimum usable scalar range; otherwise uses Rbc_ClampToInt. This arithmetic
+ * floor does not make collapsed plot geometry drawable.
+ */
 static int LayoutRange(Tcl_WideInt value) {
     if (value < 1) {
         return 1;
@@ -621,6 +635,13 @@ static double AutomaticLinearStep(double min, double max) {
     return 1.0;
 }
 
+/**
+ * @ingroup axis_presentation
+ * @brief Round a rotated extent without overflowing int.
+ *
+ * Nonfinite or nonpositive inputs return zero. Values within half a unit of INT_MAX are saturated
+ * before ROUND adds its rounding offset; ordinary positive extents retain legacy rounding.
+ */
 static int AxisRotatedSize(double value) {
     if ((!FINITE(value)) || (value <= 0.0)) {
         return 0;
@@ -1850,23 +1871,12 @@ static void CommitAxisLimitTransaction(Axis *axisPtr, AxisLimitTransaction *tran
     transactionPtr->stagedMask = 0;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Release every label in a chain and empty its links.
  *
- * FreeLabels --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Chain *chainPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Frees the owned TickLabel allocations, then resets the chain. The chain itself remains owned by the
+ * axis and reusable. Requires a valid chain.
  */
 static void FreeLabels(Rbc_Chain *chainPtr) {
     Rbc_ChainLink *linkPtr;
@@ -1879,6 +1889,14 @@ static void FreeLabels(Rbc_Chain *chainPtr) {
     Rbc_ChainReset(chainPtr);
 }
 
+/**
+ * @ingroup axis_presentation
+ * @brief Allocate a label with its copied string inline.
+ *
+ * Checks allocation-size overflow and uses the fatal allocator. Initializes anchor coordinates to
+ * DBL_MAX to mark an unmapped label; dimensions are filled during geometry measurement. The caller
+ * owns the allocation and frees it with ckfree.
+ */
 static TickLabel *NewTickLabel(const char *string) {
     TickLabel *labelPtr;
     size_t length;
@@ -1894,28 +1912,16 @@ static TickLabel *NewTickLabel(const char *string) {
     return labelPtr;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Format and allocate one major-tick label.
  *
- * Rbc_AllocAxisTickLabel --
- *
- *      Converts a floating point tick value to a string to be used as its
- *      label.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr - Axis structure
- *      double value - Value to be convert to a decimal string
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Returns an allocated label, or NULL if a callback invalidates the
- *      graph. Callers must stop without using their axis or layout pointers
- *      after NULL; the callback may have destroyed those objects.
- *
- * ----------------------------------------------------------------------
+ * Produces the legacy numeric label first: exponent notation for logarithmic axes, NUMDIGITS
+ * significant digits otherwise. A nonempty formatter prefix receives widget path and that label.
+ * Preserves interpreter state, reports callback errors in the background and falls back to the numeric
+ * label. After evaluation checks graph validity without dereferencing the axis; invalidation frees the
+ * candidate and returns NULL. Callers must stop traversing cached axis/layout pointers on NULL.
+ * Successful labels are caller-owned.
  */
 TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) {
     char defaultLabel[TICK_LABEL_SIZE + 1];
@@ -3523,28 +3529,14 @@ static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     ckfree((char *)axisPtr);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Compute baseline, tick and label offsets for one margin band.
  *
- * AxisOffsets --
- *
- *      Determines the sites of the axis, major and minor ticks,
- *      and title of the axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int axisOffset
- *      AxisInfo *infoPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Requires a concrete margin and prepared axis thickness. Updates title rotation/anchor/position, tick
+ * anchor and picking region. Accounts for plot and axis borders, alternate titles and line width.
+ * Returns absolute baseline/major/minor/label positions in AxisInfo. A negative tick length swaps the
+ * baseline and major endpoint to retain inward-tick behavior.
  */
 static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffset, AxisInfo *infoPtr) {
     int pad; /* Offset of axis from interior region. This
@@ -3677,26 +3669,13 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Map the baseline endpoints from the prepared axis range.
  *
- * MakeAxisLine --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr - Axis information
- *      int line
- *      Segment2D *segPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Writes one Segment2D using logical orientation and track-aware coordinate mapping. The line argument
+ * is the fixed screen coordinate perpendicular to the axis. Inputs are axis-space bounds, already
+ * logarithmic when appropriate.
  */
 static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *segPtr) {
     double min;
@@ -3715,28 +3694,13 @@ static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *se
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Map one axis-space value to a tick segment.
  *
- * MakeTick --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr - Axis information
- *      double value
- *      int tick - Length of tick
- *      int line - Length axis line
- *      Segment2D *segPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Writes the segment between the absolute line and tick screen coordinates. Chooses screen orientation
+ * from logical class and inversion. Does not check range membership or convert raw logarithmic values;
+ * the caller does so before mapping.
  */
 static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int line, Segment2D *segPtr) {
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
@@ -3791,36 +3755,15 @@ static int GetMinorTickPosition(const Axis *axisPtr, const Ticks *majorPtr, Tcl_
     return TRUE;
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Replace cached axis segments and position measured labels.
  *
- * MapAxis --
- *
- *      Pre-calculates positions of the axis, ticks, and labels (to be
- *      used later when displaying the axis).  Calculates the values
- *      for each major and minor tick and checks to see if they are in
- *      range (the outer ticks may be outside of the range of plotted
- *      values).
- *
- *      Line segments for the minor and major ticks are saved into one
- *      XSegment array so that they can be drawn by a single
- *      XDrawSegments call. The positions of the tick labels are also
- *      computed and saved.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int offset
- *      int margin
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Line segments and tick labels are saved and used later to draw
- *      the axis.
- *
- * -----------------------------------------------------------------
+ * Requires prepared tick arrays and the matching filtered label chain when ticks are shown. Computes
+ * offsets, releases old segments, checks count/byte overflow and attempts allocation. Failure leaves
+ * zero segments and returns without an interpreter error. Maps in-range major/minor ticks and label
+ * anchors, including labelOffset. Saves the owned segment array only when nonempty; does not evaluate
+ * label callbacks.
  */
 static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     Tcl_Size arraySize;
@@ -4073,28 +4016,14 @@ static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMi
     return TRUE;
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Draw a mapped axis and queue its scrollbar update.
  *
- * DrawAxis --
- *
- *      Draws the axis, ticks, and labels onto the canvas.
- *
- *      Initializes and passes text attribute information through
- *      TextStyle structure.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable
- *      Axis *axisPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Axis gets drawn on window.
- *
- * -----------------------------------------------------------------
+ * Borrows prepared axis geometry. Draws its optional screen border, title, labels and segments through
+ * renderer interfaces, with native segment fallback. Screen strokes use projecting caps. When valid
+ * scroll geometry exists, updates live min/max and queues scrollbar fractions; the Tcl callback is
+ * deferred. Ends all renderer contexts before returning.
  */
 static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
@@ -4182,28 +4111,13 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     Rbc_RenderEnd(text);
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Export mapped title, labels and strokes through the shared renderer.
  *
- * AxisExport --
- *
- *      Generates PostScript output to draw the axis, ticks, and
- *      labels.
- *
- *      Initializes and passes text attribute information through
- *      TextStyle structure.
- *
- * Parameters:
- *      Rbc_ExportContext *exportPtr
- *      Axis *axisPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      PostScript output is left in the graphPtr->interp result;
- *
- * -----------------------------------------------------------------
+ * Borrows the export context and axis geometry; closes contexts it creates. Uses butt caps for
+ * exported segments. Unlike DrawAxis, emits no axis border and performs no scrollbar update. Does not
+ * reformat labels or refresh layout.
  */
 static void AxisExport(Rbc_ExportContext *exportPtr, Axis *axisPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -4233,26 +4147,13 @@ static void AxisExport(Rbc_ExportContext *exportPtr, Axis *axisPtr) {
     Rbc_RenderEnd(output);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Map a tick into a full plot-spanning grid segment.
  *
- * MakeGridLine --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      double value
- *      Segment2D *segPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses axis-space coordinates and logical orientation. The varying coordinate uses track-aware
+ * mapping; the other dimension spans the current graph plot rectangle. Callers entering a track must
+ * establish the desired viewport first.
  */
 static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D *segPtr) {
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
@@ -4266,29 +4167,15 @@ static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Allocate in-range grid segments for an optional axis.
  *
- * Rbc_GetAxisSegments --
- *
- *      Assembles the grid lines associated with an axis. Generates
- *      tick positions if necessary (this happens when the axis is
- *      not a logical axis too).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr - Axis supplying the tick positions
- *      int minorGrid - Include minor ticks for the selected grid
- *      Segment2D **segPtrPtr
- *      Tcl_Size *nSegmentsPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Initializes outputs to NULL and zero; NULL axes produce no segments. Borrows existing tick arrays or
+ * generates temporary ones without installing them on the axis. Includes major ticks and optionally
+ * minor ticks, using checked capacity arithmetic and attempted segment allocation. Failure or empty
+ * output leaves NULL/zero. Frees temporary ticks on all exits. Successful segments belong to the
+ * caller and must be freed with ckfree.
  */
 void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, int minorGrid, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr) {
     Ticks *t1Ptr;
@@ -4381,24 +4268,15 @@ cleanup:
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Rebuild labels and measure the perpendicular axis thickness.
  *
- * GetAxisGeometry --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Frees old labels, refreshes generated ticks when shown, filters major-label positions and allocates
+ * formatted labels. Stops immediately on formatter invalidation; callers must check graph callback
+ * validity before continuing. Measures multiline/rotated labels, baseline, ticks and title using wide
+ * size arithmetic, then stores clamped width or height for the orientation. Does not assign final
+ * label anchors.
  */
 static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
     Tcl_WideInt height;
@@ -4489,31 +4367,15 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Measure visible axes and alternate-title requirements in one margin.
  *
- * GetMarginGeometry --
- *
- *      Examines all the axes in the given margin and determines the
- *      area required to display them.
- *
- *      Note: For multiple axes, the titles are displayed in another
- *            margin. So we must keep track of the widest title.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Margin *marginPtr
- *
- * Results:
- *      Returns the width or height of the margin, depending if it
- *      runs horizontally along the graph or vertically.
- *
- * Side Effects:
- *      The area width and height set in the margin.  Note again that
- *      this may be corrected later (mulitple axes) to adjust for
- *      the longest title in another margin.
- *
- *----------------------------------------------------------------------
+ * Optionally refreshes axis geometry when GET_AXIS_GEOMETRY is set, stopping with zero if a formatter
+ * invalidates layout. Stores visible count, thickness, title length and axesOffset. Track-owned Y
+ * margins reserve the maximum summed thickness of any track rather than summing all tracks. Applies
+ * minimum margin dimensions and clamps wide sums; the return value is not by itself a callback-
+ * validity indicator.
  */
 static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
     Rbc_ChainLink *linkPtr;
@@ -6422,23 +6284,14 @@ int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]
     return axisOps[index].proc(graphPtr, axisPtr, margin, objc - 3, objv + 3);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Map visible margin axes after arranging track viewports.
  *
- * Rbc_MapAxes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Calls Rbc_LayoutTracks, then maps nonhidden onscreen axes in margin order. Ordinary axes accumulate
+ * margin offsets; track axes use per-track offsets and the full world rectangle inside an entered
+ * viewport. Skips empty visible tracks and restores the graph viewport after each local axis. Requires
+ * current ranges and measured labels.
  */
 void Rbc_MapAxes(Graph *graphPtr) {
     Axis *axisPtr;
@@ -6482,24 +6335,26 @@ void Rbc_MapAxes(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Check whether both plot ranges permit mapped presentation.
  *
- * AxisLayoutUsable --
- *
- *      Rbc_LayoutGraph skips mapping when either plot range collapses.
- *      Cached geometry may be stale, and new labels still have DBL_MAX
- *      anchors. Drawing, export and picking must wait until mapping can
- *      resume after the graph is enlarged.
- *
- *----------------------------------------------------------------------
+ * Returns true only when horizontal and vertical ranges exceed one pixel. Prevents drawing, exporting
+ * or picking stale geometry and newly allocated labels with unmapped DBL_MAX anchors. Does not perform
+ * layout.
  */
 static int AxisLayoutUsable(Graph *graphPtr) {
     return (graphPtr->hRange > 1) && (graphPtr->vRange > 1);
 }
 
-/* Local axis text and wide strokes must not paint over fixed shared axes.
- * Restrict the copy to the visible track band, including its axis margin. */
+/**
+ * @ingroup axis_presentation
+ * @brief Confine local axis output to its visible scrolling band.
+ *
+ * Allocates a graph-sized temporary pixmap and GC, copies the visible band into it, draws the complete
+ * axis there and copies only that band back. The band includes the axis margin; inversion switches the
+ * clipped direction. Releases temporary resources. Empty bands return immediately.
+ */
 static void DrawTrackAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     RbcTrack *track = axisPtr->track;
     int left = graphPtr->inverted ? track->left : 0;
@@ -6522,24 +6377,13 @@ static void DrawTrackAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     Tk_FreeGC(graphPtr->display, gc);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Draw eligible axes with scrolling-track clipping.
  *
- * Rbc_DrawAxes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns for collapsed plot geometry. Traverses margin chains, skipping hidden/offscreen axes and
+ * tracks with collapsed visible rectangles. Uses DrawTrackAxis only for track-owned axes when track
+ * scrolling is enabled; otherwise draws directly. Borrows all axis records and does not map them.
  */
 void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
     Axis *axisPtr;
@@ -6569,24 +6413,13 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Export eligible axes with scrolling-track clip scopes.
  *
- * Rbc_AxesExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the same collapsed-layout and visibility checks as screen drawing. For scrolling local axes,
+ * opens a renderer clip around the visible band including margins, exports the axis and closes the
+ * scope. Requires geometry already mapped for the export dimensions.
  */
 void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Axis *axisPtr;
@@ -6622,27 +6455,15 @@ void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Draw formatted range annotations around the plot edges.
  *
- * Rbc_DrawAxisLimits --
- *
- *      Draws the min/max values of the axis in the plotting area.
- *      The text strings are formatted according to the printf-style
- *      format descriptors in the limitsFormats array.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws the numeric values of the axis limits into the outer
- *      regions of the plotting area.
- *
- * ----------------------------------------------------------------------
+ * Iterates the axis registry in hash order, selecting nFormats rather than margin visibility. Formats
+ * axisRange endpoints with bounded snprintf, uses logical orientation plus inversion and swaps labels
+ * for descending axes. Measures/draws with limitsTextStyle and updates its rotation/anchor.
+ * Logarithmic annotations currently receive exponent values; these are not the data-space limits
+ * command results.
  */
 void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
     Axis *axisPtr;
@@ -6722,24 +6543,13 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
     Rbc_RenderEnd(text);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Export formatted range annotations with screen-equivalent endpoint placement.
  *
- * Rbc_AxisLimitsExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Iterates formatted registry axes and formats axisRange endpoints with bounded snprintf. Uses
+ * inversion-aware orientation, swaps descending endpoint strings and measures with limitsTextStyle,
+ * matching screen placement. Ends its output context even when layout is collapsed.
  */
 void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -6747,7 +6557,10 @@ void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
     double vMin, hMin, vMax, hMax;
-    char string[TICK_LABEL_SIZE + 1];
+    char minString[TICK_LABEL_SIZE + 1];
+    char maxString[TICK_LABEL_SIZE + 1];
+    char *minPtr, *maxPtr;
+    int isHoriz;
     int textWidth, textHeight;
     char *minFmt, *maxFmt;
 
@@ -6768,35 +6581,48 @@ void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
         if (axisPtr->nFormats > 1) {
             maxFmt = axisPtr->limitsFormats[1];
         }
+        isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
+        minPtr = maxPtr = NULL;
+        if (*minFmt != '\0') {
+            snprintf(minString, sizeof(minString), minFmt, axisPtr->axisRange.min);
+            minPtr = minString;
+        }
         if (*maxFmt != '\0') {
-            snprintf(string, sizeof(string), maxFmt, axisPtr->axisRange.max);
-            Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth, &textHeight);
+            snprintf(maxString, sizeof(maxString), maxFmt, axisPtr->axisRange.max);
+            maxPtr = maxString;
+        }
+        if (axisPtr->descending) {
+            char *tmp = minPtr;
+            minPtr = maxPtr;
+            maxPtr = tmp;
+        }
+        if (maxPtr != NULL) {
+            Rbc_GetTextExtents(&axisPtr->limitsTextStyle, maxPtr, &textWidth, &textHeight);
             if ((textWidth > 0) && (textHeight > 0)) {
-                if (axisPtr->classUid == rbcXAxisUid) {
+                if (isHoriz) {
                     axisPtr->limitsTextStyle.theta = 90.0;
                     axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SE;
-                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, (double)graphPtr->right, hMax);
+                    Rbc_RenderText(output, maxPtr, &axisPtr->limitsTextStyle, (double)graphPtr->right, hMax);
                     hMax -= (textWidth + SPACING);
                 } else {
                     axisPtr->limitsTextStyle.theta = 0.0;
                     axisPtr->limitsTextStyle.anchor = TK_ANCHOR_NW;
-                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, vMax, (double)graphPtr->top);
+                    Rbc_RenderText(output, maxPtr, &axisPtr->limitsTextStyle, vMax, (double)graphPtr->top);
                     vMax += (textWidth + SPACING);
                 }
             }
         }
-        if (*minFmt != '\0') {
-            snprintf(string, sizeof(string), minFmt, axisPtr->axisRange.min);
-            Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth, &textHeight);
+        if (minPtr != NULL) {
+            Rbc_GetTextExtents(&axisPtr->limitsTextStyle, minPtr, &textWidth, &textHeight);
             if ((textWidth > 0) && (textHeight > 0)) {
                 axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
-                if (axisPtr->classUid == rbcXAxisUid) {
+                if (isHoriz) {
                     axisPtr->limitsTextStyle.theta = 90.0;
-                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, (double)graphPtr->left, hMin);
+                    Rbc_RenderText(output, minPtr, &axisPtr->limitsTextStyle, (double)graphPtr->left, hMin);
                     hMin -= (textWidth + SPACING);
                 } else {
                     axisPtr->limitsTextStyle.theta = 0.0;
-                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, vMin, (double)graphPtr->bottom);
+                    Rbc_RenderText(output, minPtr, &axisPtr->limitsTextStyle, vMin, (double)graphPtr->bottom);
                     vMin += (textWidth + SPACING);
                 }
             }
@@ -6805,23 +6631,12 @@ void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderEnd(output);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Borrow the first record in an axis chain.
  *
- * Rbc_GetFirstAxis --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Chain *chainPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns NULL for an empty chain. Performs no hidden/deletion filtering or reference acquisition;
+ * callers must apply any additional eligibility requirements.
  */
 Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr) {
     Rbc_ChainLink *linkPtr;
@@ -6833,25 +6648,14 @@ Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr) {
     return Rbc_ChainGetValue(linkPtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_presentation
+ * @brief Pick the first axis whose label, title or region contains a point.
  *
- * Rbc_NearestAxis --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      int x - Point to be tested
- *      int y - Point to be tested
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns NULL for unusable layout or no hit. Iterates registry order, not nearest-distance order;
+ * skips hidden/offscreen axes and collapsed or out-of-band scrolling tracks. Tests rotated label
+ * polygons, then title polygon, then line region. Sets detail to label, title or line on the borrowed
+ * returned record. Requires prepared geometry and does not acquire a reference.
  */
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
     Tcl_HashEntry *hPtr;
@@ -6966,7 +6770,14 @@ void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list) {
     }
 }
 
-/* Refresh cached title dimensions and GCs after Tk changes a named font. */
+/**
+ * @ingroup axis_presentation
+ * @brief Refresh configured axis styles after named-font changes.
+ *
+ * Visits all registered configured axes, refreshes text GCs and title dimensions, and marks each
+ * AXIS_DIRTY. Does not regenerate tick labels or directly schedule full graph layout; the font-change
+ * caller owns subsequent invalidation.
+ */
 void Rbc_AxisFontsChanged(Graph *graphPtr) {
     Tcl_HashSearch iter;
     Tcl_HashEntry *entryPtr;

@@ -2323,5 +2323,95 @@ namespace eval graph.axis {
         }
     }
 
+    # Extract the renderer's text-group centre and rotation for a unique label.
+    proc LimitExportPosition {document label} {
+        set position {}
+        foreach line [split $document \n] {
+            if {[regexp {<g transform="translate\(([^ ]+) ([^)]+)\) rotate\(([^)]+)\)} $line -> x y angle]} {
+                set position [list $x $y $angle]
+            }
+            if {[string first ">$label</text>" $line] >= 0} {return $position}
+        }
+        return {}
+    }
+
+    set testCase(51) 0
+    foreach inverted {0 1} {
+        foreach axis {x y} {
+            foreach descending {0 1} {
+                test RBC.graph.axis.configure.A.51.[incr testCase(51)] {
+                    exported limit annotations follow screen orientation and descending endpoints
+                } -setup {
+                    graph .graph1 -width 600 -height 400 -invertxy $inverted
+                    .graph1 axis configure $axis -min 0 -max 10 -descending $descending \
+                        -limitsformat {LO%.0f HI%.0f}
+                } -body {
+                    set document [.graph1 svg output -embedfonts no]
+                    lassign [LimitExportPosition $document LO0] lx ly la
+                    lassign [LimitExportPosition $document HI10] hx hy ha
+                    set horizontal [expr {($axis eq "x") != $inverted}]
+                    set angle [expr {$horizontal ? -90 : 0}]
+                    list [expr {$la == $angle && $ha == $angle}] \
+                        [expr {$horizontal ? (($lx < $hx) != $descending) : (($ly > $hy) != $descending)}]
+                } -cleanup {
+                    destroy .graph1
+                } -result {1 1}
+            }
+        }
+    }
+
+    set testCase(52) 0
+    foreach inverted {0 1} {
+        foreach formats {{{LO%.0f} {}} {{} {HI%.0f}}} {
+            test RBC.graph.axis.configure.A.52.[incr testCase(52)] {
+                descending export keeps an omitted limit omitted and moves the remaining endpoint
+            } -setup {
+                graph .graph1 -width 600 -height 400 -invertxy $inverted
+                .graph1 axis configure x -min 0 -max 10 -limitsformat $formats
+            } -body {
+                set label [expr {[lindex $formats 0] eq "" ? "HI10" : "LO0"}]
+                set other [expr {$label eq "LO0" ? "HI10" : "LO0"}]
+                set before [LimitExportPosition [.graph1 svg output -embedfonts no] $label]
+                .graph1 axis configure x -descending yes
+                set document [.graph1 svg output -embedfonts no]
+                set after [LimitExportPosition $document $label]
+                list [expr {[llength $before] == 3 && [llength $after] == 3 && $before ne $after}] \
+                    [LimitExportPosition $document $other]
+            } -cleanup {
+                destroy .graph1
+            } -result {1 {}}
+        }
+    }
+
+    set testCase(53) 0
+    foreach inverted {0 1} {
+        test RBC.graph.axis.configure.A.53.[incr testCase(53)] {
+            exported annotation spacing uses limits font independently of tick font
+        } -setup {
+            graph .graph1 -width 600 -height 400 -invertxy $inverted \
+                -leftmargin 60 -rightmargin 60 -topmargin 50 -bottommargin 50
+            .graph1 axis configure x x2 -min 0 -max 10 -hide yes \
+                -limitsfont {Helvetica 12} -tickfont {Helvetica 8}
+            .graph1 axis configure x -limitsformat {AA%.0f {}}
+            .graph1 axis configure x2 -limitsformat {BB%.0f {}}
+        } -body {
+            set distances {}
+            foreach tickSize {8 30 30} limitSize {12 12 24} {
+                .graph1 axis configure x x2 -tickfont [list Helvetica $tickSize] \
+                    -limitsfont [list Helvetica $limitSize]
+                set document [.graph1 svg output -embedfonts no]
+                set a [LimitExportPosition $document AA0]
+                set b [LimitExportPosition $document BB0]
+                set dimension [expr {$inverted ? 0 : 1}]
+                lappend distances [expr {abs([lindex $a $dimension]-[lindex $b $dimension])}]
+            }
+            lassign $distances small tickChanged limitsChanged
+            list [expr {abs($small-$tickChanged)<0.01}] [expr {$limitsChanged>$tickChanged}]
+        } -cleanup {
+            destroy .graph1
+        } -result {1 1}
+    }
+    rename LimitExportPosition {}
+
 	cleanupTests
 }
