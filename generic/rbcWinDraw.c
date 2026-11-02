@@ -10,6 +10,12 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcWinDraw.c
+ * Private Tk Windows compatibility services used below the native renderer.
+ */
+/** @defgroup windows_drawing_resources Windows drawing resource helpers
+ * Drawable wrappers, acquisition records, raster fast paths and GC conversion.
+ */
 #include "rbcInt.h"
 #include <X11/Xutil.h>
 #include <X11/Xlib.h>
@@ -29,6 +35,10 @@
 #pragma GCC diagnostic pop
 #endif
 
+/** @brief Owned release record for a borrowed Tk drawable DC.
+ * Retains the drawable and private Tk state until release. A NULL dc still
+ * leaves this allocated record owned by the acquiring caller.
+ */
 struct Rbc_WinDrawableDC {
     TkWinDCState state;
     Drawable drawable;
@@ -57,22 +67,13 @@ static const int rbcWinRopModes[] = {
     R2_WHITE        /* GXset */
 };
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Wrap a borrowed HDC as a Tk-compatible drawable.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinCreateDrawableFromDC --
- *
- *      Wraps a Windows device context in a Tk Windows drawable.
- *      The returned drawable must be released with
- *      Rbc_WinFreeDrawableFromDC().
- *
- * Results:
- *      A drawable representing the supplied HDC.
- *
- * Side effects:
- *      Allocates a small private Tk drawable wrapper.
- *
- *----------------------------------------------------------------------
+ * Returns None for NULL DC; otherwise allocates a TkWinDC wrapper. Caller
+ * releases only this wrapper with Rbc_WinFreeDrawableFromDC. Underlying DC
+ * ownership and restoration stay with the caller.
  */
 Drawable Rbc_WinCreateDrawableFromDC(HDC dc) {
     TkWinDC *dcPtr;
@@ -86,21 +87,12 @@ Drawable Rbc_WinCreateDrawableFromDC(HDC dc) {
     return (Drawable)dcPtr;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Free an owned HDC drawable wrapper.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinFreeDrawableFromDC --
- *
- *      Releases a drawable created by Rbc_WinCreateDrawableFromDC().
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Frees the drawable wrapper.  The underlying HDC is not
- *      released or destroyed.
- *
- *----------------------------------------------------------------------
+ * Accepts None. The argument must come from Rbc_WinCreateDrawableFromDC;
+ * this does not release or destroy the underlying HDC.
  */
 void Rbc_WinFreeDrawableFromDC(Drawable drawable) {
     if (drawable != None) {
@@ -108,24 +100,13 @@ void Rbc_WinFreeDrawableFromDC(Drawable drawable) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Wrap an HWND in static Tk window storage.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinWindowFromHWND --
- *
- *      Wraps a native Windows HWND in the Window representation
- *      expected by Tk's Windows Xlib compatibility layer.
- *
- *      The returned Window is backed by static storage and is valid
- *      until the next call to this function.
- *
- * Results:
- *      A Window representing the supplied HWND.
- *
- * Side effects:
- *      Replaces the contents of the internal wrapper.
- *
- *----------------------------------------------------------------------
+ * Returns a borrowed Window valid only until the next call. Does not create
+ * a Tk window, own the HWND or allocate a persistent wrapper. The static
+ * record is overwritten on each call and is not independent per thread.
  */
 Window Rbc_WinWindowFromHWND(HWND hWnd) {
     static TkWinWindow window;
@@ -136,23 +117,14 @@ Window Rbc_WinWindowFromHWND(HWND hWnd) {
     return (Window)&window;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Acquire a drawable DC and allocate its release record.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinAcquireDrawableDC --
- *
- *      Obtains a Windows device context for an arbitrary Tk drawable.
- *      The returned state must be released with
- *      Rbc_WinReleaseDrawableDC().
- *
- * Results:
- *      The Windows device context associated with the drawable.
- *
- * Side effects:
- *      Allocates a small state object used to restore Tk's drawable
- *      state when the DC is released.
- *
- *----------------------------------------------------------------------
+ * Requires valid output storage. Always returns an owned state record through
+ * statePtrPtr, including when the returned DC is NULL. Release that record
+ * with Rbc_WinReleaseDrawableDC. The record contains private Tk DC state;
+ * callers separately restore GDI objects/state they explicitly change.
  */
 HDC Rbc_WinAcquireDrawableDC(Display *display, Drawable drawable, Rbc_WinDrawableDC **statePtrPtr) {
     Rbc_WinDrawableDC *statePtr;
@@ -164,22 +136,13 @@ HDC Rbc_WinAcquireDrawableDC(Display *display, Drawable drawable, Rbc_WinDrawabl
     return statePtr->dc;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Release Tk drawable state and its RBC acquisition record.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinReleaseDrawableDC --
- *
- *      Releases a device context obtained by
- *      Rbc_WinAcquireDrawableDC().
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Restores Tk's drawable state and frees the RBC state object.
- *      Failed acquisitions have no DC to restore but still own this object.
- *
- *----------------------------------------------------------------------
+ * Accepts NULL. Calls TkWinReleaseDrawableDC only for a non-NULL acquired DC,
+ * then frees the record even after failed acquisition. Must be called once
+ * for each acquisition record; does not destroy the drawable.
  */
 void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
     if (statePtr == NULL) {
@@ -191,40 +154,24 @@ void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
     ckfree((char *)statePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Select the DC raster operation from the compatibility table.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinSetROP2 --
- *
- *      Sets the Windows raster operation corresponding to an X11
- *      graphics-function value.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Changes the raster operation mode of the supplied DC.
- *
- *----------------------------------------------------------------------
+ * Requires an X graphics-function index in the table range. Changes the
+ * borrowed DC without saving its prior ROP2 value; no range check or GDI
+ * error result is provided.
  */
 void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, rbcWinRopModes[function]); }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Wrap a native bitmap in Tk pixmap representation.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinCreatePixmapFromBitmap --
- *
- *      Wraps a native Windows bitmap in the representation expected
- *      by Tk's Windows Xlib compatibility layer.
- *
- * Results:
- *      A Pixmap backed by the supplied HBITMAP, or None if hBitmap
- *      is NULL.
- *
- * Side effects:
- *      Allocates a small private Tk drawable wrapper.
- *
- *----------------------------------------------------------------------
+ * Returns None for NULL HBITMAP; otherwise allocates a TkWinBitmap record
+ * with the supplied depth and colormap. The result participates in normal
+ * Tk pixmap destruction, including bitmap deletion. Do not independently
+ * delete the bitmap while the wrapper remains live.
  */
 Pixmap Rbc_WinCreatePixmapFromBitmap(HBITMAP hBitmap, int depth, Colormap colormap) {
     TkWinBitmap *bitmapPtr;
@@ -240,18 +187,12 @@ Pixmap Rbc_WinCreatePixmapFromBitmap(HBITMAP hBitmap, int depth, Colormap colorm
     return (Pixmap)bitmapPtr;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Return the borrowed native bitmap handle of a Tk pixmap.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinGetPixmapHandle --
- *
- *      Returns the native Windows bitmap handle backing a Tk pixmap.
- *
- * Results:
- *      The HBITMAP associated with the pixmap, or NULL if the
- *      drawable is not a bitmap.
- *
- *----------------------------------------------------------------------
+ * Returns NULL for None or a non-bitmap drawable. The returned handle remains
+ * owned by the pixmap; no reference or copy is acquired.
  */
 HBITMAP Rbc_WinGetPixmapHandle(Pixmap pixmap) {
     TkWinDrawable *twdPtr;
@@ -266,23 +207,14 @@ HBITMAP Rbc_WinGetPixmapHandle(Pixmap pixmap) {
     return twdPtr->bitmap.handle;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Copy the system palette when the display is palette-based.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_GetSystemPalette --
- *
- *      TODO: Description
- *
- * Parameters:
- *      None
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Acquires and releases a screen DC. For RC_PALETTE devices, allocates a
+ * temporary 256-entry LOGPALETTE and creates an owned HPALETTE. Caller deletes
+ * the returned palette with DeleteObject. Returns NULL on unsupported devices
+ * or acquisition/allocation/creation failure; temporary storage is released.
  */
 HPALETTE Rbc_GetSystemPalette(void) {
     HDC hDC;
@@ -313,29 +245,17 @@ HPALETTE Rbc_GetSystemPalette(void) {
     return hPalette;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Read monochrome DIB data into a caller-owned byte buffer.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_GetBitmapData --
- *
- *      Returns the DIB bits from a bitmap.
- *
- * Parameters:
- *      Display *display - Display of bitmap
- *      Pixmap bitmap - Bitmap to query
- *      int width - Width of bitmap
- *      int height - Height of bitmap
- *      int *pitchPtr - (out) Number of bytes per row
- *
- * Results:
- *      Returns a byte array of bitmap data or NULL if an error
- *      occurred.  The parameter pitchPtr returns the number
- *      of bytes per row.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires pitchPtr, initializes it to zero and rejects invalid dimensions
+ * or overflowing storage sizes. Requests a positive-height one-bit BI_RGB
+ * DIB with DWORD-aligned rows; returned rows retain native bottom-up order.
+ * Uses at least the calculated stride times height even if biSizeImage is
+ * zero. Releases temporary global memory and each DC acquisition. Returns
+ * NULL on failure, or ckalloc storage to free with ckfree and the row pitch.
+ * A nonzero GetDIBits result is accepted; exact scanline count is not checked.
  */
 unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int height, int *pitchPtr) {
     Rbc_WinDrawableDC *dcStatePtr;
@@ -441,6 +361,13 @@ unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int
     return bits;
 }
 
+/**
+ * @brief Read Tk Windows bevel pixels into caller storage.
+ * @ingroup windows_drawing_resources
+ *
+ * Borrows window and border; fills flat, light, dark, light2 and dark2 through
+ * TkWinGetBorderPixels. Does not allocate or transfer color resources.
+ */
 void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBorderColors *colorsPtr) {
     colorsPtr->flat = TkWinGetBorderPixels(tkwin, border, TK_3D_FLAT_GC);
     colorsPtr->light = TkWinGetBorderPixels(tkwin, border, TK_3D_LIGHT_GC);
@@ -449,6 +376,13 @@ void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBord
     colorsPtr->dark2 = TkWinGetBorderPixels(tkwin, border, TK_3D_DARK2);
 }
 
+/**
+ * @brief Fill a positive rectangle through Tk Windows drawing.
+ * @ingroup windows_drawing_resources
+ *
+ * Borrows DC and ignores nonpositive dimensions. Uses TkWinFillRect so bevel
+ * strips match Tk geometry. Does not acquire a DC or report drawing failure.
+ */
 void Rbc_WinFillRect(HDC dc, int x, int y, int width, int height, COLORREF color) {
     if ((width <= 0) || (height <= 0)) {
         return;
@@ -460,26 +394,17 @@ void Rbc_WinFillRect(HDC dc, int x, int y, int width, int height, COLORREF color
     TkWinFillRect(dc, x, y, width, height, (int)color);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Try a pattern-brush fast path for opaque stipple rectangles.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinFillOpaqueStippledRectangles --
- *
- *      Fast Windows implementation of the normal GXcopy
- *      FillOpaqueStippled rectangle case.
- *
- *      Tk's XFillRectangles implementation creates and destroys a
- *      compatible bitmap for every rectangle.  For large bar charts
- *      that setup dominates rendering time.
- *
- *      A monochrome Windows pattern brush can instead expand the
- *      stipple directly using the DC text/background colors.
- *
- * Results:
- *      TRUE if the rectangles were handled here.
- *      FALSE if the caller should use XFillRectangles.
- *
- *----------------------------------------------------------------------
+ * Requires GXcopy, FillOpaqueStippled and a bitmap stipple. Borrows GC/rectangles
+ * and owns the pattern brush and DC acquisition. Sets text/background colors
+ * in reverse GC order for monochrome stipple expansion and uses the GC origin.
+ * Restores colors, brush and origin after painting. FALSE requests ordinary
+ * fallback and can follow partial output; copy semantics permit replay.
+ * Failed DC acquisition releases its allocated record and the pattern brush
+ * before returning FALSE.
  */
 int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC gc, const XRectangle *rectangles,
                                         int nRectangles) {
@@ -513,6 +438,7 @@ int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC 
     }
     dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
     if (dc == NULL) {
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
         DeleteObject(patternBrush);
         return FALSE;
     }
@@ -570,21 +496,16 @@ int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC 
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Copy a monochrome bitmap at multiple positions using shared DCs.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_WinCopyOpaqueBitmapBatch --
- *
- *      Copy one monochrome bitmap to many destination positions while
- *      sharing the source and destination device contexts.
- *
- *      This implements the simple opaque XCopyPlane case used by
- *      unmasked bitmap markers.
- *
- * Results:
- *      TRUE on success, FALSE if the fast path could not be completed.
- *
- *----------------------------------------------------------------------
+ * Borrows bitmap, GC and positions. Caller restricts this to the unmasked
+ * copy-compatible case; the helper does not validate raster-operation or
+ * clip-mask eligibility. Saves destination background mode/colors, sets the
+ * opaque expansion colors and uses SRCCOPY. Restores destination state and
+ * releases both DC acquisitions. FALSE can follow partial output; shared
+ * caller may replay only because this path has copy semantics.
  */
 int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
                                  const int (*positions)[2], Tcl_Size nPositions) {
@@ -639,44 +560,22 @@ int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bit
     return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return the legacy Windows X request-size surrogate.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_EmulateXMaxRequestSize --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns SHRT_MAX divided by four, independent of display. This is a
+ * compatibility sizing value, not a query of a live GDI device limit.
  */
 long Rbc_EmulateXMaxRequestSize(Display *display) { return (SHRT_MAX / 4); }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Move the native window to the bottom of its stacking order.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_EmulateXLowerWindow --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Window window
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows the Tk-compatible Window, obtains its HWND and calls SetWindowPos
+ * without moving or resizing. Does not report failure or increment an X
+ * request counter; the flags do not explicitly suppress activation.
  */
 void Rbc_EmulateXLowerWindow(Display *display, Window window) {
     HWND hWnd;
@@ -688,26 +587,14 @@ void Rbc_EmulateXLowerWindow(Display *display, Window window) {
     SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Copy the bounded zero-terminated GC dash sequence.
+ * @ingroup windows_drawing_resources
  *
- * Rbc_GCToPen --
- *
- *      Set up the graphics port from the given GC.
- *
- * Parameters:
- *      HDC dc
- *      GC gc
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The current port is adjusted.
- *
- *----------------------------------------------------------------------
+ * Borrows the GC and writes at most RBC_MAX_DASH_VALUES DWORDs into caller
+ * storage. Reads unsigned bytes starting at gc->dashes using the established
+ * Windows GC dash layout. Returns the number copied, without allocation.
  */
-
 static int GetGCDashValues(GC gc, DWORD *dashArr) {
     const unsigned char *srcPtr;
     int nValues;
@@ -719,6 +606,17 @@ static int GetGCDashValues(GC gc, DWORD *dashArr) {
     return nValues;
 }
 
+/**
+ * @brief Create an owned GDI pen from configured GC line attributes.
+ * @ingroup windows_drawing_resources
+ *
+ * Clamps line width to at least one, maps caps/joins and duplicates a single
+ * dash value for a repeating user style. Both dash line styles use the same
+ * user-style pen representation. Sets the borrowed DC background mode to
+ * TRANSPARENT without restoring it. Uses a geometric pen for width above one
+ * and a cosmetic pen otherwise; asserts creation success. Caller selects and
+ * later deletes the pen after restoring its previous selection.
+ */
 HPEN Rbc_GCToPen(HDC dc, GC gc) {
     DWORD lineAttrs;
     DWORD lineStyle;

@@ -263,6 +263,153 @@ function and structure names cannot merge with the X11 implementation.</p>
 <p>Owns the acquisition record and tracks a SaveDC token. The parent drawable remains borrowed; PlatformUnclip handles partial initialization. </p>
 </dd></dl>
 
+<section id="tk-windows-resource-boundary">
+<h2>Tk Windows resource boundary<a class="headerlink" href="#tk-windows-resource-boundary" title="Link to this heading">¶</a></h2>
+<p>These compatibility services confine private Tk drawable/DC representations to
+<code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code>. Components use the renderer interface rather than these helpers.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__windows__drawing__resources"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">drawing</span> <span class="pre">resource</span> <span class="pre">helpers</span></span></dt>
+<dd><p>Drawable wrappers, acquisition records, raster fast paths and GC conversion. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinCreateDrawableFromDC">
+<span class="target" id="group__windows__drawing__resources_1gaf83f784a9d8ba82c51718dae646e649f"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinCreateDrawableFromDC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinCreateDrawableFromDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Wrap a borrowed HDC as a Tk-compatible drawable. </p>
+<p>Returns None for NULL DC; otherwise allocates a TkWinDC wrapper. Caller releases only this wrapper with Rbc_WinFreeDrawableFromDC. Underlying DC ownership and restoration stay with the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinFreeDrawableFromDC">
+<span class="target" id="group__windows__drawing__resources_1gaa5b48d231222d6116135ea0d3af0c6a6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinFreeDrawableFromDC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinFreeDrawableFromDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Free an owned HDC drawable wrapper. </p>
+<p>Accepts None. The argument must come from Rbc_WinCreateDrawableFromDC; this does not release or destroy the underlying HDC. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinWindowFromHWND">
+<span class="target" id="group__windows__drawing__resources_1gad11f3ac162d4c1e9d9a0f4449230509d"></span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinWindowFromHWND</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HWND</span></span><span class="w"> </span><span class="n"><span class="pre">hWnd</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinWindowFromHWND" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Wrap an HWND in static Tk window storage. </p>
+<p>Returns a borrowed Window valid only until the next call. Does not create a Tk window, own the HWND or allocate a persistent wrapper. The static record is overwritten on each call and is not independent per thread. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinAcquireDrawableDC">
+<span class="target" id="group__windows__drawing__resources_1ga92ca7d3ecd407a90f7365ecfd5959cea"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinAcquireDrawableDC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC" title="Rbc_WinDrawableDC"><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">statePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinAcquireDrawableDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a drawable DC and allocate its release record. </p>
+<p>Requires valid output storage. Always returns an owned state record through statePtrPtr, including when the returned DC is NULL. Release that record with Rbc_WinReleaseDrawableDC. The record contains private Tk DC state; callers separately restore GDI objects/state they explicitly change. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinReleaseDrawableDC">
+<span class="target" id="group__windows__drawing__resources_1ga24cda0db9f4f7aabfc872cf3a43ea422"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinReleaseDrawableDC</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC" title="Rbc_WinDrawableDC"><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">statePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinReleaseDrawableDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release Tk drawable state and its RBC acquisition record. </p>
+<p>Accepts NULL. Calls TkWinReleaseDrawableDC only for a non-NULL acquired DC, then frees the record even after failed acquisition. Must be called once for each acquisition record; does not destroy the drawable. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinSetROP2">
+<span class="target" id="group__windows__drawing__resources_1ga8bc853264399064c2318bb6a8cd9b7de"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinSetROP2</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">function</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinSetROP2" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Select the DC raster operation from the compatibility table. </p>
+<p>Requires an X graphics-function index in the table range. Changes the borrowed DC without saving its prior ROP2 value; no range check or GDI error result is provided. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap">
+<span class="target" id="group__windows__drawing__resources_1ga4d5a4e2d2fb4afe88b804d929d43a245"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinCreatePixmapFromBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HBITMAP</span></span><span class="w"> </span><span class="n"><span class="pre">hBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">depth</span></span>, <span class="n"><span class="pre">Colormap</span></span><span class="w"> </span><span class="n"><span class="pre">colormap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Wrap a native bitmap in Tk pixmap representation. </p>
+<p>Returns None for NULL HBITMAP; otherwise allocates a TkWinBitmap record with the supplied depth and colormap. The result participates in normal Tk pixmap destruction, including bitmap deletion. Do not independently delete the bitmap while the wrapper remains live. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinGetPixmapHandle">
+<span class="target" id="group__windows__drawing__resources_1ga2044d3ca8fc9b5923dcaddc5b8cbb068"></span><span class="n"><span class="pre">HBITMAP</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinGetPixmapHandle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">pixmap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinGetPixmapHandle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the borrowed native bitmap handle of a Tk pixmap. </p>
+<p>Returns NULL for None or a non-bitmap drawable. The returned handle remains owned by the pixmap; no reference or copy is acquired. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_GetSystemPalette">
+<span class="target" id="group__windows__drawing__resources_1ga2f47a1eb26069ec494c7db208becb5ab"></span><span class="n"><span class="pre">HPALETTE</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetSystemPalette</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_GetSystemPalette" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy the system palette when the display is palette-based. </p>
+<p>Acquires and releases a screen DC. For RC_PALETTE devices, allocates a temporary 256-entry LOGPALETTE and creates an owned HPALETTE. Caller deletes the returned palette with DeleteObject. Returns NULL on unsupported devices or acquisition/allocation/creation failure; temporary storage is released. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_GetBitmapData">
+<span class="target" id="group__windows__drawing__resources_1ga1878d7cee801a47ff5809ea786a78672"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBitmapData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pitchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_GetBitmapData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read monochrome DIB data into a caller-owned byte buffer. </p>
+<p>Requires pitchPtr, initializes it to zero and rejects invalid dimensions or overflowing storage sizes. Requests a positive-height one-bit BI_RGB DIB with DWORD-aligned rows; returned rows retain native bottom-up order. Uses at least the calculated stride times height even if biSizeImage is zero. Releases temporary global memory and each DC acquisition. Returns NULL on failure, or ckalloc storage to free with ckfree and the row pitch. A nonzero GetDIBits result is accepted; exact scanline count is not checked. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinGet3DBorderColors">
+<span class="target" id="group__windows__drawing__resources_1gacbce5c183792c3fe23bcbf68e23e5937"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinGet3DBorderColors</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinGet3DBorderColors" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read Tk Windows bevel pixels into caller storage. </p>
+<p>Borrows window and border; fills flat, light, dark, light2 and dark2 through TkWinGetBorderPixels. Does not allocate or transfer color resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinFillRect">
+<span class="target" id="group__windows__drawing__resources_1gaed183451d23ff5d86c695f021ece1e80"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinFillRect</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">COLORREF</span></span><span class="w"> </span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinFillRect" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill a positive rectangle through Tk Windows drawing. </p>
+<p>Borrows DC and ignores nonpositive dimensions. Uses TkWinFillRect so bevel strips match Tk geometry. Does not acquire a DC or report drawing failure. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinFillOpaqueStippledRectangles">
+<span class="target" id="group__windows__drawing__resources_1gafdd2a3c9332c85cee4961de41dd174db"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinFillOpaqueStippledRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nRectangles</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinFillOpaqueStippledRectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try a pattern-brush fast path for opaque stipple rectangles. </p>
+<p>Requires GXcopy, FillOpaqueStippled and a bitmap stipple. Borrows GC/rectangles and owns the pattern brush and DC acquisition. Sets text/background colors in reverse GC order for monochrome stipple expansion and uses the GC origin. Restores colors, brush and origin after painting. FALSE requests ordinary fallback and can follow partial output; copy semantics permit replay. Failed DC acquisition releases its allocated record and the pattern brush before returning FALSE. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinCopyOpaqueBitmapBatch">
+<span class="target" id="group__windows__drawing__resources_1gac2677247d1c3b73d7efffb5ff7f8c3a2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinCopyOpaqueBitmapBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPositions</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinCopyOpaqueBitmapBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a monochrome bitmap at multiple positions using shared DCs. </p>
+<p>Borrows bitmap, GC and positions. Caller restricts this to the unmasked copy-compatible case; the helper does not validate raster-operation or clip-mask eligibility. Saves destination background mode/colors, sets the opaque expansion colors and uses SRCCOPY. Restores destination state and releases both DC acquisitions. FALSE can follow partial output; shared caller may replay only because this path has copy semantics. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_EmulateXMaxRequestSize">
+<span class="target" id="group__windows__drawing__resources_1ga46f13519a0417e88afec35ac8a05ec68"></span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXMaxRequestSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_EmulateXMaxRequestSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legacy Windows X request-size surrogate. </p>
+<p>Returns SHRT_MAX divided by four, independent of display. This is a compatibility sizing value, not a query of a live GDI device limit. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_EmulateXLowerWindow">
+<span class="target" id="group__windows__drawing__resources_1ga278823a2c1bf687166108a70c5114fcc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXLowerWindow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="n"><span class="pre">window</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_EmulateXLowerWindow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move the native window to the bottom of its stacking order. </p>
+<p>Borrows the Tk-compatible Window, obtains its HWND and calls SetWindowPos without moving or resizing. Does not report failure or increment an X request counter; the flags do not explicitly suppress activation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.GetGCDashValues">
+<span class="target" id="group__windows__drawing__resources_1ga0f367ec19a9a0802e2aa8f779c7dc150"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGCDashValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashArr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.GetGCDashValues" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy the bounded zero-terminated GC dash sequence. </p>
+<p>Borrows the GC and writes at most RBC_MAX_DASH_VALUES DWORDs into caller storage. Reads unsigned bytes starting at gc-&gt;dashes using the established Windows GC dash layout. Returns the number copied, without allocation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_GCToPen">
+<span class="target" id="group__windows__drawing__resources_1ga015e5d60ae830bb874895c868b486aa5"></span><span class="n"><span class="pre">HPEN</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GCToPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_GCToPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create an owned GDI pen from configured GC line attributes. </p>
+<p>Clamps line width to at least one, maps caps/joins and duplicates a single dash value for a repeating user style. Both dash line styles use the same user-style pen representation. Sets the borrowed DC background mode to TRANSPARENT without restoring it. Uses a geometric pen for width above one and a cosmetic pen otherwise; asserts creation success. Caller selects and later deletes the pen after restoring its previous selection. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinDrawableDC">
+<span class="target" id="struct_rbc___win_drawable_d_c"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span></span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinDrawableDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned release record for a borrowed Tk drawable DC. </p>
+<p>Retains the drawable and private Tk state until release. A NULL dc still leaves this allocated record owned by the acquiring caller. </p>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -306,6 +453,28 @@ function and structure names cannot merge with the X11 implementation.</p>
 <li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeTrace</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonBatch</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeWindows.NativeDCClip"><code class="docutils literal notranslate"><span class="pre">NativeDCClip</span></code></a></li>
+<li><a class="reference internal" href="#tk-windows-resource-boundary">Tk Windows resource boundary</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCreateDrawableFromDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinCreateDrawableFromDC()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinFreeDrawableFromDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinFreeDrawableFromDC()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinWindowFromHWND"><code class="docutils literal notranslate"><span class="pre">Rbc_WinWindowFromHWND()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinAcquireDrawableDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinAcquireDrawableDC()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinReleaseDrawableDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinReleaseDrawableDC()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinSetROP2"><code class="docutils literal notranslate"><span class="pre">Rbc_WinSetROP2()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_WinCreatePixmapFromBitmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinGetPixmapHandle"><code class="docutils literal notranslate"><span class="pre">Rbc_WinGetPixmapHandle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_GetSystemPalette"><code class="docutils literal notranslate"><span class="pre">Rbc_GetSystemPalette()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_GetBitmapData"><code class="docutils literal notranslate"><span class="pre">Rbc_GetBitmapData()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinGet3DBorderColors"><code class="docutils literal notranslate"><span class="pre">Rbc_WinGet3DBorderColors()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinFillRect"><code class="docutils literal notranslate"><span class="pre">Rbc_WinFillRect()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinFillOpaqueStippledRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_WinFillOpaqueStippledRectangles()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCopyOpaqueBitmapBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_WinCopyOpaqueBitmapBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_EmulateXMaxRequestSize"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXMaxRequestSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_EmulateXLowerWindow"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXLowerWindow()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.GetGCDashValues"><code class="docutils literal notranslate"><span class="pre">GetGCDashValues()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_GCToPen"><code class="docutils literal notranslate"><span class="pre">Rbc_GCToPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinDrawableDC</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

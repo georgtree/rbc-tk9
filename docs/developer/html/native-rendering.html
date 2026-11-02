@@ -394,6 +394,86 @@ source contracts identify these limits rather than promising rollback or
 complete output. The polygon and circle copy-replay paths handle particular
 failures; they are not a blanket recovery guarantee for every native operation.</p>
 </section>
+<section id="windows-compatibility-resource-boundary">
+<h2>Windows compatibility resource boundary<a class="headerlink" href="#windows-compatibility-resource-boundary" title="Link to this heading">¶</a></h2>
+<p>The resource helpers in rbcWinDraw.c isolate private Tk Windows types. A drawable
+wrapper, a DC acquisition record and a pixmap wrapper have different ownership
+rules even though each bridges native Windows handles to Tk representations.</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Windows wrapper ownership</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Result</p></th>
+<th class="head"><p>Ownership</p></th>
+<th class="head"><p>Release rule</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Drawable from HDC</p></td>
+<td><p>Owned wrapper, borrowed HDC.</p></td>
+<td><p>Free the wrapper; restore/release the HDC separately.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Drawable DC acquisition</p></td>
+<td><p>Owned state record, even if the DC is NULL.</p></td>
+<td><p>Always release the record once.</p></td>
+</tr>
+<tr class="row-even"><td><p>Window from HWND</p></td>
+<td><p>One static wrapper overwritten on each call.</p></td>
+<td><p>Do not free, retain across calls, or treat as thread-local storage.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pixmap from HBITMAP</p></td>
+<td><p>Tk bitmap wrapper with native bitmap lifetime.</p></td>
+<td><p>Use normal Tk pixmap destruction; do not double-delete the HBITMAP.</p></td>
+</tr>
+<tr class="row-even"><td><p>Pixmap handle lookup</p></td>
+<td><p>Borrowed HBITMAP.</p></td>
+<td><p>Do not delete it independently.</p></td>
+</tr>
+<tr class="row-odd"><td><p>System palette copy</p></td>
+<td><p>Owned HPALETTE, or NULL.</p></td>
+<td><p>DeleteObject when no longer used.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The acquisition record preserves Tk’s drawable state; it does not remove the
+backend’s responsibility to restore explicitly selected pens, brushes and saved
+GDI attributes. Rbc_GCToPen creates an owned pen but also sets TRANSPARENT
+background mode on its borrowed DC. It maps caps/joins and bounded GC dash bytes;
+a single dash value is duplicated for the Windows repeating user style. Pen
+creation is asserted, rather than returned as a Tcl error.</p>
+</section>
+<section id="monochrome-readback-and-fast-paths">
+<h2>Monochrome readback and fast paths<a class="headerlink" href="#monochrome-readback-and-fast-paths" title="Link to this heading">¶</a></h2>
+<p>Rbc_GetBitmapData requests positive-height one-bit BI_RGB data. Rows are bottom-up
+and padded to DWORD boundaries. The returned pitch describes that padding; the
+buffer contains bits only, without the DIB header or color table. The caller
+frees it with ckfree. Temporary global-memory headers and DC acquisitions remain
+internal. A zero or undersized biSizeImage is replaced by the calculated minimum
+storage requirement. The current success check accepts any nonzero GetDIBits
+return, rather than verifying the full requested row count.</p>
+<p>The opaque-stipple fast path uses a monochrome pattern brush. It sets DC text
+color from GC background and DC background color from GC foreground to preserve
+stipple expansion, and applies the GC tile/stipple origin. It restores those
+attributes and the previous brush after painting. Its FALSE result can mean
+partial output; the caller can replay because eligibility is limited to GXcopy.
+Failed DC acquisition releases both the allocated acquisition record and the
+pattern brush before requesting fallback. A NULL DC does not imply that the
+acquisition record is absent.</p>
+<p>Opaque bitmap runs similarly retain source and destination DCs across the run,
+restore background mode/colors, and release acquired state. The helper uses
+SRCCOPY and relies on its caller for unmasked copy eligibility; it does not
+inspect the GC operation to enforce that contract. A FALSE result after partial
+painting therefore supports complete replay only under that caller contract.</p>
+<p>Border-color extraction and rectangle fills use private Tk Windows helpers so
+bevel geometry and shades remain consistent with Tk. The emulated request-size
+function is a historical constant, not a live device-capacity query. These
+compatibility services are not independent renderers and should not become new
+entry points for graph components.</p>
+</section>
 </section>
 
 
@@ -418,6 +498,8 @@ failures; they are not a blanket recovery guarantee for every native operation.<
 <li><a class="reference internal" href="#x11-request-and-fallback-contracts">X11 request and fallback contracts</a></li>
 <li><a class="reference internal" href="#windows-batch-eligibility-and-ownership">Windows batch eligibility and ownership</a></li>
 <li><a class="reference internal" href="#failure-and-cleanup-boundaries">Failure and cleanup boundaries</a></li>
+<li><a class="reference internal" href="#windows-compatibility-resource-boundary">Windows compatibility resource boundary</a></li>
+<li><a class="reference internal" href="#monochrome-readback-and-fast-paths">Monochrome readback and fast paths</a></li>
 </ul>
 </li>
 </ul>

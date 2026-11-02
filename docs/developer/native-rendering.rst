@@ -351,3 +351,75 @@ DC acquisition, selected-object creation, or each GDI drawing result. The
 source contracts identify these limits rather than promising rollback or
 complete output. The polygon and circle copy-replay paths handle particular
 failures; they are not a blanket recovery guarantee for every native operation.
+
+Windows compatibility resource boundary
+---------------------------------------
+
+The resource helpers in rbcWinDraw.c isolate private Tk Windows types. A drawable
+wrapper, a DC acquisition record and a pixmap wrapper have different ownership
+rules even though each bridges native Windows handles to Tk representations.
+
+.. list-table:: Windows wrapper ownership
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Result
+     - Ownership
+     - Release rule
+   * - Drawable from HDC
+     - Owned wrapper, borrowed HDC.
+     - Free the wrapper; restore/release the HDC separately.
+   * - Drawable DC acquisition
+     - Owned state record, even if the DC is NULL.
+     - Always release the record once.
+   * - Window from HWND
+     - One static wrapper overwritten on each call.
+     - Do not free, retain across calls, or treat as thread-local storage.
+   * - Pixmap from HBITMAP
+     - Tk bitmap wrapper with native bitmap lifetime.
+     - Use normal Tk pixmap destruction; do not double-delete the HBITMAP.
+   * - Pixmap handle lookup
+     - Borrowed HBITMAP.
+     - Do not delete it independently.
+   * - System palette copy
+     - Owned HPALETTE, or NULL.
+     - DeleteObject when no longer used.
+
+The acquisition record preserves Tk's drawable state; it does not remove the
+backend's responsibility to restore explicitly selected pens, brushes and saved
+GDI attributes. Rbc_GCToPen creates an owned pen but also sets TRANSPARENT
+background mode on its borrowed DC. It maps caps/joins and bounded GC dash bytes;
+a single dash value is duplicated for the Windows repeating user style. Pen
+creation is asserted, rather than returned as a Tcl error.
+
+Monochrome readback and fast paths
+----------------------------------
+
+Rbc_GetBitmapData requests positive-height one-bit BI_RGB data. Rows are bottom-up
+and padded to DWORD boundaries. The returned pitch describes that padding; the
+buffer contains bits only, without the DIB header or color table. The caller
+frees it with ckfree. Temporary global-memory headers and DC acquisitions remain
+internal. A zero or undersized biSizeImage is replaced by the calculated minimum
+storage requirement. The current success check accepts any nonzero GetDIBits
+return, rather than verifying the full requested row count.
+
+The opaque-stipple fast path uses a monochrome pattern brush. It sets DC text
+color from GC background and DC background color from GC foreground to preserve
+stipple expansion, and applies the GC tile/stipple origin. It restores those
+attributes and the previous brush after painting. Its FALSE result can mean
+partial output; the caller can replay because eligibility is limited to GXcopy.
+Failed DC acquisition releases both the allocated acquisition record and the
+pattern brush before requesting fallback. A NULL DC does not imply that the
+acquisition record is absent.
+
+Opaque bitmap runs similarly retain source and destination DCs across the run,
+restore background mode/colors, and release acquired state. The helper uses
+SRCCOPY and relies on its caller for unmasked copy eligibility; it does not
+inspect the GC operation to enforce that contract. A FALSE result after partial
+painting therefore supports complete replay only under that caller contract.
+
+Border-color extraction and rectangle fills use private Tk Windows helpers so
+bevel geometry and shades remain consistent with Tk. The emulated request-size
+function is a historical constant, not a live device-capacity query. These
+compatibility services are not independent renderers and should not become new
+entry points for graph components.
