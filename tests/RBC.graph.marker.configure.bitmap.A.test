@@ -591,5 +591,36 @@ namespace eval graph.marker {
                 code message
     } -result [list 1 {bitmap mask has size 9x8, expected 9x9} 1 1 1 1 1]
 	
+    # Rotated outline coordinates are already absolute, including pixel offsets.
+    set bitmapPickCase 0
+    foreach angle {45 90 135} {
+        foreach offset {0 11} {
+            foreach inverted {0 1} {
+                test RBC.graph.marker.configure.bitmap.A.10.[incr bitmapPickCase] \
+                        {rotated bitmap point and region picking use mapped coordinates once} -setup {
+                    graph .graph1 -width 400 -height 300 -invertxy $inverted
+                    pack .graph1
+                    .graph1 axis configure x -min 0 -max 10
+                    .graph1 axis configure y -min 0 -max 10
+                    .graph1 marker create bitmap -name picked -bitmap questhead -coords {5 5} \
+                        -rotate $angle -xoffset $offset -yoffset $offset
+                    update
+                } -body {
+                    lassign [.graph1 transform 5 5] x y
+                    set x [expr {int($x)+$offset}]
+                    set y [expr {int($y)+$offset}]
+                    event generate .graph1 <Motion> -x 0 -y 0
+                    event generate .graph1 <Motion> -x $x -y $y
+                    list [.graph1 marker get current] \
+                        [.graph1 marker find overlapping [expr {$x-2}] [expr {$y-2}] [expr {$x+2}] [expr {$y+2}]] \
+                        [.graph1 marker find enclosed [expr {$x-30}] [expr {$y-30}] [expr {$x+30}] [expr {$y+30}]] \
+                        [.graph1 marker find overlapping 0 0 5 5]
+                } -cleanup {
+                    destroy .graph1
+                } -result {picked picked picked {}}
+            }
+        }
+    }
+
 	cleanupTests
 }

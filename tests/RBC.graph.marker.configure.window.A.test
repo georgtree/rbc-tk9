@@ -505,7 +505,6 @@ namespace eval graph.marker {
         catch {destroy .graph1}
     } -result {1 1 1 1 1 graph}
 
-	cleanupTests
     foreach kind {graph barchart stripchart} {
         foreach under {0 1} {
             test RBC.graph.marker.configure.window.A.6.[incr testCase(6)] {live children unmap and remap with marker and element visibility} -setup {
@@ -536,4 +535,44 @@ namespace eval graph.marker {
             } -cleanup {destroy .graph1} -result {1 0 1 0 1 0 1 0 1}
         }
     }
+    # Child geometry requests must trigger a remap without touching marker options.
+    set windowRequestCase 0
+    foreach under {0 1} {
+        foreach overrides {{} {-width 70} {-height 30} {-width 70 -height 30}} {
+            test RBC.graph.marker.configure.window.A.7.[incr windowRequestCase] \
+                    {requested child size updates placement and preserves explicit dimensions} -setup {
+                graph .graph1 -width 500 -height 400
+                pack .graph1
+                .graph1 axis configure x -min 0 -max 10
+                .graph1 axis configure y -min 0 -max 10
+                label .graph1.child -text Short
+                .graph1 marker create window -name w -window .graph1.child -coords {5 5} \
+                    -anchor se -under $under {*}$overrides
+                update
+                set right [expr {[winfo x .graph1.child]+[winfo width .graph1.child]}]
+                set bottom [expr {[winfo y .graph1.child]+[winfo height .graph1.child]}]
+            } -body {
+                set result {}
+                foreach text {{A much longer first line\nand a second line} Tiny} {
+                    .graph1.child configure -text [subst -nocommands -novariables $text]
+                    update
+                    set width [winfo reqwidth .graph1.child]
+                    set height [winfo reqheight .graph1.child]
+                    foreach {option value} $overrides {
+                        if {$option eq "-width"} {set width $value} else {set height $value}
+                    }
+                    lappend result [expr {[winfo width .graph1.child] == $width}] \
+                        [expr {[winfo height .graph1.child] == $height}] \
+                        [expr {[winfo x .graph1.child]+$width == $right}] \
+                        [expr {[winfo y .graph1.child]+$height == $bottom}]
+                }
+                set result
+            } -cleanup {
+                destroy .graph1
+            } -result {1 1 1 1 1 1 1 1}
+        }
+    }
+
+    cleanupTests
+
 }

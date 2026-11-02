@@ -498,3 +498,182 @@ resources are replaced or freed, then clears ``xorState``. Head-only geometry
 is erased even when no shaft segment survives clipping. Newly installed options
 such as ``-xor``, ``-arrow`` and colors must not select the erase operation:
 only the old mapped caches and GC describe the image currently on screen.
+
+Bitmap, image, text and window resources
+----------------------------------------
+
+These classes share common marker option transactions but do not share the
+same ownership or placement model. Their class callbacks release derived
+resources; common cleanup subsequently releases Tk option resources and the
+record. The corresponding source contracts are in :doc:`marker-reference`.
+
+.. list-table:: Ownership by class
+   :header-rows: 1
+   :widths: 15 45 40
+
+   * - Class
+     - Class-managed resources
+     - Resources retained elsewhere
+   * - Bitmap
+     - Generated mapped bitmap/mask pixmaps and drawing GCs
+     - Source bitmap/mask and colors are Tk option resources
+   * - Image
+     - Tk image instance, owned photo copy, temporary scaled image, pixmap and GC
+     - Named source image belongs to the application
+   * - Text
+     - Text layout, text/background GCs and shadow color
+     - Font, string and foreground/background colors are Tk option resources
+   * - Window
+     - Geometry management and event registration for the embedded child
+     - Marker deletion also destroys the current child; replacing it merely
+       detaches and unmaps the previous child
+
+The zeroed class constructors install callback tables; the text constructor
+also initializes a text style and default padding. They do not independently
+insert records into the registry or finish option initialization.
+
+Bitmap masks and aliasing
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A bitmap marker keeps ``srcBitmap`` and optional ``srcMask`` separate from
+``destBitmap`` and ``destMask``. Configuring both source handles requires matching
+dimensions. ``FreeMappedBitmapResources`` frees only handles whose ownership
+flags are set, then clears the handles/flags. A transformed bitmap may also be
+its own mask; in that case only the bitmap handle owns the allocation.
+
+The effective mask depends on background visibility:
+
+.. list-table:: Effective source mask
+   :header-rows: 1
+
+   * - Explicit mask
+     - Background
+     - Effective mask
+   * - Present
+     - Opaque
+     - Borrow the configured mask
+   * - Present
+     - Transparent
+     - Allocate source bitmap AND configured mask
+   * - Absent
+     - Transparent
+     - Borrow the source bitmap itself
+   * - Absent
+     - Opaque
+     - No separate source mask
+
+A single coordinate pair retains natural bitmap dimensions and applies the
+marker anchor; the unrotated center case aligns the center pixel explicitly.
+Two pairs define sorted opposite corners of an inclusive scaled box and ignore
+the anchor. Rotation/scale mapping generates only the visible subregion, then
+frees any temporary source-mask intersection or transfers it to the destination
+mask as appropriate. Completely offscreen boxes avoid transformation work.
+
+The mapped background outline is an absolute display polygon. Arbitrary
+rotation without an explicit mask uses that polygon for an opaque background
+and the bitmap itself as the foreground mask. Screen presentation passes this
+state to raster renderer services; export emits background/foreground masks or
+the polygon, freeing its temporary foreground intersection afterward.
+
+Bitmap picking is geometric, not per-bit: transparent holes are not excluded.
+Rotated point and region callbacks use the absolute mapped outline directly,
+without adding ``anchorPos`` a second time. This differs from the local-outline
+convention used by text markers.
+
+Photo and non-photo image paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``ConfigureImageMarker`` acquires a new Tk image instance and callback before
+releasing the old instance. If the named image is a photo, it also owns an RBC
+color-image copy. ``ImageChangedProc`` replaces that copy on every notification,
+ignoring the changed subrectangle. If the name is no longer a photo, it clears
+the old photo representation rather than preserving stale pixels, marks mapping
+and backing dirty, and schedules redraw.
+
+Photo mapping supports either a natural-size anchored point or a two-corner
+scaled box. A scaled photo is materialized only for its visible subregion in an
+owned temporary Tk image. Returning to natural size destroys that temporary
+image. Fields are cleared before temporary-image destruction. Mapping returns
+no Tcl status, so failed temporary-image creation must not be interpreted as a
+successful atomic replacement of every cache.
+
+Non-photo images follow a different path: they retain Tk's natural dimensions
+and use the first mapped point plus offsets as their top-left placement. That
+branch does not apply the marker anchor or scale to a second corner. Screen
+output chooses the temporary/source Tk image unless a cached pixmap is present;
+export chooses photo output when possible and otherwise delegates generic Tk
+image output to the backend.
+
+Image point and region tests use the cached rectangle, not alpha or source-image
+contents. They do not independently check whether the source has been deleted.
+Drawing/export perform their own deleted-instance checks. Freeing a marker
+releases its image instance and derived resources, but does not delete the
+application's named source image.
+
+Text layout and coordinate spaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Text configuration rebuilds layout for every successful configuration, since
+font, text, justification, padding, shadow and rotation can affect dimensions.
+The proposed layout uses staged padding/shadow and the Tk-installed style while
+saved options still retain the old Tk resources. The shadow color is manually
+owned and must be released independently of Tk-managed foreground/background.
+
+The text style's internal anchor is north-west. The marker's separate anchor
+places the cached rotated bounding rectangle during mapping. Its outline is
+local to that rectangle, so point/region tests and output correctly translate
+it by ``anchorPos`` once. Mapping itself does not render text or create a rotated
+bitmap. Named-font changes use the shared font-invalidation path described
+earlier in this chapter.
+
+Screen backgrounds try Cairo with integer-converted polygon coordinates, then
+fall back to native background services. Glyphs use the screen-text service and
+cached layout. Document output uses the text string/style and unrounded
+translated background vertices. Picking tests the rectangle or rotated outline,
+not actual glyph coverage. Class cleanup releases layout, GCs and shadow;
+common Tk option cleanup releases font, string and configured colors.
+
+Child-window transitions and notifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Window configuration parses common options and dimensions and resolves the
+proposed child before detaching the existing one. The child must have the graph
+as its direct parent. Internal zero width/height means requested size, while an
+explicitly configured zero is rejected. Positive overrides take precedence
+during mapping.
+
+``ReleaseWindowMarkerChild`` clears its token before removing the event handler
+and geometry manager. Replacement unmaps the old child for reuse; marker
+cleanup destroys the current child. Clearing the token prevents the marker's
+own destroy notification from leaving a stale window reference, but should not
+be treated as a general lifetime guarantee across arbitrary Tk callbacks.
+Callers must retain the marker record while Tk services execute.
+
+.. list-table:: Child callbacks
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Callback
+     - Current action
+   * - ``ChildEventProc``
+     - On DestroyNotify, clears child/dimensions, marks mapping dirty and
+       schedules redraw when the graph window still exists; retains marker
+   * - ``ChildGeometryProc``
+     - Copies requested dimensions only where the explicit override is zero,
+       then schedules remapping/redraw when an automatic dimension changes
+   * - ``ChildCustodyProc``
+     - Removes the event handler, clears the child token and destroys the
+       marker, preserving the child for its new geometry manager
+
+Changed automatic dimensions mark the marker for remapping, invalidate
+under-layer backing storage when needed, and schedule graph redraw. Mapping
+recomputes the anchor and visibility before the child is resized. Explicit
+width/height overrides remain authoritative; unchanged or fully overridden
+requests do not schedule unnecessary redraws.
+
+``DrawWindowMarker`` moves/resizes and maps the real child, ignoring its drawable
+argument. ``SyncWindowMarkers`` must run even when a cached under-layer is reused,
+and processes both marker layers. Hidden, wholly clipped or collapsed-track
+children are unmapped; partial overlap retains the full child with graph-parent
+clipping only. Export delegates capture only for a currently mapped child and
+does not map hidden children to manufacture an export image.

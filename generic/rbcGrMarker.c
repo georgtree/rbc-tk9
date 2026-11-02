@@ -37,6 +37,22 @@
  * Internal geometric marker implementation.
  */
 
+/** @defgroup marker_bitmap Bitmap marker resources and presentation
+ * Internal concrete marker implementation.
+ */
+
+/** @defgroup marker_image Image marker resources and presentation
+ * Internal concrete marker implementation.
+ */
+
+/** @defgroup marker_text Text marker layout and presentation
+ * Internal concrete marker implementation.
+ */
+
+/** @defgroup marker_window Window marker geometry management and callbacks
+ * Internal concrete marker implementation.
+ */
+
 #include <float.h>
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
@@ -179,12 +195,13 @@ struct MarkerStruct {
     int tkResourcesReleased;
 };
 
-/*
- * -------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Text options, derived layout and anchor-local rotated outline.
  *
- * TextMarker --
- *
- * -------------------------------------------------------------------
+ * Tk options own font/string/foreground/background; the class owns layout,
+ * GCs and shadow color. The marker anchor is distinct from the internal
+ * north-west text-style anchor. outline is translated by anchorPos at use.
  */
 typedef struct {
     Marker core;
@@ -248,12 +265,13 @@ static const Tk_OptionSpec textMarkerOptionSpecs[] = {
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-/*
- * -------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Embedded child token and requested/mapped geometry.
  *
- * WindowMarker --
- *
- * -------------------------------------------------------------------
+ * Geometry management and structure notifications retain this record as
+ * client data. Zero requested dimensions mean automatic size. Deleting the
+ * marker destroys its current child; replacing the child only detaches it.
  */
 typedef struct {
     Marker core;
@@ -304,12 +322,13 @@ static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-/*
- * -------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Bitmap source references and explicitly owned mapped pixmaps.
  *
- * BitmapMarker --
- *
- * -------------------------------------------------------------------
+ * Tk options own srcBitmap/srcMask and configured colors. Destination handles
+ * may alias source handles or each other; ownership flags govern release.
+ * outline is an absolute mapped background polygon, not anchor-local geometry.
  */
 typedef struct {
     Marker core;
@@ -376,12 +395,13 @@ static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-/*
- * -------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Source image instance and owned photo/scaled-image caches.
  *
- * ImageMarker --
- *
- * -------------------------------------------------------------------
+ * The application owns the named source image. The marker owns its Tk
+ * instance, source color-image copy, temporary scaled image and drawing
+ * resources. Cached dimensions describe current mapped presentation.
  */
 typedef struct {
     Marker core;
@@ -1620,16 +1640,14 @@ static void DestroyMarker(Marker *markerPtr) {
     ckfree(markerPtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Release only owned mapped bitmap and mask pixmaps.
  *
- * FreeMappedBitmapResources --
- *
- *      Releases bitmap resources generated while mapping a bitmap
- *      marker. Configured Tk bitmaps such as srcBitmap and srcMask
- *      are not owned by this function.
- *
- *----------------------------------------------------------------------
+ * Source Tk bitmaps are borrowed here. A destination mask may alias the
+ * destination bitmap but must not also own that same pixmap. Frees owned
+ * handles and clears both handles/ownership flags; dimensions and outline
+ * count are left to the caller.
  */
 static void FreeMappedBitmapResources(Graph *graphPtr, BitmapMarker *bmPtr) {
     /*
@@ -1649,18 +1667,14 @@ static void FreeMappedBitmapResources(Graph *graphPtr, BitmapMarker *bmPtr) {
     bmPtr->destBitmapOwned = FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Allocate a depth-one intersection of two equally sized masks.
  *
- * AndBitmapMasks --
- *
- *      Creates a one-bit pixmap containing mask1 AND mask2.
- *
- * Results:
- *      Returns a newly allocated pixmap. The caller owns it and
- *      must release it with Tk_FreePixmap().
- *
- *----------------------------------------------------------------------
+ * Borrows both masks and window/display. Copies mask1 and applies GXand with
+ * mask2 through a temporary GC. Returns None on pixmap/GC allocation failure;
+ * otherwise the caller must Tk_FreePixmap the result. Does not validate input
+ * dimensions or alter the source masks.
  */
 static Pixmap AndBitmapMasks(Tk_Window tkwin, Pixmap mask1, Pixmap mask2, int width, int height) {
     Display *display;
@@ -1698,28 +1712,15 @@ static Pixmap AndBitmapMasks(Tk_Window tkwin, Pixmap mask1, Pixmap mask2, int wi
     XFreeGC(display, gc);
     return result;
 }
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Stage bitmap options and GCs before invalidating mapped resources.
  *
- * ConfigureBitmapMarker --
- *
- *      This procedure is called to process an argv/argc list, plus
- *      the Tk option database, in order to configure (or reconfigure)
- *      a bitmap marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      A standard Tcl result.  If TCL_ERROR is returned, then
- *      the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information, such as bitmap pixmap, colors,
- *      rotation, etc. get set for markerPtr; old resources get freed,
- *      if there were any.  The marker is eventually redisplayed.
- *
- * ----------------------------------------------------------------------
+ * Parses common resources and checks explicit mask dimensions against the
+ * source bitmap. Normalizes rotation separately from the configured value.
+ * After validation, commits common state, releases old mapped pixmaps and
+ * shared GCs, installs replacements and schedules remapping/redraw. Error
+ * paths release staged resources; the outer Tk transaction owns rollback.
  */
 static int ConfigureBitmapMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -1841,31 +1842,17 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Build visible bitmap/mask transformations and background geometry.
  *
- * MapBitmapMarker --
- *
- *      This procedure gets called each time the layout of the graph
- *      changes.  The x, y window coordinates of the bitmap marker are
- *      saved in the marker structure.
- *
- *      Additionly, if no background color was specified, the
- *      GCTileStipXOrigin and GCTileStipYOrigin attributes are set in
- *      the private GC.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Window coordinates are saved and if no background color was
- *      set, the GC stipple origins are changed to calculated window
- *      coordinates.
- *
- * ----------------------------------------------------------------------
+ * Requires a source bitmap and caller-supplied coordinates. One point uses
+ * source dimensions and anchor; two corners define an inclusive scaled box.
+ * Applies offsets, rejects offscreen boxes, and transforms only the visible
+ * subregion. With transparent background, combines an explicit mask with
+ * source bits or aliases the source bitmap. Tracks generated pixmap ownership
+ * separately. Stores the background outline in absolute display coordinates for drawing
+ * and picking without further anchor translation.
  */
 static void MapBitmapMarker(Marker *markerPtr) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2074,25 +2061,13 @@ static void MapBitmapMarker(Marker *markerPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Test a mapped bitmap rectangle or rotated bounding polygon.
  *
- * PointInBitmapMarker --
- *
- *      Indicates if the given point is over the bitmap marker.  The
- *      area of the bitmap is the rectangle.
- *
- * Parameters:
- *      Marker *markerPtr
- *      Point2D *samplePtr
- *
- * Results:
- *      Returns 1 is the point is over the bitmap marker, 0 otherwise.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Returns false without a source bitmap. Unrotated bounds are half-open.
+ * Rotated tests use the absolute mapped outline directly. Does not test
+ * individual bitmap bits or transparency mask pixels.
  */
 static int PointInBitmapMarker(Marker *markerPtr, Point2D *samplePtr) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2101,42 +2076,19 @@ static int PointInBitmapMarker(Marker *markerPtr, Point2D *samplePtr) {
         return 0;
     }
     if (bmPtr->theta != 0.0) {
-        Point2D points[MAX_OUTLINE_POINTS];
-        int i;
-
-        /*
-         * Generate the bounding polygon (isolateral) for the bitmap
-         * and see if the point is inside of it.
-         */
-        for (i = 0; i < bmPtr->nOutlinePts; i++) {
-            points[i].x = bmPtr->outline[i].x + bmPtr->anchorPos.x;
-            points[i].y = bmPtr->outline[i].y + bmPtr->anchorPos.y;
-        }
-        return Rbc_PointInPolygon(samplePtr, points, bmPtr->nOutlinePts);
+        return Rbc_PointInPolygon(samplePtr, bmPtr->outline, bmPtr->nOutlinePts);
     }
     return ((samplePtr->x >= bmPtr->anchorPos.x) && (samplePtr->x < (bmPtr->anchorPos.x + bmPtr->destWidth)) &&
             (samplePtr->y >= bmPtr->anchorPos.y) && (samplePtr->y < (bmPtr->anchorPos.y + bmPtr->destHeight)));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Test bitmap bounds against an enclosed/overlapping region.
  *
- * RegionInBitmapMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Extents2D *extsPtr
- *      int enclosed
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires world coordinates; uses cached dimensions for unrotated tests.
+ * Rotated tests use the absolute mapped outline directly. No pixel-mask
+ * or alpha test is made.
  */
 static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2145,18 +2097,7 @@ static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
         return FALSE;
     }
     if (bmPtr->theta != 0.0) {
-        Point2D points[MAX_OUTLINE_POINTS];
-        int i;
-
-        /*
-         * Generate the bounding polygon (isolateral) for the bitmap
-         * and see if the point is inside of it.
-         */
-        for (i = 0; i < bmPtr->nOutlinePts; i++) {
-            points[i].x = bmPtr->outline[i].x + bmPtr->anchorPos.x;
-            points[i].y = bmPtr->outline[i].y + bmPtr->anchorPos.y;
-        }
-        return Rbc_RegionInPolygon(extsPtr, points, bmPtr->nOutlinePts, enclosed);
+        return Rbc_RegionInPolygon(extsPtr, bmPtr->outline, bmPtr->nOutlinePts, enclosed);
     }
     if (enclosed) {
         return ((bmPtr->anchorPos.x >= extsPtr->left) && (bmPtr->anchorPos.y >= extsPtr->top) &&
@@ -2168,27 +2109,14 @@ static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
              ((bmPtr->anchorPos.y + bmPtr->destHeight) <= extsPtr->top));
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Present the mapped bitmap through screen raster services.
  *
- * DrawBitmapMarker --
- *
- *      Draws the bitmap marker that have a transparent of filled
- *      background.
- *
- * Parameters:
- *      Marker *markerPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      GC stipple origins are changed to current window coordinates.
- *      Commands are output to X to draw the marker in its current
- *      mode.
- *
- * ----------------------------------------------------------------------
+ * Skips missing/empty destination bitmaps. Borrows mapped handles and GCs.
+ * Arbitrary rotations with opaque background and no explicit mask use the
+ * background polygon plus bitmap-as-mask workaround. Integer placement is
+ * performed here; renderer services own native clip/origin handling.
  */
 static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2221,24 +2149,15 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
     Rbc_RenderEnd(ctx);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Export mapped foreground and background masks or polygon.
  *
- * BitmapMarkerExport --
- *
- *      Generates PostScript to print a bitmap marker.
- *
- * Parameters:
- *      Marker *markerPtr - Marker to be printed
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Borrows export context and mapped resources. Explicit masks restrict the
+ * background and intersect foreground bits; transparent backgrounds use the
+ * mapper-selected effective mask. An unmasked opaque background uses the
+ * mapped polygon. Frees any temporary foreground intersection and ends the
+ * output context on both empty and normal paths.
  */
 static void BitmapMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -2310,26 +2229,13 @@ static void BitmapMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) 
     Rbc_RenderEnd(output);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Release bitmap-derived caches and shared drawing GCs.
  *
- * FreeBitmapMarker --
- *
- *      Releases the memory and attributes of the bitmap marker.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Bitmap attributes (GCs, colors, bitmap, etc) get destroyed.
- *      Memory is released, X resources are freed, and the graph is
- *      redrawn.
- *
- * ----------------------------------------------------------------------
+ * Clears mapped handles/ownership, both GCs, destination dimensions and
+ * outline count. Tk option cleanup owns source bitmap/mask and colors; common
+ * cleanup owns the record. Does not itself schedule redraw.
  */
 static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
     BitmapMarker *bmPtr;
@@ -2349,20 +2255,12 @@ static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
     bmPtr->nOutlinePts = 0;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_bitmap
+ * @brief Allocate a zeroed bitmap record and select its callback class.
  *
- * CreateBitmapMarker --
- *
- *      Allocate memory and initialize methods for the new bitmap marker.
- *
- * Results:
- *      The pointer to the newly allocated marker structure is returned.
- *
- * Side effects:
- *      Memory is allocated for the bitmap marker structure.
- *
- * ----------------------------------------------------------------------
+ * Returns the embedded common marker. Common creation supplies options,
+ * registry membership and later destruction; no bitmap is acquired here.
  */
 static Marker *CreateBitmapMarker(void) {
     BitmapMarker *bmPtr;
@@ -2374,29 +2272,15 @@ static Marker *CreateBitmapMarker(void) {
     return (bmPtr != NULL) ? &bmPtr->core : NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Refresh the owned photo copy after a Tk image change.
  *
- * ImageChangedProc
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      int x
- *      int y
- *      int width
- *      int height - Not used.
- *      int imageWidth
- *      int imageHeight - Not used.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows the marker callback data and ignores the changed rectangle/size
+ * arguments. Looks up the configured name and replaces srcImage with a fresh
+ * photo copy, or NULL if no photo remains. Frees the old copy and marks mapping
+ * and backing storage dirty before scheduling redraw; no script evaluation is
+ * performed directly here.
  */
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
@@ -2437,28 +2321,15 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
     Rbc_EventuallyRedrawGraph(graphPtr);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Acquire replacement Tk image resources before releasing the old ones.
  *
- * ConfigureImageMarker --
- *
- *      This procedure is called to process an argv/argc list, plus
- *      the Tk option database, in order to configure (or reconfigure)
- *      a image marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      A standard Tcl result.  If TCL_ERROR is returned, then
- *      the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information, such as image pixmap, colors,
- *      rotation, etc. get set for markerPtr; old resources get freed,
- *      if there were any.  The marker is eventually redisplayed.
- *
- * ----------------------------------------------------------------------
+ * Stages common options, Tk image instance/change callback, optional photo
+ * copy and GC. After validation, commits common resources and releases old
+ * pixmap, temporary image, photo copy, Tk instance and GC. Installs new state,
+ * clears dimensions and schedules remap/redraw. Error paths free staged
+ * resources; the named source image itself is not owned by the marker.
  */
 static int ConfigureImageMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -2562,31 +2433,16 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Map image placement and maintain a temporary scaled photo.
  *
- * MapImageMarker --
- *
- *      This procedure gets called each time the layout of the graph
- *      changes.  The x, y window coordinates of the image marker are
- *      saved in the marker structure.
- *
- *      Additionly, if no background color was specified, the
- *      GCTileStipXOrigin and GCTileStipYOrigin attributes are set in
- *      the private GC.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Window coordinates are saved and if no background color was *
- *      set, the GC stipple origins are changed to calculated window
- *      coordinates.
- *
- * ----------------------------------------------------------------------
+ * Skips absent/deleted source instances. Non-photo images use the first
+ * mapped point plus offsets as top-left, without anchor adjustment or
+ * scaling. Photos use anchor/natural size or a two-corner inclusive box; only
+ * the visible scaled subregion is generated. Returning to natural size
+ * destroys the temporary photo after clearing its field. Creation failure
+ * returns without a Tcl status; callers must not assume mapping is atomic.
  */
 static void MapImageMarker(Marker *markerPtr) {
     Extents2D exts;
@@ -2713,6 +2569,15 @@ static void MapImageMarker(Marker *markerPtr) {
     imPtr->anchorPos = anchorPos;
 }
 
+/**
+ * @ingroup marker_window
+ * @brief Parse a child dimension while distinguishing defaults from explicit zero.
+ *
+ * Writes zero for a NULL object. Otherwise parses pixels and rejects
+ * negative values or explicitly changed zero, leaving output unchanged on
+ * error. Internal zero means use the child requested size. Returns Tcl status
+ * and diagnostic; caller supplies the option-change flag.
+ */
 static int GetWindowMarkerDimension(Marker *markerPtr, Tcl_Obj *objPtr, int explicitlyChanged, int *valuePtr) {
     Graph *graphPtr;
     int value;
@@ -2737,6 +2602,15 @@ static int GetWindowMarkerDimension(Marker *markerPtr, Tcl_Obj *objPtr, int expl
     return TCL_OK;
 }
 
+/**
+ * @ingroup marker_window
+ * @brief Detach the embedded child and optionally destroy it.
+ *
+ * Returns if no child. Clears the marker token before removing its event
+ * handler and geometry management. Destroys the child when requested, else
+ * unmaps it for reuse; resets dimensions afterward. The marker record must
+ * remain alive across the Tk operations. Does not free the record.
+ */
 static void ReleaseWindowMarkerChild(WindowMarker *wmPtr, int destroyWindow) {
     Tk_Window tkwin;
 
@@ -2764,25 +2638,13 @@ static void ReleaseWindowMarkerChild(WindowMarker *wmPtr, int destroyWindow) {
     wmPtr->height = 0;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Test the half-open cached image rectangle.
  *
- * PointInWindowMarker --
- *
- *      Indicates if the given point is over the window marker.  The
- *      area of the window is the rectangle.
- *
- * Parameters:
- *      Marker *markerPtr
- *      Point2D *samplePtr
- *
- * Results:
- *      Returns 1 is the point is over the window marker, 0 otherwise.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Borrows placement/dimensions and does not refresh mapping or inspect
+ * source existence, transparency or individual pixels. Caller filtering
+ * and current mapped state remain prerequisites.
  */
 static int PointInImageMarker(Marker *markerPtr, Point2D *samplePtr) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
@@ -2790,25 +2652,13 @@ static int PointInImageMarker(Marker *markerPtr, Point2D *samplePtr) {
             (samplePtr->y >= imPtr->anchorPos.y) && (samplePtr->y < (imPtr->anchorPos.y + imPtr->height)));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Test enclosure or overlap of cached image bounds.
  *
- * RegionInImageMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Extents2D *extsPtr
- *      int enclosed
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires at least one world point. Uses anchor plus width/height, with
+ * strict overlap excluding edge-only contact. Does not inspect alpha or
+ * source-image availability and does not remap.
  */
 static int RegionInImageMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
@@ -2825,25 +2675,13 @@ static int RegionInImageMarker(Marker *markerPtr, Extents2D *extsPtr, int enclos
              ((imPtr->anchorPos.y + imPtr->height) <= extsPtr->top));
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Draw the temporary/source Tk image or cached pixmap.
  *
- * DrawImageMarker --
- *
- *      This procedure is invoked to draw a image marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      GC stipple origins are changed to current window coordinates.
- *      Commands are output to X to draw the marker in its current mode.
- *
- * ----------------------------------------------------------------------
+ * Skips absent/deleted source instances. Prefers tmpImage when there is no
+ * pixmap, otherwise submits the pixmap with its GC and rectangle. Borrows all
+ * resources and ends the screen raster context after dispatch.
  */
 static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
@@ -2863,24 +2701,14 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
     Rbc_RenderEnd(ctx);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Export the current temporary/source image through output services.
  *
- * ImageMarkerExport --
- *
- *      This procedure is invoked to print a image marker.
- *
- * Parameters:
- *      Marker *markerPtr - Marker to be printed
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Skips absent/deleted source instances. Resolves the selected image name as
+ * a photo for photo output, otherwise delegates to generic Tk image output.
+ * Borrows resources and ends the context on all paths; format-specific
+ * capture/conversion remains in the renderer.
  */
 static void ImageMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -2903,27 +2731,14 @@ static void ImageMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderEnd(output);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Release owned image caches and the source image instance.
  *
- * FreeImageMarker --
- *
- *      Destroys the structure containing the attributes of the image
- *      marker.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Image attributes (GCs, colors, image, etc) get destroyed.
- *      Memory is released, X resources are freed, and the graph is
- *      redrawn.
- *
- * ----------------------------------------------------------------------
+ * Frees pixmap, GC, Tk instance, temporary image and photo copy, then clears
+ * dimensions. Clears tmpImage before temporary-image destruction. Freeing the
+ * source instance does not delete the user-owned named image; common cleanup
+ * releases option objects and the record.
  */
 static void FreeImageMarker(Graph *graphPtr, Marker *markerPtr) {
     ImageMarker *imPtr;
@@ -2955,20 +2770,12 @@ static void FreeImageMarker(Graph *graphPtr, Marker *markerPtr) {
     imPtr->height = 0;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_image
+ * @brief Allocate a zeroed image record and set its class.
  *
- * CreateImageMarker --
- *
- *      Allocate memory and initialize methods for the new image marker.
- *
- * Results:
- *      The pointer to the newly allocated marker structure is returned.
- *
- * Side effects:
- *      Memory is allocated for the image marker structure.
- *
- * ----------------------------------------------------------------------
+ * Returns the embedded common marker for common option initialization and
+ * registry insertion. Acquires no image resources itself.
  */
 static Marker *CreateImageMarker(void) {
     ImageMarker *imPtr;
@@ -2980,28 +2787,15 @@ static Marker *CreateImageMarker(void) {
     return (imPtr != NULL) ? &imPtr->core : NULL;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Stage text layout, padding, shadow and drawing resources.
  *
- * ConfigureTextMarker --
- *
- *      This procedure is called to process an argv/argc list, plus
- *      the Tk option database, in order to configure (or
- *      reconfigure) a text marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      A standard Tcl result.  If TCL_ERROR is returned, then
- *      the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information, such as text string, colors, font,
- *      etc. get set for markerPtr;  old resources get freed, if there
- *      were any.  The marker is eventually redisplayed.
- *
- * ----------------------------------------------------------------------
+ * Parses common resources, padding and shadow, normalizes rotation, and
+ * builds a new layout/rotated outline using the proposed Tk-managed style.
+ * After validation commits the layout, GCs and manually owned shadow color
+ * while saved Tk options retain old resources. Error paths free staged
+ * resources. Marks mapping and under-layer backing dirty and schedules redraw.
  */
 static int ConfigureTextMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -3166,28 +2960,13 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Place the cached rotated text rectangle using its marker anchor.
  *
- * MapTextMarker --
- *
- *      Calculate the layout position for a text marker.  Positional
- *      information is saved in the marker.  If the text is rotated,
- *      a bitmap containing the text is created.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      If no background color has been specified, the GC stipple
- *      origins are changed to current window coordinates. For both
- *      rotated and non-rotated text, if any old bitmap is leftover,
- *      it is freed.
- *
- * ----------------------------------------------------------------------
+ * Requires a non-NULL string and caller-supplied coordinates. Maps the first
+ * point, applies marker anchor and pixel offsets, tests plot overlap, and
+ * stores anchorPos. Does not rebuild text layout or allocate a bitmap.
  */
 static void MapTextMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
@@ -3214,24 +2993,13 @@ static void MapTextMarker(Marker *markerPtr) {
     tmPtr->anchorPos = anchorPos;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Pick the text bounding rectangle or rotated outline.
  *
- * PointInTextMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Point2D *samplePtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns false for a NULL string. Rotated outline coordinates are local
+ * to anchorPos and are translated for polygon testing. Unrotated bounds are
+ * half-open. Tests bounds, not glyph coverage or shadow pixels independently.
  */
 static int PointInTextMarker(Marker *markerPtr, Point2D *samplePtr) {
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
@@ -3257,25 +3025,13 @@ static int PointInTextMarker(Marker *markerPtr, Point2D *samplePtr) {
             (samplePtr->y >= tmPtr->anchorPos.y) && (samplePtr->y < (tmPtr->anchorPos.y + tmPtr->height)));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Test cached text bounds for enclosure or overlap.
  *
- * RegionInTextMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Extents2D *extsPtr
- *      int enclosed
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires coordinates. Uses four translated rotated-outline vertices or
+ * the unrotated rectangle; does not refresh layout or inspect glyph coverage.
+ * Unrotated overlap excludes edge-only contact.
  */
 static int RegionInTextMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
@@ -3306,7 +3062,15 @@ static int RegionInTextMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
              ((tmPtr->anchorPos.y + tmPtr->height) <= extsPtr->top));
 }
 
-/* Keep background geometry native-sized while antialiasing its edges. */
+/**
+ * @ingroup marker_text
+ * @brief Try Cairo background fill with native-sized integer vertices.
+ *
+ * Returns FALSE for other renderers. Translates the four local outline
+ * vertices by anchorPos and truncates to integer coordinates before area
+ * submission. Returns the render helper status for native fallback; does not
+ * modify cached geometry.
+ */
 static int DrawRenderedTextBackground(Graph *graphPtr, Drawable drawable, TextMarker *tmPtr) {
     Point2D points[4];
     int i;
@@ -3320,25 +3084,13 @@ static int DrawRenderedTextBackground(Graph *graphPtr, Drawable drawable, TextMa
     return Rbc_RenderArea(graphPtr, drawable, points, 4, tmPtr->fillColor, NULL, None);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Draw optional background and cached text layout.
  *
- * DrawTextMarker --
- *
- *      Draws the text marker on the graph.
- *
- * Parameters:
- *      Marker *markerPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Commands are output to X to draw the marker in its current
- *      mode.
- *
- * ----------------------------------------------------------------------
+ * Returns for a NULL string. Background tries Cairo then native services;
+ * text uses the screen-text renderer when foreground exists, with integer
+ * placement. Borrows layout/style and does not alter their ownership.
  */
 static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
@@ -3358,25 +3110,13 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Export the text string/style and optional rotated background.
  *
- * TextMarkerExport --
- *
- *      Outputs PostScript commands to draw a text marker at a given
- *      x,y coordinate, rotation, anchor, and font.
- *
- * Parameters:
- *      Marker *markerPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      PostScript font and color settings are changed.
- *
- * ----------------------------------------------------------------------
+ * Returns through an ended context for a NULL string. Translates background
+ * vertices without screen integer truncation, then delegates text to document
+ * output using the string and style rather than the cached screen layout.
  */
 static void TextMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -3404,27 +3144,13 @@ static void TextMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderEnd(output);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Release derived text resources without freeing Tk option values.
  *
- * FreeTextMarker --
- *
- *      Destroys the structure containing the attributes of the text
- *      marker.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Text attributes (GCs, colors, stipple, font, etc) get destroyed.
- *      Memory is released, X resources are freed, and the graph is
- *      redrawn.
- *
- * ----------------------------------------------------------------------
+ * Frees shared text/background GCs, manually owned shadow color and layout.
+ * Clears their fields, dimensions and outline. Tk option cleanup owns font,
+ * foreground/background colors and string; common cleanup owns the record.
  */
 static void FreeTextMarker(Graph *graphPtr, Marker *markerPtr) {
     TextMarker *tmPtr;
@@ -3452,20 +3178,13 @@ static void FreeTextMarker(Graph *graphPtr, Marker *markerPtr) {
     memset(tmPtr->outline, 0, sizeof(tmPtr->outline));
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_text
+ * @brief Allocate text storage with an internally north-west text style.
  *
- * CreateTextMarker --
- *
- *      Allocate memory and initialize methods for the new text marker.
- *
- * Results:
- *      The pointer to the newly allocated marker structure is returned.
- *
- * Side effects:
- *      Memory is allocated for the text marker structure.
- *
- * ----------------------------------------------------------------------
+ * Initializes the text style, class and four-pixel padding. The internal
+ * style anchor differs from the marker anchor applied during mapping.
+ * Common creation installs configured options and takes record ownership.
  */
 static Marker *CreateTextMarker(void) {
     TextMarker *tmPtr;
@@ -3493,28 +3212,16 @@ static Tk_GeomMgr winMarkerMgrInfo = {
     ChildCustodyProc,  /* Procedure when window is taken away */
 };
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Validate dimensions and direct-child ownership before transferring geometry.
  *
- * ConfigureWindowMarker --
- *
- *      This procedure is called to process an argv/argc list, plus
- *      the Tk option database, in order to configure (or reconfigure)
- *      a window marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      A standard Tcl result.  If TCL_ERROR is returned, then
- *      the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information, such as window pathname, placement,
- *      etc. get set for markerPtr; old resources get freed, if there
- *      were any.  The marker is eventually redisplayed.
- *
- * ----------------------------------------------------------------------
+ * Stages common options and dimensions and resolves the requested window.
+ * Only direct children of the graph are accepted. On success commits common
+ * state, detaches/unmaps the previous child without destroying it, and sets
+ * the new token before registering events and geometry management. Schedules
+ * remap/redraw; errors release staged common state. Geometry transfer invokes
+ * Tk services, so successful validation is not a blanket callback-safety guarantee.
  */
 static int ConfigureWindowMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -3596,24 +3303,13 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Map child requested/explicit dimensions, anchor and pixel offsets.
  *
- * MapWindowMarker --
- *
- *      Calculate the layout position for a window marker.  Positional
- *      information is saved in the marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Returns without a child. Uses positive explicit dimensions in preference
+ * to Tk requested size, stores rectangle and tests plot overlap. Does not
+ * move/map the actual child or introduce plot/track clipping containers.
  */
 static void MapWindowMarker(Marker *markerPtr) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3649,24 +3345,12 @@ static void MapWindowMarker(Marker *markerPtr) {
     wmPtr->core.clipped = BoxesDontOverlap(graphPtr, &exts);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Test the half-open cached child rectangle.
  *
- * PointInWindowMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Point2D *samplePtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows geometry only; does not check the child token, mapping state or
+ * refresh its requested dimensions. Outer marker filtering remains separate.
  */
 static int PointInWindowMarker(Marker *markerPtr, Point2D *samplePtr) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3674,25 +3358,12 @@ static int PointInWindowMarker(Marker *markerPtr, Point2D *samplePtr) {
             (samplePtr->y >= wmPtr->anchorPos.y) && (samplePtr->y < (wmPtr->anchorPos.y + wmPtr->height)));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Test enclosure or strict overlap of cached child bounds.
  *
- * RegionInWindowMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Extents2D *extsPtr
- *      int enclosed
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires coordinates and uses anchor plus width/height. Does not inspect
+ * child visibility, update geometry or test actual window contents.
  */
 static int RegionInWindowMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3709,24 +3380,13 @@ static int RegionInWindowMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
              ((wmPtr->anchorPos.y + wmPtr->height) <= extsPtr->top));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Synchronize the real child position/size and map it if necessary.
  *
- * DrawWindowMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns without a child. Moves/resizes only when cached geometry differs,
+ * then maps if needed. Ignores drawable: this changes a real Tk child, not a
+ * pixmap. Caller must have checked visibility and prepared mapped geometry.
  */
 static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3743,12 +3403,14 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
     }
 }
 
-/*
- * Synchronize real child windows independently of pixmap drawing. Skipping a
- * hidden or clipped marker does not erase an already mapped Tk child. Process
- * both under/over windows even when the backing-store marker pass is reused.
- * Partial overlap intentionally retains the ordinary graph behaviour: display
- * the full child, clipped only by its graph parent, not by the plot or track.
+/**
+ * @ingroup marker_window
+ * @brief Synchronize visibility of all real child markers across both layers.
+ *
+ * Walks display order and filters missing coordinates, hidden/clipped state,
+ * collapsed tracks and associated hidden elements. Maps/moves visible children
+ * and unmaps others. Partial overlap keeps the full child, clipped by its
+ * graph parent only. Required even when under-layer backing is reused.
  */
 static void SyncWindowMarkers(Graph *graphPtr) {
     Rbc_ChainLink *link;
@@ -3782,24 +3444,13 @@ static void SyncWindowMarkers(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Delegate capture of an existing mapped child to the exporter.
  *
- * WindowMarkerExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Creates/ends an output context and emits only if the child exists and is
+ * mapped. Uses marker placement; does not map a hidden child or replace it
+ * with an independent widget rendering. Capture policy belongs to the backend.
  */
 static void WindowMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -3814,25 +3465,13 @@ static void WindowMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) 
     Rbc_RenderEnd(output);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Destroy the currently embedded child and clear marker placement.
  *
- * FreeWindowMarker --
- *
- *      Destroys the structure containing the attributes of the window
- *      marker.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Window is destroyed and removed from the screen.
- *
- * ----------------------------------------------------------------------
+ * Delegates detachment/destruction to ReleaseWindowMarkerChild, then clears
+ * anchorPos. Unlike image markers, deleting this marker destroys its owned
+ * child. Common lifecycle code frees the marker record/options.
  */
 static void FreeWindowMarker(Graph *graphPtr, Marker *markerPtr) {
     WindowMarker *wmPtr;
@@ -3848,20 +3487,12 @@ static void FreeWindowMarker(Graph *graphPtr, Marker *markerPtr) {
     wmPtr->anchorPos.y = 0.0;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Allocate a zeroed window marker and set its class.
  *
- * CreateWindowMarker --
- *
- *      Allocate memory and initialize methods for the new window marker.
- *
- * Results:
- *      The pointer to the newly allocated marker structure is returned.
- *
- * Side effects:
- *      Memory is allocated for the window marker structure.
- *
- * ----------------------------------------------------------------------
+ * Returns the embedded common record; common configuration later resolves
+ * and acquires geometry management of a child. No child is created here.
  */
 static Marker *CreateWindowMarker(void) {
     WindowMarker *wmPtr;
@@ -3873,28 +3504,13 @@ static Marker *CreateWindowMarker(void) {
     return (wmPtr != NULL) ? &wmPtr->core : NULL;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Clear a destroyed child token while retaining the marker record.
  *
- * ChildEventProc --
- *
- *      This procedure is invoked whenever StructureNotify events
- *      occur for a window that's managed as part of a graph window
- *      marker. This procedure's only purpose is to clean up when
- *      windows are deleted.
- *
- * Parameters:
- *      ClientData clientData - Pointer to record describing window item.
- *      XEvent *eventPtr - Describes what just happened.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The window is disassociated from the window item when it is
- *      deleted.
- *
- * ----------------------------------------------------------------------
+ * Handles DestroyNotify only. Clears token/dimensions, marks mapping dirty
+ * and schedules redraw if the graph window still exists. Other structure
+ * events are ignored; this callback does not delete the marker.
  */
 static void ChildEventProc(ClientData clientData, XEvent *eventPtr) {
     WindowMarker *wmPtr;
@@ -3911,58 +3527,47 @@ static void ChildEventProc(ClientData clientData, XEvent *eventPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Copy newly requested child dimensions into automatic-size fields.
  *
- * ChildGeometryProc --
- *
- *      This procedure is invoked whenever a window that's associated
- *      with a window item changes its requested dimensions.
- *
- * Parameters:
- *      ClientData clientData - Pointer to record for window item.
- *      Tk_Window tkwin - Window that changed its desired size.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The size and location on the window of the window may change,
- *      depending on the options specified for the window item.
- *
- * ----------------------------------------------------------------------
+ * Updates only dimensions whose explicit request is zero. When either
+ * changes, marks mapping dirty and schedules redraw for a live graph window
+ * so anchor and visibility are recomputed. Invalidates under-layer backing
+ * storage as needed. Fully overridden or unchanged requests need no redraw.
  */
 static void ChildGeometryProc(ClientData clientData, Tk_Window tkwin) {
     WindowMarker *wmPtr = clientData;
-    if (wmPtr->reqWidth == 0) {
+    Graph *graphPtr = wmPtr->core.graphPtr;
+    int changed = FALSE;
+
+    if ((wmPtr->reqWidth == 0) && (wmPtr->width != Tk_ReqWidth(tkwin))) {
         wmPtr->width = Tk_ReqWidth(tkwin);
+        changed = TRUE;
     }
-    if (wmPtr->reqHeight == 0) {
+    if ((wmPtr->reqHeight == 0) && (wmPtr->height != Tk_ReqHeight(tkwin))) {
         wmPtr->height = Tk_ReqHeight(tkwin);
+        changed = TRUE;
+    }
+    if (changed) {
+        wmPtr->core.flags |= MAP_ITEM;
+        if (wmPtr->core.drawUnder) {
+            graphPtr->flags |= REDRAW_BACKING_STORE;
+        }
+        if (graphPtr->tkwin != NULL) {
+            Rbc_EventuallyRedrawGraph(graphPtr);
+        }
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_window
+ * @brief Delete the marker when another manager takes its child.
  *
- * ChildCustodyProc --
- *
- *      This procedure is invoked when an embedded window has been
- *      stolen by another geometry manager.  The information and
- *      memory associated with the widget is released.
- *
- * Parameters:
- *      ClientData clientData - Window marker to be destroyed.
- *      Tk_Window tkwin - Not used.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Arranges for the graph to be redrawn without the embedded
- *      widget at the next idle point.
- *
- * ----------------------------------------------------------------------
+ * Removes the event handler and clears the matching child token before
+ * DestroyMarker, preserving the window for its new manager. Schedules graph
+ * redraw afterward. The marker pointer is invalid after destruction; no
+ * marker field may be read again by this callback.
  */
 static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
     WindowMarker *wmPtr;

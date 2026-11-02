@@ -541,6 +541,197 @@ such as <code class="docutils literal notranslate"><span class="pre">-xor</span>
 only the old mapped caches and GC describe the image currently on screen.</p>
 </section>
 </section>
+<section id="bitmap-image-text-and-window-resources">
+<h2>Bitmap, image, text and window resources<a class="headerlink" href="#bitmap-image-text-and-window-resources" title="Link to this heading">¶</a></h2>
+<p>These classes share common marker option transactions but do not share the
+same ownership or placement model. Their class callbacks release derived
+resources; common cleanup subsequently releases Tk option resources and the
+record. The corresponding source contracts are in <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a>.</p>
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">Ownership by class</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 45.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Class-managed resources</p></th>
+<th class="head"><p>Resources retained elsewhere</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Bitmap</p></td>
+<td><p>Generated mapped bitmap/mask pixmaps and drawing GCs</p></td>
+<td><p>Source bitmap/mask and colors are Tk option resources</p></td>
+</tr>
+<tr class="row-odd"><td><p>Image</p></td>
+<td><p>Tk image instance, owned photo copy, temporary scaled image, pixmap and GC</p></td>
+<td><p>Named source image belongs to the application</p></td>
+</tr>
+<tr class="row-even"><td><p>Text</p></td>
+<td><p>Text layout, text/background GCs and shadow color</p></td>
+<td><p>Font, string and foreground/background colors are Tk option resources</p></td>
+</tr>
+<tr class="row-odd"><td><p>Window</p></td>
+<td><p>Geometry management and event registration for the embedded child</p></td>
+<td><p>Marker deletion also destroys the current child; replacing it merely
+detaches and unmaps the previous child</p></td>
+</tr>
+</tbody>
+</table>
+<p>The zeroed class constructors install callback tables; the text constructor
+also initializes a text style and default padding. They do not independently
+insert records into the registry or finish option initialization.</p>
+<section id="bitmap-masks-and-aliasing">
+<h3>Bitmap masks and aliasing<a class="headerlink" href="#bitmap-masks-and-aliasing" title="Link to this heading">¶</a></h3>
+<p>A bitmap marker keeps <code class="docutils literal notranslate"><span class="pre">srcBitmap</span></code> and optional <code class="docutils literal notranslate"><span class="pre">srcMask</span></code> separate from
+<code class="docutils literal notranslate"><span class="pre">destBitmap</span></code> and <code class="docutils literal notranslate"><span class="pre">destMask</span></code>. Configuring both source handles requires matching
+dimensions. <code class="docutils literal notranslate"><span class="pre">FreeMappedBitmapResources</span></code> frees only handles whose ownership
+flags are set, then clears the handles/flags. A transformed bitmap may also be
+its own mask; in that case only the bitmap handle owns the allocation.</p>
+<p>The effective mask depends on background visibility:</p>
+<table class="docutils align-default" id="id7">
+<caption><span class="caption-text">Effective source mask</span><a class="headerlink" href="#id7" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Explicit mask</p></th>
+<th class="head"><p>Background</p></th>
+<th class="head"><p>Effective mask</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Present</p></td>
+<td><p>Opaque</p></td>
+<td><p>Borrow the configured mask</p></td>
+</tr>
+<tr class="row-odd"><td><p>Present</p></td>
+<td><p>Transparent</p></td>
+<td><p>Allocate source bitmap AND configured mask</p></td>
+</tr>
+<tr class="row-even"><td><p>Absent</p></td>
+<td><p>Transparent</p></td>
+<td><p>Borrow the source bitmap itself</p></td>
+</tr>
+<tr class="row-odd"><td><p>Absent</p></td>
+<td><p>Opaque</p></td>
+<td><p>No separate source mask</p></td>
+</tr>
+</tbody>
+</table>
+<p>A single coordinate pair retains natural bitmap dimensions and applies the
+marker anchor; the unrotated center case aligns the center pixel explicitly.
+Two pairs define sorted opposite corners of an inclusive scaled box and ignore
+the anchor. Rotation/scale mapping generates only the visible subregion, then
+frees any temporary source-mask intersection or transfers it to the destination
+mask as appropriate. Completely offscreen boxes avoid transformation work.</p>
+<p>The mapped background outline is an absolute display polygon. Arbitrary
+rotation without an explicit mask uses that polygon for an opaque background
+and the bitmap itself as the foreground mask. Screen presentation passes this
+state to raster renderer services; export emits background/foreground masks or
+the polygon, freeing its temporary foreground intersection afterward.</p>
+<p>Bitmap picking is geometric, not per-bit: transparent holes are not excluded.
+Rotated point and region callbacks use the absolute mapped outline directly,
+without adding <code class="docutils literal notranslate"><span class="pre">anchorPos</span></code> a second time. This differs from the local-outline
+convention used by text markers.</p>
+</section>
+<section id="photo-and-non-photo-image-paths">
+<h3>Photo and non-photo image paths<a class="headerlink" href="#photo-and-non-photo-image-paths" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureImageMarker</span></code> acquires a new Tk image instance and callback before
+releasing the old instance. If the named image is a photo, it also owns an RBC
+color-image copy. <code class="docutils literal notranslate"><span class="pre">ImageChangedProc</span></code> replaces that copy on every notification,
+ignoring the changed subrectangle. If the name is no longer a photo, it clears
+the old photo representation rather than preserving stale pixels, marks mapping
+and backing dirty, and schedules redraw.</p>
+<p>Photo mapping supports either a natural-size anchored point or a two-corner
+scaled box. A scaled photo is materialized only for its visible subregion in an
+owned temporary Tk image. Returning to natural size destroys that temporary
+image. Fields are cleared before temporary-image destruction. Mapping returns
+no Tcl status, so failed temporary-image creation must not be interpreted as a
+successful atomic replacement of every cache.</p>
+<p>Non-photo images follow a different path: they retain Tk’s natural dimensions
+and use the first mapped point plus offsets as their top-left placement. That
+branch does not apply the marker anchor or scale to a second corner. Screen
+output chooses the temporary/source Tk image unless a cached pixmap is present;
+export chooses photo output when possible and otherwise delegates generic Tk
+image output to the backend.</p>
+<p>Image point and region tests use the cached rectangle, not alpha or source-image
+contents. They do not independently check whether the source has been deleted.
+Drawing/export perform their own deleted-instance checks. Freeing a marker
+releases its image instance and derived resources, but does not delete the
+application’s named source image.</p>
+</section>
+<section id="text-layout-and-coordinate-spaces">
+<h3>Text layout and coordinate spaces<a class="headerlink" href="#text-layout-and-coordinate-spaces" title="Link to this heading">¶</a></h3>
+<p>Text configuration rebuilds layout for every successful configuration, since
+font, text, justification, padding, shadow and rotation can affect dimensions.
+The proposed layout uses staged padding/shadow and the Tk-installed style while
+saved options still retain the old Tk resources. The shadow color is manually
+owned and must be released independently of Tk-managed foreground/background.</p>
+<p>The text style’s internal anchor is north-west. The marker’s separate anchor
+places the cached rotated bounding rectangle during mapping. Its outline is
+local to that rectangle, so point/region tests and output correctly translate
+it by <code class="docutils literal notranslate"><span class="pre">anchorPos</span></code> once. Mapping itself does not render text or create a rotated
+bitmap. Named-font changes use the shared font-invalidation path described
+earlier in this chapter.</p>
+<p>Screen backgrounds try Cairo with integer-converted polygon coordinates, then
+fall back to native background services. Glyphs use the screen-text service and
+cached layout. Document output uses the text string/style and unrounded
+translated background vertices. Picking tests the rectangle or rotated outline,
+not actual glyph coverage. Class cleanup releases layout, GCs and shadow;
+common Tk option cleanup releases font, string and configured colors.</p>
+</section>
+<section id="child-window-transitions-and-notifications">
+<h3>Child-window transitions and notifications<a class="headerlink" href="#child-window-transitions-and-notifications" title="Link to this heading">¶</a></h3>
+<p>Window configuration parses common options and dimensions and resolves the
+proposed child before detaching the existing one. The child must have the graph
+as its direct parent. Internal zero width/height means requested size, while an
+explicitly configured zero is rejected. Positive overrides take precedence
+during mapping.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ReleaseWindowMarkerChild</span></code> clears its token before removing the event handler
+and geometry manager. Replacement unmaps the old child for reuse; marker
+cleanup destroys the current child. Clearing the token prevents the marker’s
+own destroy notification from leaving a stale window reference, but should not
+be treated as a general lifetime guarantee across arbitrary Tk callbacks.
+Callers must retain the marker record while Tk services execute.</p>
+<table class="docutils align-default" id="id8">
+<caption><span class="caption-text">Child callbacks</span><a class="headerlink" href="#id8" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Callback</p></th>
+<th class="head"><p>Current action</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ChildEventProc</span></code></p></td>
+<td><p>On DestroyNotify, clears child/dimensions, marks mapping dirty and
+schedules redraw when the graph window still exists; retains marker</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ChildGeometryProc</span></code></p></td>
+<td><p>Copies requested dimensions only where the explicit override is zero,
+then schedules remapping/redraw when an automatic dimension changes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ChildCustodyProc</span></code></p></td>
+<td><p>Removes the event handler, clears the child token and destroys the
+marker, preserving the child for its new geometry manager</p></td>
+</tr>
+</tbody>
+</table>
+<p>Changed automatic dimensions mark the marker for remapping, invalidate
+under-layer backing storage when needed, and schedule graph redraw. Mapping
+recomputes the anchor and visibility before the child is resized. Explicit
+width/height overrides remain authoritative; unchanged or fully overridden
+requests do not schedule unnecessary redraws.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DrawWindowMarker</span></code> moves/resizes and maps the real child, ignoring its drawable
+argument. <code class="docutils literal notranslate"><span class="pre">SyncWindowMarkers</span></code> must run even when a cached under-layer is reused,
+and processes both marker layers. Hidden, wholly clipped or collapsed-track
+children are unmapped; partial overlap retains the full child with graph-parent
+clipping only. Export delegates capture only for a currently mapped child and
+does not map hidden children to manufacture an export image.</p>
+</section>
+</section>
 </section>
 
 
@@ -571,6 +762,13 @@ only the old mapped caches and GC describe the image currently on screen.</p>
 <li><a class="reference internal" href="#arc-mapping-and-output">Arc mapping and output</a></li>
 <li><a class="reference internal" href="#picking-differences">Picking differences</a></li>
 <li><a class="reference internal" href="#configuration-and-xor-lifetime">Configuration and XOR lifetime</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bitmap-image-text-and-window-resources">Bitmap, image, text and window resources</a><ul>
+<li><a class="reference internal" href="#bitmap-masks-and-aliasing">Bitmap masks and aliasing</a></li>
+<li><a class="reference internal" href="#photo-and-non-photo-image-paths">Photo and non-photo image paths</a></li>
+<li><a class="reference internal" href="#text-layout-and-coordinate-spaces">Text layout and coordinate spaces</a></li>
+<li><a class="reference internal" href="#child-window-transitions-and-notifications">Child-window transitions and notifications</a></li>
 </ul>
 </li>
 </ul>

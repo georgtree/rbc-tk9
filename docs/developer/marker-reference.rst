@@ -36,8 +36,8 @@ Shared implementation reference
 -------------------------------
 
 These groups cover common transactions, lifecycle, mapping helpers and
-commands. Geometric class contracts follow below; bitmap, image, text, window
-class internals and platform batching remain separate documentation work. Namespaces disambiguate private names without changing C linkage.
+commands. Concrete class contracts follow below; platform batching remains separate
+documentation work. Namespaces disambiguate private names without changing C linkage.
 
 Option preparation and commit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,6 +105,46 @@ Geometric renderer dispatch
 .. c:namespace-push:: rbcGrMarkerShapeOutput
 
 .. doxygengroup:: marker_shape_output
+   :members:
+
+.. c:namespace-pop::
+
+Bitmap marker resources and presentation
+----------------------------------------
+
+.. c:namespace-push:: rbcGrMarkerBitmap
+
+.. doxygengroup:: marker_bitmap
+   :members:
+
+.. c:namespace-pop::
+
+Image marker resources and presentation
+---------------------------------------
+
+.. c:namespace-push:: rbcGrMarkerImage
+
+.. doxygengroup:: marker_image
+   :members:
+
+.. c:namespace-pop::
+
+Text marker layout and presentation
+-----------------------------------
+
+.. c:namespace-push:: rbcGrMarkerText
+
+.. doxygengroup:: marker_text
+   :members:
+
+.. c:namespace-pop::
+
+Window marker geometry management and callbacks
+-----------------------------------------------
+
+.. c:namespace-push:: rbcGrMarkerWindow
+
+.. doxygengroup:: marker_window
    :members:
 
 .. c:namespace-pop::
