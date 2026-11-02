@@ -592,5 +592,76 @@ namespace eval barchart.bar {
         ::rbc::vector destroy exportValues
     } -result {1 1 1 1}
 
+    # Inherited errors must match the explicitly resolved color in every output.
+    # Keep the fills identical so whole-output comparisons isolate error color.
+    set testCase(24) 0
+    foreach renderer {native cairo} {
+        set constraints {}
+        if {$renderer eq "cairo"} {set constraints barErrorCairo}
+        foreach penKind {builtin named} {
+            foreach {foreground background errorColor resolvedColor} {
+                red navy defcolor red
+                red navy {} red
+                {} navy defcolor navy
+                {} navy {} navy
+                {} {} defcolor black
+                {} {} {} black
+                red navy magenta magenta
+                {} {} magenta magenta
+            } {
+                test RBC.barchart.bar.A.24.[incr testCase(24)] \
+                    "$renderer $penKind error color '$errorColor' inherits '$resolvedColor'" \
+                    -constraints $constraints -setup {
+                        AlignmentCreate barchart 0 0 0
+                        .ba configure -renderer $renderer
+                        .ba element configure a -xerror 1 -yerror 1
+                        set appearance [list -foreground $foreground -background $background \
+                            -borderwidth 0 -errorbarwidth 3 -errorbarcolor $errorColor]
+                        if {$penKind eq "named"} {
+                            .ba pen create errorPen -type bar {*}$appearance
+                            .ba element configure a -pen errorPen
+                            set configureColor [list .ba pen configure errorPen]
+                        } else {
+                            .ba element configure a {*}$appearance
+                            set configureColor [list .ba element configure a]
+                        }
+                        set photo [image create photo]
+                    } -body {
+                        update
+                        .ba snap $photo
+                        set screen [$photo data]
+                        set original {}
+                        foreach format {svg pdf postscript} {
+                            lappend original [AlignmentExport $format]
+                        }
+                        {*}$configureColor -errorbarcolor $resolvedColor
+                        update
+                        .ba snap $photo
+                        set result [list [expr {$screen eq [$photo data]}]]
+                        foreach format {svg pdf postscript} before $original {
+                            lappend result [expr {$before eq [AlignmentExport $format]}]
+                        }
+                        # Ensure the reference really draws the error above the bar.
+                        lassign [.ba transform 4 3.75] px py
+                        set rgb {}
+                        foreach component [winfo rgb .ba $resolvedColor] {
+                            lappend rgb [expr {$component / 257}]
+                        }
+                        set found 0
+                        for {set dx -1} {$dx <= 1} {incr dx} {
+                            for {set dy -1} {$dy <= 1} {incr dy} {
+                                if {[$photo get [expr {round($px)+$dx}] \
+                                        [expr {round($py)+$dy}]] eq $rgb} {set found 1}
+                            }
+                        }
+                        lappend result $found
+                    } -cleanup {
+                        destroy .ba
+                        image delete $photo
+                    } -result {1 1 1 1 1}
+            }
+        }
+    }
+
 	cleanupTests
 }

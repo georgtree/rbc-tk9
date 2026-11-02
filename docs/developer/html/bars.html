@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Bar grouping and placement &#8212; RBC 0.8.5 Developer Manual</title>
+    <title>Bar elements &#8212; RBC 0.8.5 Developer Manual</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
@@ -15,7 +15,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Bar layout C reference" href="bar-reference.html" />
+    <link rel="next" title="Bar element C reference" href="bar-reference.html" />
     <link rel="prev" title="Line decimation C reference" href="decimation-reference.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
@@ -25,13 +25,13 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="bar-reference.html" title="Bar layout C reference"
+          <a href="bar-reference.html" title="Bar element C reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="decimation-reference.html" title="Line decimation C reference"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Bar grouping and placement</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Bar elements</a></li> 
       </ul>
     </div>  
 
@@ -40,13 +40,121 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="bar-grouping-and-placement">
-<h1>Bar grouping and placement<a class="headerlink" href="#bar-grouping-and-placement" title="Link to this heading">¶</a></h1>
+  <section id="bar-elements">
+<h1>Bar elements<a class="headerlink" href="#bar-elements" title="Link to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code> implements bar elements through the shared <code class="docutils literal notranslate"><span class="pre">ElementProcs</span></code>
 interface. Source data and axis transactions follow <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>; screen
-mapping uses the axis/track scope described in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>. The routines in
-<a class="reference internal" href="bar-reference.html"><span class="doc">Bar layout C reference</span></a> share placement rules between axis-limit calculation and
-mapping. They do not modify source vectors or call Tcl scripts.</p>
+mapping uses the axis/track scope described in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>. The contracts in
+<a class="reference internal" href="bar-reference.html"><span class="doc">Bar element C reference</span></a> cover the concrete module from construction through
+cleanup. Placement and mapping borrow source arrays without running Tcl
+scripts; configuration may evaluate data expressions, and value labels may
+invoke application commands. Those callback boundaries need separate lifetime
+review.</p>
+<section id="records-and-ownership">
+<h2>Records and ownership<a class="headerlink" href="#records-and-ownership" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Bar</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Element</span></code> first and <code class="docutils literal notranslate"><span class="pre">BarPen</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Pen</span></code> first. The
+conversion and offset macros preserve that common-header layout; a static
+assertion checks the element header offset. Constructors return common-header
+pointers, not independently allocated header objects. <code class="docutils literal notranslate"><span class="pre">BarRectangle</span></code> aliases
+the renderer’s rectangle type.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Storage and release responsibilities</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 45.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Record or resource</p></th>
+<th class="head"><p>Ownership</p></th>
+<th class="head"><p>Release path</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Concrete bar and its copied name/label</p></td>
+<td><p>Shared element lifecycle owns the allocation returned by Rbc_BarElement</p></td>
+<td><p>Shared element teardown, after the concrete destructor</p></td>
+</tr>
+<tr class="row-odd"><td><p>Embedded normal pen</p></td>
+<td><p>Storage belongs to the bar; it is not a named-pen allocation</p></td>
+<td><p>DestroyPen for derived resources; element options for direct Tk resources</p></td>
+</tr>
+<tr class="row-even"><td><p>Named normal, active and palette pens</p></td>
+<td><p>References acquired through shared pen/element transactions</p></td>
+<td><p>Reference release through the pen manager or palette cleanup</p></td>
+</tr>
+<tr class="row-odd"><td><p>Option objects, fonts, borders and direct colors</p></td>
+<td><p>Tk option tables manage configured fields</p></td>
+<td><p>Shared Tk option teardown</p></td>
+</tr>
+<tr class="row-even"><td><p>Derived error color, shadow and GCs</p></td>
+<td><p>ConfigurePen stages and commits these resources</p></td>
+<td><p>DestroyPen</p></td>
+</tr>
+<tr class="row-odd"><td><p>Normal and active rectangles, source-index maps, mapped errors</p></td>
+<td><p>Bar/Element own the arrays; styles borrow slices</p></td>
+<td><p>ResetBar</p></td>
+</tr>
+<tr class="row-even"><td><p>Source vector slots</p></td>
+<td><p>Element slots own subscriptions or private data, not application vectors</p></td>
+<td><p>Rbc_FreeElemVector during concrete destruction</p></td>
+</tr>
+<tr class="row-odd"><td><p>Duplicate-X records</p></td>
+<td><p>Graph owns freqArr; hash values borrow its records</p></td>
+<td><p>Frequency-table rebuild or graph teardown</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">BarPenStyle</span></code> stores a concrete <code class="docutils literal notranslate"><span class="pre">BarPen</span> <span class="pre">*</span></code> alongside its weight range and
+borrowed geometry slices. Never free those slices separately. <code class="docutils literal notranslate"><span class="pre">ClearPalette</span></code>
+invalidates only counts: after <code class="docutils literal notranslate"><span class="pre">ResetBar</span></code> the slice addresses may still contain
+old values and must not be dereferenced until remapping installs valid views.</p>
+</section>
+<section id="creation-and-configuration">
+<h2>Creation and configuration<a class="headerlink" href="#creation-and-configuration" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_BarElement</span></code> allocates zeroed storage, copies the element name and initial
+label, installs <code class="docutils literal notranslate"><span class="pre">barProcs</span></code>, initializes the embedded pen, and creates an empty
+palette. It does not register the element, apply Tk option defaults or produce
+geometry. Shared creation must finish these steps. The method table uses ordinary
+paired X/Y counting; it has no complex-vector point-count override.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_BarPen</span></code> similarly creates an unregistered named pen. Only the exact name
+<code class="docutils literal notranslate"><span class="pre">activeBar</span></code> selects active defaults. <code class="docutils literal notranslate"><span class="pre">InitPen</span></code> installs callbacks and fallback
+fields in zeroed storage; it is not a substitute for Tk option initialization.
+Named pens and embedded pens share derived-resource configuration, but have
+different allocation and option-table owners. See <a class="reference internal" href="pens.html"><span class="doc">Pens and style palettes</span></a> and
+<a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for the common machinery.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureBar</span></code> runs after candidate Tk option fields have been installed:</p>
+<ol class="arabic simple">
+<li><p>Reject nonfinite bar width and offset. A finite nonpositive element width
+intentionally means use the graph width.</p></li>
+<li><p>Prepare changed data, named pens, axis/track references, state, tags and palette
+through the shared transactions. Initial configuration prepares every category.</p></li>
+<li><p>Validate and configure the embedded pen when its options changed.</p></li>
+<li><p>Commit state, tags, axes, pens and palette; point the default palette entry at
+the resulting concrete normal pen.</p></li>
+<li><p>Commit staged data, synchronize its retained Tcl representations and mark
+mapping dirty when required by the option mask.</p></li>
+</ol>
+<p>On a preparation error, the function frees prepared candidates and returns
+<code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>. The surrounding option transaction restores candidate Tk fields.
+There is no fallible element operation after the embedded pen commits. This
+ordering must be retained when adding options: validation after that point could
+leave derived state inconsistent with restored Tcl options. Data-expression
+callbacks retain the shared transaction’s lifetime restrictions; arbitrary
+application side effects are not rolled back.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigurePen</span></code> validates all fallible derived values before replacing resources:
+opacity, label offset, command-prefix syntax, format, finite rotation, pixel
+widths, error color, show masks and shadow. It then builds replacement GCs and
+commits them together with the parsed values. On failure it releases staged
+colors; old derived resources remain live. The value command is validated here,
+not executed. Direct candidate Tk fields still need the caller’s rollback.</p>
+<p>Error-color conversion accepts an empty value as NULL and any nonempty,
+case-sensitive prefix of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as <code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code>. The latter is a
+sentinel, not a Tk color reference; <code class="docutils literal notranslate"><span class="pre">FreeBarPenColor</span></code> must not pass it to
+<code class="docutils literal notranslate"><span class="pre">Tk_FreeColor</span></code>. Fill GC defaults choose foreground, then border color, then
+screen black. With both foreground and border, stipple gaps can be opaque;
+without both, the GC uses transparent stippling.</p>
+</section>
 <section id="grouping-keys-and-passes">
 <h2>Grouping keys and passes<a class="headerlink" href="#grouping-keys-and-passes" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_InitFreqTable</span></code> rebuilds graph-owned duplicate-X metadata from displayed,
@@ -174,6 +282,102 @@ source X/Y and index through <code class="docutils literal notranslate"><span cl
 sample contribution, not the cumulative top. <code class="docutils literal notranslate"><span class="pre">Rbc_GetBarRectangle</span></code> supplies
 mapped bounds when a caller needs the actual placed rectangle instead.</p>
 </section>
+<section id="palette-grouping-and-active-geometry">
+<h2>Palette grouping and active geometry<a class="headerlink" href="#palette-grouping-and-active-geometry" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">MergePens</span></code> runs after normal rectangles and error segments have been mapped.
+One palette entry simply borrows the complete arrays. With multiple styles it
+allocates replacement arrays and groups entries by palette order, retaining the
+previous order within each style. Rectangle and error source-index maps move
+with their geometry. Labels and picking must use these maps rather than treating
+mapped-array position as a source index.</p>
+<p>The multiple-style path scans the mapped arrays for each palette entry; it is
+not an in-place partition. Do not change grouping order casually: it also sets
+the order in which overlapping rectangles are painted. Checked array-byte
+calculations reject invalid counts and size overflow, but these void mapping
+helpers do not report Tcl allocation errors. Ordinary allocations use the
+existing checked/fatal allocation conventions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MapActiveBars</span></code> frees its previous copies and scans mapped rectangles against
+the explicit source-index selection. Repeated requested indices do not duplicate
+a rectangle. Clipped or otherwise unmapped source samples cannot appear in the
+active subset. <code class="docutils literal notranslate"><span class="pre">activeToData</span></code> contains original data indices even after palette
+reordering. <code class="docutils literal notranslate"><span class="pre">ACTIVE_PENDING</span></code> is cleared after rebuilding, including empty
+results. Normal remapping builds explicit active copies before regrouping normal
+arrays; later activation can rebuild them from the regrouped arrays.</p>
+<p>The selection count is a three-way protocol: positive means explicit indices,
+negative means all mapped rectangles, and zero means none. All-active drawing
+uses the normal arrays directly instead of allocating a second full copy. Both
+screen and export paths use the active pen for rectangles and labels, without
+adding a separate active error-bar overlay.</p>
+</section>
+<section id="screen-and-export-dispatch">
+<h2>Screen and export dispatch<a class="headerlink" href="#screen-and-export-dispatch" title="Link to this heading">¶</a></h2>
+<p>Normal output visits each palette style in this order: rectangle batch, enabled
+X errors, enabled Y errors, then value labels. Source-map offsets advance by the
+style’s rectangle count, not the number of error segments. Active output has its
+own callbacks. Neither output path performs placement again: grouping counters
+belong to extents/mapping passes, not rendering.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DrawBarSegments</span></code> passes the complete batch and its relief, border, stipple and
+opacity to the screen renderer. <code class="docutils literal notranslate"><span class="pre">SegmentsExport</span></code> instead prepares a fill style
+and walks rectangles through the selected document backend; its historical name
+does not mean line segments or PostScript-only output. It preserves the one-pixel
+inset for fills and original rectangle dimensions for relief borders. Zero fill
+opacity suppresses the fill, but does not itself suppress an available nonflat
+border. An absent foreground and border produces no rectangle output.</p>
+<p>Stipple export without a foreground promotes the background color to stipple
+foreground and leaves the gaps transparent. Legend samples perform the same
+color normalization, but are independent square symbols drawn with the normal
+pen, not miniatures of individual palette or active rectangles. Screen samples
+retain integer centering and size-minus-one geometry, trying the legend renderer
+before the screen fallback. Zero opacity suppresses the legend sample even when
+a data rectangle could still have a relief border.</p>
+<p>Error colors use <code class="docutils literal notranslate"><span class="pre">GetBarColor</span></code> for native GC creation, screen strokes and
+all document backends. Explicit colors remain unchanged. Both an empty color
+and <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> inherit foreground, then the bar background, then black if
+neither is present. The final fallback uses caller-owned <code class="docutils literal notranslate"><span class="pre">XColor</span></code> storage:
+its RGB components are black and its pixel is the screen’s black pixel. Keep
+that storage alive through the renderer context’s use; no Tk color reference
+is acquired. Configuration passes the staged error color before committing it.
+Screen strokes still supply at least one pixel, while document strokes retain
+the configured width and the backend’s hairline handling.</p>
+</section>
+<section id="value-labels-and-callbacks">
+<h2>Value labels and callbacks<a class="headerlink" href="#value-labels-and-callbacks" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DrawBarValues</span></code> and <code class="docutils literal notranslate"><span class="pre">BarValuesExport</span></code> recover original X/Y values through
+the rectangle’s source-index map. Stacked labels therefore receive the source
+contribution, not the cumulative stack top. Each call to the shared label helper
+returns one owned Tcl object reference, released by the loop even for empty text.
+See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for command arguments, fallback formatting, background-error
+reporting and interpreter-result preservation.</p>
+<p>Without inversion the anchor is the horizontal center of the rectangle’s top
+edge, switching to its bottom edge when source Y is below the effective baseline.
+With inversion it is the vertical center of the right edge, switching to the left
+edge under the same source-value test. This decision uses source Y, not a new
+comparison of cumulative stack endpoints. The pen offset is added afterwards.
+Screen output checks integer bounds and truncates coordinates; document output
+retains floating-point coordinates.</p>
+<p>Label commands execute application Tcl while the output loop holds borrowed
+element, pen and geometry pointers. These loops do not preserve drawing records
+against deletion, reconfiguration or nested event processing. Callbacks must
+leave that drawing state unchanged and avoid nested event loops. Ownership of
+the returned label object protects its text, not the objects being drawn.</p>
+</section>
+<section id="cleanup-and-font-changes">
+<h2>Cleanup and font changes<a class="headerlink" href="#cleanup-and-font-changes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DestroyBar</span></code> releases axes and named pens, destroys the embedded pen’s derived
+resources, detaches every data slot, resets mapped arrays and releases explicit
+active indices, palette and tags. It does not free the concrete allocation or
+Tk-managed option resources: shared element teardown owns those remaining steps.
+Detaching a named vector does not destroy the application’s vector.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DestroyPen</span></code> releases text-style drawing resources and manually derived colors
+and GCs, clearing released pointers. It deliberately leaves direct Tk option
+resources to the appropriate shared pen or element owner. Keeping this boundary
+explicit avoids double release of the embedded pen’s options.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_BarFontsChanged</span></code> visits both the named-pen table and every bar in the
+element table, including undisplayed elements. It resets label text styles with
+fonts, covering active/style pens through the named table and private embedded
+pens through the element table. It does not itself remap rectangles or schedule
+redrawing; the graph’s font-change workflow owns that work.</p>
+</section>
 </section>
 
 
@@ -186,11 +390,17 @@ mapped bounds when a caller needs the actual placed rectangle instead.</p>
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Bar grouping and placement</a><ul>
+<li><a class="reference internal" href="#">Bar elements</a><ul>
+<li><a class="reference internal" href="#records-and-ownership">Records and ownership</a></li>
+<li><a class="reference internal" href="#creation-and-configuration">Creation and configuration</a></li>
 <li><a class="reference internal" href="#grouping-keys-and-passes">Grouping keys and passes</a></li>
 <li><a class="reference internal" href="#placement-formulas">Placement formulas</a></li>
 <li><a class="reference internal" href="#data-limits-and-error-translations">Data limits and error translations</a></li>
 <li><a class="reference internal" href="#screen-geometry-ownership-and-output">Screen geometry, ownership and output</a></li>
+<li><a class="reference internal" href="#palette-grouping-and-active-geometry">Palette grouping and active geometry</a></li>
+<li><a class="reference internal" href="#screen-and-export-dispatch">Screen and export dispatch</a></li>
+<li><a class="reference internal" href="#value-labels-and-callbacks">Value labels and callbacks</a></li>
+<li><a class="reference internal" href="#cleanup-and-font-changes">Cleanup and font changes</a></li>
 </ul>
 </li>
 </ul>
@@ -204,7 +414,7 @@ mapped bounds when a caller needs the actual placed rectangle instead.</p>
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="bar-reference.html"
-                          title="next chapter">Bar layout C reference</a></p>
+                          title="next chapter">Bar element C reference</a></p>
   </div>
 <search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
@@ -227,13 +437,13 @@ mapped bounds when a caller needs the actual placed rectangle instead.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="bar-reference.html" title="Bar layout C reference"
+          <a href="bar-reference.html" title="Bar element C reference"
              >next</a> |</li>
         <li class="right" >
           <a href="decimation-reference.html" title="Line decimation C reference"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Bar grouping and placement</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Bar elements</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Bar layout C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <title>Bar element C reference &#8212; RBC 0.8.5 Developer Manual</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Area fills and error bands" href="fills.html" />
-    <link rel="prev" title="Bar grouping and placement" href="bars.html" /> 
+    <link rel="prev" title="Bar elements" href="bars.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
@@ -28,10 +28,10 @@
           <a href="fills.html" title="Area fills and error bands"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bars.html" title="Bar grouping and placement"
+          <a href="bars.html" title="Bar elements"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Bar layout C reference</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Bar element C reference</a></li> 
       </ul>
     </div>  
 
@@ -40,10 +40,104 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="bar-layout-c-reference">
-<h1>Bar layout C reference<a class="headerlink" href="#bar-layout-c-reference" title="Link to this heading">¶</a></h1>
-<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code>. They are not cross-module APIs.
-See <a class="reference internal" href="bars.html"><span class="doc">Bar grouping and placement</span></a> for grouping passes, placement formulas and array ownership.</p>
+  <section id="bar-element-c-reference">
+<h1>Bar element C reference<a class="headerlink" href="#bar-element-c-reference" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="bars.html"><span class="doc">Bar elements</span></a> for configuration boundaries, grouping passes, mapped storage,
+rendering and cleanup. These routines belong to <code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code>. The exported
+<code class="docutils literal notranslate"><span class="pre">Rbc_</span></code> names are internal cross-module services, not additions to the public
+vector stubs API. Namespaces below disambiguate private documentation symbols;
+they do not change C linkage.</p>
+<section id="configuration-and-pens">
+<h2>Configuration and pens<a class="headerlink" href="#configuration-and-pens" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__bar__configuration"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Bar</span> <span class="pre">configuration</span> <span class="pre">and</span> <span class="pre">pen</span> <span class="pre">lifecycle</span></span></dt>
+<dd><p>Internal constructors and staged configuration; no public stubs are added. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.IsBarPenPrefix">
+<span class="target" id="group__bar__configuration_1ga8fbabde7fc573c72961b63357a85c787"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsBarPenPrefix</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fullName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.IsBarPenPrefix" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Recognize a nonempty, case-sensitive prefix of a color keyword. </p>
+<p>The borrowed strings must contain at least their stated lengths. Returns a boolean; an empty spelling and a spelling longer than fullName fail. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.GetBarPenColorFromObj">
+<span class="target" id="group__bar__configuration_1gade8eed13dc21be041faf772a27641c74"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarPenColorFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.GetBarPenColorFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve an optional error color into a staged resource. </p>
+<p>NULL or an empty object yields NULL; a nonempty prefix of defcolor yields COLOR_DEFAULT. Other spellings acquire a Tk color reference. Returns TCL_OK and writes colorPtrPtr on success, or TCL_ERROR with an interpreter diagnostic and the output unchanged. Release acquired colors with FreeBarPenColor. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.FreeBarPenColor">
+<span class="target" id="group__bar__configuration_1ga8414e0b7567f9c9400698055c2560515"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeBarPenColor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.FreeBarPenColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release an acquired color while accepting the default sentinel. </p>
+<p>NULL and COLOR_DEFAULT are no-ops. Does not clear the caller’s pointer or release a retained option object. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.GetBarColor">
+<span class="target" id="group__bar__configuration_1gaea581d07be38d8563f960303472228bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetBarColor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fallbackPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.GetBarColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a bar color consistently for native GCs and renderer output. </p>
+<p>Borrows the pen and candidate color. NULL and COLOR_DEFAULT inherit the foreground, then the border color, then screen black. Returns a borrowed color or initializes and returns caller-owned fallback storage. The caller must keep fallback alive while the renderer uses the returned pointer. Accepting a candidate color also supports ConfigurePen before commit. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.ConfigurePen">
+<span class="target" id="group__bar__configuration_1gac559e46743835327804bc84770b6f279"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.ConfigurePen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate and replace a bar pen’s derived drawing resources. </p>
+<p>Tk has already installed candidate option fields. Validate opacity, label offset, command prefix, format, rotation, pixel widths, show masks and shadow before replacing any derived resource. Acquire all replacement GCs before freeing the old ones. Returns TCL_OK on commit; TCL_ERROR frees staged colors and leaves derived resources unchanged. The caller owns rollback of the candidate Tk option fields. Validation does not invoke the value-label command. Works for named pens and the element’s embedded pen. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.DestroyPen">
+<span class="target" id="group__bar__configuration_1ga8dc7762b910223725e2575fe725a41aa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.DestroyPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release bar-pen resources derived outside the Tk option table. </p>
+<p>Frees text-style drawing resources, fill/error GCs, the derived error color and shadow color, clearing released pointers. Does not free the pen record, name, or Tk-managed option resources; shared pen/element teardown owns those. The embedded pen must not be freed as a standalone allocation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.InitPen">
+<span class="target" id="group__bar__configuration_1gafb6834b19a0416178ceb742114154ae6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionSpecs</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.InitPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize methods and fallback fields in a zeroed bar pen. </p>
+<p>The caller supplies storage and a non-NULL option specification. Installs configuration/destruction callbacks and initializes text style and flags. Does not apply Tk defaults, allocate drawing GCs or register a named pen. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.Rbc_BarPen">
+<span class="target" id="group__bar__configuration_1ga54ef5613b03e33b552b4c03903db2616"></span><span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BarPen</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.Rbc_BarPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unregistered named bar pen for shared pen creation. </p>
+<p>Returns the common Pen header of owned, zeroed concrete storage with a copied name. The exact name activeBar selects active option defaults; other names select normal defaults. Allocation is asserted. The shared pen manager must initialize options, register/configure the pen and own its eventual destruction. This is an internal constructor, not a stubs API. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.ConfigureBar">
+<span class="target" id="group__bar__configuration_1ga384db882e910e2b5a2f1aa7f8208f88d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.ConfigureBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage element dependencies before committing bar configuration. </p>
+<p>Called after Tk installs candidate options. Rejects nonfinite width and offset; a finite nonpositive element width retains graph-width fallback. Prepares changed data, pens, axes, state, tags and styles, then configures the embedded pen if needed. Commits dependencies and synchronizes retained data objects only after fallible preparation succeeds. Updates the palette default pen and sets MAP_ITEM for mapping-related changes. Returns TCL_OK on success; TCL_ERROR frees prepared candidates and leaves Tk option rollback to the caller. Data preparation can evaluate expressions: ordinary rollback is not a guarantee against arbitrary callback side effects. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.Rbc_BarElement">
+<span class="target" id="group__bar__configuration_1gaf894501c3a290182d9c125030a6bacd3"></span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BarElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.Rbc_BarElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unconfigured bar element for shared element creation. </p>
+<p>Returns the common Element header of owned zeroed storage, or NULL on allocation failure. Copies name and initial label, borrows graph/class identity, installs bar methods, initializes the embedded normal pen and creates an empty palette. The caller must apply options, configure and register the element, or release it through shared element teardown. Ordinary paired X/Y counting is used; no complex point-count hook is set. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarConfiguration.Rbc_BarFontsChanged">
+<span class="target" id="group__bar__configuration_1gad933bbaab983703dc8fea7b89ca8ed69"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BarFontsChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarConfiguration.Rbc_BarFontsChanged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh label text styles after a graph font change. </p>
+<p>Visits bar pens in the named-pen table and embedded pens in the element table, including elements outside the display list. Resets each text style with a non-NULL font. Borrows graph-owned records; does not rebuild bar geometry, select active pens or itself schedule a redraw. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="grouping-and-placement">
+<h2>Grouping and placement<a class="headerlink" href="#grouping-and-placement" title="Link to this heading">¶</a></h2>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__bar__layout"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Bar</span> <span class="pre">layout</span> <span class="pre">internals</span></span></dt>
@@ -52,8 +146,50 @@ See <a class="reference internal" href="bars.html"><span class="doc">Bar groupin
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
-<dt class="sig sig-object c" id="c.PlaceBar">
-<span class="target" id="group__bar__layout_1gab8e2a125edbac53a72cb487bc3fe25fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PlaceBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">clip</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PlaceBar" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.GetTrackBarMode">
+<span class="target" id="group__bar__layout_1gad8865f5ee36f8c37bf2b29a93e5b77b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTrackBarMode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">yAxis</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetTrackBarMode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Select the owning track override or the graph bar mode. </p>
+<p>The borrowed Y axis must be live. A nonnegative track barMode overrides the graph mode; axis identity, rather than this helper, isolates grouping. No state is changed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.Round">
+<span class="target" id="group__bar__layout_1ga7e1f054b83999d92f7e25e02fecbab55"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Round</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.Round" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round a bounded pixel distance with half values away from zero. </p>
+<p>The caller must supply a finite value whose adjusted value fits in int. This helper does not clamp or report conversion errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.GetBarArrayByteCount">
+<span class="target" id="group__bar__layout_1ga45b11c33995e0117e98404736e49549c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarArrayByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elementSize</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bytesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetBarArrayByteCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate a Tcl_Size array count before size_t multiplication. </p>
+<p>Rejects negative counts, zero element size and multiplication overflow. Returns TCL_OK and writes bytesPtr on success (including a zero count), otherwise TCL_ERROR with the output unchanged. No interpreter diagnostic or allocation is performed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.CheckStacks">
+<span class="target" id="group__bar__layout_1gaeedb61b3cd0322cd6c71c4297cf9c1a5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckStacks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.CheckStacks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Expand Y limits using precomputed totals for one axis pair. </p>
+<p>Only operates in the effective stacked mode with duplicate metadata. Reads matching records in graph-owned freqArr; negative totals may lower minPtr, nonnegative totals may raise maxPtr. Requires Rbc_ComputeStacks first. Does not reset counters or inspect intermediate cumulative heights. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.GetBarBaseline">
+<span class="target" id="group__bar__layout_1ga13613d8bae937191bd7e313890191165"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarBaseline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetBarBaseline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the configured baseline with the historical log fallback. </p>
+<p>Uses one when the Y axis is logarithmic and the configured baseline is nonpositive. Borrows the live element, graph and Y axis; no state is changed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.BarAnchorOffset">
+<span class="target" id="group__bar__layout_1ga3a6fd6ef612d4ce5f33195fab274053a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarAnchorOffset</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.BarAnchorOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the anchor displacement for the full data-X interval. </p>
+<p>Left gives zero, right gives width and center gives half width. Apply before grouped subdivision. Width is the caller’s effective bar width; this helper neither validates it nor advances grouping counters. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.PlaceBar">
+<span class="target" id="group__bar__layout_1gab8e2a125edbac53a72cb487bc3fe25fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PlaceBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">clip</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.PlaceBar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute one bar’s data-space corners and consume its group position. </p>
 <p>
 Apply each element’s width, alignment and offset before subdivision. Duplicate keys use the original X value and both axis identities. Successful grouped placement advances count or lastY; this is not a pure query. Reset grouping state before a new ordered pass. Log-invalid and nonfinite input, invalid full X intervals, viewport rejection and stack overflow are skipped. Corners are not screen mapped or reordered for negative-height bars. </p>
@@ -75,8 +211,8 @@ Apply each element’s width, alignment and offset before subdivision. Duplicate
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.GetBarExtents">
-<span class="target" id="group__bar__layout_1gae6343dabaa9fa06e018de8fc9facb52e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetBarExtents" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.GetBarExtents">
+<span class="target" id="group__bar__layout_1gae6343dabaa9fa06e018de8fc9facb52e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetBarExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute bar data limits and translated error limits. </p>
 <p>
 Includes full anchored X intervals, baseline rules and duplicate stack totals. Calls PlaceBar without viewport rejection to advance group state even when error bars retain data positioning. In bar positioning mode, owns a temporary per-source translation array and frees it after expanding error limits. The caller must reset group state before the ordered pass. </p>
@@ -91,8 +227,8 @@ Includes full anchored X intervals, baseline rules and duplicate stack totals. C
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.ClosestBar">
-<span class="target" id="group__bar__layout_1ga6f184bb557a677246406891ce67630f3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClosestBar" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.ClosestBar">
+<span class="target" id="group__bar__layout_1ga6f184bb557a677246406891ce67630f3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.ClosestBar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Search mapped bar rectangles while retaining source identity. </p>
 <p>
 Interior hits have zero distance; other candidates use rectangle edges. rectToData translates mapped order back to source order. Reported X and Y are original data values, not shifted centers or cumulative stack values. No arrays are allocated and no graph state is changed. </p>
@@ -108,8 +244,8 @@ Interior hits have zero distance; other candidates use rectangle edges. rectToDa
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.MapBar">
-<span class="target" id="group__bar__layout_1gafb47060644c4f51cdf04f898e38e9492"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapBar" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.MapBar">
+<span class="target" id="group__bar__layout_1gafb47060644c4f51cdf04f898e38e9492"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.MapBar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace bar display geometry from source data and group state. </p>
 <p>
 Allocates owned rectangles and original-source indices, places bars in order, maps corners and bounds coordinates before integer conversion. Owns temporary error translations and style lookup storage; frees both after mapping errors and grouping geometry by pen. Active rectangles are rebuilt when explicit active indices exist. This consumes group state and must run in the ordered mapping pass, after its reset. Renderer clipping is separate from the window bounds used here to keep integer conversion safe. </p>
@@ -123,9 +259,209 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 </dl>
 </dd></dl>
 
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.Rbc_InitFreqTable">
+<span class="target" id="group__bar__layout_1gadce0579ab20cfe653a670fd914edde2b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitFreqTable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.Rbc_InitFreqTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild duplicate-X grouping metadata for displayed bar elements. </p>
+<p>Releases previous graph-owned metadata first. Ordinary normal mode needs no table; trackgraphs still need one for local overrides. Counts finite paired samples with valid log-Y values, using source X and both axis identities; normalizes signed zero. Only duplicate keys receive persistent records, owned by freqArr and borrowed by hash entries. nStacks indicates persistent table initialization. Does not apply width/offset/alignment or compute stack sums. The graph must retain axes throughout metadata use. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.Rbc_ComputeStacks">
+<span class="target" id="group__bar__layout_1gab62978be5f859680c2bb4fdd6a6f9e8c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComputeStacks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.Rbc_ComputeStacks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Accumulate signed source-Y totals for duplicate grouping keys. </p>
+<p>Requires current frequency metadata. Resets sums, then visits displayed bars and valid pairs in display-list order. Ordinary nonstacked graphs return early; trackgraphs compute all duplicate totals and CheckStacks chooses where to use them. Sums are ordinary double additions, without PlaceBar’s overflow rejection or separate positive/negative accumulation. Does not alter placement counters or source data. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarLayout.Rbc_ResetStacks">
+<span class="target" id="group__bar__layout_1ga7f179a973bab8a8d486bb89520afe9bc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResetStacks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.Rbc_ResetStacks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reset mutable group placement cursors before an ordered pass. </p>
+<p>Sets every duplicate record’s lastY and count to zero, retaining sums, frequencies and axis identities. A missing/empty array is a no-op. Call before an extents or mapping traversal, not between members of a group. </p>
+</dd></dl>
+
 </div>
 </dd></dl>
 
+</section>
+<section id="geometry-and-lifetime">
+<h2>Geometry and lifetime<a class="headerlink" href="#geometry-and-lifetime" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__bar__geometry"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Bar</span> <span class="pre">geometry</span> <span class="pre">ownership</span></span></dt>
+<dd><p>Mapped arrays, style views, active selections and concrete element cleanup. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.ClearPalette">
+<span class="target" id="group__bar__geometry_1ga5fb51e5edadef9b16da8a2b58fefa03d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClearPalette</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.ClearPalette" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Invalidate rectangle and error-segment counts in every style. </p>
+<p>The palette and styles are borrowed. Slice pointers are not cleared or freed; their zero counts prevent use until remapping replaces the views. Pen references and weight ranges are retained. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.NewBarErrorOffsets">
+<span class="target" id="group__bar__geometry_1ga497a2bcbf20a297161fd209f2c52718f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewBarErrorOffsets</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.NewBarErrorOffsets" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate per-source error translations initially marked invalid. </p>
+<p>Returns an owned Point2D array with both coordinates set to NaN in every slot, or NULL if the byte count is invalid. Allocation uses ckalloc; this is not a recoverable allocator-failure interface. The caller frees the array after mapping or expanding error limits. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.SetBarErrorOffset">
+<span class="target" id="group__bar__geometry_1gae0a69b0bf10afe4fde68f8894fe47f2f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetBarErrorOffset</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrBarGeometry.Bar" title="Bar"><span class="n"><span class="pre">Bar</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsets</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.SetBarErrorOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Store the placed-center and placed-value displacement of one sample. </p>
+<p>All pointers are borrowed and index must be valid in both source arrays and offsets. Corners must come from PlaceBar before swapping Y edges or screen mapping. Averages X endpoints as two halves and subtracts source X; subtracts source Y from the first corner’s Y. Does not allocate or validate. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Rbc_GetBarRectangle">
+<span class="target" id="group__bar__geometry_1ga5a50b24a9b4adc1dcacc6781ffcd3d7f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBarRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">dataIndex</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Look up mapped bounds by original source index. </p>
+<p>The non-NULL element must be a bar; no class check or remapping occurs. Returns TRUE and writes physical window bounds on a match. Returns FALSE for missing geometry, invalid arguments or an unmapped index, leaving output unchanged. Bounds include placement, inversion and mapping’s window clamp, but are not intersected with the final renderer plot clip. Borrows all storage and does not invoke callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.MergePens">
+<span class="target" id="group__bar__geometry_1gaa3838db820ef70e1df93c75b1a920e1a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MergePens</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrBarGeometry.Bar" title="Bar"><span class="n"><span class="pre">Bar</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataToStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.MergePens" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Group rectangles and errors into palette slices with source maps. </p>
+<p>Requires a nonempty palette and a dataToStyle entry for each referenced source index. With one style, installs borrowed views without copying. Otherwise allocates replacement arrays, visits styles in palette order, preserves order within each style and replaces the owned geometry and index maps together. Styles borrow slices, never own them. Invalid byte counts cause an early return; there is no Tcl error result. Does not change source vectors or the separately copied active geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.MapActiveBars">
+<span class="target" id="group__bar__geometry_1gabf07fe7d1bfe6e950df8ec77b552e38a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapActiveBars</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrBarGeometry.Bar" title="Bar"><span class="n"><span class="pre">Bar</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.MapActiveBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild the explicit active subset from mapped source indices. </p>
+<p>Frees previous active arrays first. For positive nActiveIndices, copies matching rectangles in mapped order and retains original source indices; repeated requests do not duplicate a rectangle. Unmapped requests yield no rectangle. Clears ACTIVE_PENDING even for empty or size-invalid output. Negative all-active mode is handled by drawing/export, not copied here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.ResetBar">
+<span class="target" id="group__bar__geometry_1ga19ce63e857898326dca5714fd74969de"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetBar</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrBarGeometry.Bar" title="Bar"><span class="n"><span class="pre">Bar</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.ResetBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Discard owned mapped geometry and invalidate palette views. </p>
+<p>Clears palette counts, frees normal/active rectangles, error segments and their source-index maps, then zeros the owning pointers and counts. Does not clear borrowed style pointers, free source vectors, release pens or discard the active-index selection. Used before remapping and at teardown. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.DestroyBar">
+<span class="target" id="group__bar__geometry_1ga2141b8eab4350e691f4aa54b256cded5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.DestroyBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release concrete bar dependencies without freeing the element record. </p>
+<p>Drops axis and named-pen references, destroys the embedded pen’s derived resources, detaches all source slots and frees mapped geometry, active selection, palette and tags. Source-vector creators retain ownership of their vectors. Shared element teardown handles Tk-managed options, names and the concrete record allocation; this callback must not free them. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen">
+<span class="target" id="struct_bar_pen"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarPen</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A concrete bar pen with a first-member Pen header. </p>
+<p>Tk owns direct option resources; ConfigurePen/DestroyPen own derived colors and drawing GCs. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle">
+<span class="target" id="struct_bar_pen_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarPenStyle</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A weighted palette entry borrowing a concrete pen and mapped array slices. </p>
+<p>Counts delimit valid views; the containing element owns the arrays. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar">
+<span class="target" id="struct_bar"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Bar</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A concrete bar element with a first-member Element header and embedded pen. </p>
+<p>Owns normal/active rectangles and source-index maps; common error arrays reside in the Element header. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="screen-drawing-and-document-output">
+<h2>Screen drawing and document output<a class="headerlink" href="#screen-drawing-and-document-output" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__bar__output"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Bar</span> <span class="pre">screen</span> <span class="pre">and</span> <span class="pre">document</span> <span class="pre">output</span></span></dt>
+<dd><p>Renderer adapters; value-label callbacks require stable drawing records. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.DrawSymbol">
+<span class="target" id="group__bar__output_1ga2d7f1e46b4b3e17486906d958543d12d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawSymbol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawSymbol" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a square legend sample using the normal pen. </p>
+<p>Borrows graph, drawable and element. Skips zero opacity or absent colors. Preserves integer centering and size-minus-one geometry. Tries the renderer legend adapter, then the screen fallback when unhandled. The sample is independent of data rectangles, active/style pens and plot placement. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.DrawBarSegments">
+<span class="target" id="group__bar__output_1ga832896665bc2ec4dab6a3b85d35f8b91"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawBarSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawBarSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Submit one bar rectangle batch with its pen style. </p>
+<p>Borrows rectangles and pen resources; opens and closes a screen bar context around the complete batch. The outer element drawing scope supplies track/plot clipping, including borders. Does not map or copy geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.DrawBarValues">
+<span class="target" id="group__bar__output_1ga213ba538e55f4cf10bd9e2fa1568deed"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawBarValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectToData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawBarValues" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw source-value labels anchored to mapped rectangles. </p>
+<p>The borrowed rectangle and source-index arrays must correspond. Obtains one owned label reference per rectangle and releases it after use; empty text is skipped. Inversion and the source value relative to the effective baseline choose the anchor edge. Adds the pen offset, checks int bounds and truncates screen coordinates. Label commands may execute Tcl: callers must keep graph, pen, element and geometry live and unchanged throughout drawing; this loop adds no preservation against callback mutation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.DrawBarErrorSegments">
+<span class="target" id="group__bar__output_1ga3a187fcdca1ce9c53e31a384fa59e8b1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawBarErrorSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawBarErrorSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw one error-stroke batch with screen color and width defaults. </p>
+<p>Borrows pen and segments. NULL/default color falls back to foreground, then border color, then screen black. Supplies at least one pixel to the stroke renderer and the configured GC for native drawing. Closes any returned context; an unavailable context produces no strokes. Does not map errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.DrawNormalBar">
+<span class="target" id="group__bar__output_1ga020a79f0a9abc70fdd88ca03aab25fc5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawNormalBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawNormalBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw palette-grouped bars, errors and labels in that order. </p>
+<p>Requires current geometry and style slices. Each style draws rectangles, enabled X errors, enabled Y errors, then labels. Advances the parallel rectToData slice by each style’s rectangle count. The caller supplies the clipping/lifetime scope; label commands can execute Tcl and must not mutate the borrowed drawing records. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.DrawActiveBar">
+<span class="target" id="group__bar__output_1ga1f344df2ea9ad1976f40152da4769058"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawActiveBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawActiveBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw active rectangles and labels with the active pen. </p>
+<p>A missing active pen or zero selection draws nothing. Positive selection rebuilds ACTIVE_PENDING geometry on demand; a negative selection draws all mapped rectangles. Does not overlay active error bars. Borrows records and inherits DrawBarValues callback restrictions. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.SymbolExport">
+<span class="target" id="group__bar__output_1ga41a83a8fca988ca4eb179d38e03b76f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.SymbolExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export a normal-pen legend sample through the selected backend. </p>
+<p>Skips zero opacity or absent colors. With stipple and no foreground, promotes background to stipple foreground and leaves gaps transparent. Borrows style resources and closes the symbol context after one point; does not emit data rectangles or relief borders. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.SegmentsExport">
+<span class="target" id="group__bar__output_1ga1adaa0afcde2b08c47a64272d4207b2e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SegmentsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.SegmentsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export filled rectangles and optional relief borders for one pen. </p>
+<p>Borrows the mapped rectangle batch. Normalizes stipple colors, opens one fill context and skips rectangles with dimensions below one. Preserves the historical one-pixel fill inset. Positive opacity enables fills; nonflat borders use the original dimensions and can remain visible at zero fill opacity. No colors means no output. Closes its context before returning; plot/track clipping belongs to the outer export scope. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.BarValuesExport">
+<span class="target" id="group__bar__output_1ga067ce432440168a79a8cae24036a9c29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarValuesExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectToData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.BarValuesExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export source-value labels at mapped bar anchors. </p>
+<p>Uses the same source-index lookup and baseline/inversion anchor rule as DrawBarValues, retaining floating-point output coordinates. Borrows drawing records, releases each acquired label object and closes the output context. Label commands may execute Tcl and must not mutate owners or geometry or enter nested event loops. Empty labels are skipped. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.ActiveBarExport">
+<span class="target" id="group__bar__output_1ga576358e01f26ce1c3f55861bdd6af778"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ActiveBarExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.ActiveBarExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export selected or all active rectangles and their labels. </p>
+<p>Uses the active pen if present. Positive selection rebuilds pending active geometry; negative selection uses the full mapped arrays. Zero selection emits nothing. Does not export active errors. Requires the outer export clip and the label-callback lifetime contract of BarValuesExport. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrBarOutput.NormalBarExport">
+<span class="target" id="group__bar__output_1gac36447a29395984b8a7655a83a7deb08"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalBarExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.NormalBarExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export palette-grouped bars, error strokes and value labels. </p>
+<p>Borrows current style slices and corresponding source-index ranges. Uses the shared bar color fallback for errors and passes the configured width to export stroke contexts. Labels may execute Tcl; the outer caller must maintain the drawing records and export clip throughout. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -138,11 +474,65 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Bar layout C reference</a><ul>
-<li><a class="reference internal" href="#c.PlaceBar"><code class="docutils literal notranslate"><span class="pre">PlaceBar()</span></code></a></li>
-<li><a class="reference internal" href="#c.GetBarExtents"><code class="docutils literal notranslate"><span class="pre">GetBarExtents()</span></code></a></li>
-<li><a class="reference internal" href="#c.ClosestBar"><code class="docutils literal notranslate"><span class="pre">ClosestBar()</span></code></a></li>
-<li><a class="reference internal" href="#c.MapBar"><code class="docutils literal notranslate"><span class="pre">MapBar()</span></code></a></li>
+<li><a class="reference internal" href="#">Bar element C reference</a><ul>
+<li><a class="reference internal" href="#configuration-and-pens">Configuration and pens</a><ul>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.IsBarPenPrefix"><code class="docutils literal notranslate"><span class="pre">IsBarPenPrefix()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.GetBarPenColorFromObj"><code class="docutils literal notranslate"><span class="pre">GetBarPenColorFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.FreeBarPenColor"><code class="docutils literal notranslate"><span class="pre">FreeBarPenColor()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.GetBarColor"><code class="docutils literal notranslate"><span class="pre">GetBarColor()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.ConfigurePen"><code class="docutils literal notranslate"><span class="pre">ConfigurePen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.DestroyPen"><code class="docutils literal notranslate"><span class="pre">DestroyPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.InitPen"><code class="docutils literal notranslate"><span class="pre">InitPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.Rbc_BarPen"><code class="docutils literal notranslate"><span class="pre">Rbc_BarPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.ConfigureBar"><code class="docutils literal notranslate"><span class="pre">ConfigureBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.Rbc_BarElement"><code class="docutils literal notranslate"><span class="pre">Rbc_BarElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarConfiguration.Rbc_BarFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_BarFontsChanged()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#grouping-and-placement">Grouping and placement</a><ul>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.GetTrackBarMode"><code class="docutils literal notranslate"><span class="pre">GetTrackBarMode()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.Round"><code class="docutils literal notranslate"><span class="pre">Round()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.GetBarArrayByteCount"><code class="docutils literal notranslate"><span class="pre">GetBarArrayByteCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.CheckStacks"><code class="docutils literal notranslate"><span class="pre">CheckStacks()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.GetBarBaseline"><code class="docutils literal notranslate"><span class="pre">GetBarBaseline()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.BarAnchorOffset"><code class="docutils literal notranslate"><span class="pre">BarAnchorOffset()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.PlaceBar"><code class="docutils literal notranslate"><span class="pre">PlaceBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.GetBarExtents"><code class="docutils literal notranslate"><span class="pre">GetBarExtents()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.ClosestBar"><code class="docutils literal notranslate"><span class="pre">ClosestBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.MapBar"><code class="docutils literal notranslate"><span class="pre">MapBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.Rbc_InitFreqTable"><code class="docutils literal notranslate"><span class="pre">Rbc_InitFreqTable()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.Rbc_ComputeStacks"><code class="docutils literal notranslate"><span class="pre">Rbc_ComputeStacks()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarLayout.Rbc_ResetStacks"><code class="docutils literal notranslate"><span class="pre">Rbc_ResetStacks()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geometry-and-lifetime">Geometry and lifetime</a><ul>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.ClearPalette"><code class="docutils literal notranslate"><span class="pre">ClearPalette()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.NewBarErrorOffsets"><code class="docutils literal notranslate"><span class="pre">NewBarErrorOffsets()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.SetBarErrorOffset"><code class="docutils literal notranslate"><span class="pre">SetBarErrorOffset()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Rbc_GetBarRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_GetBarRectangle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.MergePens"><code class="docutils literal notranslate"><span class="pre">MergePens()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.MapActiveBars"><code class="docutils literal notranslate"><span class="pre">MapActiveBars()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.ResetBar"><code class="docutils literal notranslate"><span class="pre">ResetBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.DestroyBar"><code class="docutils literal notranslate"><span class="pre">DestroyBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen"><code class="docutils literal notranslate"><span class="pre">BarPen</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle"><code class="docutils literal notranslate"><span class="pre">BarPenStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar"><code class="docutils literal notranslate"><span class="pre">Bar</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#screen-drawing-and-document-output">Screen drawing and document output</a><ul>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.DrawSymbol"><code class="docutils literal notranslate"><span class="pre">DrawSymbol()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.DrawBarSegments"><code class="docutils literal notranslate"><span class="pre">DrawBarSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.DrawBarValues"><code class="docutils literal notranslate"><span class="pre">DrawBarValues()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.DrawBarErrorSegments"><code class="docutils literal notranslate"><span class="pre">DrawBarErrorSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.DrawNormalBar"><code class="docutils literal notranslate"><span class="pre">DrawNormalBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.DrawActiveBar"><code class="docutils literal notranslate"><span class="pre">DrawActiveBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.SymbolExport"><code class="docutils literal notranslate"><span class="pre">SymbolExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.SegmentsExport"><code class="docutils literal notranslate"><span class="pre">SegmentsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.BarValuesExport"><code class="docutils literal notranslate"><span class="pre">BarValuesExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.ActiveBarExport"><code class="docutils literal notranslate"><span class="pre">ActiveBarExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarOutput.NormalBarExport"><code class="docutils literal notranslate"><span class="pre">NormalBarExport()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -151,7 +541,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="bars.html"
-                          title="previous chapter">Bar grouping and placement</a></p>
+                          title="previous chapter">Bar elements</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -182,10 +572,10 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
           <a href="fills.html" title="Area fills and error bands"
              >next</a> |</li>
         <li class="right" >
-          <a href="bars.html" title="Bar grouping and placement"
+          <a href="bars.html" title="Bar elements"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Bar layout C reference</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Bar element C reference</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

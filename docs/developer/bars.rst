@@ -1,11 +1,110 @@
-Bar grouping and placement
-==========================
+Bar elements
+============
 
 ``rbcGrBar.c`` implements bar elements through the shared ``ElementProcs``
 interface. Source data and axis transactions follow :doc:`elements`; screen
-mapping uses the axis/track scope described in :doc:`mapping`. The routines in
-:doc:`bar-reference` share placement rules between axis-limit calculation and
-mapping. They do not modify source vectors or call Tcl scripts.
+mapping uses the axis/track scope described in :doc:`mapping`. The contracts in
+:doc:`bar-reference` cover the concrete module from construction through
+cleanup. Placement and mapping borrow source arrays without running Tcl
+scripts; configuration may evaluate data expressions, and value labels may
+invoke application commands. Those callback boundaries need separate lifetime
+review.
+
+Records and ownership
+---------------------
+
+``Bar`` embeds ``Element`` first and ``BarPen`` embeds ``Pen`` first. The
+conversion and offset macros preserve that common-header layout; a static
+assertion checks the element header offset. Constructors return common-header
+pointers, not independently allocated header objects. ``BarRectangle`` aliases
+the renderer's rectangle type.
+
+.. list-table:: Storage and release responsibilities
+   :header-rows: 1
+   :widths: 25 45 30
+
+   * - Record or resource
+     - Ownership
+     - Release path
+   * - Concrete bar and its copied name/label
+     - Shared element lifecycle owns the allocation returned by Rbc_BarElement
+     - Shared element teardown, after the concrete destructor
+   * - Embedded normal pen
+     - Storage belongs to the bar; it is not a named-pen allocation
+     - DestroyPen for derived resources; element options for direct Tk resources
+   * - Named normal, active and palette pens
+     - References acquired through shared pen/element transactions
+     - Reference release through the pen manager or palette cleanup
+   * - Option objects, fonts, borders and direct colors
+     - Tk option tables manage configured fields
+     - Shared Tk option teardown
+   * - Derived error color, shadow and GCs
+     - ConfigurePen stages and commits these resources
+     - DestroyPen
+   * - Normal and active rectangles, source-index maps, mapped errors
+     - Bar/Element own the arrays; styles borrow slices
+     - ResetBar
+   * - Source vector slots
+     - Element slots own subscriptions or private data, not application vectors
+     - Rbc_FreeElemVector during concrete destruction
+   * - Duplicate-X records
+     - Graph owns freqArr; hash values borrow its records
+     - Frequency-table rebuild or graph teardown
+
+``BarPenStyle`` stores a concrete ``BarPen *`` alongside its weight range and
+borrowed geometry slices. Never free those slices separately. ``ClearPalette``
+invalidates only counts: after ``ResetBar`` the slice addresses may still contain
+old values and must not be dereferenced until remapping installs valid views.
+
+Creation and configuration
+--------------------------
+
+``Rbc_BarElement`` allocates zeroed storage, copies the element name and initial
+label, installs ``barProcs``, initializes the embedded pen, and creates an empty
+palette. It does not register the element, apply Tk option defaults or produce
+geometry. Shared creation must finish these steps. The method table uses ordinary
+paired X/Y counting; it has no complex-vector point-count override.
+
+``Rbc_BarPen`` similarly creates an unregistered named pen. Only the exact name
+``activeBar`` selects active defaults. ``InitPen`` installs callbacks and fallback
+fields in zeroed storage; it is not a substitute for Tk option initialization.
+Named pens and embedded pens share derived-resource configuration, but have
+different allocation and option-table owners. See :doc:`pens` and
+:doc:`configuration` for the common machinery.
+
+``ConfigureBar`` runs after candidate Tk option fields have been installed:
+
+1. Reject nonfinite bar width and offset. A finite nonpositive element width
+   intentionally means use the graph width.
+2. Prepare changed data, named pens, axis/track references, state, tags and palette
+   through the shared transactions. Initial configuration prepares every category.
+3. Validate and configure the embedded pen when its options changed.
+4. Commit state, tags, axes, pens and palette; point the default palette entry at
+   the resulting concrete normal pen.
+5. Commit staged data, synchronize its retained Tcl representations and mark
+   mapping dirty when required by the option mask.
+
+On a preparation error, the function frees prepared candidates and returns
+``TCL_ERROR``. The surrounding option transaction restores candidate Tk fields.
+There is no fallible element operation after the embedded pen commits. This
+ordering must be retained when adding options: validation after that point could
+leave derived state inconsistent with restored Tcl options. Data-expression
+callbacks retain the shared transaction's lifetime restrictions; arbitrary
+application side effects are not rolled back.
+
+``ConfigurePen`` validates all fallible derived values before replacing resources:
+opacity, label offset, command-prefix syntax, format, finite rotation, pixel
+widths, error color, show masks and shadow. It then builds replacement GCs and
+commits them together with the parsed values. On failure it releases staged
+colors; old derived resources remain live. The value command is validated here,
+not executed. Direct candidate Tk fields still need the caller's rollback.
+
+Error-color conversion accepts an empty value as NULL and any nonempty,
+case-sensitive prefix of ``defcolor`` as ``COLOR_DEFAULT``. The latter is a
+sentinel, not a Tk color reference; ``FreeBarPenColor`` must not pass it to
+``Tk_FreeColor``. Fill GC defaults choose foreground, then border color, then
+screen black. With both foreground and border, stipple gaps can be opaque;
+without both, the GC uses transparent stippling.
 
 Grouping keys and passes
 ------------------------
@@ -141,3 +240,113 @@ clip.
 source X/Y and index through ``rectToData``. A stacked hit therefore reports the
 sample contribution, not the cumulative top. ``Rbc_GetBarRectangle`` supplies
 mapped bounds when a caller needs the actual placed rectangle instead.
+
+Palette grouping and active geometry
+------------------------------------
+
+``MergePens`` runs after normal rectangles and error segments have been mapped.
+One palette entry simply borrows the complete arrays. With multiple styles it
+allocates replacement arrays and groups entries by palette order, retaining the
+previous order within each style. Rectangle and error source-index maps move
+with their geometry. Labels and picking must use these maps rather than treating
+mapped-array position as a source index.
+
+The multiple-style path scans the mapped arrays for each palette entry; it is
+not an in-place partition. Do not change grouping order casually: it also sets
+the order in which overlapping rectangles are painted. Checked array-byte
+calculations reject invalid counts and size overflow, but these void mapping
+helpers do not report Tcl allocation errors. Ordinary allocations use the
+existing checked/fatal allocation conventions.
+
+``MapActiveBars`` frees its previous copies and scans mapped rectangles against
+the explicit source-index selection. Repeated requested indices do not duplicate
+a rectangle. Clipped or otherwise unmapped source samples cannot appear in the
+active subset. ``activeToData`` contains original data indices even after palette
+reordering. ``ACTIVE_PENDING`` is cleared after rebuilding, including empty
+results. Normal remapping builds explicit active copies before regrouping normal
+arrays; later activation can rebuild them from the regrouped arrays.
+
+The selection count is a three-way protocol: positive means explicit indices,
+negative means all mapped rectangles, and zero means none. All-active drawing
+uses the normal arrays directly instead of allocating a second full copy. Both
+screen and export paths use the active pen for rectangles and labels, without
+adding a separate active error-bar overlay.
+
+Screen and export dispatch
+--------------------------
+
+Normal output visits each palette style in this order: rectangle batch, enabled
+X errors, enabled Y errors, then value labels. Source-map offsets advance by the
+style's rectangle count, not the number of error segments. Active output has its
+own callbacks. Neither output path performs placement again: grouping counters
+belong to extents/mapping passes, not rendering.
+
+``DrawBarSegments`` passes the complete batch and its relief, border, stipple and
+opacity to the screen renderer. ``SegmentsExport`` instead prepares a fill style
+and walks rectangles through the selected document backend; its historical name
+does not mean line segments or PostScript-only output. It preserves the one-pixel
+inset for fills and original rectangle dimensions for relief borders. Zero fill
+opacity suppresses the fill, but does not itself suppress an available nonflat
+border. An absent foreground and border produces no rectangle output.
+
+Stipple export without a foreground promotes the background color to stipple
+foreground and leaves the gaps transparent. Legend samples perform the same
+color normalization, but are independent square symbols drawn with the normal
+pen, not miniatures of individual palette or active rectangles. Screen samples
+retain integer centering and size-minus-one geometry, trying the legend renderer
+before the screen fallback. Zero opacity suppresses the legend sample even when
+a data rectangle could still have a relief border.
+
+Error colors use ``GetBarColor`` for native GC creation, screen strokes and
+all document backends. Explicit colors remain unchanged. Both an empty color
+and ``defcolor`` inherit foreground, then the bar background, then black if
+neither is present. The final fallback uses caller-owned ``XColor`` storage:
+its RGB components are black and its pixel is the screen's black pixel. Keep
+that storage alive through the renderer context's use; no Tk color reference
+is acquired. Configuration passes the staged error color before committing it.
+Screen strokes still supply at least one pixel, while document strokes retain
+the configured width and the backend's hairline handling.
+
+Value labels and callbacks
+--------------------------
+
+``DrawBarValues`` and ``BarValuesExport`` recover original X/Y values through
+the rectangle's source-index map. Stacked labels therefore receive the source
+contribution, not the cumulative stack top. Each call to the shared label helper
+returns one owned Tcl object reference, released by the loop even for empty text.
+See :doc:`elements` for command arguments, fallback formatting, background-error
+reporting and interpreter-result preservation.
+
+Without inversion the anchor is the horizontal center of the rectangle's top
+edge, switching to its bottom edge when source Y is below the effective baseline.
+With inversion it is the vertical center of the right edge, switching to the left
+edge under the same source-value test. This decision uses source Y, not a new
+comparison of cumulative stack endpoints. The pen offset is added afterwards.
+Screen output checks integer bounds and truncates coordinates; document output
+retains floating-point coordinates.
+
+Label commands execute application Tcl while the output loop holds borrowed
+element, pen and geometry pointers. These loops do not preserve drawing records
+against deletion, reconfiguration or nested event processing. Callbacks must
+leave that drawing state unchanged and avoid nested event loops. Ownership of
+the returned label object protects its text, not the objects being drawn.
+
+Cleanup and font changes
+------------------------
+
+``DestroyBar`` releases axes and named pens, destroys the embedded pen's derived
+resources, detaches every data slot, resets mapped arrays and releases explicit
+active indices, palette and tags. It does not free the concrete allocation or
+Tk-managed option resources: shared element teardown owns those remaining steps.
+Detaching a named vector does not destroy the application's vector.
+
+``DestroyPen`` releases text-style drawing resources and manually derived colors
+and GCs, clearing released pointers. It deliberately leaves direct Tk option
+resources to the appropriate shared pen or element owner. Keeping this boundary
+explicit avoids double release of the embedded pen's options.
+
+``Rbc_BarFontsChanged`` visits both the named-pen table and every bar in the
+element table, including undisplayed elements. It resets label text styles with
+fonts, covering active/style pens through the named table and private embedded
+pens through the element table. It does not itself remap rectangles or schedule
+redrawing; the graph's font-change workflow owns that work.

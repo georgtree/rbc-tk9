@@ -10,7 +10,16 @@
  */
 
 /** @file rbcGrBar.c
- * Bar implementation; selected placement and mapping contracts are extracted.
+ * Bar elements: configuration, grouping, geometry, drawing and export.
+ */
+/** @defgroup bar_configuration Bar configuration and pen lifecycle
+ * Internal constructors and staged configuration; no public stubs are added.
+ */
+/** @defgroup bar_geometry Bar geometry ownership
+ * Mapped arrays, style views, active selections and concrete element cleanup.
+ */
+/** @defgroup bar_output Bar screen and document output
+ * Renderer adapters; value-label callbacks require stable drawing records.
  */
 /** @defgroup bar_layout Bar layout internals
  * Private data-space placement and mapped geometry services. Source arrays and
@@ -27,6 +36,11 @@
 #include "rbcGrElem.h"
 #include "rbcRender.h"
 
+/**
+ * @ingroup bar_geometry
+ * @brief A concrete bar pen with a first-member Pen header. Tk owns direct option
+ * resources; ConfigurePen/DestroyPen own derived colors and drawing GCs.
+ */
 typedef struct {
     /*
      * Common pen state. This must remain the first member.
@@ -69,6 +83,11 @@ typedef Rbc_RenderRectangle BarRectangle;
 #define BAR_PEN_FROM_CORE(penPtr) ((BarPen *)((char *)(penPtr) - offsetof(BarPen, core)))
 #define BAR_PEN_CORE_OFFSET(member) (offsetof(BarPen, core) + offsetof(Pen, member))
 
+/**
+ * @ingroup bar_geometry
+ * @brief A weighted palette entry borrowing a concrete pen and mapped array slices.
+ * Counts delimit valid views; the containing element owns the arrays.
+ */
 typedef struct {
     Weight weight;         /* Weight range where this pen is valid. */
     BarPen *penPtr;        /* Pen to draw */
@@ -88,6 +107,12 @@ typedef struct {
     Tcl_Size nRects;          /* Number of bar segments for this pen. */
 } BarPenStyle;
 
+/**
+ * @ingroup bar_geometry
+ * @brief A concrete bar element with a first-member Element header and embedded pen.
+ * Owns normal/active rectangles and source-index maps; common error arrays
+ * reside in the Element header.
+ */
 typedef struct {
     /*
      * Common element state. This must remain the first member.
@@ -453,7 +478,14 @@ static int Round(register double x);
 static void ClearPalette(Rbc_Chain *palette);
 static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags);
 
-/* Track-owned Y axes isolate grouping keys; only the mode needs a local override. */
+/**
+ * @ingroup bar_layout
+ * @brief Select the owning track override or the graph bar mode.
+ *
+ * The borrowed Y axis must be live. A nonnegative track barMode overrides
+ * the graph mode; axis identity, rather than this helper, isolates grouping.
+ * No state is changed.
+ */
 static int GetTrackBarMode(Graph *graphPtr, Axis *yAxis) {
     return yAxis->track != NULL && yAxis->track->barMode >= 0 ? yAxis->track->barMode : graphPtr->mode;
 }
@@ -471,6 +503,13 @@ static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen
 static void BarValuesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Bar *barPtr, BarPen *penPtr,
                                   BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData);
 
+/**
+ * @ingroup bar_configuration
+ * @brief Recognize a nonempty, case-sensitive prefix of a color keyword.
+ *
+ * The borrowed strings must contain at least their stated lengths. Returns
+ * a boolean; an empty spelling and a spelling longer than fullName fail.
+ */
 static int IsBarPenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
 
@@ -478,6 +517,15 @@ static int IsBarPenPrefix(const char *string, Tcl_Size length, const char *fullN
     return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
 }
 
+/**
+ * @ingroup bar_configuration
+ * @brief Resolve an optional error color into a staged resource.
+ *
+ * NULL or an empty object yields NULL; a nonempty prefix of defcolor yields
+ * COLOR_DEFAULT. Other spellings acquire a Tk color reference. Returns TCL_OK
+ * and writes colorPtrPtr on success, or TCL_ERROR with an interpreter diagnostic
+ * and the output unchanged. Release acquired colors with FreeBarPenColor.
+ */
 static int GetBarPenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, XColor **colorPtrPtr) {
     const char *string;
     Tcl_Size length;
@@ -500,32 +548,64 @@ static int GetBarPenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *o
     return TCL_OK;
 }
 
+/**
+ * @ingroup bar_configuration
+ * @brief Release an acquired color while accepting the default sentinel.
+ *
+ * NULL and COLOR_DEFAULT are no-ops. Does not clear the caller's pointer or
+ * release a retained option object.
+ */
 static void FreeBarPenColor(XColor *colorPtr) {
     if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
         Tk_FreeColor(colorPtr);
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_configuration
+ * @brief Resolve a bar color consistently for native GCs and renderer output.
  *
- * Round --
+ * Borrows the pen and candidate color. NULL and COLOR_DEFAULT inherit the
+ * foreground, then the border color, then screen black. Returns a borrowed
+ * color or initializes and returns caller-owned fallback storage. The caller
+ * must keep fallback alive while the renderer uses the returned pointer.
+ * Accepting a candidate color also supports ConfigurePen before commit.
+ */
+static const XColor *GetBarColor(Graph *graphPtr, const BarPen *penPtr,
+                                 const XColor *colorPtr, XColor *fallbackPtr) {
+    if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
+        return colorPtr;
+    }
+    if (penPtr->fgColor != NULL) {
+        return penPtr->fgColor;
+    }
+    if (penPtr->border != NULL) {
+        return Tk_3DBorderColor(penPtr->border);
+    }
+    memset(fallbackPtr, 0, sizeof(*fallbackPtr));
+    fallbackPtr->pixel = BlackPixel(graphPtr->display, Tk_ScreenNumber(graphPtr->tkwin));
+    fallbackPtr->flags = DoRed | DoGreen | DoBlue;
+    return fallbackPtr;
+}
+
+/**
+ * @ingroup bar_layout
+ * @brief Round a bounded pixel distance with half values away from zero.
  *
- *      TODO: Description
- *
- * Parameters:
- *      x
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * The caller must supply a finite value whose adjusted value fits in int.
+ * This helper does not clamp or report conversion errors.
  */
 static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
+/**
+ * @ingroup bar_layout
+ * @brief Validate a Tcl_Size array count before size_t multiplication.
+ *
+ * Rejects negative counts, zero element size and multiplication overflow.
+ * Returns TCL_OK and writes bytesPtr on success (including a zero count),
+ * otherwise TCL_ERROR with the output unchanged. No interpreter diagnostic
+ * or allocation is performed.
+ */
 static int GetBarArrayByteCount(Tcl_Size count, size_t elementSize, size_t *bytesPtr) {
     if ((count < 0) || (elementSize == 0) || ((uintmax_t)count > (uintmax_t)(SIZE_MAX / elementSize))) {
         return TCL_ERROR;
@@ -533,29 +613,13 @@ static int GetBarArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byte
     *bytesPtr = (size_t)count * elementSize;
     return TCL_OK;
 }
-/*
- * ----------------------------------------------------------------------
- * Custom option parse and print procedures
- * ----------------------------------------------------------------------
- */
-
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_geometry
+ * @brief Invalidate rectangle and error-segment counts in every style.
  *
- * ClearPalette --
- *
- *      Zero out the style's number of rectangles and errorbars.
- *
- * Parameters:
- *      Rbc_Chain *palette
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * The palette and styles are borrowed. Slice pointers are not cleared or
+ * freed; their zero counts prevent use until remapping replaces the views.
+ * Pen references and weight ranges are retained.
  */
 static void ClearPalette(Rbc_Chain *palette) {
     register BarPenStyle *stylePtr;
@@ -567,24 +631,17 @@ static void ClearPalette(Rbc_Chain *palette) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_configuration
+ * @brief Validate and replace a bar pen's derived drawing resources.
  *
- * ConfigurePen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Pen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Tk has already installed candidate option fields. Validate opacity,
+ * label offset, command prefix, format, rotation, pixel widths, show masks
+ * and shadow before replacing any derived resource. Acquire all replacement
+ * GCs before freeing the old ones. Returns TCL_OK on commit; TCL_ERROR frees
+ * staged colors and leaves derived resources unchanged. The caller owns
+ * rollback of the candidate Tk option fields. Validation does not invoke the
+ * value-label command. Works for named pens and the element's embedded pen.
  */
 static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     BarPen *bpPtr;
@@ -599,7 +656,8 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
     int fillStyle;
-    long defColor;
+    XColor fallbackColor;
+    unsigned long defColor;
     GC newGC;
     GC newErrorBarGC;
     GC newValueGC;
@@ -671,13 +729,7 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     }
     newValueGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     gcMask = GCForeground;
-    if (bpPtr->fgColor != NULL) {
-        defColor = bpPtr->fgColor->pixel;
-    } else if (bpPtr->border != NULL) {
-        defColor = Tk_3DBorderColor(bpPtr->border)->pixel;
-    } else {
-        defColor = BlackPixel(graphPtr->display, Tk_ScreenNumber(graphPtr->tkwin));
-    }
+    defColor = GetBarColor(graphPtr, bpPtr, NULL, &fallbackColor)->pixel;
     gcValues.foreground = defColor;
     if ((bpPtr->fgColor != NULL) && (bpPtr->border != NULL)) {
         gcMask |= GCBackground;
@@ -693,11 +745,7 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     }
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     gcMask = GCForeground | GCLineWidth;
-    if ((newErrorBarColor == NULL) || (newErrorBarColor == COLOR_DEFAULT)) {
-        gcValues.foreground = defColor;
-    } else {
-        gcValues.foreground = newErrorBarColor->pixel;
-    }
+    gcValues.foreground = GetBarColor(graphPtr, bpPtr, newErrorBarColor, &fallbackColor)->pixel;
     gcValues.line_width = LineWidth(newErrorBarLineWidth);
     newErrorBarGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     /*
@@ -742,24 +790,14 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_configuration
+ * @brief Release bar-pen resources derived outside the Tk option table.
  *
- * DestroyPen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Pen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Frees text-style drawing resources, fill/error GCs, the derived error
+ * color and shadow color, clearing released pointers. Does not free the pen
+ * record, name, or Tk-managed option resources; shared pen/element teardown
+ * owns those. The embedded pen must not be freed as a standalone allocation.
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     BarPen *bpPtr;
@@ -787,23 +825,13 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_configuration
+ * @brief Initialize methods and fallback fields in a zeroed bar pen.
  *
- * InitPen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      BarPen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * The caller supplies storage and a non-NULL option specification. Installs
+ * configuration/destruction callbacks and initializes text style and flags.
+ * Does not apply Tk defaults, allocate drawing GCs or register a named pen.
  */
 static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags) {
     Pen *corePtr;
@@ -824,23 +852,15 @@ static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned i
     penPtr->borderWidth = 2;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_configuration
+ * @brief Allocate an unregistered named bar pen for shared pen creation.
  *
- * Rbc_BarPen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      char *penName
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns the common Pen header of owned, zeroed concrete storage with a
+ * copied name. The exact name activeBar selects active option defaults;
+ * other names select normal defaults. Allocation is asserted. The shared
+ * pen manager must initialize options, register/configure the pen and own
+ * its eventual destruction. This is an internal constructor, not a stubs API.
  */
 Pen *Rbc_BarPen(const char *penName) {
     const Tk_OptionSpec *optionSpecs;
@@ -863,29 +883,14 @@ Pen *Rbc_BarPen(const char *penName) {
     return corePtr;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_layout
+ * @brief Expand Y limits using precomputed totals for one axis pair.
  *
- * CheckStacks --
- *
- *      Check that the data limits are not superseded by the heights
- *      of stacked bar segments.  The heights are calculated by
- *      Rbc_ComputeStacks.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis2D *pairPtr
- *      double *minPtr - Current minimum for y-axis
- *      double *maxPtr - Current maximum for y-axis
- *
- * Results:
- *      If the y-axis limits need to be adjusted for stacked segments,
- *      *minPtr* or *maxPtr* are updated.
- *
- * Side effects:
- *      Autoscaling of the y-axis is affected.
- *
- * ----------------------------------------------------------------------
+ * Only operates in the effective stacked mode with duplicate metadata.
+ * Reads matching records in graph-owned freqArr; negative totals may lower
+ * minPtr, nonnegative totals may raise maxPtr. Requires Rbc_ComputeStacks
+ * first. Does not reset counters or inspect intermediate cumulative heights.
  */
 static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double *maxPtr) {
     FreqInfo *infoPtr;
@@ -915,28 +920,19 @@ static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_configuration
+ * @brief Stage element dependencies before committing bar configuration.
  *
- * ConfigureBar --
- *
- * Tk_SetOptions has installed the candidate option values.
- * This function validates retained values and constructs the
- * replacement derived resources transactionally.
- *
- * Parameters:
- *      Graph *graphPtr
- *      register Element *elemPtr
- *
- * Results:
- *      The return value is a standard Tcl result.  If TCL_ERROR is
- *      returned, then the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information such as bar foreground/background
- *      color and stipple etc. get set in a new GC.
- *
- * ----------------------------------------------------------------------
+ * Called after Tk installs candidate options. Rejects nonfinite width and
+ * offset; a finite nonpositive element width retains graph-width fallback.
+ * Prepares changed data, pens, axes, state, tags and styles, then configures
+ * the embedded pen if needed. Commits dependencies and synchronizes retained
+ * data objects only after fallible preparation succeeds. Updates the palette
+ * default pen and sets MAP_ITEM for mapping-related changes. Returns TCL_OK
+ * on success; TCL_ERROR frees prepared candidates and leaves Tk option
+ * rollback to the caller. Data preparation can evaluate expressions: ordinary
+ * rollback is not a guarantee against arbitrary callback side effects.
  */
 static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr;
@@ -1113,7 +1109,13 @@ error:
     return TCL_ERROR;
 }
 
-/* Use the historical log baseline only when the configured value is unusable. */
+/**
+ * @ingroup bar_layout
+ * @brief Return the configured baseline with the historical log fallback.
+ *
+ * Uses one when the Y axis is logarithmic and the configured baseline is
+ * nonpositive. Borrows the live element, graph and Y axis; no state is changed.
+ */
 static double GetBarBaseline(Element *elemPtr) {
     double baseline = elemPtr->graphPtr->baseline;
 
@@ -1123,9 +1125,13 @@ static double GetBarBaseline(Element *elemPtr) {
     return baseline;
 }
 
-/*
- * Return the distance from the data anchor to the lower edge of the full
- * bar interval. Group subdivision must happen after applying this anchor.
+/**
+ * @ingroup bar_layout
+ * @brief Return the anchor displacement for the full data-X interval.
+ *
+ * Left gives zero, right gives width and center gives half width. Apply
+ * before grouped subdivision. Width is the caller's effective bar width;
+ * this helper neither validates it nor advances grouping counters.
  */
 static double BarAnchorOffset(const Bar *barPtr, double width) {
     switch (barPtr->barAlign) {
@@ -1251,7 +1257,15 @@ static int PlaceBar(Graph *graphPtr, Bar *barPtr, Tcl_Size index, int clip,
     return TRUE;
 }
 
-/* Per-point translations; NaN marks a point with no drawable placement. */
+/**
+ * @ingroup bar_geometry
+ * @brief Allocate per-source error translations initially marked invalid.
+ *
+ * Returns an owned Point2D array with both coordinates set to NaN in every
+ * slot, or NULL if the byte count is invalid. Allocation uses ckalloc; this
+ * is not a recoverable allocator-failure interface. The caller frees the array
+ * after mapping or expanding error limits.
+ */
 static Point2D *NewBarErrorOffsets(Tcl_Size nPoints) {
     Point2D *offsets;
     size_t bytes;
@@ -1267,6 +1281,15 @@ static Point2D *NewBarErrorOffsets(Tcl_Size nPoints) {
     return offsets;
 }
 
+/**
+ * @ingroup bar_geometry
+ * @brief Store the placed-center and placed-value displacement of one sample.
+ *
+ * All pointers are borrowed and index must be valid in both source arrays
+ * and offsets. Corners must come from PlaceBar before swapping Y edges or
+ * screen mapping. Averages X endpoints as two halves and subtracts source X;
+ * subtracts source Y from the first corner's Y. Does not allocate or validate.
+ */
 static void SetBarErrorOffset(Bar *barPtr, Tcl_Size index, const Point2D *firstPtr,
                               const Point2D *secondPtr, Point2D *offsets) {
     offsets[index].x = firstPtr->x * 0.5 + secondPtr->x * 0.5 - barPtr->core.x.valueArr[index];
@@ -1432,32 +1455,16 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_geometry
+ * @brief Look up mapped bounds by original source index.
  *
- * Rbc_GetBarRectangle --
- *
- *      Return the mapped screen rectangle corresponding to a data
- *      point of a bar element.
- *
- *      The rectangle is the final rendered bar segment after bar-mode
- *      processing.  Therefore stacked, aligned, overlap, and inverted
- *      graphs are already accounted for.
- *
- * Parameters:
- *      Element *elemPtr
- *      Tcl_Size dataIndex
- *      Extents2D *extsPtr
- *
- * Results:
- *      TRUE if a visible rectangle corresponding to dataIndex was
- *      found, FALSE otherwise.
- *
- * Side effects:
- *      On success, *extsPtr is filled with physical graph-window
- *      pixel coordinates.
- *
- * ----------------------------------------------------------------------
+ * The non-NULL element must be a bar; no class check or remapping occurs.
+ * Returns TRUE and writes physical window bounds on a match. Returns FALSE
+ * for missing geometry, invalid arguments or an unmapped index, leaving
+ * output unchanged. Bounds include placement, inversion and mapping's
+ * window clamp, but are not intersected with the final renderer plot clip.
+ * Borrows all storage and does not invoke callbacks.
  */
 int Rbc_GetBarRectangle(Element *elemPtr, Tcl_Size dataIndex, Extents2D *extsPtr) {
     Bar *barPtr;
@@ -1486,25 +1493,17 @@ int Rbc_GetBarRectangle(Element *elemPtr, Tcl_Size dataIndex, Extents2D *extsPtr
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_geometry
+ * @brief Group rectangles and errors into palette slices with source maps.
  *
- * MergePens --
- *
- *      Reorders the both arrays of points and errorbars to merge pens.
- *
- * Parameters:
- *      Bar *barPtr
- *      PenStyle **dataToStyle
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The old arrays are freed and new ones allocated containing
- *      the reordered points and errorbars.
- *
- *----------------------------------------------------------------------
+ * Requires a nonempty palette and a dataToStyle entry for each referenced
+ * source index. With one style, installs borrowed views without copying.
+ * Otherwise allocates replacement arrays, visits styles in palette order,
+ * preserves order within each style and replaces the owned geometry and
+ * index maps together. Styles borrow slices, never own them. Invalid byte
+ * counts cause an early return; there is no Tcl error result. Does not change
+ * source vectors or the separately copied active geometry.
  */
 static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
     BarPenStyle *stylePtr;
@@ -1640,23 +1639,15 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_geometry
+ * @brief Rebuild the explicit active subset from mapped source indices.
  *
- * MapActiveBars --
- *
- *      Creates an array of points of the active graph coordinates.
- *
- * Parameters:
- *      Bar *barPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is freed and allocated for the active point array.
- *
- *----------------------------------------------------------------------
+ * Frees previous active arrays first. For positive nActiveIndices, copies
+ * matching rectangles in mapped order and retains original source indices;
+ * repeated requests do not duplicate a rectangle. Unmapped requests yield
+ * no rectangle. Clears ACTIVE_PENDING even for empty or size-invalid output.
+ * Negative all-active mode is handled by drawing/export, not copied here.
  */
 static void MapActiveBars(Bar *barPtr) {
     if (barPtr->activeRects != NULL) {
@@ -1714,23 +1705,14 @@ static void MapActiveBars(Bar *barPtr) {
     barPtr->core.flags &= ~ACTIVE_PENDING;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_geometry
+ * @brief Discard owned mapped geometry and invalidate palette views.
  *
- * ResetBar --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Bar *barPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Clears palette counts, frees normal/active rectangles, error segments and
+ * their source-index maps, then zeros the owning pointers and counts. Does
+ * not clear borrowed style pointers, free source vectors, release pens or
+ * discard the active-index selection. Used before remapping and at teardown.
  */
 static void ResetBar(Bar *barPtr) {
     /* Release any storage associated with the display of the bar */
@@ -1934,32 +1916,14 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     ckfree((char *)dataToStyle);
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Draw a square legend sample using the normal pen.
  *
- * DrawSymbol --
- *
- *      Draw a symbol centered at the given x,y window coordinate
- *      based upon the element symbol type and size.
- *
- *      Most notable problem is the round-off errors generated when
- *      calculating the centered position of the symbol.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *      Element *elemPtr
- *      int x
- *      int y
- *      int size
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+ * Borrows graph, drawable and element. Skips zero opacity or absent colors.
+ * Preserves integer centering and size-minus-one geometry. Tries the renderer
+ * legend adapter, then the screen fallback when unhandled. The sample is
+ * independent of data rectangles, active/style pens and plot placement.
  */
 static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size, int width,
                        int height) {
@@ -1985,7 +1949,14 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
     Rbc_RenderScreenLegendBar(graphPtr, drawable, penPtr->gc, x, y, size);
 }
 
-/* Draw the complete bar batch through the screen renderer. */
+/**
+ * @ingroup bar_output
+ * @brief Submit one bar rectangle batch with its pen style.
+ *
+ * Borrows rectangles and pen resources; opens and closes a screen bar
+ * context around the complete batch. The outer element drawing scope supplies
+ * track/plot clipping, including borders. Does not map or copy geometry.
+ */
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, BarRectangle *rectangles,
                             Tcl_Size nRects) {
     Rbc_RenderBarStyle style = {penPtr->border, penPtr->fgColor, penPtr->gc, penPtr->stipple,
@@ -1995,29 +1966,17 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
     Rbc_RenderEnd(ctx);
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Draw source-value labels anchored to mapped rectangles.
  *
- * DrawBarValues --
- *
- *      Draws the numeric value of the bar.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable
- *      Bar *barPtr
- *      BarPen *penPtr
- *      BarRectangle *rectangles
- *      int nRects
- *      int *rectToData
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+ * The borrowed rectangle and source-index arrays must correspond. Obtains
+ * one owned label reference per rectangle and releases it after use; empty
+ * text is skipped. Inversion and the source value relative to the effective
+ * baseline choose the anchor edge. Adds the pen offset, checks int bounds
+ * and truncates screen coordinates. Label commands may execute Tcl: callers
+ * must keep graph, pen, element and geometry live and unchanged throughout
+ * drawing; this loop adds no preservation against callback mutation.
  */
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, BarRectangle *rectangles,
                           Tcl_Size nRects, const Tcl_Size *rectToData) {
@@ -2069,18 +2028,21 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
     Rbc_RenderEnd(text);
 }
 
-/* Error strokes share bar color defaults and native hairline widths. */
+/**
+ * @ingroup bar_output
+ * @brief Draw one error-stroke batch with screen color and width defaults.
+ *
+ * Borrows pen and segments. NULL/default color falls back to foreground,
+ * then border color, then screen black. Supplies at least one pixel to the stroke
+ * renderer and the configured GC for native drawing. Closes any returned
+ * context; an unavailable context produces no strokes. Does not map errors.
+ */
 static void DrawBarErrorSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, const Segment2D *segments,
                                  Tcl_Size count) {
     Rbc_RenderContext *ctx;
 
-    const XColor *color = penPtr->errorBarColor;
-    if ((color == NULL) || (color == COLOR_DEFAULT)) {
-        color = penPtr->fgColor;
-        if ((color == NULL) && (penPtr->border != NULL)) {
-            color = Tk_3DBorderColor(penPtr->border);
-        }
-    }
+    XColor fallbackColor;
+    const XColor *color = GetBarColor(graphPtr, penPtr, penPtr->errorBarColor, &fallbackColor);
     ctx = Rbc_RenderBeginStroke(graphPtr, drawable, penPtr->errorBarGC, RBC_RENDER_STROKE_SEGMENTS,
         color, MAX(1, penPtr->errorBarLineWidth), NULL, NULL);
     if (ctx != NULL) {
@@ -2089,31 +2051,15 @@ static void DrawBarErrorSegments(Graph *graphPtr, Drawable drawable, BarPen *pen
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Draw palette-grouped bars, errors and labels in that order.
  *
- * DrawNormalBar --
- *
- *      Draws the rectangle representing the bar element.  If the
- *      relief option is set to "raised" or "sunken" and the bar
- *      borderwidth is set (borderwidth > 0), a 3D border is drawn
- *      around the bar.
- *
- *      Don't draw bars that aren't visible (i.e. within the limits
- *      of the axis).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      X drawing commands are output.
- *
- * ----------------------------------------------------------------------
+ * Requires current geometry and style slices. Each style draws rectangles,
+ * enabled X errors, enabled Y errors, then labels. Advances the parallel
+ * rectToData slice by each style's rectangle count. The caller supplies the
+ * clipping/lifetime scope; label commands can execute Tcl and must not mutate
+ * the borrowed drawing records.
  */
 static void DrawNormalBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
@@ -2143,28 +2089,14 @@ static void DrawNormalBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Draw active rectangles and labels with the active pen.
  *
- * DrawActiveBar --
- *
- *      Draws rectangles representing the active segments of the
- *      bar element.  If the -relief option is set (other than "flat")
- *      and the borderwidth is greater than 0, a 3D border is drawn
- *      around the each bar segment.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      X drawing commands are output.
- *
- * ----------------------------------------------------------------------
+ * A missing active pen or zero selection draws nothing. Positive selection
+ * rebuilds ACTIVE_PENDING geometry on demand; a negative selection draws all
+ * mapped rectangles. Does not overlay active error bars. Borrows records and
+ * inherits DrawBarValues callback restrictions.
  */
 static void DrawActiveBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
@@ -2191,32 +2123,14 @@ static void DrawActiveBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
     }
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Export a normal-pen legend sample through the selected backend.
  *
- * SymbolExport --
- *
- *      Draw a symbol centered at the given x,y window coordinate
- *      based upon the element symbol type and size.
- *
- *      Most notable problem is the round-off errors generated when
- *      calculating the centered position of the symbol.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      Element *elemPtr
- *      double x
- *      double y
- *      int size
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+ * Skips zero opacity or absent colors. With stipple and no foreground,
+ * promotes background to stipple foreground and leaves gaps transparent.
+ * Borrows style resources and closes the symbol context after one point;
+ * does not emit data rectangles or relief borders.
  */
 static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y, int size) {
     BarPen *bpPtr = BAR_PEN_FROM_CORE(elemPtr->normalPenPtr);
@@ -2243,27 +2157,16 @@ static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element 
     Rbc_RenderEnd(ctx);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Export filled rectangles and optional relief borders for one pen.
  *
- * SegmentsExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      BarPen *penPtr
- *      BarRectangle *rectPtr
- *      int nRects
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows the mapped rectangle batch. Normalizes stipple colors, opens one
+ * fill context and skips rectangles with dimensions below one. Preserves the
+ * historical one-pixel fill inset. Positive opacity enables fills; nonflat
+ * borders use the original dimensions and can remain visible at zero fill
+ * opacity. No colors means no output. Closes its context before returning;
+ * plot/track clipping belongs to the outer export scope.
  */
 static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen *penPtr, BarRectangle *rectPtr,
                                  Tcl_Size nRects) {
@@ -2304,29 +2207,15 @@ static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen
     Rbc_RenderEnd(ctx);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Export source-value labels at mapped bar anchors.
  *
- * BarValuesExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      Bar *barPtr
- *      BarPen *penPtr
- *      BarRectangle *rectangles
- *      int nRects
- *      int *rectToData
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the same source-index lookup and baseline/inversion anchor rule as
+ * DrawBarValues, retaining floating-point output coordinates. Borrows drawing
+ * records, releases each acquired label object and closes the output context.
+ * Label commands may execute Tcl and must not mutate owners or geometry or
+ * enter nested event loops. Empty labels are skipped.
  */
 static void BarValuesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Bar *barPtr, BarPen *penPtr,
                                   BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData) {
@@ -2369,27 +2258,14 @@ static void BarValuesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Bar *
     Rbc_RenderEnd(output);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Export selected or all active rectangles and their labels.
  *
- * ActiveBarExport --
- *
- *      Similar to the NormalBarExport procedure, generates
- *      PostScript commands to display the rectangles representing the
- *      active bar segments of the element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      PostScript pen width, dashes, and color settings are changed.
- *
- * ----------------------------------------------------------------------
+ * Uses the active pen if present. Positive selection rebuilds pending
+ * active geometry; negative selection uses the full mapped arrays. Zero
+ * selection emits nothing. Does not export active errors. Requires the outer
+ * export clip and the label-callback lifetime contract of BarValuesExport.
  */
 static void ActiveBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Bar *barPtr;
@@ -2417,26 +2293,14 @@ static void ActiveBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Eleme
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_output
+ * @brief Export palette-grouped bars, error strokes and value labels.
  *
- * NormalBarExport --
- *
- *      Generates PostScript commands to form the rectangles
- *      representing the segments of the bar element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      PostScript pen width, dashes, and color settings are changed.
- *
- * ----------------------------------------------------------------------
+ * Borrows current style slices and corresponding source-index ranges.
+ * Uses the shared bar color fallback for errors and passes the configured
+ * width to export stroke contexts. Labels may execute Tcl; the outer
+ * caller must maintain the drawing records and export clip throughout.
  */
 static void NormalBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
@@ -2444,7 +2308,8 @@ static void NormalBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Eleme
     register BarPenStyle *stylePtr;
     Tcl_Size count;
     BarPen *penPtr;
-    XColor *colorPtr;
+    const XColor *colorPtr;
+    XColor fallbackColor;
 
     count = 0;
     for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -2453,10 +2318,7 @@ static void NormalBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Eleme
         if (stylePtr->nRects > 0) {
             SegmentsExport(graphPtr, exportPtr, penPtr, stylePtr->rectangles, stylePtr->nRects);
         }
-        colorPtr = penPtr->errorBarColor;
-        if (colorPtr == COLOR_DEFAULT) {
-            colorPtr = penPtr->fgColor;
-        }
+        colorPtr = GetBarColor(graphPtr, penPtr, penPtr->errorBarColor, &fallbackColor);
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
             Rbc_RenderContext *ctx;
 
@@ -2479,24 +2341,15 @@ static void NormalBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Eleme
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_geometry
+ * @brief Release concrete bar dependencies without freeing the element record.
  *
- * DestroyBar --
- *
- *      Release memory and resources allocated for the bar element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Everything associated with the bar element is freed up.
- *
- * ----------------------------------------------------------------------
+ * Drops axis and named-pen references, destroys the embedded pen's derived
+ * resources, detaches all source slots and frees mapped geometry, active
+ * selection, palette and tags. Source-vector creators retain ownership of
+ * their vectors. Shared element teardown handles Tk-managed options, names
+ * and the concrete record allocation; this callback must not free them.
  */
 static void DestroyBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr;
@@ -2554,25 +2407,16 @@ static ElementProcs barProcs = {
     NULL /* Uses ordinary X/Y point count. */
 };
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_configuration
+ * @brief Allocate an unconfigured bar element for shared element creation.
  *
- * Rbc_BarElement --
- *
- *      Allocate memory and initialize methods for the new bar element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      char *name
- *      Rbc_Uid type
- *
- * Results:
- *      The pointer to the newly allocated element structure is returned.
- *
- * Side effects:
- *      Memory is allocated for the bar element structure.
- *
- * ----------------------------------------------------------------------
+ * Returns the common Element header of owned zeroed storage, or NULL on
+ * allocation failure. Copies name and initial label, borrows graph/class
+ * identity, installs bar methods, initializes the embedded normal pen and
+ * creates an empty palette. The caller must apply options, configure and
+ * register the element, or release it through shared element teardown.
+ * Ordinary paired X/Y counting is used; no complex point-count hook is set.
  */
 Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Bar *barPtr;
@@ -2613,27 +2457,17 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     return elemPtr;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_layout
+ * @brief Rebuild duplicate-X grouping metadata for displayed bar elements.
  *
- * Rbc_InitFreqTable --
- *
- *      Generate a table of abscissa frequencies.  Duplicate
- *      x-coordinates (depending upon the bar drawing mode) indicate
- *      that something special should be done with each bar segment
- *      mapped to the same abscissa (i.e. it should be stacked,
- *      aligned, or overlay-ed with other segments)
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is allocated for the bar element structure.
- *
- * ----------------------------------------------------------------------
+ * Releases previous graph-owned metadata first. Ordinary normal mode needs
+ * no table; trackgraphs still need one for local overrides. Counts finite
+ * paired samples with valid log-Y values, using source X and both axis
+ * identities; normalizes signed zero. Only duplicate keys receive persistent
+ * records, owned by freqArr and borrowed by hash entries. nStacks indicates
+ * persistent table initialization. Does not apply width/offset/alignment or
+ * compute stack sums. The graph must retain axes throughout metadata use.
  */
 void Rbc_InitFreqTable(Graph *graphPtr) {
     register Element *elemPtr;
@@ -2755,30 +2589,16 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
     graphPtr->nStacks = nStacks;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_layout
+ * @brief Accumulate signed source-Y totals for duplicate grouping keys.
  *
- * Rbc_ComputeStacks --
- *
- *      Determine the height of each stack of bar segments.  A stack
- *      is created by designating two or more points with the same
- *      abscissa.  Each ordinate defines the height of a segment in
- *      the stack.  This procedure simply looks at all the data points
- *      summing the heights of each stacked segment. The sum is saved
- *      in the frequency information table.  This value will be used
- *      to calculate the y-axis limits (data limits aren't sufficient).
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The heights of each stack is computed. CheckStacks will
- *      use this information to adjust the y-axis limits if necessary.
- *
- * ----------------------------------------------------------------------
+ * Requires current frequency metadata. Resets sums, then visits displayed
+ * bars and valid pairs in display-list order. Ordinary nonstacked graphs
+ * return early; trackgraphs compute all duplicate totals and CheckStacks
+ * chooses where to use them. Sums are ordinary double additions, without
+ * PlaceBar's overflow rejection or separate positive/negative accumulation.
+ * Does not alter placement counters or source data.
  */
 void Rbc_ComputeStacks(Graph *graphPtr) {
     Element *elemPtr;
@@ -2830,23 +2650,13 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_layout
+ * @brief Reset mutable group placement cursors before an ordered pass.
  *
- * Rbc_ResetStacks --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Sets every duplicate record's lastY and count to zero, retaining sums,
+ * frequencies and axis identities. A missing/empty array is a no-op. Call
+ * before an extents or mapping traversal, not between members of a group.
  */
 void Rbc_ResetStacks(Graph *graphPtr) {
     FreqInfo *infoPtr;
@@ -2862,7 +2672,15 @@ void Rbc_ResetStacks(Graph *graphPtr) {
     }
 }
 
-/* Refresh named pens (including active/style pens) and private element pens. */
+/**
+ * @ingroup bar_configuration
+ * @brief Refresh label text styles after a graph font change.
+ *
+ * Visits bar pens in the named-pen table and embedded pens in the element
+ * table, including elements outside the display list. Resets each text style
+ * with a non-NULL font. Borrows graph-owned records; does not rebuild bar
+ * geometry, select active pens or itself schedule a redraw.
+ */
 void Rbc_BarFontsChanged(Graph *graphPtr) {
     Tcl_HashSearch iter;
     Tcl_HashEntry *entryPtr;
