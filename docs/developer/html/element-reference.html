@@ -1705,6 +1705,115 @@ These are private adapters; the namespace below is documentation-only.</p>
 </dd></dl>
 
 </section>
+<section id="line-configuration-and-smoothing">
+<h2>Line configuration and smoothing<a class="headerlink" href="#line-configuration-and-smoothing" title="Link to this heading">¶</a></h2>
+<p>See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for staged configuration, resampling boundaries and the
+reference-impedance validation boundary. This namespace disambiguates private names only.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__line__configuration__smoothing"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">configuration</span> <span class="pre">and</span> <span class="pre">smoothing</span></span></dt>
+<dd><p>Private configuration orchestration, resampling and scalar adapters. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.IsLinePenPrefix">
+<span class="target" id="group__line__configuration__smoothing_1gaf284751acf376552160763aeec6d3c47"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsLinePenPrefix</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fullName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.IsLinePenPrefix" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Recognize a nonempty case-sensitive prefix of a pen keyword. </p>
+<p>Compares the supplied byte length with the full keyword and then strncmp. Borrows both strings; returns FALSE for empty or overlong prefixes. Does not perform abbreviation disambiguation against other keywords. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.GetLinePenColorFromObj">
+<span class="target" id="group__line__configuration__smoothing_1gad49197c8ce8abbe4f6c235ba51d82a0c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLinePenColorFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowNull</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.GetLinePenColorFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a nullable pen color or the default-color sentinel. </p>
+<p>NULL/empty input succeeds with NULL only when allowNull is true. A nonempty prefix of defcolor produces COLOR_DEFAULT without acquiring a Tk color. Other strings acquire a Tk color reference for the caller to release through FreeLinePenColor. On error returns TCL_ERROR with a diagnostic and leaves the output pointer unchanged. Does not retain the input Tcl object. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.ClearLineVectorChanges">
+<span class="target" id="group__line__configuration__smoothing_1ga3386f0fb21e14cc6cd76a5f1536ea7c6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClearLineVectorChanges</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.ClearLineVectorChanges" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Consume recorded X/Y source-change metadata. </p>
+<p>Clears pending/all flags and changed bounds in the element’s X and Y slots. Does not deliver or cancel vector notifications, replace values, or clear metadata in other slots. Mapping calls this after handling cache refresh. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.ComplexDivide">
+<span class="target" id="group__line__configuration__smoothing_1gab5da67c3cf607cbf2143fddd59a56dd2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexDivide</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">nr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">ni</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">dr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">di</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">realPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imagPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.ComplexDivide" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Divide finite complex inputs using a denominator component ratio. </p>
+<p>Chooses the larger denominator component to form the ratio. Returns FALSE for nonfinite inputs, zero denominator or nonfinite computed output. Early rejection leaves outputs unchanged; final finiteness rejection can leave computed nonfinite outputs, so callers must honor the return value. This formulation does not guarantee overflow-free arithmetic for all finite extreme inputs. Borrows scalar inputs and writes only the output doubles. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.GammaToNormalizedImpedance">
+<span class="target" id="group__line__configuration__smoothing_1gaef62c353c20fb0289cb3f11b8f05b33f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GammaToNormalizedImpedance</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">gammaReal</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">gammaImag</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resistancePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">reactancePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.GammaToNormalizedImpedance" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert reflection coefficient to normalized impedance. </p>
+<p>Computes (1 + gamma)/(1 - gamma) through ComplexDivide, except exact (+1, 0), which succeeds with (HUGE_VAL, 0) for an open circuit. TRUE therefore does not imply finite output. Failure follows ComplexDivide output rules. No physical reference-impedance scaling is performed here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.GammaToNormalizedAdmittance">
+<span class="target" id="group__line__configuration__smoothing_1ga2d40e9608a35f2458240adab33a4a113"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GammaToNormalizedAdmittance</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">gammaReal</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">gammaImag</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conductancePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">susceptancePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.GammaToNormalizedAdmittance" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert reflection coefficient to normalized admittance. </p>
+<p>Computes (1 - gamma)/(1 + gamma) through ComplexDivide, except exact (-1, 0), which succeeds with (HUGE_VAL, 0) for a short circuit. TRUE therefore does not imply finite output. Physical admittance scaling belongs to the caller; failed division outputs must not be consumed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.Round">
+<span class="target" id="group__line__configuration__smoothing_1ga7e1f054b83999d92f7e25e02fecbab55"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Round</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.Round" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round a bounded double to an integer with halfway cases away from zero. </p>
+<p>Adds or subtracts one half and casts to int. Caller must provide a finite value whose adjusted result is representable; this helper neither clamps nor reports overflow. Used for native-compatible screen geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.PixelAbscissa">
+<span class="target" id="group__line__configuration__smoothing_1ga08686589d2d0a887095aebe30da35e7e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PixelAbscissa</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.PixelAbscissa" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Select the physical screen coordinate along mapped data X. </p>
+<p>Returns screen X normally and screen Y when inverted. Does not undo axis descending direction or perform an inverse transform. Borrows both inputs. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.PixelOrdinate">
+<span class="target" id="group__line__configuration__smoothing_1gaba4db543f7234351cc3afaa271e525b5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PixelOrdinate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.PixelOrdinate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Select the screen coordinate perpendicular to mapped data X. </p>
+<p>Returns screen Y normally and screen X when inverted. Pixel buckets use its extrema to preserve the visible envelope. Does not change sign or recover data coordinates. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.MapLineDataAbscissa">
+<span class="target" id="group__line__configuration__smoothing_1gaf1dfefb6f0dfb280a84f3b5dccf7953e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapLineDataAbscissa</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.MapLineDataAbscissa" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a source X value to its physical screen coordinate. </p>
+<p>Uses horizontal axis mapping normally and vertical mapping when inverted, with the element’s X axis and current graph viewport. Borrows graph/line state; does not validate the source or establish the viewport. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.GenerateSpline">
+<span class="target" id="group__line__configuration__smoothing_1gabfdeaefeb5868d14bb3ac79f9a3af7dc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GenerateSpline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.GenerateSpline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resample a continuous run as a function of mapped data X. </p>
+<p>Requires a nonempty map with valid source indices and no internal breaks. Natural/quadratic smoothing uses screen X normally or screen Y when inverted. Reflects decreasing abscissas into increasing canonical coordinates without reordering source indices. Retains every knot and adds visible pixel samples; inserted samples inherit the starting knot’s source index.</p>
+<p>Commits replacement arrays only after interpolation succeeds. Size/allocation or evaluator failures preserve the input and set effective smoothing to none. Early exits for fewer than three points, nonmonotonic/equal abscissas, an invisible interval or empty screen span leave both input and effective mode unchanged. Thus the effective flag alone does not prove smoothing occurred. Does not alter reqSmooth or report Tcl errors; break handling belongs to GenerateSplineRuns. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.GenerateParametricSpline">
+<span class="target" id="group__line__configuration__smoothing_1gad04663de6a6a51e6733434655021d5b6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GenerateParametricSpline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.GenerateParametricSpline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resample a continuous run by source interval and local parameter. </p>
+<p>Requires nonempty finite mapped geometry with parallel source indices and no internal breaks. Retains knots and adds samples approximately every two pixels along visible portions of original straight segments. Evaluation parameters identify the source interval and its normalized position; inserted samples report the interval’s starting source index.</p>
+<p>Selects natural, quadratic or Catmull-Rom evaluation from effective smooth. Replaces point/index arrays only after successful evaluation. Size, allocation, capacity or evaluator failure frees candidates, retains original arrays and sets effective smoothing to none, leaving reqSmooth unchanged. Sample density uses the original segments, not an adaptive bound on the curved result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineConfiguration.ConfigureLine">
+<span class="target" id="group__line__configuration__smoothing_1ga94ab241ef979fbc00c455796d2ac7588"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.ConfigureLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare and commit line-family derived configuration state. </p>
+<p>Borrows a live element with Tk option candidates already installed and the changed-option mask/argument order available. Validates opacity and data-mode restrictions; stages common data, complex data, parameters, pens, axes, state, tags, styles, scalars and fill resources as required. Validates prospective parameter lengths and error-band smoothing, then configures the built-in pen.</p>
+<p>Validates polar reference impedance before configuring the embedded pen or transferring staged state. Commits non-data transactions, synchronizes the first palette pen, then commits staged data. Successful completion sets mapping flags. The enclosing caller restores Tk options on error.</p>
+<p>Error cleanup releases still-owned staged resources and returns TCL_ERROR. It does not undo already committed derived state, restore Tk options itself, or make application callbacks during parsing generally reentrant. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1897,6 +2006,22 @@ These are private adapters; the namespace below is documentation-only.</p>
 <li><a class="reference internal" href="#c.rbcGrLineOutput.ValuesExport"><code class="docutils literal notranslate"><span class="pre">ValuesExport()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineOutput.ActiveLineExport"><code class="docutils literal notranslate"><span class="pre">ActiveLineExport()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineOutput.NormalLineExport"><code class="docutils literal notranslate"><span class="pre">NormalLineExport()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#line-configuration-and-smoothing">Line configuration and smoothing</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.IsLinePenPrefix"><code class="docutils literal notranslate"><span class="pre">IsLinePenPrefix()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.GetLinePenColorFromObj"><code class="docutils literal notranslate"><span class="pre">GetLinePenColorFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.ClearLineVectorChanges"><code class="docutils literal notranslate"><span class="pre">ClearLineVectorChanges()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.ComplexDivide"><code class="docutils literal notranslate"><span class="pre">ComplexDivide()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.GammaToNormalizedImpedance"><code class="docutils literal notranslate"><span class="pre">GammaToNormalizedImpedance()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.GammaToNormalizedAdmittance"><code class="docutils literal notranslate"><span class="pre">GammaToNormalizedAdmittance()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.Round"><code class="docutils literal notranslate"><span class="pre">Round()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.PixelAbscissa"><code class="docutils literal notranslate"><span class="pre">PixelAbscissa()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.PixelOrdinate"><code class="docutils literal notranslate"><span class="pre">PixelOrdinate()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.MapLineDataAbscissa"><code class="docutils literal notranslate"><span class="pre">MapLineDataAbscissa()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.GenerateSpline"><code class="docutils literal notranslate"><span class="pre">GenerateSpline()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.GenerateParametricSpline"><code class="docutils literal notranslate"><span class="pre">GenerateParametricSpline()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineConfiguration.ConfigureLine"><code class="docutils literal notranslate"><span class="pre">ConfigureLine()</span></code></a></li>
 </ul>
 </li>
 </ul>

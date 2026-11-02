@@ -137,3 +137,16 @@ These are private adapters; the namespace below is documentation-only.
    :members:
 
 .. c:namespace-pop::
+
+Line configuration and smoothing
+--------------------------------
+
+See :doc:`elements` for staged configuration, resampling boundaries and the
+reference-impedance validation boundary. This namespace disambiguates private names only.
+
+.. c:namespace-push:: rbcGrLineConfiguration
+
+.. doxygengroup:: line_configuration_smoothing
+   :members:
+
+.. c:namespace-pop::

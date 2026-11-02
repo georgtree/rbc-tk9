@@ -617,5 +617,73 @@ namespace eval polar.element {
         destroy .w
     } -result {{linear step natural cubic quadratic catrom} 1 {bad smooth value "invalid": should be linear, step, natural, cubic, quadratic, or catrom} catrom}
 
+
+    # Failed reference-impedance validation must preserve derived drawing state,
+    # not only the Tcl option values restored by Tk.
+    set testCase(27) 0
+    foreach invalidZ0 {0 -1 Inf -Inf} {
+        foreach change {{-smooth step} {-color red} {-pen Replacement}} {
+            test RBC.polar.element.configure.A.27.[incr testCase(27)] {
+                invalid z0 rejects combined updates without changing rendered geometry
+            } -setup {
+                polar .polar1 -width 400 -height 300
+                pack .polar1
+                .polar1 pen create Replacement -color blue -linewidth 4
+                .polar1 element create Element1 -data {0 0 0.5 0.7 0.8 0.2} \
+                    -symbol none -smooth linear -color black -linewidth 2
+                update
+            } -body {
+                set beforeOptions [.polar1 element configure Element1]
+                set beforeSvg [.polar1 svg output]
+                set code [catch {.polar1 element configure Element1 {*}$change -z0 $invalidZ0} message]
+                set restored [expr {$beforeOptions eq [.polar1 element configure Element1]}]
+                # SVG output remaps, revealing stale derived settings even when
+                # cget reports the restored option values.
+                set same [expr {$beforeSvg eq [.polar1 svg output]}]
+                .polar1 element configure Element1 {*}$change -z0 75
+                set changed [expr {$beforeSvg ne [.polar1 svg output]}]
+                list $code [string match {bad reference impedance *positive finite value} $message] \
+                    $restored $same $changed [.polar1 element cget Element1 -z0]
+            } -cleanup {
+                destroy .polar1
+            } -result {1 1 1 1 1 75.0}
+        }
+    }
+
+    test RBC.polar.element.configure.A.28.1 {
+        invalid z0 preserves data and smoothing; subsequent valid update commits both
+    } -setup {
+        polar .polar1 -width 400 -height 300
+        pack .polar1
+        .polar1 element create Element1 -data {0 0 0.5 0.7 0.8 0.2} -symbol none
+        update
+    } -body {
+        set beforeOptions [.polar1 element configure Element1]
+        set beforeSvg [.polar1 svg output]
+        set code [catch {.polar1 element configure Element1 -data {0 0 0.2 0.4 0.7 0.5} \
+            -smooth step -z0 0}]
+        set same [expr {$beforeOptions eq [.polar1 element configure Element1] &&
+            $beforeSvg eq [.polar1 svg output]}]
+        .polar1 element configure Element1 -data {0 0 0.2 0.4 0.7 0.5} -smooth step -z0 75
+        list $code $same [.polar1 element cget Element1 -smooth] \
+            [expr {$beforeSvg ne [.polar1 svg output]}]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1 step 1}
+
+    test RBC.polar.element.configure.A.28.2 {
+        invalid initial z0 leaves no element and permits reuse of its name
+    } -setup {
+        polar .polar1
+        .polar1 pen create Replacement -color blue
+    } -body {
+        set code [catch {.polar1 element create Element1 -pen Replacement -smooth step -z0 0}]
+        set absent [expr {[lsearch -exact [.polar1 element names] Element1] < 0}]
+        .polar1 element create Element1 -pen Replacement -smooth step -z0 75
+        list $code $absent [.polar1 element cget Element1 -pen] [.polar1 element cget Element1 -z0]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1 Replacement 75.0}
+
 	cleanupTests
 }

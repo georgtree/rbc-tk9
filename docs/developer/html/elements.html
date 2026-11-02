@@ -750,7 +750,8 @@ source-index value; it is not geometrically interpolated.</p>
 <p>PolarClosestInfo derives radius and normalized radian angle from the final
 Cartesian hit, plus the source representation name. Smith results also include
 gamma, reference impedance, and convertible normalized and physical impedance
-and admittance. Singular conversions omit their respective fields. Parameter
+and admittance. Exact open/short singularities are represented with positive infinity; other
+failed conversions omit their respective fields. Parameter
 metadata follows the source index while these geometric fields follow the hit.</p>
 <p>The SetClosestInfo helpers build dictionary entries, including two-double lists
 for complex pairs. They do not write Tcl variables or run array traces. The
@@ -824,6 +825,61 @@ therefore applies to both screen and export callbacks. Retaining the label resul
 and preserving interpreter state do not protect borrowed drawing storage.</p>
 </section>
 </section>
+<section id="line-configuration-and-continuous-run-smoothing">
+<h2>Line configuration and continuous-run smoothing<a class="headerlink" href="#line-configuration-and-continuous-run-smoothing" title="Link to this heading">¶</a></h2>
+<p>ConfigureLine orchestrates the smaller transactions described above. Tk has
+already installed candidate option values; the element carries the changed-option
+mask and original argument order. The routine stages resources selectively,
+validates data/parameter compatibility and error-band smoothing, and configures
+the embedded pen before transferring prepared state. Successful completion marks
+mapping and symbol-scale baselines dirty where needed. The enclosing common
+configuration routine owns saved Tk option restoration and final acceptance.</p>
+<p>Polar reference impedance is validated before the embedded pen is reconfigured
+or any staged resources are transferred. A combined update such as
+<code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">step</span> <span class="pre">-z0</span> <span class="pre">0</span></code> therefore fails without changing derived drawing state.
+The enclosing caller restores the reported Tk options, while transaction cleanup
+releases candidate resources. Valid updates commit the prepared state together.</p>
+<section id="ordinary-and-parametric-resampling">
+<h3>Ordinary and parametric resampling<a class="headerlink" href="#ordinary-and-parametric-resampling" title="Link to this heading">¶</a></h3>
+<p>GenerateSpline handles natural/quadratic curves expressed as functions of mapped
+data X. It swaps coordinate roles for inverted graphs and reflects decreasing
+abscissas into increasing order rather than reversing source arrays. Every knot
+is retained; additional samples follow visible screen pixels along that axis.
+The inserted samples retain their interval’s starting source index.</p>
+<p>GenerateParametricSpline uses source-interval/local-parameter pairs for natural,
+quadratic or Catmull-Rom evaluation. It retains all knots and samples roughly
+every two pixels over visible portions of the original straight segments. This
+is a sampling heuristic, not adaptive subdivision of the final curve. It does
+not require monotonically increasing data X.</p>
+<p>Both functions consume continuous runs. GenerateSplineRuns handles discontinuous
+maps externally, preserving gap boundaries. Replacement point/index arrays are
+committed only after successful evaluation. Allocation and evaluator failures
+retain original geometry and set effective smoothing to linear; the requested
+option is unchanged.</p>
+<p>Some ordinary-spline early exits differ: too few points, equal/nonmonotonic
+abscissas, invisibility or an empty screen span return without clearing the
+effective mode. GenerateSplineRuns observes that mode to track successful runs,
+so the mode is not proof that coordinates were actually resampled. Code that
+needs such proof must not infer it solely from the smoothing flag.</p>
+</section>
+<section id="scalar-adapters-and-ownership">
+<h3>Scalar adapters and ownership<a class="headerlink" href="#scalar-adapters-and-ownership" title="Link to this heading">¶</a></h3>
+<p>The pen-color parser accepts nonempty prefixes of defcolor as an inherited-color
+sentinel. Empty values produce NULL only when permitted; actual Tk colors carry
+an acquired reference. Callers must distinguish those cases when releasing
+resources. The local Round helper requires bounded finite input and does not
+provide checked conversion.</p>
+<p>PixelAbscissa and PixelOrdinate select physical coordinate roles according to
+inversion; neither removes axis descending direction. MapLineDataAbscissa invokes
+the appropriate axis mapper. ClearLineVectorChanges consumes recorded X/Y change
+ranges after cache handling, without delivering or canceling vector notifications.</p>
+<p>ComplexDivide uses a denominator-component ratio and rejects nonfinite results,
+but does not guarantee overflow-free arithmetic for all finite extreme inputs.
+Its failure outputs must not be used. The normalized Smith conversion helpers
+special-case exact open and short points as successful positive-infinity results;
+callers must not equate a successful conversion with finite output.</p>
+</section>
+</section>
 </section>
 
 
@@ -879,6 +935,11 @@ and preserving interpreter state do not protect borrowed drawing storage.</p>
 <li><a class="reference internal" href="#line-symbols-and-output-dispatch">Line symbols and output dispatch</a><ul>
 <li><a class="reference internal" href="#symbol-selection-and-fallback">Symbol selection and fallback</a></li>
 <li><a class="reference internal" href="#fills-and-labels">Fills and labels</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#line-configuration-and-continuous-run-smoothing">Line configuration and continuous-run smoothing</a><ul>
+<li><a class="reference internal" href="#ordinary-and-parametric-resampling">Ordinary and parametric resampling</a></li>
+<li><a class="reference internal" href="#scalar-adapters-and-ownership">Scalar adapters and ownership</a></li>
 </ul>
 </li>
 </ul>

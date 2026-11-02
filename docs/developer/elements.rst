@@ -774,7 +774,8 @@ source-index value; it is not geometrically interpolated.
 PolarClosestInfo derives radius and normalized radian angle from the final
 Cartesian hit, plus the source representation name. Smith results also include
 gamma, reference impedance, and convertible normalized and physical impedance
-and admittance. Singular conversions omit their respective fields. Parameter
+and admittance. Exact open/short singularities are represented with positive infinity; other
+failed conversions omit their respective fields. Parameter
 metadata follows the source index while these geometric fields follow the hit.
 
 The SetClosestInfo helpers build dictionary entries, including two-double lists
@@ -858,3 +859,67 @@ These loops borrow arrays, pens and element records across label-command calls.
 The existing restriction on mutating drawing state or entering nested event loops
 therefore applies to both screen and export callbacks. Retaining the label result
 and preserving interpreter state do not protect borrowed drawing storage.
+
+Line configuration and continuous-run smoothing
+-----------------------------------------------
+
+ConfigureLine orchestrates the smaller transactions described above. Tk has
+already installed candidate option values; the element carries the changed-option
+mask and original argument order. The routine stages resources selectively,
+validates data/parameter compatibility and error-band smoothing, and configures
+the embedded pen before transferring prepared state. Successful completion marks
+mapping and symbol-scale baselines dirty where needed. The enclosing common
+configuration routine owns saved Tk option restoration and final acceptance.
+
+Polar reference impedance is validated before the embedded pen is reconfigured
+or any staged resources are transferred. A combined update such as
+``-smooth step -z0 0`` therefore fails without changing derived drawing state.
+The enclosing caller restores the reported Tk options, while transaction cleanup
+releases candidate resources. Valid updates commit the prepared state together.
+
+Ordinary and parametric resampling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GenerateSpline handles natural/quadratic curves expressed as functions of mapped
+data X. It swaps coordinate roles for inverted graphs and reflects decreasing
+abscissas into increasing order rather than reversing source arrays. Every knot
+is retained; additional samples follow visible screen pixels along that axis.
+The inserted samples retain their interval's starting source index.
+
+GenerateParametricSpline uses source-interval/local-parameter pairs for natural,
+quadratic or Catmull-Rom evaluation. It retains all knots and samples roughly
+every two pixels over visible portions of the original straight segments. This
+is a sampling heuristic, not adaptive subdivision of the final curve. It does
+not require monotonically increasing data X.
+
+Both functions consume continuous runs. GenerateSplineRuns handles discontinuous
+maps externally, preserving gap boundaries. Replacement point/index arrays are
+committed only after successful evaluation. Allocation and evaluator failures
+retain original geometry and set effective smoothing to linear; the requested
+option is unchanged.
+
+Some ordinary-spline early exits differ: too few points, equal/nonmonotonic
+abscissas, invisibility or an empty screen span return without clearing the
+effective mode. GenerateSplineRuns observes that mode to track successful runs,
+so the mode is not proof that coordinates were actually resampled. Code that
+needs such proof must not infer it solely from the smoothing flag.
+
+Scalar adapters and ownership
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The pen-color parser accepts nonempty prefixes of defcolor as an inherited-color
+sentinel. Empty values produce NULL only when permitted; actual Tk colors carry
+an acquired reference. Callers must distinguish those cases when releasing
+resources. The local Round helper requires bounded finite input and does not
+provide checked conversion.
+
+PixelAbscissa and PixelOrdinate select physical coordinate roles according to
+inversion; neither removes axis descending direction. MapLineDataAbscissa invokes
+the appropriate axis mapper. ClearLineVectorChanges consumes recorded X/Y change
+ranges after cache handling, without delivering or canceling vector notifications.
+
+ComplexDivide uses a denominator-component ratio and rejects nonfinite results,
+but does not guarantee overflow-free arithmetic for all finite extreme inputs.
+Its failure outputs must not be used. The normalized Smith conversion helpers
+special-case exact open and short points as successful positive-infinity results;
+callers must not equate a successful conversion with finite output.

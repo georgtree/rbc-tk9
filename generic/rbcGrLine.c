@@ -50,6 +50,10 @@
  * Private screen/export adapters, palette sampling and label lifetimes.
  */
 
+/** @defgroup line_configuration_smoothing Line configuration and smoothing
+ * Private configuration orchestration, resampling and scalar adapters.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -1489,6 +1493,14 @@ static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
 static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                          Point2D *symbolPts, const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset);
 
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Recognize a nonempty case-sensitive prefix of a pen keyword.
+ *
+ * Compares the supplied byte length with the full keyword and then strncmp.
+ * Borrows both strings; returns FALSE for empty or overlong prefixes. Does not
+ * perform abbreviation disambiguation against other keywords.
+ */
 static int IsLinePenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
 
@@ -1496,6 +1508,16 @@ static int IsLinePenPrefix(const char *string, Tcl_Size length, const char *full
     return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
 }
 
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Resolve a nullable pen color or the default-color sentinel.
+ *
+ * NULL/empty input succeeds with NULL only when allowNull is true. A nonempty
+ * prefix of defcolor produces COLOR_DEFAULT without acquiring a Tk color.
+ * Other strings acquire a Tk color reference for the caller to release through
+ * FreeLinePenColor. On error returns TCL_ERROR with a diagnostic and leaves
+ * the output pointer unchanged. Does not retain the input Tcl object.
+ */
 static int GetLinePenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowNull,
                                   XColor **colorPtrPtr) {
     const char *string;
@@ -1523,6 +1545,14 @@ static int GetLinePenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Consume recorded X/Y source-change metadata.
+ *
+ * Clears pending/all flags and changed bounds in the element's X and Y slots.
+ * Does not deliver or cancel vector notifications, replace values, or clear
+ * metadata in other slots. Mapping calls this after handling cache refresh.
+ */
 static void ClearLineVectorChanges(Line *linePtr) {
     ElemVector *xPtr;
     ElemVector *yPtr;
@@ -1539,6 +1569,17 @@ static void ClearLineVectorChanges(Line *linePtr) {
     yPtr->changedLast = 0;
 }
 
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Divide finite complex inputs using a denominator component ratio.
+ *
+ * Chooses the larger denominator component to form the ratio. Returns FALSE
+ * for nonfinite inputs, zero denominator or nonfinite computed output.
+ * Early rejection leaves outputs unchanged; final finiteness rejection can
+ * leave computed nonfinite outputs, so callers must honor the return value.
+ * This formulation does not guarantee overflow-free arithmetic for all finite
+ * extreme inputs. Borrows scalar inputs and writes only the output doubles.
+ */
 static int ComplexDivide(double nr, double ni, double dr, double di, double *realPtr, double *imagPtr) {
     double ratio;
     double denominator;
@@ -1626,6 +1667,15 @@ static int SetClosestInfoPair(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const c
     return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewListObj(2, objv));
 }
 
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Convert reflection coefficient to normalized impedance.
+ *
+ * Computes (1 + gamma)/(1 - gamma) through ComplexDivide, except exact
+ * (+1, 0), which succeeds with (HUGE_VAL, 0) for an open circuit. TRUE therefore
+ * does not imply finite output. Failure follows ComplexDivide output rules.
+ * No physical reference-impedance scaling is performed here.
+ */
 static int GammaToNormalizedImpedance(double gammaReal, double gammaImag, double *resistancePtr, double *reactancePtr) {
     /*
      * z = (1 + Gamma) / (1 - Gamma)
@@ -1640,6 +1690,15 @@ static int GammaToNormalizedImpedance(double gammaReal, double gammaImag, double
     return ComplexDivide(1.0 + gammaReal, gammaImag, 1.0 - gammaReal, -gammaImag, resistancePtr, reactancePtr);
 }
 
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Convert reflection coefficient to normalized admittance.
+ *
+ * Computes (1 - gamma)/(1 + gamma) through ComplexDivide, except exact
+ * (-1, 0), which succeeds with (HUGE_VAL, 0) for a short circuit. TRUE therefore
+ * does not imply finite output. Physical admittance scaling belongs to the
+ * caller; failed division outputs must not be consumed.
+ */
 static int GammaToNormalizedAdmittance(double gammaReal, double gammaImag, double *conductancePtr,
                                        double *susceptancePtr) {
     /*
@@ -2412,23 +2471,13 @@ static LineAreaOption GetLineAreaOption(Element *elemPtr, Tcl_Obj *objPtr, int b
     return LINE_AREA_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Round a bounded double to an integer with halfway cases away from zero.
  *
- * Round --
- *
- *      TODO: Description
- *
- * Parameters:
- *      register double x
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Adds or subtracts one half and casts to int. Caller must provide a finite
+ * value whose adjusted result is representable; this helper neither clamps
+ * nor reports overflow. Used for native-compatible screen geometry.
  */
 INLINE static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
@@ -3756,34 +3805,24 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     mapPtr->nScreenPts = count;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Select the physical screen coordinate along mapped data X.
  *
- * PixelAbscissa --
- *
- *      Returns the physical screen coordinate corresponding to the
- *      element's data-X dimension.
- *
- *      Normally this is screen X.  With -invertxy it is screen Y.
- *
- *----------------------------------------------------------------------
+ * Returns screen X normally and screen Y when inverted. Does not undo axis
+ * descending direction or perform an inverse transform. Borrows both inputs.
  */
 INLINE static double PixelAbscissa(Graph *graphPtr, const Point2D *pointPtr) {
     return graphPtr->inverted ? pointPtr->y : pointPtr->x;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Select the screen coordinate perpendicular to mapped data X.
  *
- * PixelOrdinate --
- *
- *      Returns the physical screen coordinate perpendicular to the
- *      element's data-X dimension.
- *
- *      The minimum and maximum of this coordinate preserve the visible
- *      envelope of all samples falling into one data-X pixel.
- *
- *----------------------------------------------------------------------
+ * Returns screen Y normally and screen X when inverted. Pixel buckets use
+ * its extrema to preserve the visible envelope. Does not change sign or
+ * recover data coordinates.
  */
 INLINE static double PixelOrdinate(Graph *graphPtr, const Point2D *pointPtr) {
     return graphPtr->inverted ? pointPtr->x : pointPtr->y;
@@ -4473,6 +4512,14 @@ static void AppendPixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxInd
     }
 }
 
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Map a source X value to its physical screen coordinate.
+ *
+ * Uses horizontal axis mapping normally and vertical mapping when inverted,
+ * with the element's X axis and current graph viewport. Borrows graph/line
+ * state; does not validate the source or establish the viewport.
+ */
 INLINE static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double x) {
     if (graphPtr->inverted) {
         return Rbc_VMap(graphPtr, linePtr->core.axes.x, x);
@@ -5883,27 +5930,23 @@ static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     mapPtr->nScreenPts = count;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Resample a continuous run as a function of mapped data X.
  *
- * GenerateSpline --
+ * Requires a nonempty map with valid source indices and no internal breaks.
+ * Natural/quadratic smoothing uses screen X normally or screen Y when inverted.
+ * Reflects decreasing abscissas into increasing canonical coordinates without
+ * reordering source indices. Retains every knot and adds visible pixel samples;
+ * inserted samples inherit the starting knot's source index.
  *
- *      Computes a spline based upon the data points, returning a new
- *      (larger) coordinate array or points.
- *
- * Parameters:
- *      Graph *graphPtr;
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The temporary arrays for screen coordinates and data indices
- *      are updated based upon spline.
- *
- *----------------------------------------------------------------------
+ * Commits replacement arrays only after interpolation succeeds. Size/allocation
+ * or evaluator failures preserve the input and set effective smoothing to none.
+ * Early exits for fewer than three points, nonmonotonic/equal abscissas, an
+ * invisible interval or empty screen span leave both input and effective mode
+ * unchanged. Thus the effective flag alone does not prove smoothing occurred.
+ * Does not alter reqSmooth or report Tcl errors; break handling belongs to
+ * GenerateSplineRuns.
  */
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size extra;
@@ -6180,27 +6223,21 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     mapPtr->nScreenPts = nIntpPts;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Resample a continuous run by source interval and local parameter.
  *
- * GenerateParametricSpline --
+ * Requires nonempty finite mapped geometry with parallel source indices and
+ * no internal breaks. Retains knots and adds samples approximately every two
+ * pixels along visible portions of original straight segments. Evaluation
+ * parameters identify the source interval and its normalized position; inserted
+ * samples report the interval's starting source index.
  *
- *      Computes a spline based upon the data points, returning a new
- *      (larger) coordinate array or points.
- *
- * Parameters:
- *      Graph *graphPtr;
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The temporary arrays for screen coordinates and data indices
- *      are updated based upon spline.
- *
- *----------------------------------------------------------------------
+ * Selects natural, quadratic or Catmull-Rom evaluation from effective smooth.
+ * Replaces point/index arrays only after successful evaluation. Size, allocation,
+ * capacity or evaluator failure frees candidates, retains original arrays and
+ * sets effective smoothing to none, leaving reqSmooth unchanged. Sample density
+ * uses the original segments, not an adaptive bound on the curved result.
  */
 static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
@@ -8530,26 +8567,24 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_configuration_smoothing
+ * @brief Prepare and commit line-family derived configuration state.
  *
- * ConfigureLine --
+ * Borrows a live element with Tk option candidates already installed and the
+ * changed-option mask/argument order available. Validates opacity and data-mode
+ * restrictions; stages common data, complex data, parameters, pens, axes, state,
+ * tags, styles, scalars and fill resources as required. Validates prospective
+ * parameter lengths and error-band smoothing, then configures the built-in pen.
  *
- *      Sets up the appropriate configuration parameters in the GC.
+ * Validates polar reference impedance before configuring the embedded pen
+ * or transferring staged state. Commits non-data transactions, synchronizes
+ * the first palette pen, then commits staged data. Successful completion
+ * sets mapping flags. The enclosing caller restores Tk options on error.
  *
- * Parameters:
- *      Graph *graphPtr
- *      Element *elemPtr
- *
- * Results:
- *      The return value is a standard Tcl result.  If TCL_ERROR is
- *      returned, then the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information such as line width, line style, color
- *      etc. get set in a new GC.
- *
- *----------------------------------------------------------------------
+ * Error cleanup releases still-owned staged resources and returns TCL_ERROR.
+ * It does not undo already committed derived state, restore Tk options itself,
+ * or make application callbacks during parsing generally reentrant.
  */
 static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr;
@@ -8778,6 +8813,20 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         areaTransactionPrepared = TRUE;
     }
     /*
+     * Validate reference impedance before replacing the embedded pen or
+     * committing any staged derived resources. Tk rollback cannot undo
+     * those transfers.
+     */
+    if ((elemPtr->classUid == rbcPolarElementUid) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_Z0_MASK))) {
+        if ((!FINITE(linePtr->z0)) || (linePtr->z0 <= 0.0)) {
+            Tcl_SetObjResult(
+                graphPtr->interp,
+                Tcl_ObjPrintf("bad reference impedance \"%g\": must be a positive finite value", linePtr->z0));
+            goto error;
+        }
+    }
+    /*
      * Configure the embedded line pen only when its options may have
      * changed.
      */
@@ -8822,15 +8871,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
         stylePtr = Rbc_ChainGetValue(linkPtr);
         stylePtr->penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
-    }
-    if ((elemPtr->classUid == rbcPolarElementUid) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_Z0_MASK))) {
-        if ((!FINITE(linePtr->z0)) || (linePtr->z0 <= 0.0)) {
-            Tcl_SetObjResult(
-                graphPtr->interp,
-                Tcl_ObjPrintf("bad reference impedance \"%g\": must be a positive finite value", linePtr->z0));
-            goto error;
-        }
     }
     /*
      * Nothing below this point can fail. Commit the staged vectors and
