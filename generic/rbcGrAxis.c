@@ -9,6 +9,7 @@
  * See "license.terms" for details.
  */
 
+/** @defgroup axis_transactions Axis option transactions */
 /** @defgroup axis_registry Axis registry and lifetime */
 /** @defgroup axis_configuration Axis configuration entry points */
 /** @defgroup axis_commands Axis command dispatch and bindings */
@@ -145,6 +146,10 @@ typedef enum {
 
 #define AXIS_LIMIT_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/**
+ * @ingroup axis_transactions
+ * @brief Scalar requested/scroll candidates, initialized from live values; stagedMask selects fields to commit.
+ */
 typedef struct {
     unsigned int stagedMask;
 
@@ -158,12 +163,20 @@ typedef enum { AXIS_TICK_OPTION_NONE, AXIS_TICK_OPTION_MAJOR, AXIS_TICK_OPTION_M
 
 #define AXIS_TICK_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/**
+ * @ingroup axis_transactions
+ * @brief Owns major/minor tick allocations until commit. A masked NULL candidate requests automatic ticks.
+ */
 typedef struct {
     unsigned int stagedMask;
     Ticks *majorTicksPtr;
     Ticks *minorTicksPtr;
 } AxisTickTransaction;
 
+/**
+ * @ingroup axis_transactions
+ * @brief Scalar minimum/maximum policies; staged distinguishes no change from a parsed pair.
+ */
 typedef struct {
     int staged;
     int looseMin;
@@ -179,6 +192,10 @@ typedef enum {
 
 #define AXIS_PIXEL_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/**
+ * @ingroup axis_transactions
+ * @brief Scalar pixel candidates; stagedMask identifies parsed fields and no heap cleanup is needed.
+ */
 typedef struct {
     unsigned int stagedMask;
     int borderWidth;
@@ -195,6 +212,10 @@ typedef enum {
 
 #define AXIS_SHADOW_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/**
+ * @ingroup axis_transactions
+ * @brief Owns staged Tk colour references and offsets until commit; unmasked entries are zero initialized.
+ */
 typedef struct {
     unsigned int stagedMask;
     Shadow limitsShadow;
@@ -202,11 +223,19 @@ typedef struct {
     Shadow titleShadow;
 } AxisShadowTransaction;
 
+/**
+ * @ingroup axis_transactions
+ * @brief Owns one staged string-list allocation until commit; staged distinguishes no change from an empty list.
+ */
 typedef struct {
     int staged;
     char **tags;
 } AxisTagsTransaction;
 
+/**
+ * @ingroup axis_transactions
+ * @brief Owns one split-list allocation with at most two formats until commit; count and staged accompany it.
+ */
 typedef struct {
     int staged;
     char **formats;
@@ -453,6 +482,13 @@ static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFrac
     }
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Compare a validated option with its canonical name.
+ *
+ * Uses the axis option table to resolve abbreviations and synonyms. Returns false when resolution
+ * fails. This helper does not replace Tk option validation or report an interpreter error.
+ */
 static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
     const char *name;
 
@@ -777,32 +813,21 @@ static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr) {
  * ----------------------------------------------------------------------
  */
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Recognize the -bindtags option.
  *
- * IsAxisBindTagsOption --
- *
- *      Determines whether an option name represents "-bindtags".
- *
- *      Tk_SetOptions has already rejected unknown and ambiguous
- *      abbreviations.
- *
- *----------------------------------------------------------------------
+ * Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous
+ * options.
  */
 static int IsAxisBindTagsOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-bindtags"); }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Stage a replacement binding-tag list.
  *
- * StageAxisTags --
- *
- *      Parses an axis bind-tags value into temporary transaction
- *      storage without modifying the live Axis record.
- *
- *      A previous staged candidate is released only after its
- *      replacement has parsed successfully.
- *
- *----------------------------------------------------------------------
+ * Parses into a new string-list allocation before releasing the previous candidate. Success owns the
+ * new allocation and sets staged; failure preserves the prior candidate. Does not alter live tags.
  */
 static int StageAxisTags(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTagsTransaction *transactionPtr) {
     char **newTags;
@@ -819,6 +844,14 @@ static int StageAxisTags(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTagsTransactio
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Discard an axis tags transaction.
+ *
+ * Releases owned tag-list allocation and zeroes the complete transaction. Requires initialized or
+ * zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter
+ * live axis fields.
+ */
 static void FreeAxisTagsTransaction(AxisTagsTransaction *transactionPtr) {
     if (transactionPtr->tags != NULL) {
         ckfree((char *)transactionPtr->tags);
@@ -826,19 +859,15 @@ static void FreeAxisTagsTransaction(AxisTagsTransaction *transactionPtr) {
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Prepare the axis tags option family.
  *
- * PrepareAxisTagsTransaction --
- *
- *      Parses all -bindtags values involved in the current modern
- *      configuration without modifying the live Axis record.
- *
- *      Explicit repeated occurrences are processed in caller order.
- *      Therefore an invalid earlier value is not hidden by a valid
- *      final retained value.
- *
- *----------------------------------------------------------------------
+ * Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the
+ * borrowed even-length option vector, identifies explicit options, and on first configuration parses
+ * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
+ * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
+ * without committing live derived fields. On error releases all candidates owned by this transaction.
  */
 static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -881,15 +910,13 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Commit prepared axis tags candidates.
  *
- * CommitAxisTagsTransaction --
- *
- *      Replaces the live axis bind-tags list with a successfully
- *      staged candidate.
- *
- *----------------------------------------------------------------------
+ * Transfers the staged list, clears its pointer and flag, then frees the old live list. Unstaged
+ * options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the
+ * caller must have prepared all option families first.
  */
 static void CommitAxisTagsTransaction(Axis *axisPtr, AxisTagsTransaction *transactionPtr) {
     char **oldTags;
@@ -906,39 +933,37 @@ static void CommitAxisTagsTransaction(Axis *axisPtr, AxisTagsTransaction *transa
     }
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Release a split limit-format allocation.
+ *
+ * Accepts NULL. Frees the single allocation, not each string separately; cannot clear the caller
+ * pointer.
+ */
 static void FreeAxisFormats(char **formats) {
     if (formats != NULL) {
         ckfree((char *)formats);
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Recognize the -limitsformat option.
  *
- * IsAxisLimitsFormatOption --
- *
- *      Determines whether an option name represents
- *      "-limitsformat".
- *
- *      Tk_SetOptions has already rejected ambiguous or unknown
- *      abbreviations.
- *
- *----------------------------------------------------------------------
+ * Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous
+ * options.
  */
 static int IsAxisLimitsFormatOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-limitsformat"); }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Validate a format string used with one double argument.
  *
- * GetAxisLimitsFormatsFromObj --
- *
- *      Parses the value of -limitsformat without modifying the live
- *      Axis record.
- *
- *      The value must be a Tcl list containing at most two elements.
- *      A NULL or empty value selects no limit formats.
- *
- *----------------------------------------------------------------------
+ * Allows literal text, escaped percent signs and at most one a/A/e/E/f/F/g/G conversion, optionally
+ * with lowercase l. Rejects dynamic width/precision, other conversion types and excessive format
+ * length, width or precision above TICK_LABEL_SIZE. Zero conversions are allowed. Returns a Tcl
+ * status; it validates argument compatibility rather than guaranteeing the rendered output fits a
+ * label buffer.
  */
 static int ValidateAxisLimitFormat(Tcl_Interp *interp, const char *format) {
     const char *p;
@@ -1045,6 +1070,15 @@ static int ValidateAxisLimitFormat(Tcl_Interp *interp, const char *format) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Allocate zero, one or two validated limit formats.
+ *
+ * Initializes outputs to NULL and zero. NULL or an empty string succeeds without allocation. Splits
+ * the Tcl list, rejects more than two entries and validates each format. Failure frees the split
+ * allocation. Success transfers one allocation containing the pointer list and strings to the caller;
+ * free it with FreeAxisFormats.
+ */
 static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***formatsPtrPtr, int *nFormatsPtr) {
     const char *string;
     char **formats;
@@ -1084,18 +1118,12 @@ static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Stage replacement axis-limit formats.
  *
- * StageAxisLimitsFormats --
- *
- *      Parses a -limitsformat value into temporary transaction
- *      storage without modifying the live Axis record.
- *
- *      An earlier staged candidate is retained until the replacement
- *      has parsed successfully.
- *
- *----------------------------------------------------------------------
+ * Parses and validates the replacement before freeing previous staged formats. Success records the new
+ * allocation, count and staged flag; failure preserves the previous candidate.
  */
 static int StageAxisLimitsFormats(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisFormatTransaction *transactionPtr) {
     char **newFormats;
@@ -1113,24 +1141,28 @@ static int StageAxisLimitsFormats(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisForma
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Discard an axis format transaction.
+ *
+ * Releases owned format-list allocation and zeroes the complete transaction. Requires initialized or
+ * zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter
+ * live axis fields.
+ */
 static void FreeAxisFormatTransaction(AxisFormatTransaction *transactionPtr) {
     FreeAxisFormats(transactionPtr->formats);
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Prepare the axis format option family.
  *
- * PrepareAxisFormatTransaction --
- *
- *      Parses all -limitsformat values involved in the current modern
- *      configuration without modifying the live Axis record.
- *
- *      Explicit repeated occurrences are processed in caller order.
- *      Therefore an invalid earlier value is not hidden by the final
- *      retained option object.
- *
- *----------------------------------------------------------------------
+ * Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the
+ * borrowed even-length option vector, identifies explicit options, and on first configuration parses
+ * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
+ * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
+ * without committing live derived fields. On error releases all candidates owned by this transaction.
  */
 static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisFormatTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -1173,15 +1205,13 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Commit prepared axis format candidates.
  *
- * CommitAxisFormatTransaction --
- *
- *      Replaces the live limit-format list with a successfully staged
- *      candidate.
- *
- *----------------------------------------------------------------------
+ * Transfers the staged format list and count, clears the candidate pointer/count/flag, then frees the
+ * old live allocation. Unstaged options are unchanged. Performs no parsing, callback evaluation or
+ * recoverable validation; the caller must have prepared all option families first.
  */
 static void CommitAxisFormatTransaction(Axis *axisPtr, AxisFormatTransaction *transactionPtr) {
     char **oldFormats;
@@ -1350,19 +1380,13 @@ static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
     axisPtr->tkResourcesReleased = TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Classify an axis limit option.
  *
- * GetAxisLimitOption --
- *
- *      Determines whether an option name represents one of the four
- *      manually parsed axis-limit options.
- *
- *      Tk_SetOptions has already rejected unknown and ambiguous
- *      abbreviations. This helper recovers the canonical identity from
- *      the original option/value vector.
- *
- *----------------------------------------------------------------------
+ * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for display and
+ * scroll minima/maxima. Returns the NONE enum for unrelated or unresolved names; performs no
+ * allocation.
  */
 static AxisLimitOption GetAxisLimitOption(Tcl_Obj *objPtr) {
     const char *name;
@@ -1386,17 +1410,14 @@ static AxisLimitOption GetAxisLimitOption(Tcl_Obj *objPtr) {
     return AXIS_LIMIT_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Evaluate an optional finite axis-limit expression.
  *
- * GetAxisLimitFromObj --
- *
- *      Parses an axis limit without modifying the live Axis record.
- *
- *      A NULL or empty object selects automatic scaling and is
- *      represented internally by VALUE_UNDEFINED.
- *
- *----------------------------------------------------------------------
+ * NULL or an empty object selects VALUE_UNDEFINED. Otherwise calls Tcl_ExprDoubleObj and rejects
+ * nonfinite results. Returns a Tcl status. Expression evaluation may execute Tcl substitutions; it is
+ * not a literal-only conversion and does not itself preserve graph or axis lifetime. The output is
+ * usable only on success.
  */
 static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr) {
     Tcl_Size length;
@@ -1420,19 +1441,13 @@ static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valu
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Classify an axis pixel option.
  *
- * GetAxisPixelOption --
- *
- *      Determines whether an option represents one of the manually
- *      parsed axis pixel-distance options.
- *
- *      Tk_SetOptions has already rejected unknown or ambiguous
- *      abbreviations. The exact "-bd" synonym is mapped to
- *      "-borderwidth".
- *
- *----------------------------------------------------------------------
+ * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for border
+ * width, line width and scroll increment. Returns the NONE enum for unrelated or unresolved names;
+ * performs no allocation.
  */
 static AxisPixelOption GetAxisPixelOption(Tcl_Obj *objPtr) {
     const char *name;
@@ -1453,15 +1468,13 @@ static AxisPixelOption GetAxisPixelOption(Tcl_Obj *objPtr) {
     return AXIS_PIXEL_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Stage one validated pixel-distance value.
  *
- * StageAxisPixelOption --
- *
- *      Parses one pixel-distance option into temporary transaction
- *      storage without modifying the live Axis record.
- *
- *----------------------------------------------------------------------
+ * Border and line widths must be nonnegative; scroll increment must be positive. Uses Tk-window
+ * scaling through Rbc_GetPixelsFromObj. Success updates the selected scalar and mask only; an invalid
+ * internal enum panics.
  */
 static int StageAxisPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, AxisPixelOption option,
                                 AxisPixelTransaction *transactionPtr) {
@@ -1503,19 +1516,16 @@ static int StageAxisPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, AxisPixelOptio
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Prepare the axis pixel option family.
  *
- * PrepareAxisPixelTransaction --
- *
- *      Parses all retained axis pixel options involved in the current
- *      modern configuration without modifying the live Axis record.
- *
- *      Explicit repeated occurrences are processed in caller order.
- *      An invalid earlier value therefore causes the whole configure
- *      operation to fail.
- *
- *----------------------------------------------------------------------
+ * Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the
+ * borrowed even-length option vector, identifies explicit options, and on first configuration parses
+ * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
+ * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
+ * without committing live derived fields. Contains only scalar candidates; no allocation cleanup is
+ * required on error.
  */
 static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixelTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -1579,15 +1589,13 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Commit prepared axis pixel candidates.
  *
- * CommitAxisPixelTransaction --
- *
- *      Commits successfully parsed pixel-distance values to the live
- *      Axis record.
- *
- *----------------------------------------------------------------------
+ * Copies only masked values into borderWidth, lineWidth and scrollUnits, then clears the mask.
+ * Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation;
+ * the caller must have prepared all option families first.
  */
 static void CommitAxisPixelTransaction(Axis *axisPtr, AxisPixelTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_BORDER_WIDTH)) {
@@ -1602,14 +1610,13 @@ static void CommitAxisPixelTransaction(Axis *axisPtr, AxisPixelTransaction *tran
     transactionPtr->stagedMask = 0;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Stage one display or scroll limit.
  *
- * StageAxisLimit --
- *
- *      Parses one limit option into temporary transaction storage.
- *
- *----------------------------------------------------------------------
+ * Evaluates the candidate before writing the selected scalar and setting its mask bit. Failure leaves
+ * the candidate unchanged. An invalid internal enum panics. Cross-field and logarithmic range
+ * validation belong to preparation.
  */
 static int StageAxisLimit(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLimitOption option,
                           AxisLimitTransaction *transactionPtr) {
@@ -1640,20 +1647,17 @@ static int StageAxisLimit(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLimitOption o
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Prepare the axis limit option family.
  *
- * PrepareAxisLimitTransaction --
- *
- *      Parses all axis-limit values involved in the current modern
- *      configuration and validates the effective requested range
- *      without modifying the live Axis record.
- *
- *      Explicit repeated occurrences are processed in caller order.
- *      Therefore an invalid earlier expression is not hidden by a
- *      valid final occurrence.
- *
- *----------------------------------------------------------------------
+ * Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the
+ * borrowed even-length option vector, identifies explicit options, and on first configuration parses
+ * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
+ * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
+ * without committing live derived fields. Contains only scalar candidates; no allocation cleanup is
+ * required on error. Starts with current live limits, checks final display and scroll ordering, and
+ * requires defined limits to be positive for log scaling even when only logScale changed.
  */
 static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimitTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -1774,14 +1778,13 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Commit prepared axis limit candidates.
  *
- * CommitAxisLimitTransaction --
- *
- *      Commits successfully parsed axis limits.
- *
- *----------------------------------------------------------------------
+ * Copies only masked requested/scroll limits into the live axis, then clears the mask. Validated but
+ * unstaged values remain untouched. Unstaged options are unchanged. Performs no parsing, callback
+ * evaluation or recoverable validation; the caller must have prepared all option families first.
  */
 static void CommitAxisLimitTransaction(Axis *axisPtr, AxisLimitTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MIN)) {
@@ -1947,12 +1950,25 @@ TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) 
     return NewTickLabel(defaultLabel);
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Release one explicit tick allocation.
+ *
+ * Accepts NULL. Frees the allocation without modifying the caller pointer.
+ */
 static void FreeAxisTicks(Ticks *ticksPtr) {
     if (ticksPtr != NULL) {
         ckfree((char *)ticksPtr);
     }
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Classify an axis tick option.
+ *
+ * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for major and
+ * minor tick lists. Returns the NONE enum for unrelated or unresolved names; performs no allocation.
+ */
 static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
     const char *name;
 
@@ -1969,34 +1985,22 @@ static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
     return AXIS_TICK_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Recognize the -loose option.
  *
- * IsAxisLooseOption --
- *
- *      Determines whether an option name represents "-loose".
- *
- *      Tk_SetOptions has already rejected unknown and ambiguous
- *      abbreviations. This helper recovers the canonical identity from
- *      the original option/value vector.
- *
- *----------------------------------------------------------------------
+ * Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous
+ * options.
  */
 static int IsAxisLooseOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-loose"); }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Parse one or two tick-range policies.
  *
- * GetAxisLooseFromObj --
- *
- *      Parses the one- or two-element value of the axis -loose option
- *      without modifying the live Axis record.
- *
- *      Boolean values map to TICK_RANGE_TIGHT or TICK_RANGE_LOOSE.
- *      The exact value "always" maps to
- *      TICK_RANGE_ALWAYS_LOOSE.
- *
- *----------------------------------------------------------------------
+ * Accepts Tcl booleans or the exact string always. One entry applies to both ends; two entries specify
+ * minimum then maximum. Returns TCL_ERROR for invalid list length or entries without assigning the
+ * output pair. Allocates no retained storage.
  */
 static int GetAxisLooseFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *looseMinPtr, int *looseMaxPtr) {
     Tcl_Obj **valueObjv;
@@ -2034,15 +2038,12 @@ static int GetAxisLooseFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *looseMi
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Stage minimum and maximum tick-range policies.
  *
- * StageAxisLoose --
- *
- *      Parses an axis -loose value into temporary transaction storage
- *      without modifying the live Axis record.
- *
- *----------------------------------------------------------------------
+ * Parses the complete one/two-entry value before updating the scalar pair and setting staged. Failure
+ * preserves earlier candidates; no owned allocation is created.
  */
 static int StageAxisLoose(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLooseTransaction *transactionPtr) {
     int looseMin;
@@ -2057,19 +2058,16 @@ static int StageAxisLoose(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLooseTransact
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Prepare the axis loose option family.
  *
- * PrepareAxisLooseTransaction --
- *
- *      Parses all -loose values involved in the current modern
- *      configuration without modifying the live Axis record.
- *
- *      Explicit repeated occurrences are processed in caller order.
- *      An invalid earlier occurrence therefore causes the complete
- *      configuration to fail.
- *
- *----------------------------------------------------------------------
+ * Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the
+ * borrowed even-length option vector, identifies explicit options, and on first configuration parses
+ * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
+ * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
+ * without committing live derived fields. Contains only scalar candidates; no allocation cleanup is
+ * required on error.
  */
 static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLooseTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -2109,15 +2107,13 @@ static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLoose
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_transactions
+ * @brief Commit prepared axis loose candidates.
  *
- * CommitAxisLooseTransaction --
- *
- *      Commits a successfully parsed -loose value to the live Axis
- *      record.
- *
- *----------------------------------------------------------------------
+ * Copies the staged minimum/maximum policies and clears staged. Unstaged options are unchanged.
+ * Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared
+ * all option families first.
  */
 static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *transactionPtr) {
     if (!transactionPtr->staged) {
@@ -2128,6 +2124,14 @@ static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *tran
     transactionPtr->staged = FALSE;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Compute the allocation size for a variable-length tick array.
+ *
+ * Rejects negative counts and size_t overflow using offsetof(Ticks, values). Writes the byte count
+ * only on TCL_OK. Does not impose MAXTICKS or report an interpreter error; the caller applies those
+ * policies.
+ */
 static int GetTicksByteCount(Tcl_Size nTicks, size_t *sizePtr) {
     size_t headerSize;
 
@@ -2142,6 +2146,16 @@ static int GetTicksByteCount(Tcl_Size nTicks, size_t *sizePtr) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Allocate explicit ticks from a list of finite expressions.
+ *
+ * NULL or an empty list returns TCL_OK with a NULL output. Rejects more than MAXTICKS entries,
+ * overflow, allocation failure and invalid/nonfinite expressions. Evaluates entries in input order
+ * with Tcl_ExprDoubleObj; no sorting or deduplication is performed. Frees partial storage on failure
+ * and leaves the output NULL. Successful nonempty storage belongs to the caller. Expression evaluation
+ * can execute Tcl substitutions; this helper supplies no graph lifetime guard.
+ */
 static int GetAxisTicksFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Ticks **ticksPtrPtr) {
     Tcl_Obj **exprObjv;
     Tcl_Size nExprs;
@@ -2193,6 +2207,14 @@ static int GetAxisTicksFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Ticks **tick
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Stage a major or minor explicit tick allocation.
+ *
+ * Parses and allocates the replacement before releasing an earlier candidate for that option. NULL is
+ * a valid staged candidate selecting automatic ticks. Success sets the mask; failure retains previous
+ * candidates. Invalid internal enums free the new allocation and panic.
+ */
 static int StageAxisTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTickOption option,
                           AxisTickTransaction *transactionPtr) {
     Ticks *newTicksPtr;
@@ -2229,12 +2251,30 @@ static int StageAxisTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTickOption op
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Discard an axis tick transaction.
+ *
+ * Releases owned major and minor tick allocations and zeroes the complete transaction. Requires
+ * initialized or zeroed storage. Safe after commit because transferred ownership has been cleared;
+ * does not alter live axis fields.
+ */
 static void FreeAxisTickTransaction(AxisTickTransaction *transactionPtr) {
     FreeAxisTicks(transactionPtr->majorTicksPtr);
     FreeAxisTicks(transactionPtr->minorTicksPtr);
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Prepare the axis tick option family.
+ *
+ * Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the
+ * borrowed even-length option vector, identifies explicit options, and on first configuration parses
+ * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
+ * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
+ * without committing live derived fields. On error releases all candidates owned by this transaction.
+ */
 static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTransaction *transactionPtr) {
     unsigned int explicitMask;
     Tcl_Size i;
@@ -2292,6 +2332,15 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Commit prepared axis tick candidates.
+ *
+ * Transfers masked candidates into t1Ptr/t2Ptr, updates AXIS_CONFIG_MAJOR/MINOR according to non-NULL
+ * candidates, releases old arrays and clears transferred pointers and mask. A staged NULL restores
+ * automatic tick generation. Unstaged options are unchanged. Performs no parsing, callback evaluation
+ * or recoverable validation; the caller must have prepared all option families first.
+ */
 static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MAJOR)) {
         Ticks *oldTicksPtr;
@@ -2321,6 +2370,13 @@ static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transa
     transactionPtr->stagedMask = 0;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Release an owned shadow colour and reset its fields.
+ *
+ * The Shadow record must be valid, with an owned Tk colour or NULL. Releases the colour reference,
+ * then clears colour and offset. Does not free the Shadow record itself.
+ */
 static void FreeAxisShadow(Shadow *shadowPtr) {
     if (shadowPtr->color != NULL) {
         Tk_FreeColor(shadowPtr->color);
@@ -2329,6 +2385,14 @@ static void FreeAxisShadow(Shadow *shadowPtr) {
     shadowPtr->offset = 0;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Classify an axis shadow option.
+ *
+ * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for limits,
+ * tick and title shadows. Returns the NONE enum for unrelated or unresolved names; performs no
+ * allocation.
+ */
 static AxisShadowOption GetAxisShadowOption(Tcl_Obj *objPtr) {
     const char *name;
 
@@ -2348,6 +2412,14 @@ static AxisShadowOption GetAxisShadowOption(Tcl_Obj *objPtr) {
     return AXIS_SHADOW_OPTION_NONE;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Stage one owned shadow colour and offset.
+ *
+ * Acquires and validates a new shadow before releasing an earlier candidate for the same option.
+ * Success transfers the new colour reference into the transaction and sets its mask. Invalid internal
+ * enums release the new colour and panic.
+ */
 static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption option,
                            AxisShadowTransaction *transactionPtr) {
     Shadow newShadow;
@@ -2392,6 +2464,14 @@ static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption op
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Discard an axis shadow transaction.
+ *
+ * Releases owned three shadow colour references and zeroes the complete transaction. Requires
+ * initialized or zeroed storage. Safe after commit because transferred ownership has been cleared;
+ * does not alter live axis fields.
+ */
 static void FreeAxisShadowTransaction(AxisShadowTransaction *transactionPtr) {
     FreeAxisShadow(&transactionPtr->limitsShadow);
     FreeAxisShadow(&transactionPtr->tickShadow);
@@ -2399,6 +2479,16 @@ static void FreeAxisShadowTransaction(AxisShadowTransaction *transactionPtr) {
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Prepare the axis shadow option family.
+ *
+ * Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the
+ * borrowed even-length option vector, identifies explicit options, and on first configuration parses
+ * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
+ * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
+ * without committing live derived fields. On error releases all candidates owned by this transaction.
+ */
 static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShadowTransaction *transactionPtr) {
     unsigned int explicitMask;
     Tcl_Size i;
@@ -2466,6 +2556,15 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup axis_transactions
+ * @brief Commit prepared axis shadow candidates.
+ *
+ * Transfers masked colours and offsets into the three text styles, clears transferred candidate
+ * fields, releases old colours and clears the mask. Unstaged options are unchanged. Performs no
+ * parsing, callback evaluation or recoverable validation; the caller must have prepared all option
+ * families first.
+ */
 static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_LIMITS)) {
         Shadow oldShadow;

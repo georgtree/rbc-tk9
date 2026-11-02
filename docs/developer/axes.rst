@@ -102,3 +102,94 @@ deletion and the previous notification-validity flag after configuration
 rollback, preserving existing consumers. A later successful revival exposes
 the same record again; releasing its final reference while still deleted
 continues to destroy it normally.
+
+Option transaction internals
+----------------------------
+
+Tk owns the retained option objects. The seven private transaction records
+hold parsed candidates separately from live derived fields. They are local
+to one configuration attempt, not persistent state on an axis.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Family
+     - Candidate ownership
+     - Commit effect
+   * - Limits
+     - Four scalar values and a changed-field mask
+     - Replace only staged display/scroll limits.
+   * - Pixels
+     - Three integer values and a mask
+     - Replace widths and scroll increment.
+   * - Loose ranges
+     - Two policy values and a staged flag
+     - Replace both endpoint policies together.
+   * - Ticks
+     - Owned major/minor arrays and a mask
+     - Transfer arrays and update explicit-tick flags.
+   * - Shadows
+     - Owned Tk colour references with offsets and a mask
+     - Transfer colours into text styles; release old references.
+   * - Binding tags
+     - One owned string-list allocation and a staged flag
+     - Transfer the list and free the old allocation.
+   * - Limit formats
+     - One owned split-list allocation, count and staged flag
+     - Transfer the list/count and free the old allocation.
+
+Preparation initializes fresh storage. Reusing an owning transaction without
+first releasing it would lose its candidates. During initial configuration,
+preparation finds explicit overrides before parsing effective database/default
+objects. This lets a valid explicit override replace an invalid unused default.
+Every explicit occurrence is then parsed in caller order. For example, an
+invalid first ``-majorticks`` list is not ignored merely because the same
+command ends with a valid ``-majorticks`` list.
+
+Option classification uses the canonical option-table name, including synonyms
+such as ``-bd``. These helpers assume Tk has already rejected unknown and
+ambiguous options. Prefix matching should not be reimplemented independently
+inside each transaction family.
+
+Stage helpers acquire replacement storage before freeing an earlier candidate.
+An empty candidate is still meaningful: a staged NULL tick array clears the
+explicit-tick flag and restores automatic ticks. The staged flag or mask must
+therefore be checked separately from the pointer. Commit transfers owned
+storage, clears the transferred candidate fields and releases the old live
+resource. Cleanup then remains safe after a successful commit. Scalar-only
+transactions need no resource destructor.
+
+Parsing policies
+~~~~~~~~~~~~~~~~
+
+Display and scroll limits accept finite Tcl expressions; empty values select
+automatic limits. The limits transaction starts with current effective values,
+then validates the final pairs. When both endpoints are defined, minimum must
+be less than maximum. Logarithmic scaling requires every defined display or
+scroll endpoint to be positive, including when only ``-logscale`` changes.
+
+Explicit ticks are finite expressions in input order. The parser neither sorts
+nor deduplicates them. It rejects counts beyond ``MAXTICKS`` before allocation,
+checks the variable-sized array calculation for overflow and reports allocation
+failure through the interpreter. Empty lists select automatic generation.
+Widths must be nonnegative; scroll increment must be positive. Pixel conversion
+uses the widget's screen scaling. Loose-range policies accept one or two Tcl
+booleans or the exact word ``always``; a single entry applies to both ends.
+
+Limit formats are a list of at most two strings. Each string permits literal
+text, escaped percent signs and at most one floating-point conversion accepting
+a ``double``. Dynamic width/precision and incompatible conversion types are
+rejected. Format length, width and precision are bounded by ``TICK_LABEL_SIZE``.
+Those input bounds are not a proof that every formatted numeric result fits
+that many characters; output routines must retain their own buffer bounds.
+
+Expression evaluation boundary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Limit and explicit-tick parsers use ``Tcl_ExprDoubleObj``. Unlike command-prefix
+validation, this can execute substitutions, variable traces and Tcl commands.
+The transaction rolls back RBC candidate resources and Tk option changes; it
+cannot undo arbitrary Tcl side effects. The low-level parsers do not themselves
+retain graph/axis lifetime or validate it after evaluation. Treat them as Tcl
+evaluation boundaries when auditing reentrancy, rather than assuming that all
+configuration parsing is callback-free.

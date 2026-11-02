@@ -35,3 +35,13 @@ Commands and bindings
    :members:
 
 .. c:namespace-pop::
+
+Option transaction internals
+----------------------------
+
+.. c:namespace-push:: rbcGrAxisTransactions
+
+.. doxygengroup:: axis_transactions
+   :members:
+
+.. c:namespace-pop::
