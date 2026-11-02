@@ -9,6 +9,12 @@
  * See "license.terms" for details.
 */
 
+/** @file rbcGrHairs.c
+ * Crosshair configuration and motion helpers.
+ */
+/** @defgroup crosshair_internals Crosshair configuration and motion helpers
+ * Private component helpers; not installed C API entry points.
+ */
 #include "rbcGraph.h"
 #include "rbcRender.h"
 
@@ -96,26 +102,14 @@ static RbcGrHairsOp OnOp;
 static RbcGrHairsOp OffOp;
 static RbcGrHairsOp ToggleOp;
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Erase currently visible XOR segments using their original GC.
+ * @ingroup crosshair_internals
  *
- * TurnOffHairs --
- *
- *      XOR's the existing line segments (representing the crosshairs),
- *      thereby erasing them.  The internal state of the crosshairs is
- *      tracked.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Crosshairs *chPtr
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      Crosshairs are erased.
- *
- *----------------------------------------------------------------------
+ * Requires a live Tk window and crosshair record. Only draws when the window
+ * is mapped and visible is true, then clears visible. On an unmapped window it
+ * leaves visible unchanged. Does not consult or modify requested hidden state.
+ * Endpoints/GC must still describe the pixels being erased. No Tcl callbacks.
  */
 static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
     if (Tk_IsMapped(tkwin) && chPtr->visible) {
@@ -124,25 +118,14 @@ static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw requested XOR geometry when the hotspot lies inside the plot.
+ * @ingroup crosshair_internals
  *
- * TurnOnHairs --
- *
- *      Draws (by XORing) new line segments, creating the effect of
- *      crosshairs. The internal state of the crosshairs is tracked.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Crosshairs *chPtr
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      Crosshairs are displayed.
- *
- *----------------------------------------------------------------------
+ * Borrows a live graph/window and prepared crosshair GC/segments. Draws only
+ * when mapped, not already visible, and PointInGraph accepts the hotspot; then
+ * sets visible. Does not test hidden: callers decide requested visibility.
+ * Does not remap endpoints or schedule an idle redraw. No Tcl callbacks.
  */
 static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
     if (Tk_IsMapped(graphPtr->tkwin) && (!chPtr->visible)) {
@@ -154,6 +137,19 @@ static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
     }
 }
 
+/**
+ * @brief Parse an optional \@x,y widget-pixel position.
+ * @ingroup crosshair_internals
+ *
+ * NULL or empty input succeeds with INT_MIN in both output coordinates, an
+ * out-of-plot sentinel. Otherwise splits at the first comma and converts both
+ * parts through Tk_GetPixelsFromObj using temporary retained Tcl objects.
+ * Accepts Tk screen-distance syntax, storing integer pixel results as doubles.
+ *
+ * Returns TCL_OK only after both coordinates convert. On TCL_ERROR leaves
+ * pointPtr unchanged, releases both temporary objects, and reports syntax or
+ * conversion context in interp. Does not move crosshairs or invoke Tcl code.
+ */
 static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Point2D *pointPtr) {
     const char *string;
     const char *comma;
@@ -202,10 +198,19 @@ static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_
 }
 
 #ifdef WIN32
-/*
- * Move XOR crosshairs with one segment submission. The first two
- * segments erase the old image; the following two draw the new one.
- * All use the same GC, so this is only for position-only changes.
+/**
+ * @brief Batch Windows position-only XOR erasure and drawing.
+ * @ingroup crosshair_internals
+ *
+ * Requires unchanged drawing style/GC and a live graph/window. Computes new
+ * segments from hotSpotPtr and current graph bounds; compares both visibility
+ * and endpoints to avoid redrawing identical geometry. Submits up to four old/new
+ * segments in one renderer call, preserving a single native drawing batch.
+ *
+ * Always updates hotspot, segments and visible, including when unmapped or
+ * hidden. Does not alter hidden or allocate a replacement GC. Only appropriate
+ * for position-only configuration; style changes must erase with the old GC.
+ * No Tcl callbacks or event processing may intervene in this transition.
  */
 static void MoveCrosshairs(Graph *graphPtr, Crosshairs *chPtr, const Point2D *hotSpotPtr) {
     Segment2D newSegments[2];
@@ -257,27 +262,20 @@ static void MoveCrosshairs(Graph *graphPtr, Crosshairs *chPtr, const Point2D *ho
 }
 #endif /* WIN32 */
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Validate derived crosshair state before changing XOR pixels.
+ * @ingroup crosshair_internals
  *
- * Rbc_ConfigureCrosshairs --
+ * Requires a live graph/window and Tk-parsed option fields. Stages dash, width
+ * and hotspot conversions selected by mask; TCL_ERROR leaves active GC/geometry
+ * and displayed pixels unchanged, while caller restores Tk options separately.
+ * Windows exact position-only changes delegate to MoveCrosshairs.
  *
- *      Configures attributes of the crosshairs such as line width,
- *      dashes, and position.  The crosshairs are first turned off
- *      before any of the attributes changes.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      Crosshair GC is allocated.
- *
- *----------------------------------------------------------------------
+ * Otherwise prepares a replacement XOR GC, erases with old GC/endpoints, commits
+ * new state, rebuilds both segments, and draws when requested and eligible.
+ * Releases replaced GC; returns TCL_OK without scheduling a graph redraw.
+ * No Tcl callback is evaluated between erase and replacement.
  */
-
 static int ConfigureCrosshairs(Graph *graphPtr, Crosshairs *chPtr, int mask) {
     Rbc_Dashes newDashes;
     Point2D newHotSpot;

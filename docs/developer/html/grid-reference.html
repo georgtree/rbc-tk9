@@ -128,6 +128,168 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 </dd></dl>
 
 </section>
+<section id="implementation-helpers">
+<h2>Implementation helpers<a class="headerlink" href="#implementation-helpers" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__grid__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Grid</span> <span class="pre">configuration</span> <span class="pre">and</span> <span class="pre">output</span> <span class="pre">helpers</span></span></dt>
+<dd><p>Private component helpers; not installed C API entry points. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IsGridOption">
+<span class="target" id="group__grid__internals_1ga1c2fa545c0583af86c7e2a6c10acf47f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsGridOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsGridOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Match a canonical grid option after abbreviation resolution. </p>
+<p>Borrows objPtr and compares its canonical name from graphGridOptionSpecs with optionName. Returns FALSE when resolution fails; does not set an interpreter diagnostic. Used to identify explicit tick options in the original argument sequence, rather than inspecting only the final Tk option values. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SetPolarLabelAnchor">
+<span class="target" id="group__grid__internals_1ga13aa94f380e8d4bd784057787776c432"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPolarLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtrPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">saveInternalPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetPolarLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse the custom automatic-or-Tk anchor option. </p>
+<p>Tk supplies the target record/offset and optional rollback storage. Saves the old value when requested, then accepts the exact word auto or a Tk anchor. Auto stores CENTER with isAuto true. Assigns the active record only on success; returns TCL_ERROR with the Tk diagnostic on invalid input. No owned allocation or Tcl callback is involved; the input object is not replaced. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPolarLabelAnchor">
+<span class="target" id="group__grid__internals_1gafff71f1993fc32c89417f03d3ee383a5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPolarLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the external value of a custom label anchor. </p>
+<p>Reads the record at widgRec+offset. Returns a new zero-reference Tcl string containing auto or the Tk anchor name; ownership follows Tk’s custom-option getProc convention. Does not change the record or allocate native resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.RestorePolarLabelAnchor">
+<span class="target" id="group__grid__internals_1ga21a62e5c2c7a0be40639f8b296cea715"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RestorePolarLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">internalPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">saveInternalPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RestorePolarLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Restore the saved inline anchor representation. </p>
+<p>Copies one PolarLabelAnchor from Tk rollback storage to internalPtr. Both pointers must refer to complete records. No pointer ownership transfer or allocation is necessary because the representation contains only values. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FreePolarLabelAnchor">
+<span class="target" id="group__grid__internals_1ga966584f9c47562a05125883b3cc47c7b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreePolarLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">internalPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreePolarLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Complete Tk custom-option cleanup for an inline value. </p>
+<p>Intentionally a no-op: PolarLabelAnchor owns no heap or Tk resources. Tk owns the surrounding record/storage. All arguments are unused. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ParsePolarAngleTicks">
+<span class="target" id="group__grid__internals_1gaef6f053b83fb409aaefd4de0c13f1b5e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParsePolarAngleTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionName</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ticksPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nTicksPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParsePolarAngleTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse a finite angular tick list into an owned double array. </p>
+<p>Resets output pointer/count to NULL/zero before parsing. Accepts values in [0,360) degrees, canonicalizes negative zero, and preserves order and duplicates. Empty lists succeed without allocation. Checks allocation size and uses Tcl_AttemptAlloc; frees scratch storage on conversion/range failure. Returns TCL_OK with caller-owned storage (release with ckfree), or TCL_ERROR with an interpreter diagnostic and NULL/zero outputs. Does not change a grid. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ParseSmithTicks">
+<span class="target" id="group__grid__internals_1gac1e1358f5ef5f904cdf51bd8cff9908e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseSmithTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionName</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowZero</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ticksPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nTicksPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseSmithTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse nonnegative or positive Smith tick magnitudes. </p>
+<p>Resets output pointer/count before parsing. allowZero selects nonnegative values for real ticks; otherwise all values must be strictly positive. Rejects non-finite values, preserves input order/duplicates, and normalizes negative zero when accepted. Empty lists return NULL/zero with TCL_OK. Checked Tcl allocation is owned by the caller on success; on TCL_ERROR the scratch buffer is freed, outputs remain NULL/zero, and interp has diagnostics. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageGridPolarAngleTicks">
+<span class="target" id="group__grid__internals_1ga4c2c56aa7412bf284e04e5ee6b481361"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGridPolarAngleTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">major</span></span>, <a class="reference internal" href="#c.GridPolarAngleTicksTransaction" title="GridPolarAngleTicksTransaction"><span class="n"><span class="pre">GridPolarAngleTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageGridPolarAngleTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace one staged angular list after complete validation. </p>
+<p>transactionPtr must be initialized. Parses a major or minor list using the grid interpreter. Only after success frees that slot’s earlier staged array, then takes ownership of the replacement and marks the slot staged, including an empty replacement. TCL_ERROR leaves earlier staged/live values intact; TCL_OK changes only the transaction, never active grid arrays. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageGridSmithTicks">
+<span class="target" id="group__grid__internals_1gaccf8c9f4f70906cf0044eb28e3650c53"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGridSmithTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">realPart</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">major</span></span>, <a class="reference internal" href="#c.GridSmithTicksTransaction" title="GridSmithTicksTransaction"><span class="n"><span class="pre">GridSmithTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageGridSmithTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace one of four staged Smith tick lists. </p>
+<p>transactionPtr must be initialized. realPart chooses real versus imaginary magnitudes (and whether zero is allowed); major chooses the tier. Completely parses the replacement before freeing earlier staged storage for that slot. Returns Tcl status; failure preserves earlier staged/live values, success transfers ownership to the transaction and marks even an empty list staged. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FreeGridPolarAngleTicksTransaction">
+<span class="target" id="group__grid__internals_1gab60fc7cfdeae81ec5eb83ad30c555679"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGridPolarAngleTicksTransaction</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.GridPolarAngleTicksTransaction" title="GridPolarAngleTicksTransaction"><span class="n"><span class="pre">GridPolarAngleTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeGridPolarAngleTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Discard owned angular staging storage and reset the transaction. </p>
+<p>Requires a non-NULL initialized transaction containing only owned arrays or NULLs. Frees both non-NULL arrays regardless of flags, then zeroes the record. Safe after commit and safe to repeat on the reset record. Never frees active grid storage because commit detaches transferred pointers. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FreeGridSmithTicksTransaction">
+<span class="target" id="group__grid__internals_1gac2120c2fc6ff7cb581fd09e34e3c0257"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGridSmithTicksTransaction</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.GridSmithTicksTransaction" title="GridSmithTicksTransaction"><span class="n"><span class="pre">GridSmithTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeGridSmithTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Discard all owned Smith staging arrays and reset the record. </p>
+<p>Requires a non-NULL initialized transaction. Frees each non-NULL array and zeroes all pointers, counts and flags. Safe after partial preparation, successful commit or previous cleanup. No grid state or Tcl result is changed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PrepareGridPolarAngleTicksTransaction">
+<span class="target" id="group__grid__internals_1ga6a22aa1db7769ed889064b9e7f1f9545"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGridPolarAngleTicksTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <a class="reference internal" href="#c.GridPolarAngleTicksTransaction" title="GridPolarAngleTicksTransaction"><span class="n"><span class="pre">GridPolarAngleTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PrepareGridPolarAngleTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage defaults and every explicit angular option in caller order. </p>
+<p>Requires an even optionObjc and a valid borrowed optionObjv array in gridPtr. Zero-initializes transactionPtr, so it must not already own allocations. On first configuration, stages stored option/default values only for slots not explicitly supplied. Then parses each explicit occurrence in argument order: an invalid earlier duplicate is not hidden by a later valid value.</p>
+<p>Returns TCL_OK with owned staged buffers, or TCL_ERROR after freeing/resetting the transaction. Live grid arrays are unchanged; Tk’s saved options are a separate transaction handled by the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PrepareGridSmithTicksTransaction">
+<span class="target" id="group__grid__internals_1ga05e2d1141dec640123cf52875cca32bf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGridSmithTicksTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <a class="reference internal" href="#c.GridSmithTicksTransaction" title="GridSmithTicksTransaction"><span class="n"><span class="pre">GridSmithTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PrepareGridSmithTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage defaults and explicit values for all four Smith lists. </p>
+<p>Requires even optionObjc, valid borrowed optionObjv, and an empty/unowned output transaction. Initializes the record, stages non-overridden defaults only on initial configuration, then validates every explicit occurrence in caller order. Returns TCL_OK with staged ownership, or TCL_ERROR after complete staging cleanup. Does not replace active arrays or restore Tk option objects. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CommitGridPolarAngleTicksTransaction">
+<span class="target" id="group__grid__internals_1ga94ce82869b717eec773c4743c4487d89"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGridPolarAngleTicksTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <a class="reference internal" href="#c.GridPolarAngleTicksTransaction" title="GridPolarAngleTicksTransaction"><span class="n"><span class="pre">GridPolarAngleTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CommitGridPolarAngleTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transfer staged angular arrays into active grid ownership. </p>
+<p>For each staged slot, replaces pointer/count, clears its staging fields and frees the old active array. Unstaged slots are retained; staged NULL/zero means an explicitly empty list. Requires successful preparation. No allocation, validation, callback or redraw scheduling occurs; cleanup may run afterward. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CommitGridSmithTicksTransaction">
+<span class="target" id="group__grid__internals_1ga2d5d234b2230779a2baf80fa54af9922"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGridSmithTicksTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <a class="reference internal" href="#c.GridSmithTicksTransaction" title="GridSmithTicksTransaction"><span class="n"><span class="pre">GridSmithTicksTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CommitGridSmithTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transfer staged Smith arrays into active grid ownership. </p>
+<p>Commits each staged real/imaginary major/minor slot independently, detaches its pointer/count/flag and frees old active storage. Empty staged lists clear the slot; unstaged slots remain unchanged. Requires successful preparation; no allocation, callbacks or redraw scheduling occur. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ValidateGridCommandPrefix">
+<span class="target" id="group__grid__internals_1ga31cb52b4228561b35eb913e85e3584fb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ValidateGridCommandPrefix</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ValidateGridCommandPrefix" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate list syntax without evaluating a label command. </p>
+<p>NULL means no command and succeeds. Otherwise uses Tcl_ListObjGetElements; an empty list is accepted. Returns Tcl status and a diagnostic on invalid list syntax. Does not check command existence, invoke the prefix or retain it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ConfigureGrid">
+<span class="target" id="group__grid__internals_1gaa5c2173207901939ad5a62785978754f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConfigureGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare and commit derived grid resources after Tk option parsing. </p>
+<p>Borrows graph/grid with a live Tk window and uses mask to select conversions. Prepares dashes, width, acquired axis references and tick transactions before replacing active derived state. Track-local mappings require a shared X axis and a Y axis belonging to that track. Validates label-prefix list syntax without evaluation. Creates a replacement private GC only after fallible parsing.</p>
+<p>On TCL_ERROR, frees temporary arrays/axis references and leaves active derived resources intact; caller must restore Tk_SavedOptions separately. On TCL_OK, commits arrays, axes and GC, releases replaced resources, and marks initial configuration complete. Does not itself remap geometry or schedule redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DrawTrackGrids">
+<span class="target" id="group__grid__internals_1ga629edccf72c47d18525c834b3662c866"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTrackGrids</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DrawTrackGrids" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw cached segments with each track’s effective grid and clip. </p>
+<p>Requires mapped track geometry and segment caches. Selects local settings or the global inherited grid, skipping hidden/collapsed tracks independently. Pairs each entered track viewport with restoration. A non-NULL exportPtr selects export output and explicit rectangular clipping; otherwise drawable is borrowed screen storage. Renderer contexts are ended before returning.</p>
+<p>The native fallback reuses one scratch clip context across tracks and copies only visible track rectangles, retaining original segment/dash coordinates. This clips complete strokes, not only their centerlines. Does not remap, finalize export documents or own the cached segment arrays. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DestroyGrid">
+<span class="target" id="group__grid__internals_1ga46443538f5fe66d26c601b8d4cbef2d0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DestroyGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one owning grid record while its Tk window is valid. </p>
+<p>Accepts NULL. Otherwise releases axis references, Tk options/table, private GC, global segment arrays and all specialized tick arrays, then frees the record. Must not receive the borrowed inherited-query view. Does not clear its owner’s pointer or free per-track segment caches; outer destruction helpers perform those tasks. graphPtr-&gt;tkwin must still be valid for Tk cleanup. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.GridPolarAngleTicksTransaction">
+<span class="target" id="struct_grid_polar_angle_ticks_transaction"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GridPolarAngleTicksTransaction</span></span></span><a class="headerlink" href="#c.GridPolarAngleTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staging buffers for the two angular tick options. </p>
+<p>Zero-initialize before staging. A staged flag distinguishes an explicitly empty replacement from an unchanged slot. Commit transfers array ownership and clears each staged slot; cleanup releases only remaining owned arrays. The record must not be copied as an independent owner while buffers exist. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.GridSmithTicksTransaction">
+<span class="target" id="struct_grid_smith_ticks_transaction"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GridSmithTicksTransaction</span></span></span><a class="headerlink" href="#c.GridSmithTicksTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staging buffers for four independent Smith tick options. </p>
+<p>Real/imaginary and major/minor slots each have a staged flag, owned array and count. NULL with a true flag means clear that active list. Prepare initializes the complete record; commit detaches ownership; cleanup resets all fields. This storage is separate from Tk_SavedOptions and owns no Tcl objects. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -150,6 +312,30 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 <li><a class="reference internal" href="#ownership-and-cleanup">Ownership and cleanup</a><ul>
 <li><a class="reference internal" href="#c.Rbc_DestroyTrackGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTrackGrid()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_DestroyGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyGrid()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation-helpers">Implementation helpers</a><ul>
+<li><a class="reference internal" href="#c.IsGridOption"><code class="docutils literal notranslate"><span class="pre">IsGridOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.SetPolarLabelAnchor"><code class="docutils literal notranslate"><span class="pre">SetPolarLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetPolarLabelAnchor"><code class="docutils literal notranslate"><span class="pre">GetPolarLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.RestorePolarLabelAnchor"><code class="docutils literal notranslate"><span class="pre">RestorePolarLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.FreePolarLabelAnchor"><code class="docutils literal notranslate"><span class="pre">FreePolarLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.ParsePolarAngleTicks"><code class="docutils literal notranslate"><span class="pre">ParsePolarAngleTicks()</span></code></a></li>
+<li><a class="reference internal" href="#c.ParseSmithTicks"><code class="docutils literal notranslate"><span class="pre">ParseSmithTicks()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageGridPolarAngleTicks"><code class="docutils literal notranslate"><span class="pre">StageGridPolarAngleTicks()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageGridSmithTicks"><code class="docutils literal notranslate"><span class="pre">StageGridSmithTicks()</span></code></a></li>
+<li><a class="reference internal" href="#c.FreeGridPolarAngleTicksTransaction"><code class="docutils literal notranslate"><span class="pre">FreeGridPolarAngleTicksTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.FreeGridSmithTicksTransaction"><code class="docutils literal notranslate"><span class="pre">FreeGridSmithTicksTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.PrepareGridPolarAngleTicksTransaction"><code class="docutils literal notranslate"><span class="pre">PrepareGridPolarAngleTicksTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.PrepareGridSmithTicksTransaction"><code class="docutils literal notranslate"><span class="pre">PrepareGridSmithTicksTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.CommitGridPolarAngleTicksTransaction"><code class="docutils literal notranslate"><span class="pre">CommitGridPolarAngleTicksTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.CommitGridSmithTicksTransaction"><code class="docutils literal notranslate"><span class="pre">CommitGridSmithTicksTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.ValidateGridCommandPrefix"><code class="docutils literal notranslate"><span class="pre">ValidateGridCommandPrefix()</span></code></a></li>
+<li><a class="reference internal" href="#c.ConfigureGrid"><code class="docutils literal notranslate"><span class="pre">ConfigureGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.DrawTrackGrids"><code class="docutils literal notranslate"><span class="pre">DrawTrackGrids()</span></code></a></li>
+<li><a class="reference internal" href="#c.DestroyGrid"><code class="docutils literal notranslate"><span class="pre">DestroyGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.GridPolarAngleTicksTransaction"><code class="docutils literal notranslate"><span class="pre">GridPolarAngleTicksTransaction</span></code></a></li>
+<li><a class="reference internal" href="#c.GridSmithTicksTransaction"><code class="docutils literal notranslate"><span class="pre">GridSmithTicksTransaction</span></code></a></li>
 </ul>
 </li>
 </ul>

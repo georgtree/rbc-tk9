@@ -19,3 +19,9 @@ Buffered presentation
 .. doxygenfunction:: Rbc_CrosshairsNeedFullRedraw
 
 .. doxygenfunction:: Rbc_PresentGraphWithCrosshairs
+
+Implementation helpers
+----------------------
+
+.. doxygengroup:: crosshair_internals
+   :members:

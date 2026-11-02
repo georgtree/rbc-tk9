@@ -112,6 +112,8 @@ proc ::rbcDocBuild::main {arguments} {
         @POLAR_SOURCE@ [doxyQuote [file join $root generic rbcGrPolar.c]] \
         @BAR_SOURCE@ [doxyQuote [file join $root generic rbcGrBar.c]] \
         @LINE_SOURCE@ [doxyQuote [file join $root generic rbcGrLine.c]] \
+        @GRID_SOURCE@ [doxyQuote [file join $root generic rbcGrGrid.c]] \
+        @HAIRS_SOURCE@ [doxyQuote [file join $root generic rbcGrHairs.c]] \
         @GRAPH_SOURCE@ [doxyQuote [file join $root generic rbcGraph.c]] \
         @FFT_SOURCE@ [doxyQuote [file join $root generic rbcVecFft.c]] \
         @SPLINE_SOURCE@ [doxyQuote [file join $root generic rbcSpline.c]] \

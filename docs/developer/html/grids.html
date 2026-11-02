@@ -137,6 +137,67 @@ screen geometry. Check both screen renderers and document output: a correct
 centerline or unchanged transform alone does not prove complete stroke clipping.</p>
 <p>See <a class="reference internal" href="polar.html"><span class="doc">Polar data and grid geometry</span></a> for polar/Smith geometry and its separation from element data conversion.</p>
 </section>
+<section id="tick-transactions-and-duplicate-options">
+<h2>Tick transactions and duplicate options<a class="headerlink" href="#tick-transactions-and-duplicate-options" title="Link to this heading">¶</a></h2>
+<p>Tk’s saved-options transaction restores option objects and inline option values.
+The grid additionally needs its own transaction for derived double arrays.
+Restoring a Tcl list object alone cannot restore an array that was already
+freed or replaced. The implementation helpers and staging records are included
+in <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a>.</p>
+<p>Angular ticks have major/minor slots; Smith ticks have real/imaginary slots at
+both tiers. Each slot has an owned pointer, a count and a staged flag. The flag
+is necessary because these states have different meanings:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Staged</p></th>
+<th class="head"><p>Pointer/count</p></th>
+<th class="head"><p>Commit meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>False</p></td>
+<td><p>NULL/0</p></td>
+<td><p>Keep the existing active list</p></td>
+</tr>
+<tr class="row-odd"><td><p>True</p></td>
+<td><p>NULL/0</p></td>
+<td><p>Replace the active list with an empty list</p></td>
+</tr>
+<tr class="row-even"><td><p>True</p></td>
+<td><p>Allocated/N</p></td>
+<td><p>Transfer the complete N-value list to the grid</p></td>
+</tr>
+</tbody>
+</table>
+<p>Preparation first identifies options explicitly present in the caller’s original
+argument sequence. During initial configuration, defaults or option-database
+values are staged only for lists not explicitly overridden. Explicit occurrences
+are then parsed in caller order. An invalid first occurrence remains an error
+even if a later duplicate supplies a valid list. A successful duplicate frees
+only the previous staged array; active arrays remain untouched until commit.</p>
+<p>The parser preserves order and duplicates within a list. Angular values must
+be finite degrees in [0,360); Smith real ticks allow zero, while imaginary tick
+magnitudes must be strictly positive. Negative zero is canonicalized when
+accepted. These parsers validate values, not their eventual visual spacing.
+Label command options receive only list-syntax validation here: an empty list
+is accepted, command existence is not checked, and no label callback is run.</p>
+<p>After all conversion, axis and prefix checks succeed, configuration prepares
+the replacement GC and commits derived state. Commit transfers staged pointers,
+clears staging ownership and frees replaced active arrays. Cleanup can therefore
+run after either preparation failure or commit without freeing live arrays.
+The owning configure operation separately releases or restores Tk saved options
+and schedules the appropriate reset/redraw. These helpers must not be used as
+an independent Tk option rollback mechanism.</p>
+<p>The custom automatic anchor is simpler: its internal representation contains
+only a Tk anchor and a boolean. Set saves the old inline value, get constructs
+a fresh Tcl string, restore copies the saved value, and free is intentionally
+a no-op. It owns no resource requiring deferred release.</p>
+</section>
 </section>
 
 
@@ -155,6 +216,7 @@ centerline or unchanged transform alone does not prove complete stroke clipping.
 <li><a class="reference internal" href="#segment-mapping">Segment mapping</a></li>
 <li><a class="reference internal" href="#screen-and-document-output">Screen and document output</a></li>
 <li><a class="reference internal" href="#cleanup-and-regression-checks">Cleanup and regression checks</a></li>
+<li><a class="reference internal" href="#tick-transactions-and-duplicate-options">Tick transactions and duplicate options</a></li>
 </ul>
 </li>
 </ul>

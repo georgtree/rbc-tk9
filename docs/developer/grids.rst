@@ -113,3 +113,60 @@ screen geometry. Check both screen renderers and document output: a correct
 centerline or unchanged transform alone does not prove complete stroke clipping.
 
 See :doc:`polar` for polar/Smith geometry and its separation from element data conversion.
+
+Tick transactions and duplicate options
+---------------------------------------
+
+Tk's saved-options transaction restores option objects and inline option values.
+The grid additionally needs its own transaction for derived double arrays.
+Restoring a Tcl list object alone cannot restore an array that was already
+freed or replaced. The implementation helpers and staging records are included
+in :doc:`grid-reference`.
+
+Angular ticks have major/minor slots; Smith ticks have real/imaginary slots at
+both tiers. Each slot has an owned pointer, a count and a staged flag. The flag
+is necessary because these states have different meanings:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
+
+   * - Staged
+     - Pointer/count
+     - Commit meaning
+   * - False
+     - NULL/0
+     - Keep the existing active list
+   * - True
+     - NULL/0
+     - Replace the active list with an empty list
+   * - True
+     - Allocated/N
+     - Transfer the complete N-value list to the grid
+
+Preparation first identifies options explicitly present in the caller's original
+argument sequence. During initial configuration, defaults or option-database
+values are staged only for lists not explicitly overridden. Explicit occurrences
+are then parsed in caller order. An invalid first occurrence remains an error
+even if a later duplicate supplies a valid list. A successful duplicate frees
+only the previous staged array; active arrays remain untouched until commit.
+
+The parser preserves order and duplicates within a list. Angular values must
+be finite degrees in [0,360); Smith real ticks allow zero, while imaginary tick
+magnitudes must be strictly positive. Negative zero is canonicalized when
+accepted. These parsers validate values, not their eventual visual spacing.
+Label command options receive only list-syntax validation here: an empty list
+is accepted, command existence is not checked, and no label callback is run.
+
+After all conversion, axis and prefix checks succeed, configuration prepares
+the replacement GC and commits derived state. Commit transfers staged pointers,
+clears staging ownership and frees replaced active arrays. Cleanup can therefore
+run after either preparation failure or commit without freeing live arrays.
+The owning configure operation separately releases or restores Tk saved options
+and schedules the appropriate reset/redraw. These helpers must not be used as
+an independent Tk option rollback mechanism.
+
+The custom automatic anchor is simpler: its internal representation contains
+only a Tk anchor and a boolean. Set saves the old inline value, get constructs
+a fresh Tcl string, restore copies the saved value, and free is intentionally
+a no-op. It owns no resource requiring deferred release.

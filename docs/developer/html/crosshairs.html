@@ -125,6 +125,55 @@ background changes and both buffered/direct rendering. Windows motion tests
 and visual checks for flicker complement pixel checks: correct final pixels do
 not prove that an intermediate erased frame was never displayed.</p>
 </section>
+<section id="parsing-and-configuration-boundaries">
+<h2>Parsing and configuration boundaries<a class="headerlink" href="#parsing-and-configuration-boundaries" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GetCrosshairPositionFromObj</span></code> accepts an empty position as the off-plot
+<code class="docutils literal notranslate"><span class="pre">INT_MIN,INT_MIN</span></code> sentinel. Nonempty values must have the <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> form;
+both coordinates use Tk screen-distance conversion, so they become integer
+pixels before being stored as doubles. Temporary coordinate objects are
+retained and released locally. A malformed position leaves the previous parsed
+hotspot unchanged. This parser does not move or draw the overlay.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureCrosshairs</span></code> runs all selected conversions before erasing anything.
+Tk has already stored the candidate option fields, but the active dash pattern,
+width, hotspot and GC remain unchanged on conversion failure. The command
+handler then restores the saved Tk options with the original diagnostic.
+On success it releases saved options after the visual transition, without
+scheduling a complete graph redraw. See <a class="reference internal" href="crosshair-reference.html"><span class="doc">Crosshair C reference</span></a> for the
+helper contracts.</p>
+<p>The low-level visibility helpers deliberately do not implement the same policy:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helper</p></th>
+<th class="head"><p>Eligibility</p></th>
+<th class="head"><p>Requested hidden state</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TurnOnHairs</span></code></p></td>
+<td><p>Mapped, not already visible, hotspot inside plot</p></td>
+<td><p>Neither reads nor writes it; caller decides whether to show</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TurnOffHairs</span></code></p></td>
+<td><p>Mapped and actually visible</p></td>
+<td><p>Neither reads nor writes it; unmapped calls leave visible unchanged</p></td>
+</tr>
+<tr class="row-even"><td><p>Windows <code class="docutils literal notranslate"><span class="pre">MoveCrosshairs</span></code></p></td>
+<td><p>Computes old/new eligibility, including hidden and mapping</p></td>
+<td><p>Reads it; always stores the new hotspot, segments and actual visibility</p></td>
+</tr>
+</tbody>
+</table>
+<p>These differences let on/off commands change requested state separately while
+configuration and frame presentation retain the geometry needed for XOR erasure.
+They should not be consolidated merely because all three can draw segments.
+The Windows helper is compiled only for Windows; its source contract complements
+the platform-independent reference and the presentation protocol above.</p>
+</section>
 </section>
 
 
@@ -142,6 +191,7 @@ not prove that an intermediate erased frame was never displayed.</p>
 <li><a class="reference internal" href="#motion-and-geometry-changes">Motion and geometry changes</a></li>
 <li><a class="reference internal" href="#double-buffered-presentation">Double-buffered presentation</a></li>
 <li><a class="reference internal" href="#direct-drawing-and-teardown">Direct drawing and teardown</a></li>
+<li><a class="reference internal" href="#parsing-and-configuration-boundaries">Parsing and configuration boundaries</a></li>
 </ul>
 </li>
 </ul>

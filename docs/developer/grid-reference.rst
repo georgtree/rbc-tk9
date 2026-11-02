@@ -19,3 +19,9 @@ Ownership and cleanup
 .. doxygenfunction:: Rbc_DestroyTrackGrid
 
 .. doxygenfunction:: Rbc_DestroyGrid
+
+Implementation helpers
+----------------------
+
+.. doxygengroup:: grid_internals
+   :members:

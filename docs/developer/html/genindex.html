@@ -118,6 +118,10 @@
 </li>
       <li><a href="bar-reference.html#c.ClosestBar">ClosestBar (C function)</a>
 </li>
+      <li><a href="grid-reference.html#c.CommitGridPolarAngleTicksTransaction">CommitGridPolarAngleTicksTransaction (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.CommitGridSmithTicksTransaction">CommitGridSmithTicksTransaction (C function)</a>
+</li>
       <li><a href="expression-numerics-reference.html#c.ComplexAbs">ComplexAbs (C function)</a>
 </li>
       <li><a href="expression-numerics-reference.html#c.ComplexAcos">ComplexAcos (C function)</a>
@@ -202,7 +206,11 @@
 </li>
       <li><a href="eps-reference.html#c.ComputeEpsBbox">ComputeEpsBbox (C function)</a>
 </li>
+      <li><a href="crosshair-reference.html#c.ConfigureCrosshairs">ConfigureCrosshairs (C function)</a>
+</li>
       <li><a href="eps-reference.html#c.ConfigureEps">ConfigureEps (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.ConfigureGrid">ConfigureGrid (C function)</a>
 </li>
       <li><a href="track-reference.html#c.ConfigureTrack">ConfigureTrack (C function)</a>
 </li>
@@ -244,6 +252,8 @@
 </li>
       <li><a href="graph-reference.html#c.DestroyGraph">DestroyGraph (C function)</a>
 </li>
+      <li><a href="grid-reference.html#c.DestroyGrid">DestroyGrid (C function)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="eps-reference.html#c.DisplayEps">DisplayEps (C function)</a>
@@ -255,6 +265,8 @@
       <li><a href="binding-reference.html#c.DoEvent">DoEvent (C function)</a>
 </li>
       <li><a href="fill-reference.html#c.DrawLineFill">DrawLineFill (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.DrawTrackGrids">DrawTrackGrids (C function)</a>
 </li>
       <li><a href="vector-edit-reference.html#c.DupOp">DupOp (C function)</a>
 </li>
@@ -290,17 +302,23 @@
 </li>
       <li><a href="fft-reference.html#c.FftTransform">FftTransform (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fft-reference.html#c.FftVector">FftVector (C function)</a>
 </li>
       <li><a href="expression-engine-reference.html#c.First">First (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="expression-engine-reference.html#c.Fmod">Fmod (C function)</a>
 </li>
       <li><a href="math-reference.html#c.FMOD">FMOD (C macro)</a>
 </li>
       <li><a href="expression-engine-reference.html#c.FreeExpressionData">FreeExpressionData (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.FreeGridPolarAngleTicksTransaction">FreeGridPolarAngleTicksTransaction (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.FreeGridSmithTicksTransaction">FreeGridSmithTicksTransaction (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.FreePolarLabelAnchor">FreePolarLabelAnchor (C function)</a>
 </li>
       <li><a href="cairo-reference.html#c.FreeRenderContext">FreeRenderContext (C function)</a>
 </li>
@@ -324,7 +342,11 @@
 </li>
       <li><a href="spline-reference.html#c.GetComplexSplineVector">GetComplexSplineVector (C function)</a>
 </li>
+      <li><a href="crosshair-reference.html#c.GetCrosshairPositionFromObj">GetCrosshairPositionFromObj (C function)</a>
+</li>
       <li><a href="expression-engine-reference.html#c.GetDoubleArrayByteCount">GetDoubleArrayByteCount (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.GetPolarLabelAnchor">GetPolarLabelAnchor (C function)</a>
 </li>
       <li><a href="polar-reference.html#c.GetPolarRadiusRange">GetPolarRadiusRange (C function)</a>
 </li>
@@ -346,6 +368,10 @@
 </li>
       <li><a href="binding-reference.html#c.GraphTags">GraphTags (C function)</a>
 </li>
+      <li><a href="grid-reference.html#c.GridPolarAngleTicksTransaction">GridPolarAngleTicksTransaction (C struct)</a>
+</li>
+      <li><a href="grid-reference.html#c.GridSmithTicksTransaction">GridSmithTicksTransaction (C struct)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -365,6 +391,8 @@
       <li><a href="vector-numeric-reference.html#c.InRange">InRange (C function)</a>
 </li>
       <li><a href="expression-engine-reference.html#c.InstallIndexProc">InstallIndexProc (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.IsGridOption">IsGridOption (C function)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -476,7 +504,11 @@
 </li>
       <li><a href="expression-engine-reference.html#c.ParseMathFunction">ParseMathFunction (C function)</a>
 </li>
+      <li><a href="grid-reference.html#c.ParsePolarAngleTicks">ParsePolarAngleTicks (C function)</a>
+</li>
       <li><a href="expression-engine-reference.html#c.ParseQuotedValue">ParseQuotedValue (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.ParseSmithTicks">ParseSmithTicks (C function)</a>
 </li>
       <li><a href="expression-engine-reference.html#c.ParseString">ParseString (C function)</a>
 </li>
@@ -603,6 +635,10 @@
       <li><a href="document-render-reference.html#c.PostScriptTkImage">PostScriptTkImage (C function)</a>
 </li>
       <li><a href="document-render-reference.html#c.PostScriptWindow">PostScriptWindow (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.PrepareGridPolarAngleTicksTransaction">PrepareGridPolarAngleTicksTransaction (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.PrepareGridSmithTicksTransaction">PrepareGridSmithTicksTransaction (C function)</a>
 </li>
       <li><a href="expression-numerics-reference.html#c.Product">Product (C function)</a>
 </li>
@@ -1050,10 +1086,10 @@
 </li>
       <li><a href="reference.html#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_PIESLICE">Rbc_RenderArcStyle.RBC_RENDER_ARC_PIESLICE (C enumerator)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference.html#c.Rbc_RenderArea">Rbc_RenderArea (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference.html#c.Rbc_RenderAreaOpacity">Rbc_RenderAreaOpacity (C function)</a>
 </li>
       <li><a href="reference.html#c.Rbc_RenderBackgroundPolygon">Rbc_RenderBackgroundPolygon (C function)</a>
@@ -1452,6 +1488,8 @@
 </li>
       <li><a href="vector-storage-private-reference.html#c.ResetVectorStorage">ResetVectorStorage (C function)</a>
 </li>
+      <li><a href="grid-reference.html#c.RestorePolarLabelAnchor">RestorePolarLabelAnchor (C function)</a>
+</li>
       <li><a href="expression-engine-reference.html#c.RotateExpressionVector">RotateExpressionVector (C function)</a>
 </li>
       <li><a href="winop-reference.html#c.RotateOp">RotateOp (C function)</a>
@@ -1486,6 +1524,8 @@
 </li>
       <li><a href="vector-command-reference.html#c.SetOp">SetOp (C function)</a>
 </li>
+      <li><a href="grid-reference.html#c.SetPolarLabelAnchor">SetPolarLabelAnchor (C function)</a>
+</li>
       <li><a href="expression-numerics-reference.html#c.Skew">Skew (C function)</a>
 </li>
       <li><a href="expression-numerics-reference.html#c.Skewness">Skewness (C function)</a>
@@ -1498,10 +1538,10 @@
 </li>
       <li><a href="spline-reference.html#c.SolveCubic2">SolveCubic2 (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="expression-numerics-reference.html#c.Sort">Sort (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vector-command-reference.html#c.SortOp">SortOp (C function)</a>
 </li>
       <li><a href="spline-reference.html#c.SplineEvaluationPointsAreFinite">SplineEvaluationPointsAreFinite (C function)</a>
@@ -1515,6 +1555,10 @@
       <li><a href="spline-reference.html#c.SplineStoreResult">SplineStoreResult (C function)</a>
 </li>
       <li><a href="vector-edit-reference.html#c.SplitOp">SplitOp (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.StageGridPolarAngleTicks">StageGridPolarAngleTicks (C function)</a>
+</li>
+      <li><a href="grid-reference.html#c.StageGridSmithTicks">StageGridSmithTicks (C function)</a>
 </li>
       <li><a href="expression-numerics-reference.html#c.StdDeviation">StdDeviation (C function)</a>
 </li>
@@ -1544,13 +1588,17 @@
 </li>
       <li><a href="image-compatibility-reference.html#c.Tk_ImageGetPhotoGC">Tk_ImageGetPhotoGC (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="image-compatibility-reference.html#c.Tk_ImageGetPhotoPixmap">Tk_ImageGetPhotoPixmap (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="image-compatibility-reference.html#c.Tk_ImageGetType">Tk_ImageGetType (C function)</a>
 </li>
       <li><a href="image-compatibility-reference.html#c.Tk_ImageIsDeleted">Tk_ImageIsDeleted (C function)</a>
+</li>
+      <li><a href="crosshair-reference.html#c.TurnOffHairs">TurnOffHairs (C function)</a>
+</li>
+      <li><a href="crosshair-reference.html#c.TurnOnHairs">TurnOnHairs (C function)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1566,6 +1614,8 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="grid-reference.html#c.ValidateGridCommandPrefix">ValidateGridCommandPrefix (C function)</a>
+</li>
       <li><a href="expression-numerics-reference.html#c.Variance">Variance (C function)</a>
 </li>
       <li><a href="vector-storage-private-reference.html#c.VectorElementSize">VectorElementSize (C function)</a>

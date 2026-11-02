@@ -99,3 +99,46 @@ wide and dashed hairs, hotspot transitions across plot edges, plot shrinkage,
 background changes and both buffered/direct rendering. Windows motion tests
 and visual checks for flicker complement pixel checks: correct final pixels do
 not prove that an intermediate erased frame was never displayed.
+
+Parsing and configuration boundaries
+------------------------------------
+
+``GetCrosshairPositionFromObj`` accepts an empty position as the off-plot
+``INT_MIN,INT_MIN`` sentinel. Nonempty values must have the ``@x,y`` form;
+both coordinates use Tk screen-distance conversion, so they become integer
+pixels before being stored as doubles. Temporary coordinate objects are
+retained and released locally. A malformed position leaves the previous parsed
+hotspot unchanged. This parser does not move or draw the overlay.
+
+``ConfigureCrosshairs`` runs all selected conversions before erasing anything.
+Tk has already stored the candidate option fields, but the active dash pattern,
+width, hotspot and GC remain unchanged on conversion failure. The command
+handler then restores the saved Tk options with the original diagnostic.
+On success it releases saved options after the visual transition, without
+scheduling a complete graph redraw. See :doc:`crosshair-reference` for the
+helper contracts.
+
+The low-level visibility helpers deliberately do not implement the same policy:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Helper
+     - Eligibility
+     - Requested hidden state
+   * - ``TurnOnHairs``
+     - Mapped, not already visible, hotspot inside plot
+     - Neither reads nor writes it; caller decides whether to show
+   * - ``TurnOffHairs``
+     - Mapped and actually visible
+     - Neither reads nor writes it; unmapped calls leave visible unchanged
+   * - Windows ``MoveCrosshairs``
+     - Computes old/new eligibility, including hidden and mapping
+     - Reads it; always stores the new hotspot, segments and actual visibility
+
+These differences let on/off commands change requested state separately while
+configuration and frame presentation retain the geometry needed for XOR erasure.
+They should not be consolidated merely because all three can draw segments.
+The Windows helper is compiled only for Windows; its source contract complements
+the platform-independent reference and the presentation protocol above.
