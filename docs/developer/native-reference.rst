@@ -22,3 +22,23 @@ Clip stacks
 .. doxygenfunction:: Rbc_NativePopClip
 
 .. doxygenfunction:: Rbc_NativeDestroyClip
+
+Shared drawing implementation
+-----------------------------
+
+The source contracts below describe conversion, temporary storage, GC mutations
+and fallback behavior. These helpers consume mapped geometry; they do not own
+component resources or perform graph layout.
+
+.. c:namespace:: rbcNativeShared
+
+.. doxygengroup:: native_shared_drawing
+   :members:
+
+.. doxygenstruct:: NativeClipFrame
+   :members:
+
+.. doxygenstruct:: Rbc_NativeClip
+   :members:
+
+.. c:namespace-pop::

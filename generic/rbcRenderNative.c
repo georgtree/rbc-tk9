@@ -5,30 +5,24 @@
  * are borrowed; the existing integer conversions and platform batching limits
  * are deliberately retained. */
 #include "rbcRenderNative.h"
+/** @file rbcRenderNative.c
+ * Shared native drawing, geometry conversion and rectangular clip storage.
+ */
+/** @defgroup native_shared_drawing Shared native drawing helpers
+ * Private backend services operating on already mapped geometry.
+ */
 #include <stdint.h>
 #include <X11/Xutil.h>
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw independent segments in bounded X requests.
+ * @ingroup native_shared_drawing
  *
- * DrawSegments --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      register Segment2D *segPtr
- *      int nSegments
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows the display, drawable, GC and input array. Ignores absent display/
+ * segments or nonpositive counts. Allocates one request-sized XSegment buffer;
+ * clips endpoints to signed-short protocol bounds before truncating to short.
+ * Returns without drawing if capacity or allocation fails; frees workspace.
+ * This protocol clipping does not replace the owning component plot clip.
  */
 static void DrawSegments(Display *display, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
     XSegment *xSegments;
@@ -109,31 +103,15 @@ static void DrawSegments(Display *display, Drawable drawable, GC gc, const Segme
     ckfree(xSegments);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Fill a rectangle with the historical native relief adjustment.
+ * @ingroup native_shared_drawing
  *
- * Fill3DRectangle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin - Window for which border was allocated.
- *      Drawable drawable - X window or pixmap in which to draw.
- *      Tk_3DBorder border - Token for border to draw.
- *      int x - -
- *      int y - -
- *      int width - -
- *      int height - Outside area of rectangular region.
- *      int borderWidth - Desired width for border, in pixels. Border will be *inside* region.
- *      int relief - Indicates 3D effect: TK_RELIEF_FLAT, TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows the window and border. For raised/sunken borders wider than one
+ * pixel and rectangles larger than two pixels, draws the outer four lines,
+ * shrinks the rectangle and delegates the remainder to Tk. X11 uses the
+ * default GC for one outer shade; Windows uses the corresponding border GC.
+ * Does not allocate or release the borrowed border GCs.
  */
 static void Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief) {
@@ -172,26 +150,51 @@ static void Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder bord
     Tk_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
 }
 
-/* Keep Tk font selection, multiline layout, rotation, padding, anchors and
- * disabled/active text styling in the existing text helpers. Cached marker
- * layouts must not be rebuilt, and axis limits need the original rotated
- * dimensions to position subsequent labels. No text resources are retained. */
+/**
+ * @brief Draw text through the existing Tk-based text service.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows string and style for the call. Retains native font selection,
+ * rotation, anchors, padding and active/disabled styling in Rbc_DrawText.
+ * No text resource is retained by this wrapper.
+ */
 void Rbc_NativeText(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *style, int x, int y) {
     Rbc_DrawText(tkwin, drawable, string, style, x, y);
 }
 
+/**
+ * @brief Draw an already constructed text layout.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows layout and style; delegates to Rbc_DrawTextLayout without rebuilding
+ * or freeing the cached layout.
+ */
 void Rbc_NativeTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *layout, TextStyle *style, int x, int y) {
     Rbc_DrawTextLayout(tkwin, drawable, layout, style, x, y);
 }
 
+/**
+ * @brief Draw text and return its rotated dimensions.
+ * @ingroup native_shared_drawing
+ *
+ * Delegates to Rbc_DrawText2 using borrowed text/style and caller-provided
+ * size storage. Axis-limit placement uses these dimensions for later labels.
+ */
 void Rbc_NativeTextSize(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *style, int x, int y,
                         Dim2D *size) {
     Rbc_DrawText2(tkwin, drawable, string, style, x, y, size);
 }
 
-/* Present already mapped bitmaps using the original private GC state. Keep
- * the polygon conversion, Convex fill rule, mask origin and XCopyPlane request
- * unchanged: Tk implements these operations through GDI on Windows. */
+/**
+ * @brief Paint a mapped bitmap and optional background polygon.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows mapped rectangle and style resources. Converts the supplied bounded
+ * background point array to short coordinates and fills it as Convex. Installs
+ * the bitmap mask and destination-relative clip origin on the private bitmap
+ * GC, then copies plane one. Leaves that clip state installed; does not retain
+ * or free bitmap/mask resources. Caller must honor the fixed outline capacity.
+ */
 void Rbc_NativeBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
                       const Rbc_RenderBitmapStyle *style) {
     if (style->backgroundCount > 0) {
@@ -215,8 +218,13 @@ void Rbc_NativeBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectan
     XCopyPlane(graphPtr->display, style->bitmap, drawable, style->gc, 0, 0, r->width, r->height, r->x, r->y, 1);
 }
 
-/* Tk retains responsibility for image types, alpha compositing and image
- * resource ownership. The supplied image may be a mapped/scaled temporary. */
+/**
+ * @brief Redraw a complete Tk image at a mapped position.
+ * @ingroup native_shared_drawing
+ *
+ * Queries the borrowed image size and delegates image-type drawing and alpha
+ * handling to Tk_RedrawImage. Does not scale, retain or free the image.
+ */
 void Rbc_NativeImage(Drawable drawable, Tk_Image image, int x, int y) {
     int width, height;
 
@@ -224,18 +232,38 @@ void Rbc_NativeImage(Drawable drawable, Tk_Image image, int x, int y) {
     Tk_RedrawImage(image, 0, 0, width, height, drawable, x, y);
 }
 
+/**
+ * @brief Copy a native drawable rectangle using the supplied GC.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows both drawables, window and GC; passes source/destination coordinates
+ * and unsigned dimensions to XCopyArea. Does not change the supplied GC or
+ * introduce a separate plot clip.
+ */
 void Rbc_NativeCopyArea(Tk_Window tkwin, Drawable source, Drawable destination, GC gc, int srcX, int srcY,
                         unsigned int width, unsigned int height, int dstX, int dstY) {
     XCopyArea(Tk_Display(tkwin), source, destination, gc, srcX, srcY, width, height, dstX, dstY);
 }
 
+/**
+ * @brief Copy a pixmap from its origin into a mapped rectangle.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows graph, pixmap and GC. Uses rectangle dimensions and destination
+ * position with Rbc_NativeCopyArea; the pixmap is neither scaled nor freed.
+ */
 void Rbc_NativePixmap(Graph *graphPtr, Drawable drawable, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r) {
     Rbc_NativeCopyArea(graphPtr->tkwin, pixmap, drawable, gc, 0, 0, r->width, r->height, r->x, r->y);
 }
 
-/* Widget decorations intentionally use Tk/native painting even when element
- * geometry uses Cairo. Tile origins and borrowed GCs are configured by the
- * component; preserve relief shading and the original fill/draw distinction. */
+/**
+ * @brief Draw or fill a native relief border.
+ * @ingroup native_shared_drawing
+ *
+ * The fill flag chooses Fill3DRectangle; otherwise uses Rbc_Draw3DRectangle.
+ * Borrows window/border and preserves the two paths' different fill semantics.
+ * Decorations may use this service even when element geometry uses Cairo.
+ */
 void Rbc_NativeBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                       int borderWidth, int relief, int fill) {
     if (fill) {
@@ -245,6 +273,14 @@ void Rbc_NativeBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, in
     }
 }
 
+/**
+ * @brief Fill a native rectangle with a tile or the supplied GC.
+ * @ingroup native_shared_drawing
+ *
+ * A non-NULL borrowed tile takes precedence and uses Rbc_TileRectangle with
+ * its existing origin. Otherwise calls XFillRectangle after converting sizes
+ * to unsigned integers. Callers supply valid nonnegative dimensions.
+ */
 void Rbc_NativeRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Tile tile, int x, int y, int width,
                          int height) {
     if (tile != NULL) {
@@ -254,14 +290,35 @@ void Rbc_NativeRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Tile til
     }
 }
 
+/**
+ * @brief Draw the Tk focus highlight.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows the live window and configured GC; delegates width handling and
+ * painting to Tk_DrawFocusHighlight.
+ */
 void Rbc_NativeFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width) {
     Tk_DrawFocusHighlight(tkwin, gc, width, drawable);
 }
 
+/**
+ * @brief Draw graph segments through the shared bounded segment helper.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows graph, drawable, GC and mapped segments. DrawSegments owns temporary
+ * conversion storage and handles protocol clipping and request batching.
+ */
 void Rbc_NativeSegments(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
     DrawSegments(graphPtr->display, drawable, gc, segments, count);
 }
 
+/**
+ * @brief Round a representable symbol coordinate away from zero at ties.
+ * @ingroup native_shared_drawing
+ *
+ * Adds or subtracts one half before conversion to int. Requires a finite
+ * value whose adjusted result fits int; this is not a general range check.
+ */
 INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
 #define DRAW_SYMBOL(style) (((style)->counter % (style)->interval) == 0)
@@ -272,6 +329,18 @@ INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); 
 #define MAX_DRAWRECTANGLES(d) Rbc_MaxRequestSize(d, sizeof(XRectangle))
 #define MAX_DRAWARCS(d) Rbc_MaxRequestSize(d, sizeof(XArc))
 
+/**
+ * @brief Draw mapped symbol centers using native shape batches.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows graph, points and style resources; shape-specific temporary buffers
+ * and scaled bitmaps are released before return. For size below three, draws
+ * all centers as points with fillGC and bypasses symbol type/interval handling.
+ * Larger symbols use circle/square platform batches, segment crosses, polygon
+ * templates or scaled bitmaps. Interval-aware branches advance style->counter
+ * for examined centers, including skipped ones. Bitmap symbols mutate outline
+ * GC clip state. Requires valid mapped coordinates and a nonnegative count.
+ */
 void Rbc_NativeSymbolPoints(Graph *graphPtr, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, int size,
                             Tcl_Size nSymbolPts, const Point2D *symbolPts) {
     XPoint pattern[13]; /* Template for polygon symbols */
@@ -653,6 +722,16 @@ void Rbc_NativeSymbolPoints(Graph *graphPtr, Drawable drawable, Rbc_RenderNative
     }
 }
 
+/**
+ * @brief Fill a tiled or stippled native polygon.
+ * @ingroup native_shared_drawing
+ *
+ * Rejects absent points, unavailable tile pixmaps and unsupported point counts.
+ * Owns temporary short-coordinate points. A tile takes precedence and its origin
+ * is reset through Rbc_SetTileOrigin before drawing. Otherwise a non-None
+ * stipple selects Complex XFillPolygon using the already configured GC.
+ * With neither tile nor stipple this helper intentionally draws nothing.
+ */
 void Rbc_NativeFillPolygon(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile tile, Pixmap stipple,
                            const Point2D *points, Tcl_Size count) {
     XPoint *nativePoints;
@@ -682,27 +761,16 @@ void Rbc_NativeFillPolygon(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile t
     ckfree(nativePoints);
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @brief Fill mapped bar rectangles, then draw relief borders.
+ * @ingroup native_shared_drawing
  *
- * DrawBarSegments --
- *
- *      Draws each of the rectangular segments for the element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *      const Rbc_RenderBarStyle *penPtr
- *      const Rbc_RenderRectangle *rectangles
- *      int nRects
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+ * Borrows graph, style and rectangles. Positive fillOpacity enables native
+ * filling; this helper does not alpha-blend fractional opacity. Packs eligible
+ * rectangles into request-sized XRectangle batches, flushing before wider
+ * int-argument fallback calls. Attempts platform border batching before
+ * per-rectangle relief fallback. Allocation/capacity failure in the fill path
+ * returns before borders. Requires valid mapped geometry and configured GCs.
  */
 void Rbc_NativeBars(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr,
                     const Rbc_RenderRectangle *rectangles, Tcl_Size nRects) {
@@ -780,6 +848,17 @@ void Rbc_NativeBars(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle
     }
 }
 
+/**
+ * @brief Join contiguous arc segments into native polylines.
+ * @ingroup native_shared_drawing
+ *
+ * Requires nonnegative count, valid mapped segments and representable sizes.
+ * Zero count is a no-op. Exact endpoint equality joins adjacent segments; gaps
+ * start separate XDrawLines calls. Owns point and per-run XPoint buffers, with
+ * short-coordinate conversion. Outer allocation failure skips all drawing;
+ * per-run failure skips that run. Unlike DrawSegments, does not protocol-clip
+ * or split a run to the X request-size limit.
+ */
 void Rbc_NativeArcStroke(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
     Point2D *points;
     Tcl_Size i, n;
@@ -816,6 +895,10 @@ void Rbc_NativeArcStroke(Graph *graphPtr, Drawable drawable, GC gc, const Segmen
 /* Rectangular screen clipping. Scratch storage is reused at each nesting
  * depth. Seeding and copying only the visible rectangle preserves painter
  * order, XOR, bitmap masks and Tk's shared GCs on both platforms. */
+/** @brief Reusable clip depth with absolute bounds and optional scratch target.
+ * Previous/next link owned frames. Parent/drawable are borrowed targets; scratch
+ * is owned until stack destruction. Platform state follows the allocation.
+ */
 typedef struct NativeClipFrame {
     struct NativeClipFrame *previous, *next;
     Drawable parent, drawable;
@@ -824,6 +907,10 @@ typedef struct NativeClipFrame {
     int platformActive;
 } NativeClipFrame;
 
+/** @brief Native clip stack borrowing a graph and base drawable.
+ * Owns cached frames and only a lazily acquired copy GC. Active identifies the
+ * current depth; dimensions and borrowed resources stay valid until destruction.
+ */
 struct Rbc_NativeClip {
     Graph *graphPtr;
     Drawable drawable;
@@ -842,6 +929,14 @@ Rbc_NativeClip *Rbc_NativeCreateClip(Graph *graphPtr, Drawable drawable, GC copy
     return clip;
 }
 
+/**
+ * @brief Return the active clip target or the base drawable.
+ * @ingroup native_shared_drawing
+ *
+ * Requires a live non-NULL stack. None means the active frame is empty or
+ * failed; callers must skip drawing but still pop that frame. The target is
+ * borrowed and must not outlive its frame/stack.
+ */
 Drawable Rbc_NativeClipDrawable(Rbc_NativeClip *clip) {
     return clip->active != NULL ? clip->active->drawable : clip->drawable;
 }
@@ -931,21 +1026,26 @@ void Rbc_NativeDestroyClip(Rbc_NativeClip *clip) {
     ckfree(clip);
 }
 
+/**
+ * @brief Draw independent native segments without a Graph argument.
+ * @ingroup native_shared_drawing
+ *
+ * Uses the borrowed window display and the same DrawSegments conversion,
+ * protocol clipping, temporary storage and request batching as graph segments.
+ */
 void Rbc_NativeScreenSegments(Tk_Window tkwin, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
     DrawSegments(Tk_Display(tkwin), drawable, gc, segments, count);
 }
 
-/*
- * Rbc_NativeArrowHead --
+/**
+ * @brief Scan-convert a five-vertex arrowhead at integer pixel centers.
+ * @ingroup native_shared_drawing
  *
- *      Scan-convert the five-vertex head at integer pixel centers.
- *      Rounding its vertices before XFillPolygon can distort the narrow
- *      neck and unbalance diagonal heads. Native polygon filling also
- *      uses boundary coordinates, unlike the shaft's pixel centers.
- *      Keep the original doubles until choosing the covered pixels.
- *
- *      Half-open edges count shared vertices once. Clip spans before
- *      converting to X protocol coordinates and send bounded batches.
+ * Borrows the mapped arrow and GC. Keeps doubles until selecting covered
+ * pixels; rounding vertices first distorts narrow diagonal necks. Half-open
+ * edges count shared vertices once. Clips spans to graph and signed-short
+ * bounds, then sends batches of at most 128 one-pixel-high rectangles.
+ * Requires finite geometry; the enclosing renderer retains track clipping.
  */
 void Rbc_NativeArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D *arrow) {
     XRectangle spans[128];
@@ -1004,7 +1104,14 @@ void Rbc_NativeArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2
     }
 }
 
-/* Preserve the original sum-before-short conversion and Convex fill rule. */
+/**
+ * @brief Fill a four-corner text background polygon.
+ * @ingroup native_shared_drawing
+ *
+ * Borrows outline, anchor and GC. Adds the anchor before short conversion and
+ * fills with Convex/CoordModeOrigin. Requires four mapped outline points;
+ * does not impose a plot clip or retain point storage.
+ */
 void Rbc_NativeTextBackground(Graph *graphPtr, Drawable drawable, GC gc, const Point2D *outline,
                               const Point2D *anchor) {
     XPoint points[4];
@@ -1016,18 +1123,42 @@ void Rbc_NativeTextBackground(Graph *graphPtr, Drawable drawable, GC gc, const P
     XFillPolygon(graphPtr->display, drawable, gc, points, 4, Convex, CoordModeOrigin);
 }
 
-/* Keep two independent line requests, including their original dash phase. */
+/**
+ * @brief Draw a two-row legend line sample.
+ * @ingroup native_shared_drawing
+ *
+ * Uses two independent XDrawLine requests, preserving the original dash
+ * restart on each row. Borrows graph, target and configured GC.
+ */
 void Rbc_NativeLegendLine(Graph *graphPtr, Drawable drawable, GC gc, int x, int y, int size) {
     XDrawLine(graphPtr->display, drawable, gc, x - size, y, x + size, y);
     XDrawLine(graphPtr->display, drawable, gc, x - size, y + 1, x + size, y + 1);
 }
 
+/**
+ * @brief Draw a square legend fill sample with a local pattern origin.
+ * @ingroup native_shared_drawing
+ *
+ * Sets the borrowed GC tile/stipple origin to the sample position, fills the
+ * square, then resets that origin to zero. Does not restore a nonzero previous
+ * origin; callers must use the established legend GC contract.
+ */
 void Rbc_NativeLegendBar(Graph *graphPtr, Drawable drawable, GC gc, int x, int y, int size) {
     XSetTSOrigin(graphPtr->display, gc, x, y);
     XFillRectangle(graphPtr->display, drawable, gc, x, y, size, size);
     XSetTSOrigin(graphPtr->display, gc, 0, 0);
 }
 
+/**
+ * @brief Draw a run of opaque bitmap copies with platform fallback.
+ * @ingroup native_shared_drawing
+ *
+ * Ignores absent positions or nonpositive counts. Tries the platform opaque
+ * batch first, then clears GC clip mask/origin and replays all positions with
+ * XCopyPlane if declined. Requires unmasked GXcopy-compatible input so replay
+ * after partial optimized failure is safe. Borrows all resources and leaves
+ * fallback GC clipping cleared; do not use for masked or XOR runs.
+ */
 void Rbc_NativeBitmapRun(Graph *graphPtr, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
                          const Rbc_RenderPosition *positions, Tcl_Size count) {
     Tcl_Size i;

@@ -142,3 +142,78 @@ Keep platform resource acquisition at batch boundaries, and preserve fallback
 order, rounding, stipple origins and complete-stroke clipping when changing
 these implementations. Validation must cover both native platforms; a working
 X11 path alone does not exercise GDI state restoration or Windows presentation.
+
+Shared primitive contracts
+--------------------------
+
+The shared implementation is deliberately more specific than a general drawing
+API. It consumes mapped geometry and borrowed resource styles. It does not
+perform layout, repair invalid geometry, or uniformly preserve GC state.
+
+.. list-table:: State changes made by shared helpers
+   :header-rows: 1
+   :widths: 28 42 30
+
+   * - Path
+     - State changed
+     - Caller obligation
+   * - Mapped bitmap
+     - Installs mask and destination clip origin on the bitmap GC.
+     - Use the designated private GC; the state remains installed.
+   * - Bitmap symbols
+     - Scales bitmap/mask, changes outline GC clipping, releases temporary pixmaps.
+     - Reconfigure clipping before unrelated reuse of that GC.
+   * - Bitmap-run fallback
+     - Clears mask/origin and replays the complete run.
+     - Supply opaque, copy-compatible input; never XOR input.
+   * - Legend bar
+     - Sets pattern origin locally, then resets it to zero.
+     - Do not expect a previous nonzero origin to be restored.
+   * - Tiled polygon
+     - Sets tile origin through Rbc_SetTileOrigin before filling.
+     - Treat tile-origin configuration as mutable client state.
+   * - Interval-selected symbols
+     - Advances the mutable style counter while examining centers.
+     - Preserve the counter across related batches.
+
+For symbols smaller than three pixels, the current implementation draws all
+centers with the fill GC and returns before symbol-type or interval dispatch.
+Larger symbols preserve their historical templates and rounding: circle/square
+paths are platform batches, simple crosses are independent segments, and filled
+shapes use polygon templates. The helper named Round rounds ties away from zero;
+it assumes a finite result that fits int.
+
+Native bar filling tests whether fillOpacity is positive; it does not implement
+fractional alpha blending here. Representable rectangles are batched; an
+out-of-range XRectangle flushes that batch before the wider-argument Xlib call.
+That fallback avoids premature narrowing in RBC, but does not remove limits of
+the eventual platform API. Relief borders follow fills, with a platform batch
+attempt before the ordinary rectangle loop.
+
+The polygon helper handles tiles and stipples only. With neither supplied it
+draws nothing; solid fills have other dispatch paths. Tile availability and
+polygon point limits are checked before allocating short-coordinate workspace.
+A tile overrides the stipple selector, while stippled drawing assumes the GC
+already contains the required fill configuration.
+
+Arc strokes and arrowheads
+--------------------------
+
+Arc strokes combine segments only when successive endpoints compare exactly
+equal. Each connected run becomes one XDrawLines request; a gap starts another
+request and therefore another native dash phase. The current path converts to
+short coordinates without the protocol clipping and request-size chunking used
+by DrawSegments. Its callers must supply bounded mapped runs. A failed outer
+allocation skips the stroke; a failed per-run allocation skips only that run.
+
+Arrowheads instead retain floating-point vertices until scan conversion. At each
+integer row, half-open edges avoid counting shared vertices twice; sorted
+intersections define filled pixel spans. The helper clips spans to graph and
+signed-short bounds and batches at most 128 rectangles. The renderer's enclosing
+clip still determines which pixels belong to a track. Replacing this with a
+rounded XFillPolygon changes diagonal neck coverage and shaft alignment.
+
+Native legend line samples deliberately use two separate line requests. Merging
+them into one polyline would change dash restart and the connection between rows.
+Text-background polygons similarly retain addition of the anchor before short
+conversion and the Convex fill rule.
