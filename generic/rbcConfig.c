@@ -1,3 +1,10 @@
+/** @file rbcConfig.c
+ * @brief Shared option conversion and component configuration.
+ */
+/** @defgroup rbcConfig_internals rbcConfig helper contracts
+ * Shared implementation helpers and legacy adapters.
+ */
+
 /*
  * rbcConfig.c --
  *
@@ -21,6 +28,15 @@ static Tk_OptionParseProc StringToShadow;
 static Tk_OptionPrintProc ShadowToString;
 Tk_CustomOption rbcShadowOption = {StringToShadow, ShadowToString, (ClientData)0};
 
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Test a nonempty, case-sensitive prefix of a fill keyword.
+ * @param string Borrowed bytes with at least length bytes available.
+ * @param length Byte count of the candidate, not a character count.
+ * @param fullName Borrowed NUL-terminated keyword.
+ * @return Nonzero only when the candidate fits and matches the keyword.
+ * Does not modify inputs, allocate resources or set an interpreter result.
+ */
 static int IsFillPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
 
@@ -55,6 +71,16 @@ int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Apply the RBC sign policy to an already converted pixel distance.
+ * @param interp Interpreter receiving a diagnostic on failure.
+ * @param length Converted integer distance.
+ * @param check PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE.
+ * @return TCL_OK when accepted; TCL_ERROR for a violated sign restriction.
+ * No unit conversion or rounding occurs here. Unrecognized check values fall
+ * through successfully; callers must supply an established policy constant.
+ */
 static int DoCheck(Tcl_Interp *interp, int length, int check) {
     switch (check) {
     case PIXELS_NONNEGATIVE:
@@ -198,29 +224,17 @@ int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StringToDistance --
- *
- *      Like TK_CONFIG_PIXELS, but adds an extra check for negative
- *      values.
- *
- * Parameters:
- *      void *clientData - Indicated how to check distance
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Window
- *      const char *string - Pixel value string
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of pixel size in record
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Parse a legacy Tk custom-option distance into an integer field.
+ * @param clientData Pixel sign policy encoded as client data.
+ * @param interp Interpreter for conversion errors.
+ * @param tkwin Window supplying screen-unit conversion context.
+ * @param string Borrowed distance string.
+ * @param widgRec Writable record containing the integer destination.
+ * @param offset Byte offset of that field.
+ * @return TCL_OK on commit, TCL_ERROR with the old field unchanged on failure.
+ * Delegates to Rbc_GetPixels; this adapter does not evaluate Tcl scripts.
  */
 static int StringToDistance(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                             Tcl_Size offset) {
@@ -229,27 +243,16 @@ static int StringToDistance(void *clientData, Tcl_Interp *interp, Tk_Window tkwi
     return Rbc_GetPixels(interp, tkwin, string, data, valuePtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * DistanceToString --
- *
- *      Returns the string representing the positive pixel size.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget structure record
- *      Tcl_Size offset - Offset in widget record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The pixel size string is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Format a legacy distance field as an owned decimal string.
+ * @param clientData Unused.
+ * @param tkwin Unused.
+ * @param widgRec Borrowed record containing an integer field.
+ * @param offset Byte offset of that field.
+ * @param[out] freeProcPtr Receives Tcl_Free for the allocated result.
+ * @return Newly allocated string; Tk releases it through freeProcPtr.
+ * Copies the shared Rbc_Itoa buffer immediately. Does not change the field.
  */
 static const char *DistanceToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
                                     Tcl_FreeProc **freeProcPtr) {
@@ -297,36 +300,20 @@ int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, S
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StringToShadow --
- *
- *      Convert a string into two pad values.  The string may be in one of
- *      the following forms:
- *
- *          n      - n is a non-negative integer. This sets both
- *                   pad values to n.
- *          {n m}  - both n and m are non-negative integers. side1
- *                   is set to n, side2 is set to m.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Window
- *      const char *string - Pixel value string
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of pad in widget
- *
- * Results:
- *      If the string is successfully converted, TCL_OK is returned.
- *      Otherwise, TCL_ERROR is returned and an error message is left in
- *      the interpreter result.
- *
- * Side Effects:
- *      The padding structure passed is updated with the new values.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Replace a legacy shadow field after parsing color and offset.
+ * @param clientData Unused.
+ * @param interp Interpreter for list, color and distance errors.
+ * @param tkwin Window supplying color and screen-unit context.
+ * @param string Borrowed Tcl list string, or NULL/empty to disable the shadow.
+ * @param widgRec Writable record containing an initialized Shadow.
+ * @param offset Byte offset of that field.
+ * @return TCL_OK on replacement, TCL_ERROR with the old shadow unchanged.
+ * Accepts one color and an optional nonnegative distance; offset defaults to
+ * one. Releases temporary list storage and any staged color on error. On success
+ * releases the old field's color and transfers the new reference. Unlike
+ * Rbc_GetShadowFromObj, this adapter owns replacement cleanup itself.
  */
 static int StringToShadow(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                           Tcl_Size offset) {
@@ -371,17 +358,17 @@ static int StringToShadow(ClientData clientData, Tcl_Interp *interp, Tk_Window t
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ShadowToString --
- *
- *      Converts the shadow color and offset into a Tcl list.
- *
- * Results:
- *      A Tcl list containing the shadow color and offset.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Serialize a legacy shadow as a color/offset Tcl list.
+ * @param clientData Unused.
+ * @param tkwin Unused.
+ * @param widgRec Borrowed record containing an initialized Shadow.
+ * @param offset Byte offset of that field.
+ * @param[in,out] freeProcPtr Receives Tcl_Free only for an allocated result.
+ * @return Static empty string if disabled; otherwise a new two-element list.
+ * The disabled path leaves freeProcPtr untouched. The Tk caller must initialize
+ * its free policy for static results. Color names are quoted by Tcl_Merge.
  */
 static const char *ShadowToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
                                   Tcl_FreeProc **freeProcPtr) {
@@ -459,30 +446,14 @@ int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashes
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetState --
- *
- *      Converts a state string to its integer representation.
- *
- *      State names are matched exactly to preserve the behaviour of
- *      the legacy custom option.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter for error reporting.
- *      const char *string - State name.
- *      int *statePtr      - Receives the parsed state.
- *
- * Results:
- *      TCL_OK if the state is valid.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Sets the interpreter result on error. The destination is
- *      modified only after the value has been validated.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Parse an exact legacy state name without abbreviation.
+ * @param interp Interpreter receiving an error diagnostic.
+ * @param string Non-NULL NUL-terminated normal, active or disabled name.
+ * @param[out] statePtr Receives the matching STATE constant only on success.
+ * @return TCL_OK on success, TCL_ERROR with the destination unchanged otherwise.
+ * Matching is case-sensitive and does not execute Tcl.
  */
 static int GetState(Tcl_Interp *interp, const char *string, int *statePtr) {
     int state;
@@ -505,29 +476,16 @@ int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr) {
     return GetState(interp, Tcl_GetString(objPtr), statePtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetStringList --
- *
- *      Converts a Tcl list string into a newly allocated,
- *      NULL-terminated array of strings.
- *
- * Parameters:
- *      Tcl_Interp *interp  - Interpreter for list parsing and errors.
- *      const char *string  - Tcl list representation.
- *      char ***listPtrPtr  - Receives the allocated string array.
- *
- * Results:
- *      TCL_OK if the list was parsed successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Allocates one string-list block on success. The caller owns the
- *      result and must release it with ckfree(). An empty string is
- *      represented by NULL.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcConfig_internals
+ * @brief Split a Tcl list string into one caller-owned allocation.
+ * @param interp Interpreter for list syntax errors.
+ * @param string Borrowed list string; NULL and empty input are accepted.
+ * @param[out] listPtrPtr Cleared first; receives the pointer array on success.
+ * @return TCL_OK on success, TCL_ERROR on malformed list syntax.
+ * An empty list leaves NULL. Nonempty output contains pointers and characters
+ * in one Tcl_SplitList allocation; release it once with ckfree. This helper
+ * neither preserves nor frees a previous destination, including on error.
  */
 static int GetStringList(Tcl_Interp *interp, const char *string, char ***listPtrPtr) {
     const char **elemArr;

@@ -113,6 +113,275 @@
 <p>Pure conversion with no interpreter state. Does not round floating values, check finiteness or impose widget-specific minimum sizes. </p>
 </dd></dl>
 
+<section id="private-parsing-and-legacy-tk-adapters">
+<h2>Private parsing and legacy Tk adapters<a class="headerlink" href="#private-parsing-and-legacy-tk-adapters" title="Link to this heading">¶</a></h2>
+<p>These string adapters implement <code class="docutils literal notranslate"><span class="pre">Tk_CustomOption</span></code> callbacks, not the newer
+<code class="docutils literal notranslate"><span class="pre">Tk_OptionSpec</span></code> transaction protocol. See <a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a> for the
+replacement and printer ownership differences.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__rbc_config__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">rbcConfig</span> <span class="pre">helper</span> <span class="pre">contracts</span></span></dt>
+<dd><p>Shared implementation helpers and legacy adapters. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IsFillPrefix">
+<span class="target" id="group__rbc_config__internals_1ga184d7f35667e83db32057bfc5ba36527"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsFillPrefix</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fullName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsFillPrefix" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test a nonempty, case-sensitive prefix of a fill keyword. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>string</strong> – Borrowed bytes with at least length bytes available. </p></li>
+<li><p><strong>length</strong> – Byte count of the candidate, not a character count. </p></li>
+<li><p><strong>fullName</strong> – Borrowed NUL-terminated keyword. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero only when the candidate fits and matches the keyword. Does not modify inputs, allocate resources or set an interpreter result. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DoCheck">
+<span class="target" id="group__rbc_config__internals_1ga4bc7b366d87e9e1b9758650dff8693bc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DoCheck</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">check</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DoCheck" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply the RBC sign policy to an already converted pixel distance. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter receiving a diagnostic on failure. </p></li>
+<li><p><strong>length</strong> – Converted integer distance. </p></li>
+<li><p><strong>check</strong> – PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK when accepted; TCL_ERROR for a violated sign restriction. No unit conversion or rounding occurs here. Unrecognized check values fall through successfully; callers must supply an established policy constant. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StringToDistance">
+<span class="target" id="group__rbc_config__internals_1ga080d038427b5a1d9833ed886832e6c01"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StringToDistance</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StringToDistance" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse a legacy Tk custom-option distance into an integer field. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – Pixel sign policy encoded as client data. </p></li>
+<li><p><strong>interp</strong> – Interpreter for conversion errors. </p></li>
+<li><p><strong>tkwin</strong> – Window supplying screen-unit conversion context. </p></li>
+<li><p><strong>string</strong> – Borrowed distance string. </p></li>
+<li><p><strong>widgRec</strong> – Writable record containing the integer destination. </p></li>
+<li><p><strong>offset</strong> – Byte offset of that field. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on commit, TCL_ERROR with the old field unchanged on failure. Delegates to Rbc_GetPixels; this adapter does not evaluate Tcl scripts. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DistanceToString">
+<span class="target" id="group__rbc_config__internals_1ga6baf2defcc172fdc921650bfe4b55020"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">DistanceToString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DistanceToString" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format a legacy distance field as an owned decimal string. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – Unused. </p></li>
+<li><p><strong>tkwin</strong> – Unused. </p></li>
+<li><p><strong>widgRec</strong> – Borrowed record containing an integer field. </p></li>
+<li><p><strong>offset</strong> – Byte offset of that field. </p></li>
+<li><p><strong>freeProcPtr</strong> – <strong>[out]</strong> Receives Tcl_Free for the allocated result. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Newly allocated string; Tk releases it through freeProcPtr. Copies the shared Rbc_Itoa buffer immediately. Does not change the field. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StringToShadow">
+<span class="target" id="group__rbc_config__internals_1gac4fbe56084cd6a8ab36e64520fcd9007"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StringToShadow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StringToShadow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace a legacy shadow field after parsing color and offset. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – Unused. </p></li>
+<li><p><strong>interp</strong> – Interpreter for list, color and distance errors. </p></li>
+<li><p><strong>tkwin</strong> – Window supplying color and screen-unit context. </p></li>
+<li><p><strong>string</strong> – Borrowed Tcl list string, or NULL/empty to disable the shadow. </p></li>
+<li><p><strong>widgRec</strong> – Writable record containing an initialized Shadow. </p></li>
+<li><p><strong>offset</strong> – Byte offset of that field. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on replacement, TCL_ERROR with the old shadow unchanged. Accepts one color and an optional nonnegative distance; offset defaults to one. Releases temporary list storage and any staged color on error. On success releases the old field’s color and transfers the new reference. Unlike Rbc_GetShadowFromObj, this adapter owns replacement cleanup itself. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ShadowToString">
+<span class="target" id="group__rbc_config__internals_1ga0c503e36d3c7ea59716c8b0b06d54b9d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ShadowToString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ShadowToString" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Serialize a legacy shadow as a color/offset Tcl list. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – Unused. </p></li>
+<li><p><strong>tkwin</strong> – Unused. </p></li>
+<li><p><strong>widgRec</strong> – Borrowed record containing an initialized Shadow. </p></li>
+<li><p><strong>offset</strong> – Byte offset of that field. </p></li>
+<li><p><strong>freeProcPtr</strong> – <strong>[inout]</strong> Receives Tcl_Free only for an allocated result. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Static empty string if disabled; otherwise a new two-element list. The disabled path leaves freeProcPtr untouched. The Tk caller must initialize its free policy for static results. Color names are quoted by Tcl_Merge. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetState">
+<span class="target" id="group__rbc_config__internals_1ga31180c4be2236e60d78c05af7a993b95"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetState</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">statePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse an exact legacy state name without abbreviation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter receiving an error diagnostic. </p></li>
+<li><p><strong>string</strong> – Non-NULL NUL-terminated normal, active or disabled name. </p></li>
+<li><p><strong>statePtr</strong> – <strong>[out]</strong> Receives the matching STATE constant only on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success, TCL_ERROR with the destination unchanged otherwise. Matching is case-sensitive and does not execute Tcl. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetStringList">
+<span class="target" id="group__rbc_config__internals_1ga00a200e839f59dbe3203831505f8d485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetStringList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetStringList" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Split a Tcl list string into one caller-owned allocation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for list syntax errors. </p></li>
+<li><p><strong>string</strong> – Borrowed list string; NULL and empty input are accepted. </p></li>
+<li><p><strong>listPtrPtr</strong> – <strong>[out]</strong> Cleared first; receives the pointer array on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success, TCL_ERROR on malformed list syntax. An empty list leaves NULL. Nonempty output contains pointers and characters in one Tcl_SplitList allocation; release it once with ckfree. This helper neither preserves nor frees a previous destination, including on error. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__rbc_gr_misc__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">rbcGrMisc</span> <span class="pre">helper</span> <span class="pre">contracts</span></span></dt>
+<dd><p>Shared implementation helpers and legacy adapters. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetColorPair">
+<span class="target" id="group__rbc_gr_misc__internals_1ga584c4246be1d337cdb46e0b5a177f99c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetColorPair</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fgStr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bgStr</span></span>, <span class="n"><span class="pre">ColorPair</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowDefault</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetColorPair" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a staged foreground/background pair. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for Tk color errors. </p></li>
+<li><p><strong>tkwin</strong> – Window supplying color context. </p></li>
+<li><p><strong>fgStr</strong> – Non-NULL foreground name; empty means no color. </p></li>
+<li><p><strong>bgStr</strong> – Non-NULL background name; empty means no color. </p></li>
+<li><p><strong>pairPtr</strong> – <strong>[out]</strong> Receives both fields only after successful acquisition. </p></li>
+<li><p><strong>allowDefault</strong> – Accept nonempty prefixes of defcolor when nonzero. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success; TCL_ERROR with destination unchanged on failure. Failure of the background lookup releases an acquired foreground reference. Success transfers both references, even for identical names, but does not release any previous destination. NULL and COLOR_DEFAULT are not references. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeColorPair">
+<span class="target" id="group__rbc_gr_misc__internals_1ga93ba1bd809ca6bad08be6579610e5d43"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeColorPair</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ColorPair</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeColorPair" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release both owned color references and clear a pair. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pairPtr</strong> – <strong>[inout]</strong> Initialized pair, with one reference per real color field. Skips NULL and COLOR_DEFAULT. Identical real pointers still represent two acquisitions and are released twice. Both fields become NULL, making another call safe. The pair record itself is not freed. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StringToColorPair">
+<span class="target" id="group__rbc_gr_misc__internals_1ga7844811759af3d222d0a2b2473fb1941"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StringToColorPair</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StringToColorPair" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transactionally replace a legacy color-pair option field. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – Nonzero permits the default-color sentinel. </p></li>
+<li><p><strong>interp</strong> – Interpreter for list and color diagnostics. </p></li>
+<li><p><strong>tkwin</strong> – Window supplying color context. </p></li>
+<li><p><strong>string</strong> – Borrowed list of zero, one or two names; NULL/empty clears it. </p></li>
+<li><p><strong>widgRec</strong> – Writable record containing an initialized ColorPair. </p></li>
+<li><p><strong>offset</strong> – Byte offset of that field. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on replacement; TCL_ERROR leaves the old pair intact. One name sets only the foreground. Stages acquisition, releases the temporary list on all parsed paths, then frees the old pair and commits the new one. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.NameOfColor">
+<span class="target" id="group__rbc_gr_misc__internals_1ga9bc8635630ec899d2e722dd7ff046153"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NameOfColor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.NameOfColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Obtain the borrowed printable name of a color or sentinel. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>colorPtr</strong> – Real Tk color, NULL or COLOR_DEFAULT. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Empty string for NULL, defcolor for the sentinel, otherwise Tk’s name. No reference is acquired. Do not free the returned characters; copy them if they must outlive the color’s ownership. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ColorPairToString">
+<span class="target" id="group__rbc_gr_misc__internals_1gaadc4917cfc201e3db0e515ec18bb1d4a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ColorPairToString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widgRec</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ColorPairToString" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Serialize two color fields into an owned two-element Tcl list. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – Unused. </p></li>
+<li><p><strong>tkwin</strong> – Unused. </p></li>
+<li><p><strong>widgRec</strong> – Borrowed record containing a ColorPair. </p></li>
+<li><p><strong>offset</strong> – Byte offset of that field. </p></li>
+<li><p><strong>freeProcPtr</strong> – <strong>[out]</strong> Receives Tcl_Free for the returned string. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Allocated list, including empty or defcolor sentinel elements. Copies an inline DString buffer or transfers its heap buffer to the caller. The local DString is intentionally not freed after that ownership transfer. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -136,6 +405,22 @@
 <li><a class="reference internal" href="#c.Rbc_GetStringListFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetStringListFromObj()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_GetXY"><code class="docutils literal notranslate"><span class="pre">Rbc_GetXY()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ClampToInt"><code class="docutils literal notranslate"><span class="pre">Rbc_ClampToInt()</span></code></a></li>
+<li><a class="reference internal" href="#private-parsing-and-legacy-tk-adapters">Private parsing and legacy Tk adapters</a><ul>
+<li><a class="reference internal" href="#c.IsFillPrefix"><code class="docutils literal notranslate"><span class="pre">IsFillPrefix()</span></code></a></li>
+<li><a class="reference internal" href="#c.DoCheck"><code class="docutils literal notranslate"><span class="pre">DoCheck()</span></code></a></li>
+<li><a class="reference internal" href="#c.StringToDistance"><code class="docutils literal notranslate"><span class="pre">StringToDistance()</span></code></a></li>
+<li><a class="reference internal" href="#c.DistanceToString"><code class="docutils literal notranslate"><span class="pre">DistanceToString()</span></code></a></li>
+<li><a class="reference internal" href="#c.StringToShadow"><code class="docutils literal notranslate"><span class="pre">StringToShadow()</span></code></a></li>
+<li><a class="reference internal" href="#c.ShadowToString"><code class="docutils literal notranslate"><span class="pre">ShadowToString()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetState"><code class="docutils literal notranslate"><span class="pre">GetState()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetStringList"><code class="docutils literal notranslate"><span class="pre">GetStringList()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetColorPair"><code class="docutils literal notranslate"><span class="pre">GetColorPair()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeColorPair"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorPair()</span></code></a></li>
+<li><a class="reference internal" href="#c.StringToColorPair"><code class="docutils literal notranslate"><span class="pre">StringToColorPair()</span></code></a></li>
+<li><a class="reference internal" href="#c.NameOfColor"><code class="docutils literal notranslate"><span class="pre">NameOfColor()</span></code></a></li>
+<li><a class="reference internal" href="#c.ColorPairToString"><code class="docutils literal notranslate"><span class="pre">ColorPairToString()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

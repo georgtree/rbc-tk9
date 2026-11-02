@@ -133,6 +133,9 @@ proc ::rbcDocBuild::main {arguments} {
         @EPS_SOURCE@ [doxyQuote [file join $root generic rbcCanvEps.c]] \
         @GEOMETRY_SOURCE@ [doxyQuote [file join $root generic rbcGeometry.c]] \
         @LIST_SOURCE@ [doxyQuote [file join $root generic rbcList.c]] \
+        @CONFIG_SOURCE@ [doxyQuote [file join $root generic rbcConfig.c]] \
+        @MISC_SOURCE@ [doxyQuote [file join $root generic rbcGrMisc.c]] \
+        @UTIL_SOURCE@ [doxyQuote [file join $root generic rbcUtil.c]] \
         @SCROLL_SOURCE@ [doxyQuote [file join $root generic rbcScroll.c]] \
         @MATH_HEADER@ [doxyQuote [file join $root generic rbcMath.h]] \
         @VERSION@ $version]

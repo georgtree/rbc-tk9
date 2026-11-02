@@ -15,7 +15,7 @@ ownership, PDF/PostScript drawing primitives and shared export capture, crosshai
 tick-list transactions and output, pen and
 palette ownership, marker lifecycle, element data and dispatch, axis and track mapping, shared
 GC/window services, standalone window/photo command dispatch, EPS canvas parsing and preview
-ownership, allocation and UID ownership, typed operation dispatch, shared value conversion, numeric
+ownership, allocation and UID ownership, typed operation dispatch, shared value conversion and legacy option-adapter ownership, dictionary ordering, stdio and fatal diagnostics, numeric
 compatibility, and source-comment conventions.
 
 Install Doxygen, Python 3, Sphinx and Breathe. From MSYS2 UCRT64:

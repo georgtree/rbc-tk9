@@ -127,6 +127,80 @@
 <p>Consumes the C library PRNG state and does not seed it. No interpreter-local state, reproducibility across platforms or cryptographic quality is promised. </p>
 </dd></dl>
 
+<section id="ordering-stdio-and-fatal-diagnostics">
+<h2>Ordering, stdio and fatal diagnostics<a class="headerlink" href="#ordering-stdio-and-fatal-diagnostics" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__rbc_util__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">rbcUtil</span> <span class="pre">helper</span> <span class="pre">contracts</span></span></dt>
+<dd><p>Shared implementation helpers and legacy adapters. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DictionaryCompare">
+<span class="target" id="group__rbc_util__internals_1gaa7df6b97d37de13c623a91c199fe3bdc"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DictionaryCompare</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">left</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DictionaryCompare" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare names using numeric runs and case-insensitive Unicode letters. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> – Borrowed NUL-terminated Tcl UTF string; not modified. </p></li>
+<li><p><strong>right</strong> – Borrowed NUL-terminated Tcl UTF string; not modified. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Negative, zero or positive according to ordering; magnitude is unspecified. Compares digit runs without conversion to a bounded integer, skipping commas encountered while advancing those runs. More leading zeros sort later as a secondary difference. Uppercase sorts before lowercase when primary values match; the first secondary difference is retained. This is a legacy comparator, not locale collation or Unicode normalization. Allocates no storage. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_Assert">
+<span class="target" id="group__rbc_util__internals_1ga9cdb854791e2f68e2f375153f3bb2952"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Assert</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">testExpr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">lineNumber</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Assert" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Report a failed internal assertion and abort the process. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>testExpr</strong> – Borrowed expression text. </p></li>
+<li><p><strong>fileName</strong> – Borrowed source filename. </p></li>
+<li><p><strong>lineNumber</strong> – Source line of the assertion. Available only without NDEBUG. Writes and flushes stderr, optionally also reports through PurifyPrintf under WINDEBUG, then aborts. Does not return a Tcl error or perform normal resource cleanup. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_Panic">
+<span class="target" id="group__rbc_util__internals_1ga9a739610853657b3e888e76625d29e31"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Panic</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Panic" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Print a fatal formatted diagnostic and abort the process. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>format</strong> – Borrowed printf-style format followed by matching arguments. Writes to stderr, appends a newline, flushes and calls abort. Never returns; this is not a recoverable Tcl error path and does not unwind resource owners. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_OpenUtfFile">
+<span class="target" id="group__rbc_util__internals_1ga206e94281c6f916ab0b3ee7ae98d4c6b"></span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_OpenUtfFile</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_OpenUtfFile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Open a Tcl UTF filename through the C stdio interface. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> – Borrowed NUL-terminated Tcl UTF filename. </p></li>
+<li><p><strong>mode</strong> – Borrowed fopen mode string. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>FILE pointer owned by the caller, or NULL when fopen fails. Converts the filename using Tcl’s default external encoding and frees the temporary conversion buffer before returning. Close successful results with fclose. Does not use Tcl channels, VFS dispatch or an interpreter diagnostic; encoding conversion does not guarantee every filename is representable. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -152,6 +226,13 @@
 <li><a class="reference internal" href="#c.Rbc_AppendResultStrings"><code class="docutils literal notranslate"><span class="pre">Rbc_AppendResultStrings()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_InitHexTable"><code class="docutils literal notranslate"><span class="pre">Rbc_InitHexTable()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_RandomDouble"><code class="docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a></li>
+<li><a class="reference internal" href="#ordering-stdio-and-fatal-diagnostics">Ordering, stdio and fatal diagnostics</a><ul>
+<li><a class="reference internal" href="#c.Rbc_DictionaryCompare"><code class="docutils literal notranslate"><span class="pre">Rbc_DictionaryCompare()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Assert"><code class="docutils literal notranslate"><span class="pre">Rbc_Assert()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Panic"><code class="docutils literal notranslate"><span class="pre">Rbc_Panic()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_OpenUtfFile"><code class="docutils literal notranslate"><span class="pre">Rbc_OpenUtfFile()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

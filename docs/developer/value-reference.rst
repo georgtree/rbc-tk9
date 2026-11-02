@@ -22,3 +22,16 @@ See :doc:`value-conversion` for lifetime and failure policy.
 .. doxygenfunction:: Rbc_GetXY
 
 .. doxygenfunction:: Rbc_ClampToInt
+
+Private parsing and legacy Tk adapters
+--------------------------------------
+
+These string adapters implement ``Tk_CustomOption`` callbacks, not the newer
+``Tk_OptionSpec`` transaction protocol. See :doc:`value-conversion` for the
+replacement and printer ownership differences.
+
+.. doxygengroup:: rbcConfig_internals
+   :members:
+
+.. doxygengroup:: rbcGrMisc_internals
+   :members:

@@ -185,6 +185,61 @@ references to the pair, even when both names resolve to the same cached color.
 The private resource harness checks balanced acquisition/release on failure and
 success, including empty and default colors, through <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code>.</p>
 </section>
+<section id="legacy-adapter-replacement-and-printing">
+<h2>Legacy adapter replacement and printing<a class="headerlink" href="#legacy-adapter-replacement-and-printing" title="Link to this heading">¶</a></h2>
+<p>The old string callbacks receive a record and byte offset. Those fields must
+already contain valid initialized values. <code class="docutils literal notranslate"><span class="pre">StringToDistance</span></code> forwards the
+sign policy encoded in client data and commits only a converted integer.
+<code class="docutils literal notranslate"><span class="pre">StringToShadow</span></code> stages a color and optional offset, then releases the old
+color itself. <code class="docutils literal notranslate"><span class="pre">StringToColorPair</span></code> similarly stages the complete pair before
+releasing the old fields. These replacement callbacks are distinct from
+<code class="docutils literal notranslate"><span class="pre">Rbc_GetShadowFromObj</span></code> and <code class="docutils literal notranslate"><span class="pre">GetColorPair</span></code>, whose successful outputs transfer
+resources without disposing of the previous destination.</p>
+<p>NULL/empty shadow input clears both fields. A nonempty shadow list requires
+one or two elements; its default offset is one. The color-pair list accepts
+zero through two names, and a single name sets the foreground only. A
+nonzero color-pair client-data policy permits nonempty prefixes of
+<code class="docutils literal notranslate"><span class="pre">defcolor</span></code>. That sentinel is a symbolic default, not a Tk color reference.</p>
+<p>Printer ownership is equally specific:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 45.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Printer</p></th>
+<th class="head"><p>Returned representation</p></th>
+<th class="head"><p>Release policy</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DistanceToString</p></td>
+<td><p>Allocated decimal integer</p></td>
+<td><p>Sets Tcl_Free</p></td>
+</tr>
+<tr class="row-odd"><td><p>ShadowToString</p></td>
+<td><p>Static empty string when disabled; otherwise allocated color/offset list</p></td>
+<td><p>Leaves policy untouched for empty; sets Tcl_Free for allocated list</p></td>
+</tr>
+<tr class="row-even"><td><p>ColorPairToString</p></td>
+<td><p>Allocated two-element list, even when both colors are empty</p></td>
+<td><p>Sets Tcl_Free</p></td>
+</tr>
+</tbody>
+</table>
+<p>The Tk caller supplies the initial free policy for static printer results.
+Do not call these callbacks directly with an uninitialized release callback.
+Color-pair printing deliberately transfers a heap-backed DString rather than
+freeing it; an inline DString is copied first. Adding an unconditional
+Tcl_DStringFree at the end would invalidate the returned heap buffer.
+<code class="docutils literal notranslate"><span class="pre">NameOfColor</span></code> itself returns borrowed text, which the list builder copies.</p>
+<p>The private parser reference also records the smaller matching boundaries:
+<code class="docutils literal notranslate"><span class="pre">IsFillPrefix</span></code> checks byte lengths and rejects empty prefixes, <code class="docutils literal notranslate"><span class="pre">DoCheck</span></code>
+applies only a sign restriction, and <code class="docutils literal notranslate"><span class="pre">GetState</span></code> requires exact names.
+<code class="docutils literal notranslate"><span class="pre">GetStringList</span></code> clears its output before parsing, so its failure behavior
+must not be mistaken for the staged replacement behavior of these adapters.</p>
+</section>
 </section>
 
 
@@ -204,6 +259,7 @@ success, including empty and default colors, through <code class="docutils liter
 <li><a class="reference internal" href="#numeric-compatibility-macros">Numeric compatibility macros</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#legacy-color-pair-adapter">Legacy color-pair adapter</a></li>
+<li><a class="reference internal" href="#legacy-adapter-replacement-and-printing">Legacy adapter replacement and printing</a></li>
 </ul>
 </li>
 </ul>

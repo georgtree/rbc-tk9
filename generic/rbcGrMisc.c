@@ -1,3 +1,10 @@
+/** @file rbcGrMisc.c
+ * @brief Shared graph coordinate and legacy color-pair services.
+ */
+/** @defgroup rbcGrMisc_internals rbcGrMisc helper contracts
+ * Shared implementation helpers and legacy adapters.
+ */
+
 /*
  * rbcGrMisc.c --
  *
@@ -68,28 +75,19 @@ badFormat:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetColorPair --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      const char *fgStr
- *      const char *bgStr
- *      ColorPair *pairPtr
- *      int allowDefault
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcGrMisc_internals
+ * @brief Acquire a staged foreground/background pair.
+ * @param interp Interpreter for Tk color errors.
+ * @param tkwin Window supplying color context.
+ * @param fgStr Non-NULL foreground name; empty means no color.
+ * @param bgStr Non-NULL background name; empty means no color.
+ * @param[out] pairPtr Receives both fields only after successful acquisition.
+ * @param allowDefault Accept nonempty prefixes of defcolor when nonzero.
+ * @return TCL_OK on success; TCL_ERROR with destination unchanged on failure.
+ * Failure of the background lookup releases an acquired foreground reference.
+ * Success transfers both references, even for identical names, but does not
+ * release any previous destination. NULL and COLOR_DEFAULT are not references.
  */
 static int GetColorPair(Tcl_Interp *interp, Tk_Window tkwin, const char *fgStr, const char *bgStr, ColorPair *pairPtr,
                         int allowDefault) {
@@ -127,23 +125,13 @@ static int GetColorPair(Tcl_Interp *interp, Tk_Window tkwin, const char *fgStr, 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeColorPair --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ColorPair *pairPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcGrMisc_internals
+ * @brief Release both owned color references and clear a pair.
+ * @param[in,out] pairPtr Initialized pair, with one reference per real color field.
+ * Skips NULL and COLOR_DEFAULT. Identical real pointers still represent two
+ * acquisitions and are released twice. Both fields become NULL, making another
+ * call safe. The pair record itself is not freed.
  */
 void Rbc_FreeColorPair(ColorPair *pairPtr) {
     if ((pairPtr->bgColor != NULL) && (pairPtr->bgColor != COLOR_DEFAULT)) {
@@ -155,29 +143,18 @@ void Rbc_FreeColorPair(ColorPair *pairPtr) {
     pairPtr->bgColor = pairPtr->fgColor = NULL;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StringToColorPair --
- *
- *      Convert the color names into pair of XColor pointers.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing color
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of color field in record
- *
- * Results:
- *      A standard Tcl result.  The color pointer is written into the
- *      widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcGrMisc_internals
+ * @brief Transactionally replace a legacy color-pair option field.
+ * @param clientData Nonzero permits the default-color sentinel.
+ * @param interp Interpreter for list and color diagnostics.
+ * @param tkwin Window supplying color context.
+ * @param string Borrowed list of zero, one or two names; NULL/empty clears it.
+ * @param widgRec Writable record containing an initialized ColorPair.
+ * @param offset Byte offset of that field.
+ * @return TCL_OK on replacement; TCL_ERROR leaves the old pair intact.
+ * One name sets only the foreground. Stages acquisition, releases the temporary
+ * list on all parsed paths, then frees the old pair and commits the new one.
  */
 static int StringToColorPair(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
                              char *widgRec, Tcl_Size offset) {
@@ -218,23 +195,13 @@ static int StringToColorPair(ClientData clientData, Tcl_Interp *interp, Tk_Windo
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * NameOfColor --
- *
- *      Convert the color option value into a string.
- *
- * Parameters:
- *      XColor *colorPtr
- *
- * Results:
- *      The static string representing the color option is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcGrMisc_internals
+ * @brief Obtain the borrowed printable name of a color or sentinel.
+ * @param colorPtr Real Tk color, NULL or COLOR_DEFAULT.
+ * @return Empty string for NULL, defcolor for the sentinel, otherwise Tk's name.
+ * No reference is acquired. Do not free the returned characters; copy them if
+ * they must outlive the color's ownership.
  */
 static const char *NameOfColor(XColor *colorPtr) {
     if (colorPtr == NULL) {
@@ -246,27 +213,17 @@ static const char *NameOfColor(XColor *colorPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ColorPairToString --
- *
- *      Convert the color pairs into color names.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of symbol type field in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the symbol color is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcGrMisc_internals
+ * @brief Serialize two color fields into an owned two-element Tcl list.
+ * @param clientData Unused.
+ * @param tkwin Unused.
+ * @param widgRec Borrowed record containing a ColorPair.
+ * @param offset Byte offset of that field.
+ * @param[out] freeProcPtr Receives Tcl_Free for the returned string.
+ * @return Allocated list, including empty or defcolor sentinel elements.
+ * Copies an inline DString buffer or transfers its heap buffer to the caller.
+ * The local DString is intentionally not freed after that ownership transfer.
  */
 static const char *ColorPairToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
                                      Tcl_FreeProc **freeProcPtr) {

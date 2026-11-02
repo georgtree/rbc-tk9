@@ -26,3 +26,9 @@ See :doc:`utility-ownership` for lifetime and failure policy.
 .. doxygenfunction:: Rbc_InitHexTable
 
 .. doxygenfunction:: Rbc_RandomDouble
+
+Ordering, stdio and fatal diagnostics
+-------------------------------------
+
+.. doxygengroup:: rbcUtil_internals
+   :members:

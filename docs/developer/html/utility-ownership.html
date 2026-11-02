@@ -151,6 +151,31 @@ review replacement and failure cleanup together as described in
 <a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a>. No generated stubs should be edited for these private
 utility changes.</p>
 </section>
+<section id="dictionary-ordering-and-fatal-diagnostics">
+<h2>Dictionary ordering and fatal diagnostics<a class="headerlink" href="#dictionary-ordering-and-fatal-diagnostics" title="Link to this heading">¶</a></h2>
+<p>Rbc_DictionaryCompare handles decimal runs without first converting them to
+machine integers. Thus <code class="docutils literal notranslate"><span class="pre">x9</span></code> precedes <code class="docutils literal notranslate"><span class="pre">x10</span></code> even when runs exceed an integer
+value’s range. Commas encountered while advancing digit runs are skipped by
+the legacy algorithm; this is not a general numeric parser. Leading zeros and
+letter case supply secondary differences only after primary comparisons tie.
+For example, <code class="docutils literal notranslate"><span class="pre">x2</span></code> precedes <code class="docutils literal notranslate"><span class="pre">x02</span></code>, and <code class="docutils literal notranslate"><span class="pre">B</span></code> precedes <code class="docutils literal notranslate"><span class="pre">b</span></code> but follows <code class="docutils literal notranslate"><span class="pre">a</span></code>.
+The first secondary difference encountered is retained.</p>
+<p>Other characters are decoded with Tcl_UtfToUniChar and compared after Tcl
+lowercase conversion. There is no normalization or locale collation. Both
+arguments are borrowed Tcl UTF strings despite their historical mutable C
+parameter types. Consumers should test the sign of the result, not expect
+exact values of minus one or plus one. This comparator is different from the
+conditional byte-oriented strcasecmp fallback in the same module.</p>
+<p>Rbc_OpenUtfFile owns only its temporary encoding-conversion buffer. A
+successful FILE stream belongs to its caller and must be closed with fclose;
+NULL reports stdio failure, without a Tcl interpreter result. This helper
+cannot substitute for Tcl filesystem operations on virtual paths.</p>
+<p>Rbc_Assert and Rbc_Panic are process-fatal diagnostics. They flush stderr and
+abort, rather than returning TCL_ERROR or invoking the ordinary ownership
+cleanup paths. The assertion function is compiled only in non-NDEBUG builds.
+Do not use either for expected malformed user input; that belongs in a
+recoverable parser with a diagnostic and explicit cleanup.</p>
+</section>
 </section>
 
 
@@ -169,6 +194,7 @@ utility changes.</p>
 <li><a class="reference internal" href="#formatting-and-result-assembly">Formatting and result assembly</a></li>
 <li><a class="reference internal" href="#other-utility-boundaries">Other utility boundaries</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+<li><a class="reference internal" href="#dictionary-ordering-and-fatal-diagnostics">Dictionary ordering and fatal diagnostics</a></li>
 </ul>
 </li>
 </ul>

@@ -109,3 +109,32 @@ names separate from scratch formatting results. For parser-owned string arrays,
 review replacement and failure cleanup together as described in
 :doc:`value-conversion`. No generated stubs should be edited for these private
 utility changes.
+
+Dictionary ordering and fatal diagnostics
+-----------------------------------------
+
+Rbc_DictionaryCompare handles decimal runs without first converting them to
+machine integers. Thus ``x9`` precedes ``x10`` even when runs exceed an integer
+value's range. Commas encountered while advancing digit runs are skipped by
+the legacy algorithm; this is not a general numeric parser. Leading zeros and
+letter case supply secondary differences only after primary comparisons tie.
+For example, ``x2`` precedes ``x02``, and ``B`` precedes ``b`` but follows ``a``.
+The first secondary difference encountered is retained.
+
+Other characters are decoded with Tcl_UtfToUniChar and compared after Tcl
+lowercase conversion. There is no normalization or locale collation. Both
+arguments are borrowed Tcl UTF strings despite their historical mutable C
+parameter types. Consumers should test the sign of the result, not expect
+exact values of minus one or plus one. This comparator is different from the
+conditional byte-oriented strcasecmp fallback in the same module.
+
+Rbc_OpenUtfFile owns only its temporary encoding-conversion buffer. A
+successful FILE stream belongs to its caller and must be closed with fclose;
+NULL reports stdio failure, without a Tcl interpreter result. This helper
+cannot substitute for Tcl filesystem operations on virtual paths.
+
+Rbc_Assert and Rbc_Panic are process-fatal diagnostics. They flush stderr and
+abort, rather than returning TCL_ERROR or invoking the ordinary ownership
+cleanup paths. The assertion function is compiled only in non-NDEBUG builds.
+Do not use either for expected malformed user input; that belongs in a
+recoverable parser with a diagnostic and explicit cleanup.

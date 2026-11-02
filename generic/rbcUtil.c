@@ -1,3 +1,10 @@
+/** @file rbcUtil.c
+ * @brief Shared string, ownership and diagnostic utilities.
+ */
+/** @defgroup rbcUtil_internals rbcUtil helper contracts
+ * Shared implementation helpers and legacy adapters.
+ */
+
 /*
  * rbcUtil.c --
  *
@@ -167,32 +174,17 @@ int strncasecmp(CONST char *s1, CONST char *s2, size_t length) {
 
 #endif /* !HAVE_STRCASECMP */
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DictionaryCompare
- *
- *      This function compares two strings as if they were being used in
- *      an index or card catalog.  The case of alphabetic characters is
- *      ignored, except to break ties.  Thus "B" comes before "b" but
- *      after "a".  Also, integers embedded in the strings compare in
- *      numerical order.  In other words, "x10y" comes after "x9y", not
- *      before it as it would when using strcmp().
- *
- * Parameters:
- *      char *left
- *      char *right
- *
- * Results:
- *      A negative result means that the first element comes before the
- *      second, and a positive result means that the second element
- *      should come first.  A result of zero means the two elements
- *      are equal and it doesn't matter which comes first.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcUtil_internals
+ * @brief Compare names using numeric runs and case-insensitive Unicode letters.
+ * @param left Borrowed NUL-terminated Tcl UTF string; not modified.
+ * @param right Borrowed NUL-terminated Tcl UTF string; not modified.
+ * @return Negative, zero or positive according to ordering; magnitude is unspecified.
+ * Compares digit runs without conversion to a bounded integer, skipping commas
+ * encountered while advancing those runs. More leading zeros sort later as a
+ * secondary difference. Uppercase sorts before lowercase when primary values
+ * match; the first secondary difference is retained. This is a legacy comparator,
+ * not locale collation or Unicode normalization. Allocates no storage.
  */
 int Rbc_DictionaryCompare(char *left, char *right) {
     Tcl_UniChar uniLeft, uniRight, uniLeftLower, uniRightLower;
@@ -298,25 +290,15 @@ int Rbc_DictionaryCompare(char *left, char *right) {
 }
 
 #ifndef NDEBUG
-/*
- *--------------------------------------------------------------
- *
- * Rbc_Assert --
- *
- *      TODO: Description
- *
- * Parameters:
- *      char *testExpr
- *      char *fileName
- *      int lineNumber
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+/**
+ * @ingroup rbcUtil_internals
+ * @brief Report a failed internal assertion and abort the process.
+ * @param testExpr Borrowed expression text.
+ * @param fileName Borrowed source filename.
+ * @param lineNumber Source line of the assertion.
+ * Available only without NDEBUG. Writes and flushes stderr, optionally also
+ * reports through PurifyPrintf under WINDEBUG, then aborts. Does not return a
+ * Tcl error or perform normal resource cleanup.
  */
 void Rbc_Assert(char *testExpr, char *fileName, int lineNumber) {
 #ifdef WINDEBUG
@@ -328,24 +310,12 @@ void Rbc_Assert(char *testExpr, char *fileName, int lineNumber) {
 }
 #endif
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_Panic --
- *
- *      TODO: Description
- *
- * Parameters:
- *      char *format
- *      ...
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+/**
+ * @ingroup rbcUtil_internals
+ * @brief Print a fatal formatted diagnostic and abort the process.
+ * @param format Borrowed printf-style format followed by matching arguments.
+ * Writes to stderr, appends a newline, flushes and calls abort. Never returns;
+ * this is not a recoverable Tcl error path and does not unwind resource owners.
  */
 void Rbc_Panic(char *format, ...) {
     va_list argList;
@@ -411,24 +381,16 @@ char *Rbc_Dtoa(Tcl_Interp *interp, double value) {
 }
 
 #undef fopen
-/*
- *--------------------------------------------------------------
- *
- * Rbc_OpenUtfFile --
- *
- *      TODO: Description
- *
- * Parameters:
- *      char *fileName
- *      char *mode
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+/**
+ * @ingroup rbcUtil_internals
+ * @brief Open a Tcl UTF filename through the C stdio interface.
+ * @param fileName Borrowed NUL-terminated Tcl UTF filename.
+ * @param mode Borrowed fopen mode string.
+ * @return FILE pointer owned by the caller, or NULL when fopen fails.
+ * Converts the filename using Tcl's default external encoding and frees the
+ * temporary conversion buffer before returning. Close successful results with
+ * fclose. Does not use Tcl channels, VFS dispatch or an interpreter diagnostic;
+ * encoding conversion does not guarantee every filename is representable.
  */
 FILE *Rbc_OpenUtfFile(char *fileName, char *mode) {
     Tcl_DString dString;

@@ -143,3 +143,53 @@ sentinels are never passed to ``Tk_FreeColor``. Successful parsing transfers bot
 references to the pair, even when both names resolve to the same cached color.
 The private resource harness checks balanced acquisition/release on failure and
 success, including empty and default colors, through ``make test-resources``.
+
+Legacy adapter replacement and printing
+---------------------------------------
+
+The old string callbacks receive a record and byte offset. Those fields must
+already contain valid initialized values. ``StringToDistance`` forwards the
+sign policy encoded in client data and commits only a converted integer.
+``StringToShadow`` stages a color and optional offset, then releases the old
+color itself. ``StringToColorPair`` similarly stages the complete pair before
+releasing the old fields. These replacement callbacks are distinct from
+``Rbc_GetShadowFromObj`` and ``GetColorPair``, whose successful outputs transfer
+resources without disposing of the previous destination.
+
+NULL/empty shadow input clears both fields. A nonempty shadow list requires
+one or two elements; its default offset is one. The color-pair list accepts
+zero through two names, and a single name sets the foreground only. A
+nonzero color-pair client-data policy permits nonempty prefixes of
+``defcolor``. That sentinel is a symbolic default, not a Tk color reference.
+
+Printer ownership is equally specific:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 45 30
+
+   * - Printer
+     - Returned representation
+     - Release policy
+   * - DistanceToString
+     - Allocated decimal integer
+     - Sets Tcl_Free
+   * - ShadowToString
+     - Static empty string when disabled; otherwise allocated color/offset list
+     - Leaves policy untouched for empty; sets Tcl_Free for allocated list
+   * - ColorPairToString
+     - Allocated two-element list, even when both colors are empty
+     - Sets Tcl_Free
+
+The Tk caller supplies the initial free policy for static printer results.
+Do not call these callbacks directly with an uninitialized release callback.
+Color-pair printing deliberately transfers a heap-backed DString rather than
+freeing it; an inline DString is copied first. Adding an unconditional
+Tcl_DStringFree at the end would invalidate the returned heap buffer.
+``NameOfColor`` itself returns borrowed text, which the list builder copies.
+
+The private parser reference also records the smaller matching boundaries:
+``IsFillPrefix`` checks byte lengths and rejects empty prefixes, ``DoCheck``
+applies only a sign restriction, and ``GetState`` requires exact names.
+``GetStringList`` clears its output before parsing, so its failure behavior
+must not be mistaken for the staged replacement behavior of these adapters.
