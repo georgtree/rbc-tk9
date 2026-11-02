@@ -403,6 +403,8 @@ $(TEST_IMAGE_LIB): $(PKG_OBJECTS) rbcImageTest.$(OBJEXT)
 test-resources: $(TEST_RESOURCE_LIB)
 	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.resources.lifecycle.A.test` $(TESTFLAGS)
+	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.postscript.primitives.A.test` $(TESTFLAGS)
 
 rbcResourceTest.$(OBJEXT): $(srcdir)/tests/rbcResourceTest.c $(srcdir)/generic/rbcCanvEps.c $(srcdir)/generic/rbcWindow.c $(srcdir)/generic/rbcGrMisc.c $(PKG_HEADERS)
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcResourceTest.c` -o $@

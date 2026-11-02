@@ -104,6 +104,87 @@ Polyline output is split at 1500 path components, restarting at the shared
 endpoint. Changes to this batching must preserve connected geometry and
 stroke behavior.</p>
 </section>
+<section id="legacy-primitive-contracts">
+<h2>Legacy primitive contracts<a class="headerlink" href="#legacy-primitive-contracts" title="Link to this heading">¶</a></h2>
+<p>The helpers in <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code> append to the existing token; they do not construct a
+page, write a file or own a renderer context. Their coordinates are already
+mapped. They rely on the enclosing transformation and clip, and generally do
+not validate geometry or save/restore graphics state. Components should still
+use renderer operations rather than add direct calls to these legacy helpers.</p>
+<p>Foreground and background conversion use the upper eight bits of each XColor
+component. The default prolog maps foreground to black and background to white
+in monochrome mode, or converts to grey in greyscale mode. An optional Tcl
+color-array entry instead supplies raw PostScript code and bypasses these
+operators. A lookup may execute a read trace, so this is a callback boundary,
+not just a color-table read. The enclosing export must protect borrowed
+lifetimes; the void color helpers do not expose lookup errors or undo output.
+<code class="docutils literal notranslate"><span class="pre">Rbc_ClearBackgroundToPostScript</span></code> merely selects white: it clears no pixels.</p>
+<p>Line attributes have their own compatibility rules: zero-width lines become
+one user unit, CapNotLast maps to butt, and dash phase is always zero. The
+combined attribute helper also replaces <code class="docutils literal notranslate"><span class="pre">DashesProc</span></code> with an empty procedure.
+Callers that need a dash-background pass must define it after that setup.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Legacy path effects</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helper</p></th>
+<th class="head"><p>Effect on the current path</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Region</p></td>
+<td><p>Starts a closed Box without painting.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rectangle / rectangles</p></td>
+<td><p>Starts each Box and consumes it with built-in fill.</p></td>
+</tr>
+<tr class="row-even"><td><p>Path</p></td>
+<td><p>Starts an open path; does not paint or split it.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Polygon</p></td>
+<td><p>Closes a new path and calls Fill, which preserves the path.</p></td>
+</tr>
+<tr class="row-even"><td><p>Integer segments</p></td>
+<td><p>Does not clear an existing path before the first stroke.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Floating segments</p></td>
+<td><p>Starts with newpath so a previous retained polygon is not stroked.</p></td>
+</tr>
+<tr class="row-even"><td><p>Integer polyline</p></td>
+<td><p>Starts a new path; strokes and restarts at shared batching endpoints.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Nonpositive point or segment counts append nothing, leaving any existing path
+untouched. Each independent segment ends with <code class="docutils literal notranslate"><span class="pre">DashesProc</span> <span class="pre">stroke</span></code>. Integer
+polyline batches use the 1500-component boundary; generic floating paths and
+polygons do not implement that splitting. Connected endpoints do not imply
+continuous dash phase or identical joins across separate strokes.</p>
+<p>The integer polyline helper treats fewer than two points as a no-op, without
+reading the point array or modifying the output. Two or more points retain the
+existing batching and stroke behavior. Its private regression checks run with
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code>; they cover empty/single-point input, ordinary lines and
+the 1500-component boundary.</p>
+</section>
+<section id="relief-rectangles">
+<h2>Relief rectangles<a class="headerlink" href="#relief-rectangles" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_Draw3DRectangleToPostScript</span></code> draws only border bands. It initializes Tk’s
+light-border GC before querying shadow colors, so export need not wait for a
+screen draw. Bottom and right strips are rectangles; the top/left band is a
+polygon. Raised and sunken relief exchange the light and dark sides. Groove
+and ridge recurse with half-width bands and complementary relief. Odd border
+widths retain the existing integer split and inset rules.</p>
+<p>The helper omits borders if either dimension is smaller than twice the border
+width. Inputs must keep that multiplication and inset arithmetic representable;
+this is not an arbitrary-size geometry validator. Colors and the final polygon
+path remain selected after emission. <code class="docutils literal notranslate"><span class="pre">Rbc_Fill3DRectangleToPostScript</span></code> first
+fills the whole background, then invokes the border helper: skipping the border
+does not skip the fill. Border colors use background conversion, preserving the
+monochrome policy rather than treating relief bands as foreground strokes.</p>
+</section>
 <section id="text-and-fill-limitations">
 <h2>Text and fill limitations<a class="headerlink" href="#text-and-fill-limitations" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_AppendPostScriptString</span></code> emits literal-string contents, not the enclosing
@@ -141,6 +222,8 @@ PostScript document.</p>
 <li><a class="reference internal" href="#token-ownership">Token ownership</a></li>
 <li><a class="reference internal" href="#prolog-and-page-setup">Prolog and page setup</a></li>
 <li><a class="reference internal" href="#graphics-state-boundaries">Graphics-state boundaries</a></li>
+<li><a class="reference internal" href="#legacy-primitive-contracts">Legacy primitive contracts</a></li>
+<li><a class="reference internal" href="#relief-rectangles">Relief rectangles</a></li>
 <li><a class="reference internal" href="#text-and-fill-limitations">Text and fill limitations</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 </ul>

@@ -1,0 +1,37 @@
+# Private PostScript helper checks; uses the existing resource harness.
+# See license.terms for details.
+package provide postscript.primitives
+package require tcltest
+namespace import tcltest::*
+set psAvailable 0
+if {[info exists ::env(RBC_RESOURCE_TEST_LIB)]} {
+    package require Tk
+    load $::env(RBC_RESOURCE_TEST_LIB) Rbcresourcetest
+    set psAvailable 1
+}
+testConstraint psHarness $psAvailable
+namespace eval postscript.primitives {
+    foreach {case count} {1 -1 2 0 3 1} {
+        test RBC.postscript.primitives.A.1.$case {fewer than two points leave output untouched} \
+            -constraints psHarness -body {
+                ::rbcpslinetest $count
+            } -result "% sentinel\n"
+    }
+    test RBC.postscript.primitives.A.2.1 {two points retain one complete stroke} \
+        -constraints psHarness -body {
+            ::rbcpslinetest 2
+        } -result "% sentinel\n newpath 0 1 moveto\n 1 2 lineto\nDashesProc stroke\n"
+    test RBC.postscript.primitives.A.2.2 {three points retain the intermediate vertex} \
+        -constraints psHarness -body {
+            ::rbcpslinetest 3
+        } -result "% sentinel\n newpath 0 1 moveto\n 1 2 lineto\n 2 3 lineto\nDashesProc stroke\n"
+    test RBC.postscript.primitives.A.3.1 {path batching restarts at the shared endpoint} \
+        -constraints psHarness -body {
+            set ps [::rbcpslinetest 1502]
+            list [regexp -all {DashesProc stroke} $ps] \
+                [regexp -all {lineto} $ps] \
+                [regexp { 1500 1501 lineto\nDashesProc stroke\n newpath  1500 1501 moveto\n 1501 1502 lineto\nDashesProc stroke\n$} $ps]
+        } -result {2 1501 1}
+    ::tcltest::cleanupTests
+}
+if {$psAvailable} {destroy .}

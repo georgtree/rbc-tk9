@@ -1,7 +1,8 @@
-/*
- * rbcPs.c --
- *
- *      This module implements general PostScript conversion routines.
+/**
+ * @file rbcPs.c
+ * @brief Private PostScript token, conversion and legacy drawing services.
+ * @defgroup ps_legacy_primitives Legacy PostScript drawing primitives
+ * @brief Append drawing programs to a borrowed token; no page delivery.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -310,32 +311,12 @@ int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
     Tcl_Close(interp, channel);
     return TCL_OK;
 }
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Append three normalized RGB operands from a borrowed XColor.
+ * @ingroup ps_legacy_primitives
  *
- * XColorToPostScript --
- *
- *      Convert the a XColor (from its RGB values) to a PostScript
- *      command.  If a Tk color map variable exists, it will be
- *      consulted for a PostScript translation based upon the color
- *      name.
- *
- *      Maps an X color intensity (0 to 2^16-1) to a floating point
- *      value [0..1].  Many versions of Tk don't properly handle the
- *      the lower 8 bits of the color intensity, so we can only
- *      consider the upper 8 bits.
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      XColor *colorPtr - Color value to be converted
- *
- * Results:
- *      The string representing the color mode is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses only the upper eight bits of each 16-bit component, divided by 255.
+ * Emits no color-setting operator and performs no variable lookup.
  */
 static void XColorToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr) {
     /*
@@ -346,24 +327,15 @@ static void XColorToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr)
                            ((double)(colorPtr->green >> 8) / 255.0), ((double)(colorPtr->blue >> 8) / 255.0));
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append mapped background code or RGB operands followed by SetBgColor.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_BackgroundToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      XColor *colorPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * If colorVarName is set, look up the color name in that Tcl array and append
+ * a found value verbatim, bypassing the default operator. Missing entries
+ * fall back to RGB conversion. Variable reads may run traces; the enclosing
+ * caller must protect token, interpreter and borrowed input lifetimes.
+ * This void helper neither reports lookup failure nor rolls back output.
  */
 void Rbc_BackgroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr) {
     /* If the color name exists in Tcl array variable, use that translation */
@@ -380,24 +352,14 @@ void Rbc_BackgroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr
     Rbc_AppendToPostScript(tokenPtr, " SetBgColor\n", (char *)NULL);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append mapped foreground code or RGB operands followed by SetFgColor.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_ForegroundToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      XColor *colorPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses the same optional Tcl color-array lookup as background output, with
+ * the same trace/lifetime requirements. Found values are executable source,
+ * not escaped color names. Otherwise the prolog controls color, greyscale
+ * and monochrome conversion. No graphics-state save is emitted.
  */
 void Rbc_ForegroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr) {
     /* If the color name exists in Tcl array variable, use that translation */
@@ -932,46 +894,24 @@ static const char *XFontStructToPostScript(Tk_Window tkwin, XFontStruct *fontPtr
  * -------------------------------------------------------------------
  */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Select white through the prolog background-color operator.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_ClearBackgroundToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Appends SetBgColor operands only; it does not erase or fill any region.
+ * It bypasses the optional Tcl color map and does not restore prior color.
  */
 void Rbc_ClearBackgroundToPostScript(struct PsTokenStruct *tokenPtr) {
     Rbc_AppendToPostScript(tokenPtr, " 1.0 1.0 1.0 SetBgColor\n", (char *)NULL);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append an X11-to-PostScript line-cap conversion.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_CapStyleToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      int capStyle
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * CapNotLast and CapButt both map to butt; positive X11 values are reduced
+ * by one. The caller supplies a valid cap enumeration; no range validation
+ * or graphics-state restoration is performed.
  */
 void Rbc_CapStyleToPostScript(struct PsTokenStruct *tokenPtr, int capStyle) {
     /*
@@ -984,24 +924,12 @@ void Rbc_CapStyleToPostScript(struct PsTokenStruct *tokenPtr, int capStyle) {
     Rbc_FormatToPostScript(tokenPtr, "%d setlinecap\n", capStyle);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append the join enumeration directly to setlinejoin.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_JoinStyleToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      int joinStyle
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * X11 and PostScript share miter=0, round=1 and bevel=2. The caller must
+ * supply a valid enumeration; the previous setting is not restored.
  */
 void Rbc_JoinStyleToPostScript(struct PsTokenStruct *tokenPtr, int joinStyle) {
     /*
@@ -1010,24 +938,12 @@ void Rbc_JoinStyleToPostScript(struct PsTokenStruct *tokenPtr, int joinStyle) {
     Rbc_FormatToPostScript(tokenPtr, "%d setlinejoin\n", joinStyle);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append an integer line width, clamped to at least one.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_LineWidthToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      int joinStyle
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Zero and negative inputs become one rather than a PostScript hairline.
+ * Width is expressed in the current user coordinate system.
  */
 void Rbc_LineWidthToPostScript(struct PsTokenStruct *tokenPtr, int lineWidth) {
     if (lineWidth < 1) {
@@ -1036,24 +952,13 @@ void Rbc_LineWidthToPostScript(struct PsTokenStruct *tokenPtr, int lineWidth) {
     Rbc_FormatToPostScript(tokenPtr, "%d setlinewidth\n", lineWidth);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append a zero-terminated byte dash list with zero phase.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_LineDashesToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Rbc_Dashes *dashesPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * A NULL pointer or empty values array emits a solid-line dash array.
+ * A non-NULL values array must contain a zero terminator. The stored dash
+ * offset is not emitted; this helper always uses phase zero.
  */
 void Rbc_LineDashesToPostScript(struct PsTokenStruct *tokenPtr, Rbc_Dashes *dashesPtr) {
 
@@ -1068,28 +973,13 @@ void Rbc_LineDashesToPostScript(struct PsTokenStruct *tokenPtr, Rbc_Dashes *dash
     Rbc_AppendToPostScript(tokenPtr, "] 0 setdash\n", (char *)NULL);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append join, cap, foreground, width and dashes in that order.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_LineAttributesToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      XColor *colorPtr
- *      int lineWidth
- *      Rbc_Dashes *dashesPtr
- *      int capStyle
- *      int joinStyle
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows all inputs and inherits the foreground color-map callback boundary.
+ * Finally defines an empty DashesProc in the current dictionary. This is
+ * not a scoped state change; subsequent strokes use the emitted attributes.
  */
 void Rbc_LineAttributesToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr, int lineWidth,
                                     Rbc_Dashes *dashesPtr, int capStyle, int joinStyle) {
@@ -1101,78 +991,37 @@ void Rbc_LineAttributesToPostScript(struct PsTokenStruct *tokenPtr, XColor *colo
     Rbc_AppendToPostScript(tokenPtr, "/DashesProc {} def\n", (char *)NULL);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append a Box followed by the built-in fill operator.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_RectangleToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      double x
- *      double y
- *      int width
- *      int height
- *      int joinStyle
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Receives already mapped coordinates and dimensions. The prolog Box starts
+ * a fresh closed path; fill consumes it. No color, clipping or validation
+ * is added, and no outline is stroked.
  */
 void Rbc_RectangleToPostScript(struct PsTokenStruct *tokenPtr, double x, double y, int width, int height) {
     Rbc_FormatToPostScript(tokenPtr, "%g %g %d %d Box fill\n\n", x, y, width, height);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append a fresh closed rectangular path without painting it.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_RegionToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      double x
- *      double y
- *      int width
- *      int height
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses the prolog Box procedure. The caller decides whether to fill, stroke
+ * or clip the resulting path and supplies valid mapped dimensions.
  */
 void Rbc_RegionToPostScript(struct PsTokenStruct *tokenPtr, double x, double y, int width, int height) {
     Rbc_FormatToPostScript(tokenPtr, "%g %g %d %d Box\n\n", x, y, width, height);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append a new open path from borrowed floating-point vertices.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_PathToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      register Point2D *screenPts
- *      int nScreenPts
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * A nonpositive count appends nothing and leaves the prior path untouched.
+ * For a positive count, screenPts must contain that many points. Emits one
+ * moveto and remaining lineto operations, with no stroke, close, clipping
+ * or path-size splitting. Numeric inputs must be suitable for PostScript.
  */
 void Rbc_PathToPostScript(struct PsTokenStruct *tokenPtr, register Point2D *screenPts, Tcl_Size nScreenPts) {
     register Point2D *pointPtr, *endPtr;
@@ -1190,25 +1039,14 @@ void Rbc_PathToPostScript(struct PsTokenStruct *tokenPtr, register Point2D *scre
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Close and fill a borrowed floating-point polygon through Fill.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_PolygonToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Point2D *screenPts
- *      int nScreenPts
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Nonpositive counts append nothing. Otherwise builds a fresh path, adds
+ * an explicit line back to the first point, closes it and calls the prolog
+ * Fill procedure. Unlike built-in fill, Fill preserves the path. This helper
+ * does not validate polygon area, split large paths or select a color.
  */
 void Rbc_PolygonToPostScript(struct PsTokenStruct *tokenPtr, Point2D *screenPts, Tcl_Size nScreenPts) {
     if (nScreenPts <= 0) {
@@ -1219,25 +1057,14 @@ void Rbc_PolygonToPostScript(struct PsTokenStruct *tokenPtr, Point2D *screenPts,
     Rbc_AppendToPostScript(tokenPtr, " lineto closepath Fill\n", (char *)NULL);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append independent integer segments with DashesProc stroke.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_SegmentsToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      register XSegment *segPtr
- *      int nSegments
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows nSegments XSegment entries; nonpositive counts append nothing.
+ * No initial newpath is emitted, so callers must ensure there is no pending
+ * path to stroke along with the first segment. Requires DashesProc to be
+ * defined. Each stroke consumes its path and restarts the dash pattern.
  */
 void Rbc_SegmentsToPostScript(struct PsTokenStruct *tokenPtr, register XSegment *segPtr, int nSegments) {
     register int i;
@@ -1249,25 +1076,12 @@ void Rbc_SegmentsToPostScript(struct PsTokenStruct *tokenPtr, register XSegment 
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Fill each borrowed integer rectangle with the current color.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_RectanglesToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      XRectangle rectArr[]
- *      int nRects
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Delegates each entry to Rbc_RectangleToPostScript; nonpositive counts
+ * append nothing. No outline, color selection or clipping is supplied.
  */
 void Rbc_RectanglesToPostScript(struct PsTokenStruct *tokenPtr, XRectangle rectArr[], int nRects) {
     register int i;
@@ -1278,31 +1092,19 @@ void Rbc_RectanglesToPostScript(struct PsTokenStruct *tokenPtr, XRectangle rectA
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append the border bands of a Tk relief rectangle.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_Draw3DRectangleToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Tk_3DBorder border - Token for border to draw.
- *      double x - Coordinate of rectangle
- *      double y - Coordinate of rectangle
- *      int width - -
- *      int height - Region to be drawn.
- *      int borderWidth - Desired width for border, in pixels.
- *      int relief - Should be either TK_RELIEF_RAISED or TK_RELIEF_SUNKEN;  indicates position of interior of window\
- *                   relative to exterior.
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows a live border and the token window. Requires nonnegative bounded
+ * dimensions and borderWidth with representable integer arithmetic. Returns
+ * without output if either dimension is smaller than twice borderWidth.
+ * Initializes Tk shadow colors before querying them. Groove and ridge use
+ * two recursive half-width relief bands; raised and sunken swap light/dark
+ * top-left and bottom-right colors. Other cases retain the existing solid
+ * or background-color selection. Emits bottom/right rectangles and a
+ * top/left polygon; does not fill the whole interior or restore color/path.
+ * Color-map reads inherit the enclosing export callback requirements.
  */
 void Rbc_Draw3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder border, double x, double y, int width,
                                      int height, int borderWidth, int relief) {
@@ -1382,31 +1184,14 @@ void Rbc_Draw3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder
     Rbc_PolygonToPostScript(tokenPtr, points, 7);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Fill the background rectangle, then append its relief border.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_Fill3DRectangleToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Tk_3DBorder border - Token for border to draw.
- *      double x - Coordinate of top-left of border area
- *      double y - Coordinate of top-left of border area
- *      int width - -
- *      int height - Dimension of border to be drawn.
- *      int borderWidth - Desired width for border, in pixels.
- *      int relief - Should be either TK_RELIEF_RAISED or TK_RELIEF_SUNKEN;  indicates position of interior of window\
- *                   relative to exterior.
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows the border and token window. Selects its background with
+ * SetBgColor semantics before the fill, then delegates border geometry to
+ * Rbc_Draw3DRectangleToPostScript. Inherits that helper arithmetic and
+ * lifetime requirements; border omission does not undo the initial fill.
  */
 void Rbc_Fill3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder border, double x, double y, int width,
                                      int height, int borderWidth, int relief) {
@@ -1798,31 +1583,21 @@ void Rbc_TextToPostScript(struct PsTokenStruct *tokenPtr, char *string, TextStyl
     Rbc_AppendToPostScript(tokenPtr, "EndText\n", (char *)NULL);
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @brief Append a stroked integer polyline with bounded path batches.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_LineToPostScript --
- *
- *      Outputs PostScript commands to print a multi-segmented line.
- *      It assumes a procedure DashesProc was previously defined.
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      register XPoint *pointPtr
- *      int nPoints
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Segmented line is printed.
- *
- * -----------------------------------------------------------------
+ * Counts below two are no-ops, without reading the point array or changing
+ * the output. Otherwise pointPtr must contain nPoints readable entries.
+ * Starts a new path, then emits DashesProc stroke at each PS_MAXPATH
+ * boundary and restarts at the shared endpoint.
+ * Stroke boundaries retain connected positions but restart stroke/dash
+ * processing. Requires a previously defined DashesProc; borrows the array.
  */
 void Rbc_LineToPostScript(struct PsTokenStruct *tokenPtr, register XPoint *pointPtr, int nPoints) {
     register int i;
 
-    if (nPoints <= 0) {
+    if (nPoints < 2) {
         return;
     }
     Rbc_FormatToPostScript(tokenPtr, " newpath %d %d moveto\n", pointPtr->x, pointPtr->y);
@@ -1875,25 +1650,15 @@ void Rbc_BitmapToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pi
     Rbc_AppendToPostScript(tokenPtr, "    } imagemask\n  grestore\n", (char *)NULL);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append independent floating segments after clearing any pending path.
+ * @ingroup ps_legacy_primitives
  *
- * Rbc_2DSegmentsToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      PsToken psToken
- *      register Segment2D *segPtr
- *      int nSegments
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Nonpositive counts append nothing. Otherwise starts with newpath, then
+ * emits each segment followed by DashesProc stroke. This prevents a path
+ * retained by Fill from being stroked accidentally. Requires a defined
+ * DashesProc and a readable borrowed array of nSegments entries. No numeric
+ * validation, clipping or state restoration is performed.
  */
 void Rbc_2DSegmentsToPostScript(PsToken psToken, register Segment2D *segPtr, Tcl_Size nSegments) {
     register Segment2D *endPtr;

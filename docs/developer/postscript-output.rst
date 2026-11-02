@@ -74,6 +74,80 @@ Polyline output is split at 1500 path components, restarting at the shared
 endpoint. Changes to this batching must preserve connected geometry and
 stroke behavior.
 
+Legacy primitive contracts
+--------------------------
+
+The helpers in ``rbcPs.c`` append to the existing token; they do not construct a
+page, write a file or own a renderer context. Their coordinates are already
+mapped. They rely on the enclosing transformation and clip, and generally do
+not validate geometry or save/restore graphics state. Components should still
+use renderer operations rather than add direct calls to these legacy helpers.
+
+Foreground and background conversion use the upper eight bits of each XColor
+component. The default prolog maps foreground to black and background to white
+in monochrome mode, or converts to grey in greyscale mode. An optional Tcl
+color-array entry instead supplies raw PostScript code and bypasses these
+operators. A lookup may execute a read trace, so this is a callback boundary,
+not just a color-table read. The enclosing export must protect borrowed
+lifetimes; the void color helpers do not expose lookup errors or undo output.
+``Rbc_ClearBackgroundToPostScript`` merely selects white: it clears no pixels.
+
+Line attributes have their own compatibility rules: zero-width lines become
+one user unit, CapNotLast maps to butt, and dash phase is always zero. The
+combined attribute helper also replaces ``DashesProc`` with an empty procedure.
+Callers that need a dash-background pass must define it after that setup.
+
+.. list-table:: Legacy path effects
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Helper
+     - Effect on the current path
+   * - Region
+     - Starts a closed Box without painting.
+   * - Rectangle / rectangles
+     - Starts each Box and consumes it with built-in fill.
+   * - Path
+     - Starts an open path; does not paint or split it.
+   * - Polygon
+     - Closes a new path and calls Fill, which preserves the path.
+   * - Integer segments
+     - Does not clear an existing path before the first stroke.
+   * - Floating segments
+     - Starts with newpath so a previous retained polygon is not stroked.
+   * - Integer polyline
+     - Starts a new path; strokes and restarts at shared batching endpoints.
+
+Nonpositive point or segment counts append nothing, leaving any existing path
+untouched. Each independent segment ends with ``DashesProc stroke``. Integer
+polyline batches use the 1500-component boundary; generic floating paths and
+polygons do not implement that splitting. Connected endpoints do not imply
+continuous dash phase or identical joins across separate strokes.
+
+The integer polyline helper treats fewer than two points as a no-op, without
+reading the point array or modifying the output. Two or more points retain the
+existing batching and stroke behavior. Its private regression checks run with
+``make test-resources``; they cover empty/single-point input, ordinary lines and
+the 1500-component boundary.
+
+Relief rectangles
+-----------------
+
+``Rbc_Draw3DRectangleToPostScript`` draws only border bands. It initializes Tk's
+light-border GC before querying shadow colors, so export need not wait for a
+screen draw. Bottom and right strips are rectangles; the top/left band is a
+polygon. Raised and sunken relief exchange the light and dark sides. Groove
+and ridge recurse with half-width bands and complementary relief. Odd border
+widths retain the existing integer split and inset rules.
+
+The helper omits borders if either dimension is smaller than twice the border
+width. Inputs must keep that multiplication and inset arithmetic representable;
+this is not an arbitrary-size geometry validator. Colors and the final polygon
+path remain selected after emission. ``Rbc_Fill3DRectangleToPostScript`` first
+fills the whole background, then invokes the border helper: skipping the border
+does not skip the fill. Border colors use background conversion, preserving the
+monochrome policy rather than treating relief bands as foreground strokes.
+
 Text and fill limitations
 -------------------------
 

@@ -19,3 +19,13 @@ These private services are declared in ``rbcPs.h`` and implemented in
 .. doxygenfunction:: Rbc_AppendPostScriptString
 
 .. doxygenfunction:: Rbc_FileToPostScript
+
+Legacy drawing primitives
+-------------------------
+
+.. c:namespace:: rbcPsPrimitives
+
+.. doxygengroup:: ps_legacy_primitives
+   :members:
+
+.. c:namespace-pop::

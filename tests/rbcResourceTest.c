@@ -120,11 +120,44 @@ static int ResourceTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     return TCL_OK;
 }
 
+/* Exercise the production serializer without adding an installed command. */
+static int PsLineTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int count, i;
+    XPoint *points = NULL;
+    PsToken token;
+    (void)data;
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "pointCount");
+        return TCL_ERROR;
+    }
+    if (Tcl_GetIntFromObj(interp, objv[1], &count) != TCL_OK) return TCL_ERROR;
+    if (count < -1 || count > 1502) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("pointCount must be between -1 and 1502", -1));
+        return TCL_ERROR;
+    }
+    if (count > 0) {
+        /* Exact allocation exposes the one-point over-read to sanitizers. */
+        points = (XPoint *)ckalloc((size_t)count * sizeof(XPoint));
+        for (i = 0; i < count; i++) {
+            points[i].x = (short)i;
+            points[i].y = (short)(i + 1);
+        }
+    }
+    token = Rbc_GetPsToken(interp, Tk_MainWindow(interp));
+    Rbc_AppendToPostScript(token, "% sentinel\n", (char *)NULL);
+    Rbc_LineToPostScript(token, points, count);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Rbc_PostScriptFromToken(token), -1));
+    Rbc_ReleasePsToken(token);
+    if (points != NULL) ckfree(points);
+    return TCL_OK;
+}
+
 DLLEXPORT int Rbcresourcetest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL || Tk_InitStubs(interp, "9.0", 0) == NULL) {
         return TCL_ERROR;
     }
     Rbc_InitEpsCanvasItem(interp);
+    Tcl_CreateObjCommand2(interp, "::rbcpslinetest", PsLineTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbccolorpairtest", ColorPairTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcresourcetest", ResourceTestCmd, NULL, NULL);
     return Tcl_PkgProvide(interp, "rbcresourcetest", "1.0");
