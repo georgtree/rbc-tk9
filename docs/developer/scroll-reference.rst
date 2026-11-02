@@ -9,7 +9,8 @@ These interfaces are private. See :doc:`scrolling` for viewport policy.
 
 .. doxygenfunction:: Rbc_GetScrollInfoFromObj
 
-.. doxygenfunction:: Rbc_TrackYViewOp
+Track-local axis scrolling is documented as
+:c:func:`rbcGrAxisLayoutControl.Rbc_TrackYViewOp` in :doc:`axis-reference`.
 
 .. doxygenfunction:: Rbc_NotifyTrackView
 

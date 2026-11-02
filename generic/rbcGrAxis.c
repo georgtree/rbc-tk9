@@ -12,6 +12,7 @@
 /** @defgroup axis_transactions Axis option transactions */
 /** @defgroup axis_ranges Axis ranges and tick sweeps */
 /** @defgroup axis_presentation Axis labels and presentation */
+/** @defgroup axis_layout_control Axis layout and view control */
 /** @defgroup axis_registry Axis registry and lifetime */
 /** @defgroup axis_configuration Axis configuration entry points */
 /** @defgroup axis_commands Axis command dispatch and bindings */
@@ -436,6 +437,13 @@ static int LayoutRange(Tcl_WideInt value) {
     return Rbc_ClampToInt(value);
 }
 
+/**
+ * @ingroup axis_layout_control
+ * @brief Validate the list representation of an optional command prefix.
+ *
+ * NULL and empty lists succeed. Returns a Tcl parsing status for other values; does not evaluate the
+ * command, resolve its first word or retain list elements.
+ */
 static int ValidateAxisCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     Tcl_Size objc;
     Tcl_Obj **objv;
@@ -449,8 +457,16 @@ static int ValidateAxisCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/* Deliver scrollbar commands outside drawing and layout. The command owns its
- * arguments before evaluation: the callback may delete this axis or its graph. */
+/**
+ * @ingroup axis_layout_control
+ * @brief Deliver the latest queued scrollbar fractions at idle.
+ *
+ * Clears the pending flag before delivery and skips destroyed graphs, deleted axes and absent/empty
+ * prefixes. Copies the prefix and appends owned fraction objects before evaluation. Preserves
+ * graph/interpreter storage and interpreter state, evaluates globally and reports errors in the
+ * background. Does not dereference the axis after Tcl evaluation; destruction cancels outstanding idle
+ * delivery.
+ */
 static void NotifyAxisScrollbar(ClientData clientData) {
     Axis *axisPtr = clientData;
     Graph *graphPtr = axisPtr->graphPtr;
@@ -485,6 +501,14 @@ static void NotifyAxisScrollbar(ClientData clientData) {
     Tcl_Release(interp);
 }
 
+/**
+ * @ingroup axis_layout_control
+ * @brief Coalesce a scrollbar notification using the latest fractions.
+ *
+ * Suppresses updates during GRAPH_EXPORT. Otherwise replaces pending fraction values and schedules at
+ * most one idle callback for the axis. Does not evaluate Tcl, compare fractions with the previous
+ * delivery or retain a separate axis reference.
+ */
 static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFract, double lastFract) {
     if (graphPtr->flags & GRAPH_EXPORT) {
         return;
@@ -3869,38 +3893,13 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Constrain a normalized scrolling offset using canvas-style rules.
  *
- * AdjustViewport --
- *
- *      Adjusts the offsets of the viewport according to the scroll mode.
- *      This is to accommodate both "listbox" and "canvas" style scrolling.
- *
- *      "canvas"    The viewport scrolls within the range of world
- *              coordinates.  This way the viewport always displays
- *              a full page of the world.  If the world is smaller
- *              than the viewport, then (bizarrely) the world and
- *              viewport are inverted so that the world moves up
- *              and down within the viewport.
- *
- *      "listbox"    The viewport can scroll beyond the range of world
- *              coordinates.  Every entry can be displayed at the
- *              top of the viewport.  This also means that the
- *              scrollbar thumb weirdly shrinks as the last entry
- *              is scrolled upward.
- *
- * Parameters:
- *      double offset
- *      double windowSize
- *
- * Results:
- *      The corrected offset is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * For views no larger than the world, constrains the offset to 0..1-windowSize. Larger views permit
+ * the world to move within the window. Returns the adjusted offset without validating finiteness;
+ * callers establish valid scroll state first.
  */
 static double AdjustViewport(double offset, double windowSize) {
     /*
@@ -3925,6 +3924,17 @@ static double AdjustViewport(double offset, double windowSize) {
     return offset;
 }
 
+/**
+ * @ingroup axis_layout_control
+ * @brief Derive a normalized current view and effective scroll world.
+ *
+ * Starts from valueRange and min/max, replaces missing world sentinels with view endpoints, then
+ * applies requested scroll bounds. Rejects nonfinite values, nonpositive logarithmic inputs and
+ * nonincreasing worlds. Intersects the view with the world, collapsing wholly outside views to the
+ * nearest boundary. Allows a zero-width view. On TRUE returns normalized endpoints and a world range
+ * in linear or exponent coordinates. Outputs must not be consumed after FALSE; no live axis state is
+ * modified.
+ */
 static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMinNormPtr, double *viewMaxNormPtr) {
     double worldMin;
     double worldMax;
@@ -4448,6 +4458,15 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
     return marginPtr->axesOffset;
 }
 
+/**
+ * @ingroup axis_layout_control
+ * @brief Compute a physical plot ratio for equal Polar data-unit scaling.
+ *
+ * Requires a Polar widget with automatic aspect enabled, a grid and two nonlogarithmic mapped axes
+ * with finite positive ranges. Uses the grid-selected axes rather than primary x/y. Returns X/Y range
+ * ratio, or its inverse when inverted, only if finite and positive. FALSE leaves the output untouched;
+ * performs no layout.
+ */
 static int GetPolarAutoAspect(Graph *graphPtr, double *aspectPtr) {
     Grid *gridPtr;
     Axis *xAxisPtr;
@@ -4506,27 +4525,16 @@ static int GetPolarAutoAspect(Graph *graphPtr, double *aspectPtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Combine axis, title, legend and aspect requirements into margins.
  *
- * ComputeMargins --
- *
- *      Computes the size of the margins and the plotting area.  We
- *      first compute the space needed for the axes in each margin.
- *      Then how much space the legend will occupy.  Finally, if the
- *      user has requested a margin size, we override the computed
- *      value.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *---------------------------------------------------------------------- */
+ * Measures each margin and checks callback validity immediately afterward. Maps the legend against the
+ * estimated cavity, adds margin-hosted legend dimensions, applies automatic Polar or fixed aspect,
+ * reserves adjoining alternate-title space and finally applies positive requested margin overrides.
+ * Uses wide intermediate sizes and clamped storage. Callback invalidation returns early; callers must
+ * not treat partial geometry as completed layout.
+ */
 static void ComputeMargins(Graph *graphPtr) {
     Tcl_WideInt left, right, top, bottom;
     Tcl_WideInt width, height;
@@ -4713,96 +4721,14 @@ static void ComputeMargins(Graph *graphPtr) {
     }
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Compute plot bounds, mapping scales and graph-title position.
  *
- * Rbc_LayoutMargins --
- *
- *      Calculate the layout of the graph.  Based upon the data,
- *      axis limits, X and Y titles, and title height, determine
- *      the cavity left which is the plotting surface.  The first
- *      step get the data and axis limits for calculating the space
- *      needed for the top, bottom, left, and right margins.
- *
- *      1) The LEFT margin is the area from the left border to the
- *         Y axis (not including ticks). It composes the border
- *         width, the width an optional Y axis label and its padding,
- *         and the tick numeric labels. The Y axis label is rotated
- *         90 degrees so that the width is the font height.
- *
- *      2) The RIGHT margin is the area from the end of the graph
- *         to the right window border. It composes the border width,
- *         some padding, the font height (this may be dubious. It
- *         appears to provide a more even border), the max of the
- *         legend width and 1/2 max X tick number. This last part is
- *         so that the last tick label is not clipped.
- *
- *               Window Width
- *          ___________________________________________________________
- *          |          |                               |               |
- *          |          |   TOP  height of title        |               |
- *          |          |                               |               |
- *          |          |           x2 title            |               |
- *          |          |                               |               |
- *          |          |        height of x2-axis      |               |
- *          |__________|_______________________________|_______________|  W
- *          |          | -plotpady                     |               |  i
- *          |__________|_______________________________|_______________|  n
- *          |          | top                   right   |               |  d
- *          |          |                               |               |  o
- *          |   LEFT   |                               |     RIGHT     |  w
- *          |          |                               |               |
- *          | y        |     Free area = 104%          |      y2       |  H
- *          |          |     Plotting surface = 100%   |               |  e
- *          | t        |     Tick length = 2 + 2%      |      t        |  i
- *          | i        |                               |      i        |  g
- *          | t        |                               |      t  legend|  h
- *          | l        |                               |      l   width|  t
- *          | e        |                               |      e        |
- *          |    height|                               |height         |
- *          |       of |                               | of            |
- *          |    y-axis|                               |y2-axis        |
- *          |          |                               |               |
- *          |          |origin 0,0                     |               |
- *          |__________|_left_________________bottom___|_______________|
- *          |          |-plotpady                      |               |
- *          |__________|_______________________________|_______________|
- *          |          | (xoffset, yoffset)            |               |
- *          |          |                               |               |
- *          |          |       height of x-axis        |               |
- *          |          |                               |               |
- *          |          |   BOTTOM   x title            |               |
- *          |__________|_______________________________|_______________|
- *
- *      3) The TOP margin is the area from the top window border to the top
- *         of the graph. It composes the border width, twice the height of
- *         the title font (if one is given) and some padding between the
- *         title.
- *
- *      4) The BOTTOM margin is area from the bottom window border to the
- *         X axis (not including ticks). It composes the border width, the height
- *         an optional X axis label and its padding, the height of the font
- *         of the tick labels.
- *
- *      The plotting area is between the margins which includes the X and Y axes
- *      including the ticks but not the tick numeric labels. The length of
- *      the ticks and its padding is 5% of the entire plotting area.  Hence the
- *      entire plotting area is scaled as 105% of the width and height of the
- *      area.
- *
- *      The axis labels, ticks labels, title, and legend may or may not be
- *      displayed which must be taken into account.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+ * Calls ComputeMargins and stops on callback invalidation. Adds widget/plot insets, computes the
+ * cavity with wide arithmetic and clamps it to at least one pixel. Plot padding defines mapping
+ * offsets/ranges; stores reciprocals and title position. A one-pixel arithmetic range is not a
+ * drawable-layout guarantee. Does not map axes or clear the caller layout flags.
  */
 void Rbc_LayoutMargins(Graph *graphPtr) {
     Tcl_WideInt width, height;
@@ -5403,7 +5329,13 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
     return TCL_OK;
 }
 
-/* Read the same data-space bounds returned by the axis limits command. */
+/**
+ * @ingroup axis_layout_control
+ * @brief Read prepared mapping bounds in data coordinates.
+ *
+ * Copies linear axisRange endpoints or converts logarithmic exponents with LogAxisValue. Does not sync
+ * vectors, reset ranges or validate conversion results. Callers control range freshness.
+ */
 static void GetAxisLimits(Axis *axisPtr, double *minPtr, double *maxPtr) {
     if (axisPtr->logScale) {
         *minPtr = LogAxisValue(axisPtr->axisRange.min);
@@ -5414,9 +5346,15 @@ static void GetAxisLimits(Axis *axisPtr, double *minPtr, double *maxPtr) {
     }
 }
 
-/*
- * Notify after screen display, never from temporary export mappings.
- * Keep a separate baseline: axis queries may reset ranges before display.
+/**
+ * @ingroup axis_layout_control
+ * @brief Emit axis configuration and limit-change events after screen display.
+ *
+ * Collects names of configured live axes in registry order, comparing data-space limits against a
+ * separate notification baseline. Configuration or limit changes contribute to RbcAxisChanged; only
+ * limit changes contribute to RbcAxisLimitsChanged. Updates baselines and clears configure flags
+ * before sending events, balancing temporary list references. The display caller must exclude
+ * temporary export mappings; this function has no GRAPH_EXPORT guard of its own.
  */
 void Rbc_NotifyAxisChanges(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
@@ -5463,29 +5401,13 @@ void Rbc_NotifyAxisChanges(Graph *graphPtr) {
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Return the two prepared axis limits as Tcl doubles.
  *
- * LimitsOp --
- *
- *      This procedure returns a string representing the axis limits
- *      of the graph.  The format of the string is {left top right bottom}.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Always returns TCL_OK. The interpreter result is set to
- *      a list of the graph axis limits.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Synchronizes element vectors and resets pending axis ranges before reading data-space bounds.
+ * Returns a two-element minimum/maximum list, not a four-coordinate graph rectangle. Requires a valid
+ * borrowed axis and does not perform complete margin layout.
  */
 static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5503,29 +5425,14 @@ static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, T
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Convert one integer screen coordinate to an axis value.
  *
- * InvTransformOp --
- *
- *      Maps the given window coordinate into an axis-value.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result contains
- *      the axis value. If an error occurred, TCL_ERROR is returned
- *      and the interpreter result will contain an error message.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Synchronizes vectors and resets pending ranges, parses the sliced argument as an int and chooses
+ * horizontal/vertical inverse mapping from logical class and inversion. Returns TCL_ERROR for parsing
+ * failure or a nonfinite result; success returns a Tcl double. Uses existing mapping geometry rather
+ * than forcing complete layout.
  */
 static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5559,30 +5466,15 @@ static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size o
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Evaluate an axis value and return its integer screen coordinate.
  *
- * TransformOp --
- *
- *      Maps the given axis-value to a window coordinate.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int objc - Not used.
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result contains
- *      the window coordinate. If an error occurred, TCL_ERROR
- *      is returned and the interpreter result will contain an error
- *      message.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Synchronizes vectors and resets pending ranges before evaluating the sliced argument with
+ * Tcl_ExprDoubleObj. Rejects nonfinite input, nonpositive logarithmic values and mapped coordinates
+ * outside int range. Success truncates toward zero, preserving historical conversion. Uses existing
+ * mapping geometry. Expression evaluation can execute Tcl; this handler does not revalidate its
+ * borrowed axis after that evaluation.
  */
 static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp;
@@ -5904,27 +5796,12 @@ static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Resolve a named axis for inverse transformation.
  *
- * InvTransformVirtualOp --
- *
- *      Maps the given window coordinate into an axis-value.
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result contains
- *      the axis value. If an error occurred, TCL_ERROR is returned
- *      and the interpreter result will contain an error message.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Uses live borrowed lookup and forwards the argument suffix to InvTransformOp. Returns the lookup or
+ * conversion status; acquires no axis reference.
  */
 static int InvTransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -5935,27 +5812,12 @@ static int InvTransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
     return InvTransformOp(graphPtr, axisPtr, /*dummy*/ 0, objc - 4, objv + 4);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Resolve a named axis and return its minimum/maximum pair.
  *
- * LimitsVirtualOp --
- *
- *      This procedure returns a string representing the axis limits
- *      of the graph.  The format of the string is { left top right bottom}.
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Always returns TCL_OK.  The interpreter result is set to
- *      a list of the graph axis limits.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses live borrowed lookup and delegates synchronization and range reset to LimitsOp. Returns
+ * TCL_ERROR for a missing axis; this wrapper does not acquire a reference or force full layout.
  */
 static int LimitsVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6001,28 +5863,12 @@ static int NamesVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[])
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Resolve a named axis for forward transformation.
  *
- * TransformVirtualOp --
- *
- *    Maps the given axis-value to a window coordinate.
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result contains
- *      the window coordinate. If an error occurred, TCL_ERROR
- *      is returned and the interpreter result will contain an error
- *      message.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Uses live borrowed lookup and forwards the suffix to TransformOp, including its expression-
+ * evaluation behavior. Returns the lookup or conversion status without acquiring an axis reference.
  */
 static int TransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6033,25 +5879,15 @@ static int TransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const obj
     return TransformOp(graphPtr, axisPtr, /*dummy*/ 0, objc - 4, objv + 4);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_layout_control
+ * @brief Query or change the normalized viewport of one named axis.
  *
- * ViewOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Parses a mutation request before lookup, derives current scroll state and converts its direction to
+ * screen orientation. Queries clamp returned fractions to 0..1. Moving an empty view is a no-op. Pages
+ * advance by 90 percent of the view; units use scrollUnits and the current scale, or the full owning-
+ * track extent. Validates reconstructed data limits before assigning reqMin/reqMax and scheduling
+ * geometry/layout/range reset. Does not synchronize vectors or perform layout itself.
  */
 static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6143,8 +5979,16 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return TCL_OK;
 }
 
-/* Local view operations reuse axis scrolling, including logarithmic ranges and
- * screen orientation. Stage all destinations so a later axis error is atomic. */
+/**
+ * @ingroup axis_layout_control
+ * @brief Apply local scrolling to selected track axes with limit rollback.
+ *
+ * An optional -mapy must name a member of the track. Queries use the selected or first axis; mutations
+ * apply to all members unless selected. Parses requests and performs graph layout before invoking
+ * ViewOp. Saves requested limits and graph flags, restoring them on a later axis error while retaining
+ * REDRAW_PENDING because an idle callback may already be scheduled. Frees temporary limit storage and
+ * name objects. Borrows the track and axis array; performs no independent reference acquisition.
+ */
 int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size start = 4, n, i;
     Axis **axes = track->axes;

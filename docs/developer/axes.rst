@@ -4,8 +4,8 @@ Axis ownership and commands
 ``rbcGrAxis.c`` owns the graph's named axis registry, option transactions,
 margin membership and axis commands. This chapter covers that control layer;
 :doc:`mapping` explains coordinate spaces and track viewports. The source
-contracts for this batch are in :doc:`axis-reference`. Tick generation,
-label layout and drawing are separate stages and are not fully covered here.
+contracts for this batch are in :doc:`axis-reference`. The following sections cover option transactions, ranges, tick generation,
+label presentation, margin layout, scrolling and notifications.
 
 Names, references and margin membership
 ---------------------------------------
@@ -407,3 +407,111 @@ labels for descending axes, and measure spacing with the limits text style.
 Each format stays associated with its numeric endpoint when positions swap;
 an omitted endpoint remains omitted. Tick-font changes do not alter spacing
 between limit annotations when the limits font is unchanged.
+
+Margin layout and aspect
+------------------------
+
+``ComputeMargins`` measures axes first, checking formatter validity after each
+margin. It then reserves graph-title space, maps the legend against the
+estimated cavity and adds space for a margin-hosted legend. A legend in the
+plot, at explicit coordinates or in another window does not enlarge margins.
+Aspect correction follows, then adjoining space for alternate axis titles.
+Positive explicit margin sizes override those calculated requirements last.
+Consequently an explicit margin can override room previously reserved by
+aspect or decoration calculations.
+
+Polar automatic aspect follows the axes selected by the grid. It uses their
+prepared mapping ranges and excludes logarithmic or nonfinite ranges. In the
+ordinary orientation the target mapped-width/mapped-height ratio is the X/Y
+range ratio; inversion reverses it. This equalizes physical distance per data
+unit. Plot padding is removed for this calculation and restored afterward.
+An explicit fixed aspect instead constrains the outer plot cavity ratio.
+
+``Rbc_LayoutMargins`` adds widget/plot insets, stores plot bounds and derives
+mapping offsets, ranges and reciprocal scales after plot padding. Wide
+intermediates and clamped integer storage avoid wrapping dimensions. Its
+one-pixel minimum permits safe arithmetic during resizing; presentation still
+requires the stricter ``AxisLayoutUsable`` check. Layout does not itself map
+axis segments or certify that every requested decoration fits.
+
+Queries and freshness
+---------------------
+
+Limits and transform handlers synchronize attached vectors and reset pending
+axis ranges. They do not perform complete margin layout. ``limits`` returns a
+two-value minimum/maximum pair in data coordinates, converting logarithmic
+mapping bounds back from exponents. Forward transform accepts a Tcl expression
+and returns an integer coordinate truncated toward zero after finite/range
+checks. Inverse transform accepts an integer coordinate and returns a double.
+Both choose direction using logical axis class and inversion.
+
+Forward-transform expression evaluation can execute Tcl commands or traces.
+The current handler does not revalidate its borrowed axis afterward. This is
+an additional evaluation boundary to include in a runtime reentrancy audit;
+ordinary numeric validation alone is not a lifetime guarantee.
+
+Scrolling state and local views
+-------------------------------
+
+``GetAxisScrollState`` derives its world from accumulated data bounds, falling
+back to current view endpoints for missing sentinels and then applying explicit
+scroll bounds. It requires a finite increasing world. The current view is
+intersected with that world; a wholly outside view collapses to the nearest
+boundary, and a zero-width view remains valid. Logarithmic scrolling performs
+this arithmetic in exponent coordinates.
+
+``ViewOp`` converts normalized data endpoints into screen-oriented fractions.
+Queries clamp the pair to 0..1. Mutations use the shared scroll-request parser:
+``moveto`` sets the offset, pages move by 90 percent of the current view, and
+units use the configured scroll increment. ``AdjustViewport`` applies the
+canvas-style offset bounds. Reconstructed limits must be finite and increasing
+before they become requested axis limits. An empty view accepts movement as a
+no-op.
+
+For ordinary axes the current implementation selects ``hScale`` or ``vScale``
+using its forward/reverse branch. Track-owned axes instead divide by their
+full world extent in the physical axis direction. These are the actual current
+formulas; the ordinary branch should not be assumed to use physical direction
+independently of descending state. ``ViewOp`` itself does not refresh layout.
+
+Track-local ``yview`` validates optional axis membership, performs graph layout
+and delegates to the same view handler. A query uses the selected or first
+member. A mutation visits all members unless ``-mapy`` selects one. It saves
+requested limits before mutation; if a later member fails, it restores all
+of those limits and the old graph flags, retaining a newly scheduled redraw
+flag because its idle callback may already exist. This is a requested-limit
+transaction, not rollback of arbitrary layout or Tcl side effects.
+
+Notifications and delivery
+--------------------------
+
+Scrollbar updates and axis-change events have separate mechanisms:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Mechanism
+     - Data retained
+     - Delivery contract
+   * - Scrollbar command
+     - Latest first/last fractions, one pending idle flag
+     - Idle evaluation of a copied prefix with two fractions appended.
+   * - Axis change events
+     - Last notified data-space limits and pending configure flag
+     - Event name lists prepared after screen display.
+
+``UpdateAxisScrollbar`` suppresses temporary export updates and coalesces
+repeated screen updates. At idle, ``NotifyAxisScrollbar`` clears the pending
+flag, checks eligibility and copies all command arguments before Tcl
+execution. It preserves graph/interpreter storage and interpreter state and
+does not access the axis after evaluation. Errors are background exceptions;
+axis destruction cancels outstanding idle callbacks.
+
+``Rbc_NotifyAxisChanges`` uses a separate notification baseline because a query
+can reset ranges before the next display. It skips deleted/unconfigured axes,
+collects names in registry order and updates baselines before submitting
+``RbcAxisChanged`` and ``RbcAxisLimitsChanged``. Configuration changes contribute
+to the first event; changed limits contribute to both. The display caller must
+exclude temporary export mappings: this function does not contain its own
+export guard. Its event lists own their copied names and are released after
+submission.

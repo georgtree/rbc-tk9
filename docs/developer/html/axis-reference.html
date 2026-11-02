@@ -1016,6 +1016,146 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 </dd></dl>
 
 </section>
+<section id="layout-queries-scrolling-and-notifications">
+<h2>Layout, queries, scrolling and notifications<a class="headerlink" href="#layout-queries-scrolling-and-notifications" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__axis__layout__control"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Axis</span> <span class="pre">layout</span> <span class="pre">and</span> <span class="pre">view</span> <span class="pre">control</span></span></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.ValidateAxisCommandPrefix">
+<span class="target" id="group__axis__layout__control_1ga09fa291e7f329e999a5a5009f2430042"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ValidateAxisCommandPrefix</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.ValidateAxisCommandPrefix" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate the list representation of an optional command prefix. </p>
+<p>NULL and empty lists succeed. Returns a Tcl parsing status for other values; does not evaluate the command, resolve its first word or retain list elements. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.NotifyAxisScrollbar">
+<span class="target" id="group__axis__layout__control_1gac243440efebe2d7221181d982638cd6a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NotifyAxisScrollbar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.NotifyAxisScrollbar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Deliver the latest queued scrollbar fractions at idle. </p>
+<p>Clears the pending flag before delivery and skips destroyed graphs, deleted axes and absent/empty prefixes. Copies the prefix and appends owned fraction objects before evaluation. Preserves graph/interpreter storage and interpreter state, evaluates globally and reports errors in the background. Does not dereference the axis after Tcl evaluation; destruction cancels outstanding idle delivery. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.UpdateAxisScrollbar">
+<span class="target" id="group__axis__layout__control_1ga7118c83f5ad474f9789f64b17280a1ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UpdateAxisScrollbar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">firstFract</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">lastFract</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.UpdateAxisScrollbar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coalesce a scrollbar notification using the latest fractions. </p>
+<p>Suppresses updates during GRAPH_EXPORT. Otherwise replaces pending fraction values and schedules at most one idle callback for the axis. Does not evaluate Tcl, compare fractions with the previous delivery or retain a separate axis reference. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.AdjustViewport">
+<span class="target" id="group__axis__layout__control_1gaeb84856f29f83a7bbcad3a72ac6bb054"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AdjustViewport</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">windowSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.AdjustViewport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Constrain a normalized scrolling offset using canvas-style rules. </p>
+<p>For views no larger than the world, constrains the offset to 0..1-windowSize. Larger views permit the world to move within the window. Returns the adjusted offset without validating finiteness; callers establish valid scroll state first. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.GetAxisScrollState">
+<span class="target" id="group__axis__layout__control_1ga45b20b6807eece1a09efc9035b696ddb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisScrollState</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">viewMinNormPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">viewMaxNormPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.GetAxisScrollState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Derive a normalized current view and effective scroll world. </p>
+<p>Starts from valueRange and min/max, replaces missing world sentinels with view endpoints, then applies requested scroll bounds. Rejects nonfinite values, nonpositive logarithmic inputs and nonincreasing worlds. Intersects the view with the world, collapsing wholly outside views to the nearest boundary. Allows a zero-width view. On TRUE returns normalized endpoints and a world range in linear or exponent coordinates. Outputs must not be consumed after FALSE; no live axis state is modified. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.GetPolarAutoAspect">
+<span class="target" id="group__axis__layout__control_1gaf59f1fc1566ae6b1a3cde3f9d391d922"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarAutoAspect</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aspectPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.GetPolarAutoAspect" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a physical plot ratio for equal Polar data-unit scaling. </p>
+<p>Requires a Polar widget with automatic aspect enabled, a grid and two nonlogarithmic mapped axes with finite positive ranges. Uses the grid-selected axes rather than primary x/y. Returns X/Y range ratio, or its inverse when inverted, only if finite and positive. FALSE leaves the output untouched; performs no layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.ComputeMargins">
+<span class="target" id="group__axis__layout__control_1ga39c0fd55f26ccd84d59db382040dce02"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeMargins</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.ComputeMargins" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Combine axis, title, legend and aspect requirements into margins. </p>
+<p>Measures each margin and checks callback validity immediately afterward. Maps the legend against the estimated cavity, adds margin-hosted legend dimensions, applies automatic Polar or fixed aspect, reserves adjoining alternate-title space and finally applies positive requested margin overrides. Uses wide intermediate sizes and clamped storage. Callback invalidation returns early; callers must not treat partial geometry as completed layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.Rbc_LayoutMargins">
+<span class="target" id="group__axis__layout__control_1gacb789c4bb24af2d39188db5fc8b52deb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LayoutMargins</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.Rbc_LayoutMargins" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute plot bounds, mapping scales and graph-title position. </p>
+<p>Calls ComputeMargins and stops on callback invalidation. Adds widget/plot insets, computes the cavity with wide arithmetic and clamps it to at least one pixel. Plot padding defines mapping offsets/ranges; stores reciprocals and title position. A one-pixel arithmetic range is not a drawable-layout guarantee. Does not map axes or clear the caller layout flags. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.GetAxisLimits">
+<span class="target" id="group__axis__layout__control_1ga37fc4b5baaccb01c346cb6a91228bb97"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLimits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.GetAxisLimits" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read prepared mapping bounds in data coordinates. </p>
+<p>Copies linear axisRange endpoints or converts logarithmic exponents with LogAxisValue. Does not sync vectors, reset ranges or validate conversion results. Callers control range freshness. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges">
+<span class="target" id="group__axis__layout__control_1gad699546d9cecc675be63c4e7aafa7684"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NotifyAxisChanges</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Emit axis configuration and limit-change events after screen display. </p>
+<p>Collects names of configured live axes in registry order, comparing data-space limits against a separate notification baseline. Configuration or limit changes contribute to RbcAxisChanged; only limit changes contribute to RbcAxisLimitsChanged. Updates baselines and clears configure flags before sending events, balancing temporary list references. The display caller must exclude temporary export mappings; this function has no GRAPH_EXPORT guard of its own. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.LimitsOp">
+<span class="target" id="group__axis__layout__control_1gae7c6a6abf84c1885831278eb4457520a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LimitsOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.LimitsOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the two prepared axis limits as Tcl doubles. </p>
+<p>Synchronizes element vectors and resets pending axis ranges before reading data-space bounds. Returns a two-element minimum/maximum list, not a four-coordinate graph rectangle. Requires a valid borrowed axis and does not perform complete margin layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.InvTransformOp">
+<span class="target" id="group__axis__layout__control_1ga8a85e0c33ab633e5fdd7505495b0bca7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvTransformOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.InvTransformOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert one integer screen coordinate to an axis value. </p>
+<p>Synchronizes vectors and resets pending ranges, parses the sliced argument as an int and chooses horizontal/vertical inverse mapping from logical class and inversion. Returns TCL_ERROR for parsing failure or a nonfinite result; success returns a Tcl double. Uses existing mapping geometry rather than forcing complete layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.TransformOp">
+<span class="target" id="group__axis__layout__control_1ga09ada901ed61837994e4960f486a84f3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TransformOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.TransformOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate an axis value and return its integer screen coordinate. </p>
+<p>Synchronizes vectors and resets pending ranges before evaluating the sliced argument with Tcl_ExprDoubleObj. Rejects nonfinite input, nonpositive logarithmic values and mapped coordinates outside int range. Success truncates toward zero, preserving historical conversion. Uses existing mapping geometry. Expression evaluation can execute Tcl; this handler does not revalidate its borrowed axis after that evaluation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.InvTransformVirtualOp">
+<span class="target" id="group__axis__layout__control_1ga4b1efc68b5edd52c1ab8b9a8e691b035"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvTransformVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.InvTransformVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a named axis for inverse transformation. </p>
+<p>Uses live borrowed lookup and forwards the argument suffix to InvTransformOp. Returns the lookup or conversion status; acquires no axis reference. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.LimitsVirtualOp">
+<span class="target" id="group__axis__layout__control_1ga554b00d57343a44f26923dfe30614784"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LimitsVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.LimitsVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a named axis and return its minimum/maximum pair. </p>
+<p>Uses live borrowed lookup and delegates synchronization and range reset to LimitsOp. Returns TCL_ERROR for a missing axis; this wrapper does not acquire a reference or force full layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.TransformVirtualOp">
+<span class="target" id="group__axis__layout__control_1ga26000b1d058a4f2c5ecf72ae1d3626db"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TransformVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.TransformVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a named axis for forward transformation. </p>
+<p>Uses live borrowed lookup and forwards the suffix to TransformOp, including its expression- evaluation behavior. Returns the lookup or conversion status without acquiring an axis reference. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.ViewOp">
+<span class="target" id="group__axis__layout__control_1gae529fd973c6b073c70844cc8d840d4bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ViewOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.ViewOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or change the normalized viewport of one named axis. </p>
+<p>Parses a mutation request before lookup, derives current scroll state and converts its direction to screen orientation. Queries clamp returned fractions to 0..1. Moving an empty view is a no-op. Pages advance by 90 percent of the view; units use scrollUnits and the current scale, or the full owning- track extent. Validates reconstructed data limits before assigning reqMin/reqMax and scheduling geometry/layout/range reset. Does not synchronize vectors or perform layout itself. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.Rbc_TrackYViewOp">
+<span class="target" id="group__axis__layout__control_1gaf9738b64bae351f2e97ea76c7b505fe5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TrackYViewOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.Rbc_TrackYViewOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply local scrolling to selected track axes with limit rollback. </p>
+<p>Query or move the data viewport of a track-owned Y axis or axes.</p>
+<p>An optional -mapy must name a member of the track. Queries use the selected or first axis; mutations apply to all members unless selected. Parses requests and performs graph layout before invoking ViewOp. Saves requested limits and graph flags, restoring them on a later axis error while retaining REDRAW_PENDING because an idle callback may already be scheduled. Frees temporary limit storage and name objects. Borrows the track and axis array; performs no independent reference acquisition.</p>
+<p>Apply local scrolling to selected track axes with limit rollback.</p>
+<p>Borrow graph, track and arguments; the enclosing widget command protects lifetime across layout callbacks. An optional -mapy selects one owned axis. Queries use the first selected axis; movement applies to all selected axes. Strict request parsing precedes layout. A later axis failure restores saved requested limits and flags, retaining any already scheduled redraw. Returns TCL_OK or TCL_ERROR with an interpreter result. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1175,6 +1315,27 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_GetFirstAxis"><code class="docutils literal notranslate"><span class="pre">Rbc_GetFirstAxis()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_NearestAxis"><code class="docutils literal notranslate"><span class="pre">Rbc_NearestAxis()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrAxisPresentation.Rbc_AxisFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_AxisFontsChanged()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#layout-queries-scrolling-and-notifications">Layout, queries, scrolling and notifications</a><ul>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.ValidateAxisCommandPrefix"><code class="docutils literal notranslate"><span class="pre">ValidateAxisCommandPrefix()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.NotifyAxisScrollbar"><code class="docutils literal notranslate"><span class="pre">NotifyAxisScrollbar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.UpdateAxisScrollbar"><code class="docutils literal notranslate"><span class="pre">UpdateAxisScrollbar()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.AdjustViewport"><code class="docutils literal notranslate"><span class="pre">AdjustViewport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.GetAxisScrollState"><code class="docutils literal notranslate"><span class="pre">GetAxisScrollState()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.GetPolarAutoAspect"><code class="docutils literal notranslate"><span class="pre">GetPolarAutoAspect()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.ComputeMargins"><code class="docutils literal notranslate"><span class="pre">ComputeMargins()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.Rbc_LayoutMargins"><code class="docutils literal notranslate"><span class="pre">Rbc_LayoutMargins()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.GetAxisLimits"><code class="docutils literal notranslate"><span class="pre">GetAxisLimits()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges"><code class="docutils literal notranslate"><span class="pre">Rbc_NotifyAxisChanges()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.LimitsOp"><code class="docutils literal notranslate"><span class="pre">LimitsOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.InvTransformOp"><code class="docutils literal notranslate"><span class="pre">InvTransformOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.TransformOp"><code class="docutils literal notranslate"><span class="pre">TransformOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.InvTransformVirtualOp"><code class="docutils literal notranslate"><span class="pre">InvTransformVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.LimitsVirtualOp"><code class="docutils literal notranslate"><span class="pre">LimitsVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.TransformVirtualOp"><code class="docutils literal notranslate"><span class="pre">TransformVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.ViewOp"><code class="docutils literal notranslate"><span class="pre">ViewOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisLayoutControl.Rbc_TrackYViewOp"><code class="docutils literal notranslate"><span class="pre">Rbc_TrackYViewOp()</span></code></a></li>
 </ul>
 </li>
 </ul>

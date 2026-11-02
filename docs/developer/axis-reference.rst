@@ -65,3 +65,13 @@ Labels, geometry and presentation
    :members:
 
 .. c:namespace-pop::
+
+Layout, queries, scrolling and notifications
+--------------------------------------------
+
+.. c:namespace-push:: rbcGrAxisLayoutControl
+
+.. doxygengroup:: axis_layout_control
+   :members:
+
+.. c:namespace-pop::

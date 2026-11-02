@@ -45,8 +45,8 @@
 <p><code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code> owns the graph’s named axis registry, option transactions,
 margin membership and axis commands. This chapter covers that control layer;
 <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> explains coordinate spaces and track viewports. The source
-contracts for this batch are in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>. Tick generation,
-label layout and drawing are separate stages and are not fully covered here.</p>
+contracts for this batch are in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>. The following sections cover option transactions, ranges, tick generation,
+label presentation, margin layout, scrolling and notifications.</p>
 <section id="names-references-and-margin-membership">
 <h2>Names, references and margin membership<a class="headerlink" href="#names-references-and-margin-membership" title="Link to this heading">¶</a></h2>
 <p>The graph owns <code class="docutils literal notranslate"><span class="pre">axes.table</span></code>. Each record owns its copied name and derived
@@ -430,6 +430,107 @@ an omitted endpoint remains omitted. Tick-font changes do not alter spacing
 between limit annotations when the limits font is unchanged.</p>
 </section>
 </section>
+<section id="margin-layout-and-aspect">
+<h2>Margin layout and aspect<a class="headerlink" href="#margin-layout-and-aspect" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ComputeMargins</span></code> measures axes first, checking formatter validity after each
+margin. It then reserves graph-title space, maps the legend against the
+estimated cavity and adds space for a margin-hosted legend. A legend in the
+plot, at explicit coordinates or in another window does not enlarge margins.
+Aspect correction follows, then adjoining space for alternate axis titles.
+Positive explicit margin sizes override those calculated requirements last.
+Consequently an explicit margin can override room previously reserved by
+aspect or decoration calculations.</p>
+<p>Polar automatic aspect follows the axes selected by the grid. It uses their
+prepared mapping ranges and excludes logarithmic or nonfinite ranges. In the
+ordinary orientation the target mapped-width/mapped-height ratio is the X/Y
+range ratio; inversion reverses it. This equalizes physical distance per data
+unit. Plot padding is removed for this calculation and restored afterward.
+An explicit fixed aspect instead constrains the outer plot cavity ratio.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_LayoutMargins</span></code> adds widget/plot insets, stores plot bounds and derives
+mapping offsets, ranges and reciprocal scales after plot padding. Wide
+intermediates and clamped integer storage avoid wrapping dimensions. Its
+one-pixel minimum permits safe arithmetic during resizing; presentation still
+requires the stricter <code class="docutils literal notranslate"><span class="pre">AxisLayoutUsable</span></code> check. Layout does not itself map
+axis segments or certify that every requested decoration fits.</p>
+</section>
+<section id="queries-and-freshness">
+<h2>Queries and freshness<a class="headerlink" href="#queries-and-freshness" title="Link to this heading">¶</a></h2>
+<p>Limits and transform handlers synchronize attached vectors and reset pending
+axis ranges. They do not perform complete margin layout. <code class="docutils literal notranslate"><span class="pre">limits</span></code> returns a
+two-value minimum/maximum pair in data coordinates, converting logarithmic
+mapping bounds back from exponents. Forward transform accepts a Tcl expression
+and returns an integer coordinate truncated toward zero after finite/range
+checks. Inverse transform accepts an integer coordinate and returns a double.
+Both choose direction using logical axis class and inversion.</p>
+<p>Forward-transform expression evaluation can execute Tcl commands or traces.
+The current handler does not revalidate its borrowed axis afterward. This is
+an additional evaluation boundary to include in a runtime reentrancy audit;
+ordinary numeric validation alone is not a lifetime guarantee.</p>
+</section>
+<section id="scrolling-state-and-local-views">
+<h2>Scrolling state and local views<a class="headerlink" href="#scrolling-state-and-local-views" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GetAxisScrollState</span></code> derives its world from accumulated data bounds, falling
+back to current view endpoints for missing sentinels and then applying explicit
+scroll bounds. It requires a finite increasing world. The current view is
+intersected with that world; a wholly outside view collapses to the nearest
+boundary, and a zero-width view remains valid. Logarithmic scrolling performs
+this arithmetic in exponent coordinates.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ViewOp</span></code> converts normalized data endpoints into screen-oriented fractions.
+Queries clamp the pair to 0..1. Mutations use the shared scroll-request parser:
+<code class="docutils literal notranslate"><span class="pre">moveto</span></code> sets the offset, pages move by 90 percent of the current view, and
+units use the configured scroll increment. <code class="docutils literal notranslate"><span class="pre">AdjustViewport</span></code> applies the
+canvas-style offset bounds. Reconstructed limits must be finite and increasing
+before they become requested axis limits. An empty view accepts movement as a
+no-op.</p>
+<p>For ordinary axes the current implementation selects <code class="docutils literal notranslate"><span class="pre">hScale</span></code> or <code class="docutils literal notranslate"><span class="pre">vScale</span></code>
+using its forward/reverse branch. Track-owned axes instead divide by their
+full world extent in the physical axis direction. These are the actual current
+formulas; the ordinary branch should not be assumed to use physical direction
+independently of descending state. <code class="docutils literal notranslate"><span class="pre">ViewOp</span></code> itself does not refresh layout.</p>
+<p>Track-local <code class="docutils literal notranslate"><span class="pre">yview</span></code> validates optional axis membership, performs graph layout
+and delegates to the same view handler. A query uses the selected or first
+member. A mutation visits all members unless <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> selects one. It saves
+requested limits before mutation; if a later member fails, it restores all
+of those limits and the old graph flags, retaining a newly scheduled redraw
+flag because its idle callback may already exist. This is a requested-limit
+transaction, not rollback of arbitrary layout or Tcl side effects.</p>
+</section>
+<section id="notifications-and-delivery">
+<h2>Notifications and delivery<a class="headerlink" href="#notifications-and-delivery" title="Link to this heading">¶</a></h2>
+<p>Scrollbar updates and axis-change events have separate mechanisms:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mechanism</p></th>
+<th class="head"><p>Data retained</p></th>
+<th class="head"><p>Delivery contract</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Scrollbar command</p></td>
+<td><p>Latest first/last fractions, one pending idle flag</p></td>
+<td><p>Idle evaluation of a copied prefix with two fractions appended.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Axis change events</p></td>
+<td><p>Last notified data-space limits and pending configure flag</p></td>
+<td><p>Event name lists prepared after screen display.</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">UpdateAxisScrollbar</span></code> suppresses temporary export updates and coalesces
+repeated screen updates. At idle, <code class="docutils literal notranslate"><span class="pre">NotifyAxisScrollbar</span></code> clears the pending
+flag, checks eligibility and copies all command arguments before Tcl
+execution. It preserves graph/interpreter storage and interpreter state and
+does not access the axis after evaluation. Errors are background exceptions;
+axis destruction cancels outstanding idle callbacks.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_NotifyAxisChanges</span></code> uses a separate notification baseline because a query
+can reset ranges before the next display. It skips deleted/unconfigured axes,
+collects names in registry order and updates baselines before submitting
+<code class="docutils literal notranslate"><span class="pre">RbcAxisChanged</span></code> and <code class="docutils literal notranslate"><span class="pre">RbcAxisLimitsChanged</span></code>. Configuration changes contribute
+to the first event; changed limits contribute to both. The display caller must
+exclude temporary export mappings: this function does not contain its own
+export guard. Its event lists own their copied names and are released after
+submission.</p>
+</section>
 </section>
 
 
@@ -466,6 +567,10 @@ between limit annotations when the limits font is unchanged.</p>
 <li><a class="reference internal" href="#limit-annotations-and-remaining-differences">Limit annotations and remaining differences</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#margin-layout-and-aspect">Margin layout and aspect</a></li>
+<li><a class="reference internal" href="#queries-and-freshness">Queries and freshness</a></li>
+<li><a class="reference internal" href="#scrolling-state-and-local-views">Scrolling state and local views</a></li>
+<li><a class="reference internal" href="#notifications-and-delivery">Notifications and delivery</a></li>
 </ul>
 </li>
 </ul>
