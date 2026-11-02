@@ -9,6 +9,13 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcGrPen.c
+ * Pen and palette implementation contracts.
+ */
+/** @defgroup pen_internals Named pen internals
+ * Private helpers; no new public API.
+ */
+
 #include "rbcGraph.h"
 #include <X11/Xutil.h>
 
@@ -28,6 +35,17 @@ static RbcGrPenOp DeleteOp;
 static RbcGrPenOp NamesOp;
 static RbcGrPenOp TypeOp;
 
+/**
+ * @ingroup pen_internals
+ * @brief Initialize a named pen from its Pen option-database component.
+ * @param graphPtr Live owning graph with window and component proxy.
+ * @param penPtr Concrete pen with name and optionSpecs installed.
+ * @return TCL_OK when initialized (including an already initialized record),
+ * TCL_ERROR after releasing partial Tk options and the new table on failure.
+ * Normalizes the component resource name, releases that temporary name, and sets
+ * optionsInitialized only on success. Does not construct derived drawing GCs;
+ * the caller must run the concrete configurator afterward.
+ */
 static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
     char *componentName;
     int result;
@@ -57,6 +75,20 @@ static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup pen_internals
+ * @brief Apply one named pen's explicit Tk options and derived configuration.
+ * @param graphPtr Live owning graph and interpreter.
+ * @param penPtr Initialized concrete pen.
+ * @param objc Even number of option/value objects.
+ * @param objv Borrowed option/value array, valid throughout configuration.
+ * @return TCL_OK on commit, TCL_ERROR with a diagnostic on failure.
+ * Tk_SetOptions handles option conversion errors. If configProc fails, restore
+ * saved Tk options while preserving its diagnostic. Concrete configProc must
+ * stage its own derived resources before commit. On success release saved old
+ * options. This helper neither schedules redraw nor preserves objects across
+ * arbitrary callbacks; its caller owns their lifetime.
+ */
 static int ConfigurePenOptions(Graph *graphPtr, Pen *penPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_SavedOptions savedOptions;
     int mask;
@@ -79,6 +111,16 @@ static int ConfigurePenOptions(Graph *graphPtr, Pen *penPtr, Tcl_Size objc, Tcl_
     return TCL_OK;
 }
 
+/**
+ * @ingroup pen_internals
+ * @brief Release a named pen's drawing and Tk resources once.
+ * @param graphPtr Owning graph; a live Tk window is required for actual release.
+ * @param penPtr Concrete pen record retained after this call.
+ * Does nothing before successful option initialization or after prior release.
+ * Calls destroyProc before freeing Tk options, then deletes and clears the option
+ * table and marks tkResourcesReleased. Does not free the name, registry entry or
+ * record, nor change reference counts.
+ */
 static void ReleasePenResources(Graph *graphPtr, Pen *penPtr) {
     if ((!penPtr->optionsInitialized) || (penPtr->tkResourcesReleased)) {
         return;
@@ -107,24 +149,14 @@ void Rbc_ReleasePenTkResources(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * NameToPen --
- *
- *      Find and return the pen style from a given name.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Obj *nameObj
- *
- * Results:
- *      A standard TCL result.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Find a visible named pen without acquiring a reference.
+ * @param graphPtr Live graph with initialized pen table and Tk window.
+ * @param nameObj Borrowed pen-name object.
+ * @return Borrowed Pen pointer, or NULL with a graph-interpreter diagnostic.
+ * Delete-pending records are hidden even when retained in the table. Does not
+ * check concrete type or increment refCount; use Rbc_GetPen for owned references.
  */
 static Pen *NameToPen(Graph *graphPtr, Tcl_Obj *nameObj) {
     Tcl_HashEntry *hPtr;
@@ -144,24 +176,15 @@ static Pen *NameToPen(Graph *graphPtr, Tcl_Obj *nameObj) {
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * DestroyPen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Pen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Remove a pen record and its registry entry without a reference check.
+ * @param graphPtr Owning graph in normal operation or ordered teardown.
+ * @param penPtr Pen whose users have already released their references.
+ * Releases Tk resources if still needed and the window remains live, then frees
+ * the nonempty owned name, deletes a non-NULL hash entry and frees the record.
+ * After window destruction, the caller must already have run resource release.
+ * Graph-wide teardown clears hashPtr first and deletes the table separately.
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     if ((!penPtr->tkResourcesReleased) && (graphPtr->tkwin != NULL)) {
@@ -183,27 +206,22 @@ void Rbc_FreePen(Graph *graphPtr, Pen *penPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CreatePen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      char *penName
- *      Rbc_Uid classUid
- *      int nOpts
- *      Tcl_Obj *const *options
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Create a named concrete pen or revive a matching retained record.
+ * @param graphPtr Live owning graph.
+ * @param penName Borrowed name to register.
+ * @param classUid Default pen class; strip and polar are normalized to line.
+ * @param nOpts Number of explicit option/value objects, expected to be even.
+ * @param options Borrowed options, valid throughout initialization/configuration.
+ * @return Graph-owned Pen pointer without a new counted reference, or NULL on error.
+ * Scans -type prefixes of length three through five before allocation; the last
+ * recognized occurrence selects bar or line (strip selects line). Existing live
+ * names and incompatible pending types fail. New records are removed on failed
+ * initialization or configuration. A matching pending record is reused, but its
+ * PEN_DELETE_PENDING flag is cleared only after configuration succeeds, so
+ * failed revival keeps the retained record hidden. No redraw is
+ * scheduled here; acquiring a long-lived reference requires Rbc_GetPen.
  */
 Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_Size nOpts, Tcl_Obj *const options[]) {
     Pen *penPtr;
@@ -259,7 +277,6 @@ Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_S
                                                              penName, penPtr->classUid, classUid));
             return NULL;
         }
-        penPtr->flags &= ~PEN_DELETE_PENDING;
     } else {
         /*
          * Construct a new concrete named pen.
@@ -316,6 +333,8 @@ Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_S
             return NULL;
         }
     }
+    /* Publish a revived pen only after all fallible configuration succeeds. */
+    penPtr->flags &= ~PEN_DELETE_PENDING;
     return penPtr;
 }
 
@@ -355,27 +374,16 @@ void Rbc_DestroyPens(Graph *graphPtr) {
     Tcl_DeleteHashTable(&(graphPtr->penTable));
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * CgetOp --
- *
- *      Queries axis attributes (font, line width, label, etc).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.  If querying configuration values,
- *      the interpreter result will contain the results.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Return the current value of one named pen option.
+ * @param graphPtr Live owning graph.
+ * @param interp Command interpreter.
+ * @param objc Full widget-command argument count, already checked by dispatch.
+ * @param objv Borrowed full argument vector, with pen subcommand at index two.
+ * Looks up objv[3] without acquiring a reference, then uses Tk_GetOptionValue
+ * for objv[4]. Returns TCL_ERROR on lookup/conversion failure; otherwise installs
+ * the returned Tcl object as the result. No configuration or redraw occurs.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Pen *penPtr;
@@ -393,27 +401,19 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * ConfigureOp --
- *
- *      Queries or resets pen attributes (font, line width, color, etc).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.  If querying configuration values,
- *      the interpreter result will contain the results.
- *
- * Side Effects:
- *      Pen resources are possibly allocated (GC, font).
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Query or configure one or more named pens.
+ * @param graphPtr Live owning graph.
+ * @param interp Command interpreter.
+ * @param objc Full widget-command argument count, already checked by dispatch.
+ * @param objv Borrowed full argument vector, with pen subcommand at index two.
+ * Treats the first argument beginning with a dash as the option boundary and
+ * checks preceding names before applying changes. Zero or one option arguments
+ * query only the first pen. Updates run in name order and stop at the first
+ * failure; earlier commits remain. Successfully changed referenced pens cause
+ * backing-store and margin redraw, including when a later pen fails. Returns
+ * TCL_OK or TCL_ERROR; does not provide a transaction across all named pens.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Pen *penPtr;
@@ -476,26 +476,16 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CreateOp --
- *
- *      Adds a new penstyle to the graph.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Create a pen using the graph class as the default.
+ * @param graphPtr Live owning graph.
+ * @param interp Command interpreter.
+ * @param objc Full widget-command argument count, already checked by dispatch.
+ * @param objv Borrowed full argument vector, with pen subcommand at index two.
+ * Passes objv[3] and trailing options to Rbc_CreatePen. Returns TCL_ERROR on
+ * failure, otherwise sets the original name object as the result and returns
+ * TCL_OK. Does not acquire a counted reference to the returned pen.
  */
 static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Pen *penPtr;
@@ -508,27 +498,17 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * DeleteOp --
- *
- *      Delete the given pen.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns TCL_OK. If there is an error, returns TCL_ERROR and an
- *      error message is left in the interpreter result.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *--------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Hide named pens and destroy those with no remaining references.
+ * @param graphPtr Live owning graph.
+ * @param interp Command interpreter.
+ * @param objc Full widget-command argument count, already checked by dispatch.
+ * @param objv Borrowed full argument vector, with pen subcommand at index two.
+ * Processes names in order, sets PEN_DELETE_PENDING and immediately destroys
+ * zero-reference records. Returns TCL_ERROR at the first unavailable name;
+ * earlier deletions remain. An empty name sequence succeeds. Repeated names
+ * therefore fail after the first deletion rather than being silently ignored.
  */
 static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Pen *penPtr;
@@ -552,26 +532,17 @@ static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * NamesOp --
- *
- *      Return a list of the names of all the axes.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief List visible pen names matching any supplied glob pattern.
+ * @param graphPtr Live owning graph.
+ * @param interp Command interpreter.
+ * @param objc Full widget-command argument count, already checked by dispatch.
+ * @param objv Borrowed full argument vector, with pen subcommand at index two.
+ * Walks the hash table, skips pending records and appends each matching name
+ * once, even if multiple patterns match. With no patterns, returns all visible
+ * names. Result order is hash traversal order, not sorting or creation order.
+ * Returns TCL_OK without acquiring references to listed pens.
  */
 static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_HashSearch cursor;
@@ -600,26 +571,16 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * TypeOp --
- *
- *      Return the type of pen.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Return the concrete class identifier of a visible pen.
+ * @param graphPtr Live owning graph.
+ * @param interp Command interpreter.
+ * @param objc Full widget-command argument count, already checked by dispatch.
+ * @param objv Borrowed full argument vector, with pen subcommand at index two.
+ * Looks up objv[3] and returns its classUid as a Tcl string. Returns TCL_ERROR
+ * for unknown or delete-pending names. Strip/polar uses report the normalized
+ * line implementation rather than a distinct pen class.
  */
 static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Pen *penPtr;
@@ -640,26 +601,17 @@ static const PenOpSpec penOps[] = {{{"cget", 5, 5, "penName option"}, CgetOp},
                                    {{"type", 4, 4, "penName"}, TypeOp},
                                    {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PenOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup pen_internals
+ * @brief Dispatch a typed named-pen subcommand.
+ * @param graphPtr Live owning graph.
+ * @param interp Command interpreter.
+ * @param objc Full widget-command argument count, already checked by dispatch.
+ * @param objv Borrowed full argument vector, with pen subcommand at index two.
+ * Uses Rbc_GetOpIndexFromObj to validate the subcommand and argument bounds,
+ * then invokes its typed handler. Returns the handler result or TCL_ERROR from
+ * dispatch. Handler-specific parsing still validates option/value structure.
+ * This dispatcher supplies no independent graph or pen lifetime protection.
  */
 int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;

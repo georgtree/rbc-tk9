@@ -136,6 +136,8 @@ proc ::rbcDocBuild::main {arguments} {
         @CONFIG_SOURCE@ [doxyQuote [file join $root generic rbcConfig.c]] \
         @MISC_SOURCE@ [doxyQuote [file join $root generic rbcGrMisc.c]] \
         @UTIL_SOURCE@ [doxyQuote [file join $root generic rbcUtil.c]] \
+        @PEN_SOURCE@ [doxyQuote [file join $root generic rbcGrPen.c]] \
+        @ELEMENT_SOURCE@ [doxyQuote [file join $root generic rbcGrElem.c]] \
         @SCROLL_SOURCE@ [doxyQuote [file join $root generic rbcScroll.c]] \
         @MATH_HEADER@ [doxyQuote [file join $root generic rbcMath.h]] \
         @VERSION@ $version]

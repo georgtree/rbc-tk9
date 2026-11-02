@@ -98,5 +98,53 @@ namespace eval graph.pen {
 	    destroy .graph1
 	} -result {unknown pen type "foo" specified}
 	
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Failed revival must retain hidden state and the original pen options.
+    # ------------------------------------------------------------------------------------
+    foreach {case options} {1 {-unknownpenoption 1} 2 {-showvalues invalid}} {
+        test RBC.graph.pen.create.A.2.$case {
+            failed revival preserves pending visibility and permits a later retry
+        } -setup {
+            graph .graph1
+            .graph1 pen create Pen1 -color blue
+            .graph1 element create e -xdata {1 2} -ydata {2 3} -pen Pen1
+            .graph1 pen delete Pen1
+        } -body {
+            set result {}
+            for {set attempt 0} {$attempt < 2} {incr attempt} {
+                lappend result [catch {.graph1 pen create Pen1 -color red {*}$options} message]
+                lappend result [expr {[string length $message] > 0}]
+                lappend result [.graph1 pen names Pen1]
+                lappend result [catch {.graph1 pen cget Pen1 -color}]
+                lappend result [catch {.graph1 element configure e -pen Pen1}]
+            }
+            lappend result [.graph1 pen create Pen1]
+            lappend result [.graph1 pen cget Pen1 -color] [.graph1 element cget e -pen]
+            set result
+        } -cleanup {
+            destroy .graph1
+        } -result {1 1 {} 1 1 1 1 {} 1 1 Pen1 blue Pen1}
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Last-reference cleanup after failed revival must remove the retained record.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.pen.create.A.2.3 {
+        failed revival remains pending until the final element reference is released
+    } -setup {
+        graph .graph1
+        .graph1 pen create Pen1 -color blue
+        .graph1 element create e -xdata {1 2} -ydata {2 3} -pen Pen1
+        .graph1 pen delete Pen1
+    } -body {
+        set failed [catch {.graph1 pen create Pen1 -showvalues invalid}]
+        .graph1 element delete e
+        list $failed [.graph1 pen names Pen1] \
+            [.graph1 pen create Pen1 -type bar] [.graph1 pen type Pen1]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 {} Pen1 BarElement}
+
 	cleanupTests
 }

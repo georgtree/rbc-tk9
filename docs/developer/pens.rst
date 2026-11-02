@@ -109,3 +109,101 @@ while referenced, compatible revival, rejected type changes, failed style
 replacement, overlapping ranges, exact range boundaries and empty data. These
 exercise ownership and selection behavior that a simple rendered sample cannot
 fully demonstrate.
+
+Creation and command boundaries
+-------------------------------
+
+``Rbc_CreatePen`` returns a graph-owned pointer without acquiring a counted
+reference. It scans explicit option pairs for ``-type`` before selecting the
+concrete constructor; the accepted preliminary prefixes have three through
+five bytes, and the last recognized occurrence determines construction.
+Explicit ``bar``, ``line`` and ``strip`` types are accepted by this scan;
+strip uses line storage. A supplied polar or strip default class is likewise
+normalized to line. Subsequent Tk configuration still validates the options.
+
+A new record is registered before initialization. ``InitPenOptions`` creates
+its option table and initializes the named Pen component, freeing partially
+initialized Tk resources if initialization fails. Explicit options pass through
+``ConfigurePenOptions``; with no explicit options the concrete configurator
+still runs to build derived resources from defaults. Failure destroys a newly
+created record and removes its registry entry.
+
+A compatible delete-pending record remains hidden during revival configuration.
+Only successful configuration clears its pending flag. Failure keeps the old
+record pending and its existing users retain their references and drawing
+state. A later valid create can retry revival; releasing the last reference
+instead destroys the pending record normally. This visibility commit is separate
+from the Tk option transaction, which restores the record's option values.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 24 40 36
+
+   * - Operation
+     - Lookup/result
+     - Mutation boundary
+   * - cget / type
+     - Borrowed lookup, value or normalized class result
+     - No reference acquisition or mutation
+   * - configure query
+     - First named pen only
+     - Zero options returns all metadata; one option returns its metadata
+   * - configure update
+     - Names checked before applying option pairs
+     - Per-pen commit; later failure retains earlier changes
+   * - create
+     - Original name object returned on success
+     - New allocation or compatible retained-record revival
+   * - delete
+     - Names processed in argument order
+     - Earlier deletions survive later failure
+   * - names
+     - Visible names matching any supplied glob
+     - Hash traversal order; each name appears at most once
+
+Configure identifies the start of options by the first argument beginning with
+a dash. Querying multiple names does not assemble multiple results: the first
+query returns immediately. Deleting the same name twice fails at the second
+lookup, since pending names are hidden. Neither lookup nor listing acquires a
+reference that could keep a pen alive after command processing.
+
+The dispatcher checks subcommand and argument-count bounds. It does not add an
+independent graph/pen preservation boundary around concrete configuration.
+Callers and concrete configurators remain responsible for callback lifetimes;
+ordinary option rollback must not be used as evidence of callback safety.
+
+Candidate palettes and default ranges
+-------------------------------------
+
+``ParseStylesObj`` clears its output pointer before doing any work. It always
+constructs the reserved normal-style entry, including for NULL or empty style
+lists, and borrows the element's current normal pen there. Additional entries
+use the concrete record size supplied by the caller, which must accommodate
+``PenStyle``. The first additional entry defaults to range 0 through 1, the
+second to 1 through 2, and so on.
+
+``GetPenStyleFromObj`` accepts exactly one or three list elements. The three-item
+form converts both endpoints before acquiring a named pen, so invalid numeric
+input cannot leak that reference. It uses Tcl numeric conversion rather than
+expression evaluation. A one-item specification retains the initialized default
+range; three items replace it using ``SetWeight``. Endpoint ordering is not
+rejected: ``SetRange`` uses DBL_EPSILON when max is not greater than min. This
+compatibility behavior differs from rejecting reversed ranges or treating them
+as empty. Keep it distinct from the style mapper's check for a stored
+nonpositive range.
+
+Palette pen compatibility is checked against the element's class. The
+``penType`` argument retained by ``StageElemStyles`` is currently unused; it
+does not override that class check. Stage helpers acquire/parse a successor
+before releasing the earlier candidate. This matters for repeated options and
+for delete-pending pens whose last reference could otherwise disappear.
+
+``StageElemPen`` similarly records NULL as an explicitly staged choice: normal
+NULL selects the built-in pen at commit, whereas active NULL disables the
+active pen. An unsuccessful lookup retains the previous candidate. The outer
+transaction decides whether to continue, commit, or release all staged values.
+
+An unattached palette entry that fails parsing is freed separately. Entries
+already attached are cleaned through ``DestroyPalette``, which releases counted
+style pens and destroys the chain without releasing the borrowed first pen.
+Neither staging nor cleanup implicitly replaces the live element palette.

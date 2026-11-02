@@ -9,6 +9,13 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcGrElem.c
+ * Pen and palette implementation contracts.
+ */
+/** @defgroup palette_internals Element palette internals
+ * Private helpers; no new public API.
+ */
+
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -100,37 +107,18 @@ static int GetElemArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elem
  * Custom option parse and print procedures
  * ----------------------------------------------------------------------
  */
-/*
- *----------------------------------------------------------------------
- *
- * GetPenStyleFromObj --
- *
- *      Parses one palette-style specification.
- *
- *      A style is either:
- *
- *          penName
- *
- *      or:
- *
- *          penName min max
- *
- * Parameters:
- *      Graph *graphPtr     - Owning graph.
- *      Tcl_Obj *objPtr     - Style specification.
- *      Rbc_Uid type        - Required pen type.
- *      PenStyle *stylePtr  - Receives the parsed style.
- *
- * Results:
- *      TCL_OK if the style is valid.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Acquires a reference to the selected pen on success. The
- *      destination is not modified until every fallible numeric
- *      conversion has succeeded.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup palette_internals
+ * @brief Parse one palette style and acquire its named pen reference.
+ * @param graphPtr Live graph and interpreter for lookup/errors.
+ * @param objPtr Borrowed list containing penName or penName/min/max.
+ * @param type Required element pen class, normalized by Rbc_GetPen.
+ * @param stylePtr Candidate style with default weight already initialized.
+ * @return TCL_OK transferring one pen reference, or TCL_ERROR without changing
+ * stylePtr. Numeric endpoints are converted before acquiring the reference.
+ * The one-name form preserves the candidate weight. Three items replace it via
+ * SetWeight; no ascending-range check is performed here. This helper does not
+ * release an existing destination pen and does not evaluate Tcl expressions.
  */
 static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, PenStyle *stylePtr) {
     Tcl_Interp *interp;
@@ -1011,19 +999,14 @@ static ElemDataOption GetElemDataOption(Element *elemPtr, Tcl_Obj *objPtr) {
     return ELEM_DATA_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetElemPenOption --
- *
- *      Determines whether an option represents "-activepen" or
- *      "-pen".
- *
- *      Tk_SetOptions has already validated abbreviations. This helper
- *      recovers the canonical option identity from the original
- *      option/value vector.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup palette_internals
+ * @brief Recover the canonical active or normal pen option identity.
+ * @param elemPtr Element with its concrete optionSpecs.
+ * @param objPtr Borrowed original option-name object.
+ * @return ELEM_PEN_OPTION_ACTIVE, ELEM_PEN_OPTION_NORMAL or NONE.
+ * Uses Rbc_GetCanonicalOptionName after Tk option validation, recognizing aliases
+ * and accepted abbreviations. Does not acquire references or alter the element.
  */
 static ElemPenOption GetElemPenOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -1569,19 +1552,19 @@ void Rbc_CommitElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
     transactionPtr->stagedMask = 0;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StageElemPen --
- *
- *      Resolves an element pen option into temporary transaction
- *      storage without modifying the live element.
- *
- *      An empty string represents no named pen. For the normal pen,
- *      the commit function later substitutes the embedded built-in
- *      pen. For the active pen, it disables the active pen.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup palette_internals
+ * @brief Acquire a candidate pen before releasing an earlier staged reference.
+ * @param graphPtr Live owning graph.
+ * @param objPtr Borrowed pen name; NULL/empty stages no named pen.
+ * @param penType Required concrete pen class.
+ * @param transactionPtr Initialized pen transaction owning previous candidates.
+ * @param candidatePtrPtr Address of the corresponding candidate pointer.
+ * @param option ACTIVE or NORMAL, matching candidatePtrPtr.
+ * @return TCL_OK on staging, TCL_ERROR retaining the prior candidate on lookup
+ * failure. Marks the option staged even for NULL. The later normal-pen commit
+ * substitutes the built-in pen; active NULL disables the active pen. The live
+ * element is untouched, and any acquired reference belongs to the transaction.
  */
 static int StageElemPen(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid penType, ElemPenTransaction *transactionPtr,
                         Pen **candidatePtrPtr, ElemPenOption option) {
@@ -2318,18 +2301,13 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * IsElemStylesOption --
- *
- *      Determines whether an option name represents "-styles".
- *
- *      Tk_SetOptions has already validated abbreviations. This helper
- *      recovers the canonical option identity from the original
- *      option/value vector.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup palette_internals
+ * @brief Recognize the canonical styles option after Tk validation.
+ * @param elemPtr Element with concrete optionSpecs.
+ * @param objPtr Borrowed original option-name object.
+ * @return Nonzero for -styles, zero for unrelated or unresolved names.
+ * Does not parse the option value, acquire pens or modify the element.
  */
 static int IsElemStylesOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -2338,17 +2316,19 @@ static int IsElemStylesOption(Element *elemPtr, Tcl_Obj *objPtr) {
     return ((name != NULL) && (strcmp(name, "-styles") == 0));
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StageElemStyles --
- *
- *      Parses one -styles value into temporary palette storage.
- *
- *      A previously staged candidate is retained until its replacement
- *      has parsed successfully.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup palette_internals
+ * @brief Replace a staged palette only after parsing its successor.
+ * @param graphPtr Live owning graph.
+ * @param elemPtr Element supplying class and borrowed normal pen.
+ * @param objPtr Borrowed style-list object; NULL means no additional styles.
+ * @param penType Retained interface argument; currently unused by this helper.
+ * @param styleSize Concrete style-record size, at least sizeof(PenStyle).
+ * @param transactionPtr Initialized transaction owning any previous palette.
+ * @return TCL_OK on staging; TCL_ERROR retains the previous candidate.
+ * ParseStylesObj checks pens against elemPtr's class. Success destroys the prior
+ * candidate, stores the new chain and marks it staged, without replacing the
+ * live element palette.
  */
 static int StageElemStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, Rbc_Uid penType, size_t styleSize,
                            ElemStylesTransaction *transactionPtr) {
@@ -2559,26 +2539,14 @@ void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * DestroyPalette --
- *
- *      Releases all pen references owned by a palette and destroys
- *      the palette chain itself.
- *
- * Parameters:
- *      Graph *graphPtr    - Owning graph.
- *      Rbc_Chain *palette - Palette to destroy.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Releases all named style pens except the non-owning first
- *      normal-pen entry, then destroys the chain.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup palette_internals
+ * @brief Destroy an entire candidate or retired palette chain.
+ * @param graphPtr Owning graph used to release counted named-pen references.
+ * @param palette Owned chain or NULL.
+ * Releases entries after the reserved first entry through Rbc_FreePalette, then
+ * destroys the chain including that first entry. Its normal pen is borrowed and
+ * is not released. NULL is accepted; no live element pointer is changed.
  */
 static void DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
     if (palette == NULL) {
@@ -2588,33 +2556,20 @@ static void DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
     Rbc_ChainDestroy(palette);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ParseStylesObj --
- *
- *      Parses an element palette into a newly allocated candidate
- *      chain without modifying the live element palette.
- *
- * Parameters:
- *      Graph *graphPtr          - Owning graph.
- *      Element *elemPtr         - Element receiving the palette.
- *      Tcl_Obj *objPtr          - Tcl list of style specifications.
- *                                 NULL represents an empty style list.
- *      size_t styleSize         - Size of the concrete style record.
- *      Rbc_Chain **palettePtrPtr
- *                               - Receives the candidate palette.
- *
- * Results:
- *      TCL_OK if every style was parsed successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Allocates a new chain and acquires pen references on success.
- *      On failure, all partially acquired references and storage are
- *      released. The live element is never modified.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup palette_internals
+ * @brief Build a candidate palette with a reserved normal-style entry.
+ * @param graphPtr Live graph and interpreter.
+ * @param elemPtr Element supplying class and normal-pen pointer.
+ * @param objPtr Borrowed list of styles; NULL represents an empty list.
+ * @param styleSize Concrete record size, at least sizeof(PenStyle).
+ * @param[out] palettePtrPtr Cleared first; receives an owned chain on success.
+ * @return TCL_OK on success, TCL_ERROR after releasing partial storage and pen
+ * references. Does not dispose of a prior output pointer or change the element.
+ * The first entry always borrows the normal pen. Additional entries acquire pens
+ * and default to weight intervals i through i+1 (zero-based). Explicit endpoints
+ * replace those defaults. An invalid unattached entry is freed separately before
+ * destroying the partial chain. Caller must eventually commit or destroy output.
  */
 static int ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize,
                        Rbc_Chain **palettePtrPtr) {

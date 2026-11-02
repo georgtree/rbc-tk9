@@ -154,6 +154,375 @@ Unmatched or unweighted points retain the first (normal) style. Weighted points 
 </dd></dl>
 
 </section>
+<section id="named-pen-implementation">
+<h2>Named pen implementation<a class="headerlink" href="#named-pen-implementation" title="Link to this heading">¶</a></h2>
+<p>The implementation group uses a documentation-only <code class="docutils literal notranslate"><span class="pre">rbcGrPen</span></code> scope to
+separate file-local handler names (such as DeleteOp) from identical names in
+other modules. This does not rename C symbols or introduce a runtime namespace.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__pen__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Named</span> <span class="pre">pen</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private helpers; no new public API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.InitPenOptions">
+<span class="target" id="group__pen__internals_1ga877eb7be1d2a7ced0a70f5a048d3e3a2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitPenOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.InitPenOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize a named pen from its Pen option-database component. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph with window and component proxy. </p></li>
+<li><p><strong>penPtr</strong> – Concrete pen with name and optionSpecs installed. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK when initialized (including an already initialized record), TCL_ERROR after releasing partial Tk options and the new table on failure. Normalizes the component resource name, releases that temporary name, and sets optionsInitialized only on success. Does not construct derived drawing GCs; the caller must run the concrete configurator afterward. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.ConfigurePenOptions">
+<span class="target" id="group__pen__internals_1ga172eb8464536e4869be6da01432af5ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePenOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ConfigurePenOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply one named pen’s explicit Tk options and derived configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph and interpreter. </p></li>
+<li><p><strong>penPtr</strong> – Initialized concrete pen. </p></li>
+<li><p><strong>objc</strong> – Even number of option/value objects. </p></li>
+<li><p><strong>objv</strong> – Borrowed option/value array, valid throughout configuration. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on commit, TCL_ERROR with a diagnostic on failure. Tk_SetOptions handles option conversion errors. If configProc fails, restore saved Tk options while preserving its diagnostic. Concrete configProc must stage its own derived resources before commit. On success release saved old options. This helper neither schedules redraw nor preserves objects across arbitrary callbacks; its caller owns their lifetime. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.ReleasePenResources">
+<span class="target" id="group__pen__internals_1ga300414ff56fc7772c93a3110701d962b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleasePenResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ReleasePenResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a named pen’s drawing and Tk resources once. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph; a live Tk window is required for actual release. </p></li>
+<li><p><strong>penPtr</strong> – Concrete pen record retained after this call. Does nothing before successful option initialization or after prior release. Calls destroyProc before freeing Tk options, then deletes and clears the option table and marks tkResourcesReleased. Does not free the name, registry entry or record, nor change reference counts. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.NameToPen">
+<span class="target" id="group__pen__internals_1gaa7edd6dd072001f9a1a269f70446a570"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NameToPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nameObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.NameToPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find a visible named pen without acquiring a reference. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph with initialized pen table and Tk window. </p></li>
+<li><p><strong>nameObj</strong> – Borrowed pen-name object. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Borrowed Pen pointer, or NULL with a graph-interpreter diagnostic. Delete-pending records are hidden even when retained in the table. Does not check concrete type or increment refCount; use Rbc_GetPen for owned references. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.DestroyPen">
+<span class="target" id="group__pen__internals_1ga8dc7762b910223725e2575fe725a41aa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.DestroyPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Remove a pen record and its registry entry without a reference check. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph in normal operation or ordered teardown. </p></li>
+<li><p><strong>penPtr</strong> – Pen whose users have already released their references. Releases Tk resources if still needed and the window remains live, then frees the nonempty owned name, deletes a non-NULL hash entry and frees the record. After window destruction, the caller must already have run resource release. Graph-wide teardown clears hashPtr first and deletes the table separately. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.Rbc_CreatePen">
+<span class="target" id="group__pen__internals_1ga04fec51774ddcc80498f63741e3cfece"></span><span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreatePen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penName</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOpts</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.Rbc_CreatePen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a named concrete pen or revive a matching retained record. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>penName</strong> – Borrowed name to register. </p></li>
+<li><p><strong>classUid</strong> – Default pen class; strip and polar are normalized to line. </p></li>
+<li><p><strong>nOpts</strong> – Number of explicit option/value objects, expected to be even. </p></li>
+<li><p><strong>options</strong> – Borrowed options, valid throughout initialization/configuration. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Graph-owned Pen pointer without a new counted reference, or NULL on error. Scans -type prefixes of length three through five before allocation; the last recognized occurrence selects bar or line (strip selects line). Existing live names and incompatible pending types fail. New records are removed on failed initialization or configuration. A matching pending record is reused, but its PEN_DELETE_PENDING flag is cleared only after configuration succeeds, so failed revival keeps the retained record hidden. No redraw is scheduled here; acquiring a long-lived reference requires Rbc_GetPen. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.CgetOp">
+<span class="target" id="group__pen__internals_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.CgetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the current value of one named pen option. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>interp</strong> – Command interpreter. </p></li>
+<li><p><strong>objc</strong> – Full widget-command argument count, already checked by dispatch. </p></li>
+<li><p><strong>objv</strong> – Borrowed full argument vector, with pen subcommand at index two. Looks up objv[3] without acquiring a reference, then uses Tk_GetOptionValue for objv[4]. Returns TCL_ERROR on lookup/conversion failure; otherwise installs the returned Tcl object as the result. No configuration or redraw occurs. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.ConfigureOp">
+<span class="target" id="group__pen__internals_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or configure one or more named pens. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>interp</strong> – Command interpreter. </p></li>
+<li><p><strong>objc</strong> – Full widget-command argument count, already checked by dispatch. </p></li>
+<li><p><strong>objv</strong> – Borrowed full argument vector, with pen subcommand at index two. Treats the first argument beginning with a dash as the option boundary and checks preceding names before applying changes. Zero or one option arguments query only the first pen. Updates run in name order and stop at the first failure; earlier commits remain. Successfully changed referenced pens cause backing-store and margin redraw, including when a later pen fails. Returns TCL_OK or TCL_ERROR; does not provide a transaction across all named pens. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.CreateOp">
+<span class="target" id="group__pen__internals_1ga90c7491b4c2ff542af4a6a5c0b644944"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.CreateOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a pen using the graph class as the default. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>interp</strong> – Command interpreter. </p></li>
+<li><p><strong>objc</strong> – Full widget-command argument count, already checked by dispatch. </p></li>
+<li><p><strong>objv</strong> – Borrowed full argument vector, with pen subcommand at index two. Passes objv[3] and trailing options to Rbc_CreatePen. Returns TCL_ERROR on failure, otherwise sets the original name object as the result and returns TCL_OK. Does not acquire a counted reference to the returned pen. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.DeleteOp">
+<span class="target" id="group__pen__internals_1ga478a3f6ac5ef81f3649c1afabab35cc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.DeleteOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Hide named pens and destroy those with no remaining references. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>interp</strong> – Command interpreter. </p></li>
+<li><p><strong>objc</strong> – Full widget-command argument count, already checked by dispatch. </p></li>
+<li><p><strong>objv</strong> – Borrowed full argument vector, with pen subcommand at index two. Processes names in order, sets PEN_DELETE_PENDING and immediately destroys zero-reference records. Returns TCL_ERROR at the first unavailable name; earlier deletions remain. An empty name sequence succeeds. Repeated names therefore fail after the first deletion rather than being silently ignored. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.NamesOp">
+<span class="target" id="group__pen__internals_1ga35817a8f9f90cf487e885b731de45e29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NamesOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.NamesOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List visible pen names matching any supplied glob pattern. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>interp</strong> – Command interpreter. </p></li>
+<li><p><strong>objc</strong> – Full widget-command argument count, already checked by dispatch. </p></li>
+<li><p><strong>objv</strong> – Borrowed full argument vector, with pen subcommand at index two. Walks the hash table, skips pending records and appends each matching name once, even if multiple patterns match. With no patterns, returns all visible names. Result order is hash traversal order, not sorting or creation order. Returns TCL_OK without acquiring references to listed pens. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.TypeOp">
+<span class="target" id="group__pen__internals_1gafd105d5a988d29b3152781d274293fb5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.TypeOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the concrete class identifier of a visible pen. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>interp</strong> – Command interpreter. </p></li>
+<li><p><strong>objc</strong> – Full widget-command argument count, already checked by dispatch. </p></li>
+<li><p><strong>objv</strong> – Borrowed full argument vector, with pen subcommand at index two. Looks up objv[3] and returns its classUid as a Tcl string. Returns TCL_ERROR for unknown or delete-pending names. Strip/polar uses report the normalized line implementation rather than a distinct pen class. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrPen.Rbc_PenOp">
+<span class="target" id="group__pen__internals_1ga71b87be5a55b55da3a58bb33f9b28c6b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PenOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.Rbc_PenOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch a typed named-pen subcommand. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>interp</strong> – Command interpreter. </p></li>
+<li><p><strong>objc</strong> – Full widget-command argument count, already checked by dispatch. </p></li>
+<li><p><strong>objv</strong> – Borrowed full argument vector, with pen subcommand at index two. Uses Rbc_GetOpIndexFromObj to validate the subcommand and argument bounds, then invokes its typed handler. Returns the handler result or TCL_ERROR from dispatch. Handler-specific parsing still validates option/value structure. This dispatcher supplies no independent graph or pen lifetime protection. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="palette-implementation">
+<h2>Palette implementation<a class="headerlink" href="#palette-implementation" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__palette__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">palette</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private helpers; no new public API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPenStyleFromObj">
+<span class="target" id="group__palette__internals_1ga6bfd2b70060a9363c54058b738ac1179"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPenStyleFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPenStyleFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse one palette style and acquire its named pen reference. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph and interpreter for lookup/errors. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed list containing penName or penName/min/max. </p></li>
+<li><p><strong>type</strong> – Required element pen class, normalized by Rbc_GetPen. </p></li>
+<li><p><strong>stylePtr</strong> – Candidate style with default weight already initialized. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK transferring one pen reference, or TCL_ERROR without changing stylePtr. Numeric endpoints are converted before acquiring the reference. The one-name form preserves the candidate weight. Three items replace it via SetWeight; no ascending-range check is performed here. This helper does not release an existing destination pen and does not evaluate Tcl expressions. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetElemPenOption">
+<span class="target" id="group__palette__internals_1gaa56207d86841468902ea4707a33c9c50"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ElemPenOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemPenOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemPenOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Recover the canonical active or normal pen option identity. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element with its concrete optionSpecs. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed original option-name object. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ELEM_PEN_OPTION_ACTIVE, ELEM_PEN_OPTION_NORMAL or NONE. Uses Rbc_GetCanonicalOptionName after Tk option validation, recognizing aliases and accepted abbreviations. Does not acquire references or alter the element. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageElemPen">
+<span class="target" id="group__palette__internals_1ga1402c42f3bb1787e25652119876790be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">ElemPenTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtrPtr</span></span>, <span class="n"><span class="pre">ElemPenOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a candidate pen before releasing an earlier staged reference. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed pen name; NULL/empty stages no named pen. </p></li>
+<li><p><strong>penType</strong> – Required concrete pen class. </p></li>
+<li><p><strong>transactionPtr</strong> – Initialized pen transaction owning previous candidates. </p></li>
+<li><p><strong>candidatePtrPtr</strong> – Address of the corresponding candidate pointer. </p></li>
+<li><p><strong>option</strong> – ACTIVE or NORMAL, matching candidatePtrPtr. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on staging, TCL_ERROR retaining the prior candidate on lookup failure. Marks the option staged even for NULL. The later normal-pen commit substitutes the built-in pen; active NULL disables the active pen. The live element is untouched, and any acquired reference belongs to the transaction. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IsElemStylesOption">
+<span class="target" id="group__palette__internals_1ga9f761e9908968096725666953df862a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsElemStylesOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsElemStylesOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Recognize the canonical styles option after Tk validation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element with concrete optionSpecs. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed original option-name object. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero for -styles, zero for unrelated or unresolved names. Does not parse the option value, acquire pens or modify the element. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageElemStyles">
+<span class="target" id="group__palette__internals_1gaadb4396fd4f255eb4f7749efb8b41f92"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemStyles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">styleSize</span></span>, <span class="n"><span class="pre">ElemStylesTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemStyles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace a staged palette only after parsing its successor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>elemPtr</strong> – Element supplying class and borrowed normal pen. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed style-list object; NULL means no additional styles. </p></li>
+<li><p><strong>penType</strong> – Retained interface argument; currently unused by this helper. </p></li>
+<li><p><strong>styleSize</strong> – Concrete style-record size, at least sizeof(PenStyle). </p></li>
+<li><p><strong>transactionPtr</strong> – Initialized transaction owning any previous palette. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on staging; TCL_ERROR retains the previous candidate. ParseStylesObj checks pens against elemPtr’s class. Success destroys the prior candidate, stores the new chain and marks it staged, without replacing the live element palette. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DestroyPalette">
+<span class="target" id="group__palette__internals_1gabdabc7a4d0cbabe40159b7830d0542bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPalette</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DestroyPalette" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy an entire candidate or retired palette chain. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph used to release counted named-pen references. </p></li>
+<li><p><strong>palette</strong> – Owned chain or NULL. Releases entries after the reserved first entry through Rbc_FreePalette, then destroys the chain including that first entry. Its normal pen is borrowed and is not released. NULL is accepted; no live element pointer is changed. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ParseStylesObj">
+<span class="target" id="group__palette__internals_1ga90570df61e59b0da445c334353e99729"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseStylesObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">styleSize</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palettePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseStylesObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build a candidate palette with a reserved normal-style entry. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph and interpreter. </p></li>
+<li><p><strong>elemPtr</strong> – Element supplying class and normal-pen pointer. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed list of styles; NULL represents an empty list. </p></li>
+<li><p><strong>styleSize</strong> – Concrete record size, at least sizeof(PenStyle). </p></li>
+<li><p><strong>palettePtrPtr</strong> – <strong>[out]</strong> Cleared first; receives an owned chain on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success, TCL_ERROR after releasing partial storage and pen references. Does not dispose of a prior output pointer or change the element. The first entry always borrows the normal pen. Additional entries acquire pens and default to weight intervals i through i+1 (zero-based). Explicit endpoints replace those defaults. An invalid unattached entry is freed separately before destroying the partial chain. Caller must eventually commit or destroy output. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -180,6 +549,32 @@ Unmatched or unweighted points retain the first (normal) style. Weighted points 
 <li><a class="reference internal" href="#element-palettes">Element palettes</a><ul>
 <li><a class="reference internal" href="#c.Rbc_FreePalette"><code class="docutils literal notranslate"><span class="pre">Rbc_FreePalette()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_StyleMap"><code class="docutils literal notranslate"><span class="pre">Rbc_StyleMap()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#named-pen-implementation">Named pen implementation</a><ul>
+<li><a class="reference internal" href="#c.rbcGrPen.InitPenOptions"><code class="docutils literal notranslate"><span class="pre">InitPenOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.ConfigurePenOptions"><code class="docutils literal notranslate"><span class="pre">ConfigurePenOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.ReleasePenResources"><code class="docutils literal notranslate"><span class="pre">ReleasePenResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.NameToPen"><code class="docutils literal notranslate"><span class="pre">NameToPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.DestroyPen"><code class="docutils literal notranslate"><span class="pre">DestroyPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.Rbc_CreatePen"><code class="docutils literal notranslate"><span class="pre">Rbc_CreatePen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.CgetOp"><code class="docutils literal notranslate"><span class="pre">CgetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.ConfigureOp"><code class="docutils literal notranslate"><span class="pre">ConfigureOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.CreateOp"><code class="docutils literal notranslate"><span class="pre">CreateOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.DeleteOp"><code class="docutils literal notranslate"><span class="pre">DeleteOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.NamesOp"><code class="docutils literal notranslate"><span class="pre">NamesOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.TypeOp"><code class="docutils literal notranslate"><span class="pre">TypeOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrPen.Rbc_PenOp"><code class="docutils literal notranslate"><span class="pre">Rbc_PenOp()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#palette-implementation">Palette implementation</a><ul>
+<li><a class="reference internal" href="#c.GetPenStyleFromObj"><code class="docutils literal notranslate"><span class="pre">GetPenStyleFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetElemPenOption"><code class="docutils literal notranslate"><span class="pre">GetElemPenOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageElemPen"><code class="docutils literal notranslate"><span class="pre">StageElemPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.IsElemStylesOption"><code class="docutils literal notranslate"><span class="pre">IsElemStylesOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageElemStyles"><code class="docutils literal notranslate"><span class="pre">StageElemStyles()</span></code></a></li>
+<li><a class="reference internal" href="#c.DestroyPalette"><code class="docutils literal notranslate"><span class="pre">DestroyPalette()</span></code></a></li>
+<li><a class="reference internal" href="#c.ParseStylesObj"><code class="docutils literal notranslate"><span class="pre">ParseStylesObj()</span></code></a></li>
 </ul>
 </li>
 </ul>

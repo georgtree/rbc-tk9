@@ -24,3 +24,23 @@ Element palettes
 .. doxygenfunction:: Rbc_FreePalette
 
 .. doxygenfunction:: Rbc_StyleMap
+
+Named pen implementation
+-------------------------
+
+The implementation group uses a documentation-only ``rbcGrPen`` scope to
+separate file-local handler names (such as DeleteOp) from identical names in
+other modules. This does not rename C symbols or introduce a runtime namespace.
+
+.. c:namespace-push:: rbcGrPen
+
+.. doxygengroup:: pen_internals
+   :members:
+
+.. c:namespace-pop::
+
+Palette implementation
+----------------------
+
+.. doxygengroup:: palette_internals
+   :members:
