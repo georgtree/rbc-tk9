@@ -87,3 +87,12 @@ pages as each module is documented.
 
 Developer HTML is not yet installed or included in binary distribution archives.
 Existing user documentation installation is unchanged.
+
+Windows backend extraction runs as a second Doxygen project using the same
+settings template but a Windows-only source input. Its XML and warnings are
+stored in ``doxygen-win/xml`` and ``doxygen-win-warnings.log`` below the build
+directory. Breathe selects this project explicitly for the Windows reference.
+Both extraction passes run on either build host; neither compiles code or
+requires Windows SDK headers. Separate projects prevent identical X11/Windows
+function names and private structure layouts from being merged. Strict mode
+checks both warning logs and restores both XML environment variables on exit.

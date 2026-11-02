@@ -150,9 +150,21 @@ proc ::rbcDocBuild::main {arguments} {
     set config [file join $output Doxyfile]
     writeFile $config [string map $substitutions [readFile [file join $source Doxyfile.in]]]
     writeFile $log {}
+    # Same C names have different layouts/contracts on each native platform.
+    # Keep Windows XML separate rather than merging it with the X11 project.
+    set winXml [file join $output doxygen-win xml]
+    set winLog [file join $output doxygen-win-warnings.log]
+    set winConfig [file join $output Doxyfile-win]
+    file delete -force $winXml
+    set winSettings [readFile $config]
+    append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcRenderNativeWin.c]]\n"
+    append winSettings "OUTPUT_DIRECTORY = [doxyQuote [file join $output doxygen-win]]\n"
+    append winSettings "WARN_LOGFILE = [doxyQuote $winLog]\n"
+    writeFile $winConfig $winSettings
+    writeFile $winLog {}
     set directory [pwd]
     set savedEnvironment {}
-    foreach name {RBC_DOXYGEN_XML RBC_DOC_VERSION RBC_DOC_HTML} {
+    foreach name {RBC_DOXYGEN_XML RBC_DOXYGEN_WIN_XML RBC_DOC_VERSION RBC_DOC_HTML} {
         if {[info exists ::env($name)]} {
             dict set savedEnvironment $name $::env($name)
         }
@@ -171,6 +183,18 @@ proc ::rbcDocBuild::main {arguments} {
         if {![file isfile [file join $xml index.xml]]} {
             error "Doxygen did not produce XML"
         }
+        exec -- $doxygen $winConfig >@stdout 2>@stderr
+        set warnings [string trim [readFile $winLog]]
+        if {$warnings ne {}} {
+            puts stderr $warnings
+            if {$strict} {
+                error "Windows Doxygen project reported documentation warnings"
+            }
+        }
+        if {![file isfile [file join $winXml index.xml]]} {
+            error "Windows Doxygen project did not produce XML"
+        }
+        set ::env(RBC_DOXYGEN_WIN_XML) $winXml
         set ::env(RBC_DOXYGEN_XML) $xml
         set ::env(RBC_DOC_VERSION) $version
         set ::env(RBC_DOC_HTML) $html
@@ -182,7 +206,7 @@ proc ::rbcDocBuild::main {arguments} {
         exec -- {*}$command >@stdout 2>@stderr
     } finally {
         cd $directory
-        foreach name {RBC_DOXYGEN_XML RBC_DOC_VERSION RBC_DOC_HTML} {
+        foreach name {RBC_DOXYGEN_XML RBC_DOXYGEN_WIN_XML RBC_DOC_VERSION RBC_DOC_HTML} {
             unset -nocomplain ::env($name)
             if {[dict exists $savedEnvironment $name]} {
                 set ::env($name) [dict get $savedEnvironment $name]

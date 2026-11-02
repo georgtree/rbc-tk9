@@ -278,3 +278,76 @@ Single polygon requests are checked against both INT_MAX and the XPoint request
 limit. An oversized polygon is rejected rather than naively split: independent
 pieces need not reproduce its interior. Bar-fill batches are already packed and
 bounded by the shared caller, so the X11 endpoint simply issues XFillRectangles.
+
+Windows batch eligibility and ownership
+---------------------------------------
+
+Windows batches retain a drawable DC and selected objects across many primitives.
+Trace state owns a pen, brush and trailing POINT workspace. EndTrace restores
+previous selections before deleting the batch objects and releasing DC state.
+Polyline coordinates convert to int; strips convert to LONG. The polygon marker
+batch intentionally converts through short first to preserve its earlier native
+rasterization. These paths do not share a universal coordinate-conversion rule.
+
+Circle batching asks GDI to generate an Ellipse path once, using a bounding box
+of diameter ``2*radius+1``. Translated copies reproduce that geometry without
+substituting an independently approximated circle. The template arrays and batch
+buffers are owned by the call and released even when setup selects fallback.
+
+.. list-table:: Windows symbol batching rules
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - Drawing path
+     - Batch choice
+     - Fallback or ordering constraint
+   * - Filled circles
+     - At most 32 figures with WINDING fill.
+     - GXcopy only; combined fill/outline also requires equal colors.
+   * - Circle outlines
+     - 512 figures, or 64 with wide outlines.
+     - GXcopy only; failed batches replay individual Ellipse calls.
+   * - Polygon fills
+     - Plus: 16; cross: 8; other templates: 32.
+     - Copy fills use WINDING unions; non-copy fills remain individual.
+   * - Polygon outlines
+     - 16384-point budget, or 1360 for wide pens.
+     - Copy paths use PolyPolyline; non-copy outlines remain individual.
+   * - Independent strips
+     - 8192 segments, or 680 with wide pens.
+     - Each PolyPolyline entry contains exactly two points.
+
+Polygon fill batches omit the repeated closing vertex; outline batches include
+it. All fills precede all outlines. A failed copy batch can replay individual
+shapes because repeating copy painting is safe. That argument does not apply to
+XOR or other order-sensitive raster operations, which use individual polygon
+calls. Circle setup failure similarly selects the existing per-symbol path;
+it must not silently broaden eligibility to unequal fill/outline colors.
+
+Bar bevel batching handles raised/sunken widths one and two. One-pixel bevels
+reproduce Tk strip order and tiny-rectangle clamping. Two-pixel bevels reproduce
+RBC's special outer layer followed by the inner Tk-style bevel. Other reliefs
+and widths return FALSE for ordinary shared fallback. TRUE reports that the
+configuration was handled, not that every GDI operation was checked.
+
+Failure and cleanup boundaries
+------------------------------
+
+Direct clip setup always returns TRUE on Windows, including acquisition or
+SaveDC failure. The shared caller initializes the output to None and treats a
+missing target as unavailable drawing, while still calling unclip. Successful
+setup promotes the intersection to a meta region before wrapping the DC; bitmap
+clip-mask changes therefore cannot bypass the enclosing rectangle. Cleanup frees
+the wrapper, restores saved state and releases any acquired record.
+
+Generic runs have a different policy: failed acquisition or wrapping invokes the
+callback once on the original drawable. Successful runs invoke it on the wrapper
+and then release that temporary target. Callback data and borrowed graph
+resources must remain valid for the synchronous call.
+
+The native APIs are mostly void drawing services, not transactional error
+reporters. Several paths check workspace allocation but do not separately check
+DC acquisition, selected-object creation, or each GDI drawing result. The
+source contracts identify these limits rather than promising rollback or
+complete output. The polygon and circle copy-replay paths handle particular
+failures; they are not a blanket recovery guarantee for every native operation.

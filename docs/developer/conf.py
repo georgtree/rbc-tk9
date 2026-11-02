@@ -5,7 +5,10 @@ project = "RBC Developer Manual"
 release = os.environ.get("RBC_DOC_VERSION", "")
 version = release
 extensions = ["breathe"]
-breathe_projects = {"rbc": os.environ["RBC_DOXYGEN_XML"]}
+breathe_projects = {
+    "rbc": os.environ["RBC_DOXYGEN_XML"],
+    "rbc-win": os.environ["RBC_DOXYGEN_WIN_XML"],
+}
 breathe_default_project = "rbc"
 breathe_domain_by_extension = {"h": "c", "c": "c"}
 primary_domain = "c"

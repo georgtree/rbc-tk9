@@ -111,6 +111,14 @@ migration; <code class="docutils literal notranslate"><span class="pre">EXTRACT_
 pages as each module is documented.</p>
 <p>Developer HTML is not yet installed or included in binary distribution archives.
 Existing user documentation installation is unchanged.</p>
+<p>Windows backend extraction runs as a second Doxygen project using the same
+settings template but a Windows-only source input. Its XML and warnings are
+stored in <code class="docutils literal notranslate"><span class="pre">doxygen-win/xml</span></code> and <code class="docutils literal notranslate"><span class="pre">doxygen-win-warnings.log</span></code> below the build
+directory. Breathe selects this project explicitly for the Windows reference.
+Both extraction passes run on either build host; neither compiles code or
+requires Windows SDK headers. Separate projects prevent identical X11/Windows
+function names and private structure layouts from being merged. Strict mode
+checks both warning logs and restores both XML environment variables on exit.</p>
 </section>
 </section>
 

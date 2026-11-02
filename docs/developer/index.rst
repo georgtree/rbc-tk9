@@ -103,6 +103,7 @@ safe. Chapters identify current limitations separately from intended guarantees.
    rendering
    native-rendering
    native-reference
+   native-windows-reference
    cairo-rendering
    cairo-reference
    reference

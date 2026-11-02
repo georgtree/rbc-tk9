@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Windows native backend C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Cairo surfaces and drawing contexts" href="cairo-rendering.html" />
+    <link rel="prev" title="Native backend C reference" href="native-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="cairo-rendering.html" title="Cairo surfaces and drawing contexts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="native-reference.html" title="Native backend C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Windows native backend C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="windows-native-backend-c-reference">
+<h1>Windows native backend C reference<a class="headerlink" href="#windows-native-backend-c-reference" title="Link to this heading">¶</a></h1>
+<p>Windows contracts use a separate Doxygen XML project so identical backend
+function and structure names cannot merge with the X11 implementation.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__native__windows__drawing"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">native</span> <span class="pre">backend</span></span></dt>
+<dd><p>Private Windows implementation; extracted separately from X11 namesakes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonPointLimit">
+<span class="target" id="group__native__windows__drawing_1gae260bf116aea6d400e5b25c14b03b73c"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonPointLimit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonPointLimit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the Windows component-level polygon allowance. </p>
+<p>Returns TCL_SIZE_MAX, without an X11 request-size bound. Actual drawing still validates the count against INT_MAX and available workspace. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolyline">
+<span class="target" id="group__native__windows__drawing_1ga82469865729ac1f8fd4290efe8ce4da1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace" title="Rbc_NativeTrace"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">screenPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolyline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stroke connected mapped points through a retained Windows DC. </p>
+<p>Borrows the trace context and input. NULL context/points or fewer than two points is a no-op. Converts coordinates to int and repeats the previous endpoint in continuation chunks. Uses preallocated POINT workspace; Polyline return values are not propagated. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeStrips">
+<span class="target" id="group__native__windows__drawing_1gab53f31433b56e3fed242962f4b4bc478"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeStrips</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeStrips" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw independent two-point strips with one DC acquisition. </p>
+<p>Owns bounded POINT and DWORD count buffers. Narrow strokes use up to 8192 segments per PolyPolyline call; wide strokes use 680. Converts endpoints to LONG, selects a GC-derived pen and raster operation, restores/deletes the selected pen and releases DC state. Allocation failure skips output; GDI drawing failures are not reported through this void interface. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeBeginTrace">
+<span class="target" id="group__native__windows__drawing_1ga75d7659b6fcbe50aadaa4f3ddd950637"></span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace" title="Rbc_NativeTrace"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBeginTrace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeBeginTrace" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a Windows trace context and acquire its drawing state. </p>
+<p>Borrows graph, target and GC; owns trailing POINT workspace, acquired DC state and selected pen/brush. Wide strokes use base capacity 100; narrow strokes use request-derived capacity, with one extra continuation slot. Returns NULL for capacity/allocation failure. DC and GDI object acquisition failures are not separately validated here. EndTrace must release the context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeEndTrace">
+<span class="target" id="group__native__windows__drawing_1ga33246c1c135f8d43600a518011714ee4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeEndTrace</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace" title="Rbc_NativeTrace"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeEndTrace" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Restore and release a Windows trace batch. </p>
+<p>Accepts NULL. Reselects the saved pen/brush, deletes the displaced batch objects, releases acquired DC state and frees the combined context buffer. Does not free the borrowed graph, drawable or GC. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.GetCirclePathTemplate">
+<span class="target" id="group__native__windows__drawing_1ga55acca355cd4e1bf0f84423db652098e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCirclePathTemplate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span>, <span class="n"><span class="pre">POINT</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointsPtrPtr</span></span>, <span class="n"><span class="pre">BYTE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">typesPtrPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nPointsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.GetCirclePathTemplate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Obtain reusable ellipse geometry generated by GDI itself. </p>
+<p>Initializes outputs to NULL/zero. Builds an Ellipse path in the borrowed DC using diameter 2*radius+1 and copies GetPath points/types to owned arrays. Aborts the temporary path after extraction. Returns FALSE on invalid radius, path failure or allocation failure, releasing partial arrays. On success the caller owns both arrays; radius arithmetic must be representable. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.LoadCirclePath">
+<span class="target" id="group__native__windows__drawing_1gaf67282f9c647e83b3baf029ca7ca969a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LoadCirclePath</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">POINT</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPoints</span></span>, <span class="n"><span class="pre">BYTE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstTypes</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">POINT</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">templatePoints</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">BYTE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">templateTypes</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nTemplatePoints</span></span>, <span class="n"><span class="pre">LONG</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="n"><span class="pre">LONG</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.LoadCirclePath" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translate one ellipse template into caller-owned batch storage. </p>
+<p>Borrows template arrays and copies point types unchanged. Translates points by center minus radius. Caller provides capacity for nTemplatePoints and representable LONG coordinates; no allocation or validation occurs. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.DrawCircleCentersDirect">
+<span class="target" id="group__native__windows__drawing_1ga353182fbf35629f7a65aecf9fcb1749a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawCircleCentersDirect</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">POINT</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">centers</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nCenters</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawCircleCentersDirect" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw buffered circles individually using Ellipse. </p>
+<p>Borrows DC and centers and preserves the existing radius-plus-one far edge. Used to replay a failed copy-compatible batch. Does not own GDI state or report individual drawing failures. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.DrawCirclePathBatch">
+<span class="target" id="group__native__windows__drawing_1ga574aa6b44c90abc6feb019365ffea4b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawCirclePathBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">POINT</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">BYTE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">types</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">doFill</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">doOutline</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawCirclePathBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Render a combined circle path or outline batch. </p>
+<p>Outline-only calls PolyDraw directly. Filled batches bracket PolyDraw in BeginPath/EndPath, then use FillPath or StrokeAndFillPath. Returns the GDI success result; aborts failed construction paths. Caller owns DC, arrays and selected pen/brush and decides whether replay is safe. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeCircles">
+<span class="target" id="group__native__windows__drawing_1ga738c1d4012cf6a80899a370f94f98e6a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeCircles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeCircles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw Windows circle symbols with guarded path batching. </p>
+<p>Borrows style/centers and advances interval counters for examined centers. Owns template/batch arrays, DC acquisition and non-stock pen/brush objects. Batching requires GXcopy for participating GCs and equal fill/outline colors when both are used. Filled batches contain at most 32 circles; outlines use 512, or 64 for wide pens. Setup failure selects individual Ellipse drawing; failed copy batches replay their buffered centers. Restores fill mode and selected objects and frees temporary resources. No Tcl error is produced. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeSquares">
+<span class="target" id="group__native__windows__drawing_1ga2f4c6299c1890b3322e3fe418660eab6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeSquares</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">r</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeSquares" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert selected squares to closed polygon symbols. </p>
+<p>Allocates five XPoints per input center, including a repeated first vertex. Subtracts radius before short conversion. Positive intervals update the style counter even for skipped centers. Delegates selected squares to Rbc_NativePolygonSymbols and frees storage; invalid/empty output or allocation failure is ignored. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.LoadPolygonBatch">
+<span class="target" id="group__native__windows__drawing_1ga163c67768de97779751666fc96da4323"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LoadPolygonBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">POINT</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">polygons</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">stride</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.LoadPolygonBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pack selected XPoint polygons into Windows POINT storage. </p>
+<p>Borrows source and destination arrays. Source stride includes closure; nPoints chooses fill vertices without closure or the complete outline. Copies count polygons starting at first, widening existing short values to LONG. Caller ensures all bounds and destination capacity. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonSymbols">
+<span class="target" id="group__native__windows__drawing_1ga8b73919132ad1b574b188e53e7575dc9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">polygons</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPolygons</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">stride</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nVertices</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill polygon symbols, then draw their closed outlines. </p>
+<p>Owns bounded point/count arrays and one acquired DC. Copy fills use WINDING and small PolyPolygon batches; non-copy fills preserve per-polygon effects. Outlines use larger PolyPolyline batches only for GXcopy, otherwise each outline is drawn separately. Failed copy batches replay individual shapes. Restores fill mode and selected GDI objects, deletes owned brushes/pens and releases all buffers. Interval selection is the shared caller’s responsibility. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonPointCount">
+<span class="target" id="group__native__windows__drawing_1ga12f8da3cb7281eb62562e4bb0ed6e609"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonPointCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonPointCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate a polygon count for the GDI int interface. </p>
+<p>Returns zero for fewer than three vertices or counts above INT_MAX; otherwise returns the int count. Does not enforce an X11 request limit or inspect coordinate geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.DrawWin3DRectangle1">
+<span class="target" id="group__native__windows__drawing_1gac45e49119921679d4dcb7e12dc3c8825"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWin3DRectangle1</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawWin3DRectangle1" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reproduce a one-pixel Tk raised or sunken rectangle bevel. </p>
+<p>Borrows DC and extracted colors. Clamps the bevel for tiny rectangles. Draws left, right, top and bottom strips in Tk order; unsupported relief draws nothing. Does not acquire a DC or retain color resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.DrawWinRbcOuter3DBorder">
+<span class="target" id="group__native__windows__drawing_1gac742e415c0ea0dd622159b48da2fc7b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWinRbcOuter3DBorder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawWinRbcOuter3DBorder" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw the RBC-specific outer layer of a two-pixel bevel. </p>
+<p>Requires dimensions greater than two; supports raised/sunken relief only. Uses the historical flat/light/dark color selection and right, top, bottom, left drawing order. Borrows DC and colors without allocating state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Clamp3DBorderWidth">
+<span class="target" id="group__native__windows__drawing_1gaf1fdfb747137095032642f7a4a5b4682"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Clamp3DBorderWidth</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Clamp3DBorderWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clamp a requested bevel to half each rectangle dimension. </p>
+<p>Returns the effective width using the same sequential width/height checks as Tk. Callers supply positive bounded dimensions and border widths. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeBarBorders">
+<span class="target" id="group__native__windows__drawing_1gacbcfb203b27749f4b355482dcd7cb834"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBarBorders</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeBarBorders" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Batch supported Windows bar bevels through one DC. </p>
+<p>Handles raised/sunken border widths one and two; returns FALSE for other configurations so the shared caller can use ordinary relief drawing. Skips nonpositive rectangles and reproduces tiny-rectangle width clamping. Borrows border/colors and releases the acquired DC. TRUE means configuration handled, not verified success of every GDI drawing operation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeBarRectangles">
+<span class="target" id="group__native__windows__drawing_1ga1fa263842eccca567dc673e59552cf4b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBarRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">XRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeBarRectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try optimized opaque-stipple bar fills before Xlib fallback. </p>
+<p>Borrows prepacked rectangles and style GC. If the Windows stipple helper declines, sends the same batch to XFillRectangles. Caller bounds the request. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeBeginPolygonBatch">
+<span class="target" id="group__native__windows__drawing_1ga7d9f78046adf2f3e8672276f36abbec7"></span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBeginPolygonBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">maxPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeBeginPolygonBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a reusable fill-only Windows polygon context. </p>
+<p>Validates positive workspace capacity and allocation size. Owns point workspace, solid brush and DC state; selects a stock null pen and the GC fill rule. Returns NULL for invalid capacity, workspace or brush failure. Later DC/selection failures are not separately checked. Borrows graph/GC; a successful context requires Rbc_NativeEndPolygonBatch. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeBatchPolygon">
+<span class="target" id="group__native__windows__drawing_1ga68299b2ac42a223ac9fb4cacbe76903b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBatchPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">batch</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeBatchPolygon" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill one polygon using retained Windows batch state. </p>
+<p>Requires a live context and valid point array. Rejects unsupported count or count exceeding workspace capacity. Deliberately converts through short before LONG to preserve the original polygon path. Does not propagate Polygon failure or retain input points. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeEndPolygonBatch">
+<span class="target" id="group__native__windows__drawing_1ga987d6d3edc22009a0be65debb05aac54"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeEndPolygonBatch</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">batch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeEndPolygonBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Restore and free a live Windows polygon batch. </p>
+<p>Requires non-NULL context. Restores fill mode and stock/previous selections, deletes the owned brush, releases DC state and frees workspace/context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeClipStateSize">
+<span class="target" id="group__native__windows__drawing_1gac85e885d56d60366b50a22a763e582a4"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeClipStateSize</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeClipStateSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return extra Windows state size for a shared clip frame. </p>
+<p>The common allocator reserves this payload immediately after its frame. Ownership remains with the shared clip stack. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePlatformClip">
+<span class="target" id="group__native__windows__drawing_1gaa4d37d2c676aa73839156fb59119991b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePlatformClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">parent</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">left</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">top</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">right</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">bottom</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">drawablePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePlatformClip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Install a Windows meta-region clip on an acquired parent DC. </p>
+<p>Initializes caller-owned state, acquires DC, saves it and intersects bounds. Promotes the clip to a meta region so bitmap mask changes cannot bypass it. Caller must initialize the output drawable to None. Returns TRUE even on setup failure; a missing output means skip drawing, not scratch fallback. Every call requires PlatformUnclip, including partial setup failures. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePlatformUnclip">
+<span class="target" id="group__native__windows__drawing_1gafbacce24754ed3b2b480dbfa7483b150"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePlatformUnclip</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePlatformUnclip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unwind complete or partial Windows clip setup. </p>
+<p>Frees a non-None borrowed-DC wrapper, restores saved DC state when present and releases the acquisition record. Does not free the enclosing shared frame or own the parent drawable. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeRun">
+<span class="target" id="group__native__windows__drawing_1ga52e9d4809aabea8f88e63179bece44c1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderRunProc" title="Rbc_RenderRunProc"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Run a callback through one temporary Windows drawable wrapper. </p>
+<p>Ignores NULL data or nonpositive count. Acquires a DC and wraps it for one synchronous callback; acquisition/wrapping failure invokes the callback on the original drawable instead. Releases wrapper and DC after the call. Callback must be valid, preserve borrowed resource lifetime and not retain the temporary target. This is not a Tcl evaluation boundary. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeOpaqueBitmapRun">
+<span class="target" id="group__native__windows__drawing_1gac00640f977866efe60086260cce00e47"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeOpaqueBitmapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeOpaqueBitmapRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Delegate opaque bitmap batching to the Windows compatibility layer. </p>
+<p>Returns Rbc_WinCopyOpaqueBitmapBatch’s handled/fallback result unchanged. Borrows target, bitmap, GC and positions; the shared caller owns replay policy and requires copy-compatible input. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace">
+<span class="target" id="struct_rbc___native_trace"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Windows trace allocation with trailing POINT workspace. </p>
+<p>Borrows graph/GC/target, owns DC acquisition and selected pen/brush, and retains prior selections for restoration by EndTrace. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch">
+<span class="target" id="struct_rbc___native_polygon_batch"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill-only polygon context owning point workspace, brush and DC state. </p>
+<p>Retains prior brush, pen and fill mode for restoration. Component callers remain responsible for style grouping and painter order. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.NativeDCClip">
+<span class="target" id="struct_native_d_c_clip"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeDCClip</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.NativeDCClip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Windows clip payload stored after the shared clip frame. </p>
+<p>Owns the acquisition record and tracks a SaveDC token. The parent drawable remains borrowed; PlatformUnclip handles partial initialization. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Windows native backend C reference</a><ul>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonPointLimit"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonPointLimit()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolyline"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolyline()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeStrips"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeStrips()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeBeginTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBeginTrace()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeEndTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeEndTrace()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.GetCirclePathTemplate"><code class="docutils literal notranslate"><span class="pre">GetCirclePathTemplate()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.LoadCirclePath"><code class="docutils literal notranslate"><span class="pre">LoadCirclePath()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.DrawCircleCentersDirect"><code class="docutils literal notranslate"><span class="pre">DrawCircleCentersDirect()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.DrawCirclePathBatch"><code class="docutils literal notranslate"><span class="pre">DrawCirclePathBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeCircles"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeCircles()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeSquares"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeSquares()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.LoadPolygonBatch"><code class="docutils literal notranslate"><span class="pre">LoadPolygonBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonSymbols"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonSymbols()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonPointCount"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonPointCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.DrawWin3DRectangle1"><code class="docutils literal notranslate"><span class="pre">DrawWin3DRectangle1()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.DrawWinRbcOuter3DBorder"><code class="docutils literal notranslate"><span class="pre">DrawWinRbcOuter3DBorder()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Clamp3DBorderWidth"><code class="docutils literal notranslate"><span class="pre">Clamp3DBorderWidth()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeBarBorders"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBarBorders()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeBarRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBarRectangles()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeBeginPolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBeginPolygonBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeBatchPolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBatchPolygon()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeEndPolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeEndPolygonBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeClipStateSize"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeClipStateSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePlatformClip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformClip()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePlatformUnclip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformUnclip()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeRun()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeOpaqueBitmapRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeOpaqueBitmapRun()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeTrace</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonBatch</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.NativeDCClip"><code class="docutils literal notranslate"><span class="pre">NativeDCClip</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="native-reference.html"
+                          title="previous chapter">Native backend C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="cairo-rendering.html"
+                          title="next chapter">Cairo surfaces and drawing contexts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="cairo-rendering.html" title="Cairo surfaces and drawing contexts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="native-reference.html" title="Native backend C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Windows native backend C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -61,3 +61,5 @@ also has Windows implementations with different resource and batching rules.
    :members:
 
 .. c:namespace-pop::
+
+See :doc:`native-windows-reference` for the separate Windows implementation.

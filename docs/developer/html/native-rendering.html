@@ -315,6 +315,85 @@ limit. An oversized polygon is rejected rather than naively split: independent
 pieces need not reproduce its interior. Bar-fill batches are already packed and
 bounded by the shared caller, so the X11 endpoint simply issues XFillRectangles.</p>
 </section>
+<section id="windows-batch-eligibility-and-ownership">
+<h2>Windows batch eligibility and ownership<a class="headerlink" href="#windows-batch-eligibility-and-ownership" title="Link to this heading">¶</a></h2>
+<p>Windows batches retain a drawable DC and selected objects across many primitives.
+Trace state owns a pen, brush and trailing POINT workspace. EndTrace restores
+previous selections before deleting the batch objects and releasing DC state.
+Polyline coordinates convert to int; strips convert to LONG. The polygon marker
+batch intentionally converts through short first to preserve its earlier native
+rasterization. These paths do not share a universal coordinate-conversion rule.</p>
+<p>Circle batching asks GDI to generate an Ellipse path once, using a bounding box
+of diameter <code class="docutils literal notranslate"><span class="pre">2*radius+1</span></code>. Translated copies reproduce that geometry without
+substituting an independently approximated circle. The template arrays and batch
+buffers are owned by the call and released even when setup selects fallback.</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Windows symbol batching rules</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Drawing path</p></th>
+<th class="head"><p>Batch choice</p></th>
+<th class="head"><p>Fallback or ordering constraint</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Filled circles</p></td>
+<td><p>At most 32 figures with WINDING fill.</p></td>
+<td><p>GXcopy only; combined fill/outline also requires equal colors.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Circle outlines</p></td>
+<td><p>512 figures, or 64 with wide outlines.</p></td>
+<td><p>GXcopy only; failed batches replay individual Ellipse calls.</p></td>
+</tr>
+<tr class="row-even"><td><p>Polygon fills</p></td>
+<td><p>Plus: 16; cross: 8; other templates: 32.</p></td>
+<td><p>Copy fills use WINDING unions; non-copy fills remain individual.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Polygon outlines</p></td>
+<td><p>16384-point budget, or 1360 for wide pens.</p></td>
+<td><p>Copy paths use PolyPolyline; non-copy outlines remain individual.</p></td>
+</tr>
+<tr class="row-even"><td><p>Independent strips</p></td>
+<td><p>8192 segments, or 680 with wide pens.</p></td>
+<td><p>Each PolyPolyline entry contains exactly two points.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Polygon fill batches omit the repeated closing vertex; outline batches include
+it. All fills precede all outlines. A failed copy batch can replay individual
+shapes because repeating copy painting is safe. That argument does not apply to
+XOR or other order-sensitive raster operations, which use individual polygon
+calls. Circle setup failure similarly selects the existing per-symbol path;
+it must not silently broaden eligibility to unequal fill/outline colors.</p>
+<p>Bar bevel batching handles raised/sunken widths one and two. One-pixel bevels
+reproduce Tk strip order and tiny-rectangle clamping. Two-pixel bevels reproduce
+RBC’s special outer layer followed by the inner Tk-style bevel. Other reliefs
+and widths return FALSE for ordinary shared fallback. TRUE reports that the
+configuration was handled, not that every GDI operation was checked.</p>
+</section>
+<section id="failure-and-cleanup-boundaries">
+<h2>Failure and cleanup boundaries<a class="headerlink" href="#failure-and-cleanup-boundaries" title="Link to this heading">¶</a></h2>
+<p>Direct clip setup always returns TRUE on Windows, including acquisition or
+SaveDC failure. The shared caller initializes the output to None and treats a
+missing target as unavailable drawing, while still calling unclip. Successful
+setup promotes the intersection to a meta region before wrapping the DC; bitmap
+clip-mask changes therefore cannot bypass the enclosing rectangle. Cleanup frees
+the wrapper, restores saved state and releases any acquired record.</p>
+<p>Generic runs have a different policy: failed acquisition or wrapping invokes the
+callback once on the original drawable. Successful runs invoke it on the wrapper
+and then release that temporary target. Callback data and borrowed graph
+resources must remain valid for the synchronous call.</p>
+<p>The native APIs are mostly void drawing services, not transactional error
+reporters. Several paths check workspace allocation but do not separately check
+DC acquisition, selected-object creation, or each GDI drawing result. The
+source contracts identify these limits rather than promising rollback or
+complete output. The polygon and circle copy-replay paths handle particular
+failures; they are not a blanket recovery guarantee for every native operation.</p>
+</section>
 </section>
 
 
@@ -337,6 +416,8 @@ bounded by the shared caller, so the X11 endpoint simply issues XFillRectangles.
 <li><a class="reference internal" href="#shared-primitive-contracts">Shared primitive contracts</a></li>
 <li><a class="reference internal" href="#arc-strokes-and-arrowheads">Arc strokes and arrowheads</a></li>
 <li><a class="reference internal" href="#x11-request-and-fallback-contracts">X11 request and fallback contracts</a></li>
+<li><a class="reference internal" href="#windows-batch-eligibility-and-ownership">Windows batch eligibility and ownership</a></li>
+<li><a class="reference internal" href="#failure-and-cleanup-boundaries">Failure and cleanup boundaries</a></li>
 </ul>
 </li>
 </ul>

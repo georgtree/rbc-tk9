@@ -935,6 +935,8 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="native-rendering.html#shared-primitive-contracts">Shared primitive contracts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="native-rendering.html#arc-strokes-and-arrowheads">Arc strokes and arrowheads</a></li>
 <li class="toctree-l2"><a class="reference internal" href="native-rendering.html#x11-request-and-fallback-contracts">X11 request and fallback contracts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-rendering.html#windows-batch-eligibility-and-ownership">Windows batch eligibility and ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-rendering.html#failure-and-cleanup-boundaries">Failure and cleanup boundaries</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="native-reference.html">Native backend C reference</a><ul>
@@ -942,6 +944,39 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="native-reference.html#clip-stacks">Clip stacks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="native-reference.html#shared-drawing-implementation">Shared drawing implementation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="native-reference.html#x11-platform-implementation">X11 platform implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="native-windows-reference.html">Windows native backend C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePolygonPointLimit"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonPointLimit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePolyline"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolyline()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeStrips"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeStrips()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBeginTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBeginTrace()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeEndTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeEndTrace()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.GetCirclePathTemplate"><code class="docutils literal notranslate"><span class="pre">GetCirclePathTemplate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.LoadCirclePath"><code class="docutils literal notranslate"><span class="pre">LoadCirclePath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawCircleCentersDirect"><code class="docutils literal notranslate"><span class="pre">DrawCircleCentersDirect()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawCirclePathBatch"><code class="docutils literal notranslate"><span class="pre">DrawCirclePathBatch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeCircles"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeCircles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeSquares"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeSquares()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.LoadPolygonBatch"><code class="docutils literal notranslate"><span class="pre">LoadPolygonBatch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePolygonSymbols"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonSymbols()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePolygonPointCount"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonPointCount()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawWin3DRectangle1"><code class="docutils literal notranslate"><span class="pre">DrawWin3DRectangle1()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawWinRbcOuter3DBorder"><code class="docutils literal notranslate"><span class="pre">DrawWinRbcOuter3DBorder()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Clamp3DBorderWidth"><code class="docutils literal notranslate"><span class="pre">Clamp3DBorderWidth()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBarBorders"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBarBorders()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBarRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBarRectangles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBeginPolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBeginPolygonBatch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBatchPolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBatchPolygon()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeEndPolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeEndPolygonBatch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeClipStateSize"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeClipStateSize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePlatformClip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformClip()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePlatformUnclip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformUnclip()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeRun()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeOpaqueBitmapRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeOpaqueBitmapRun()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeTrace</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonBatch</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.NativeDCClip"><code class="docutils literal notranslate"><span class="pre">NativeDCClip</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cairo-rendering.html">Cairo surfaces and drawing contexts</a><ul>
