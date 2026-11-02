@@ -34,6 +34,10 @@
  * Parsing, temporary ownership, resource transfer and tile invalidation.
  */
 
+/** @defgroup line_geometry_lifecycle Line geometry and resource lifecycle
+ * Private mapping, cache ownership and line-family pen/element lifecycle.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -3042,24 +3046,12 @@ static void CommitLineScalarTransaction(Line *linePtr, LineScalarTransaction *tr
     transactionPtr->stagedMask = 0;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Clear palette counts without releasing storage.
  *
- * ClearPalette --
- *
- *      Clear the number of points and segments, in case there are no
- *      segments or points
- *
- * Parameters:
- *      Rbc_Chain *palette
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Zeros each style's symbol, strip and X/Y error-bar counts. Array pointers
+ * and pen references remain unchanged; the owning line releases shared geometry.
  */
 static void ClearPalette(Rbc_Chain *palette) {
     register LinePenStyle *stylePtr;
@@ -3072,26 +3064,20 @@ static void ClearPalette(Rbc_Chain *palette) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Stage and replace a line pen's derived drawing resources.
  *
- * ConfigurePen --
+ * Borrows the graph and pen. Validates option representations and stages
+ * colors, shadow and symbol resources before constructing replacement GCs.
+ * On conversion failure, frees staged resources and returns TCL_ERROR with
+ * an interpreter diagnostic, leaving existing derived resources intact.
+ * On success, releases old derived resources and transfers the candidates.
+ * The enclosing configuration transaction owns Tk option rollback.
  *
- *      Sets up the appropriate configuration parameters in the GC.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Pen *penPtr
- *
- * Results:
- *      The return value is a standard Tcl result.  If TCL_ERROR is
- *      returned, then the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information such as line width, line style, color
- *      etc. get set in a new GC.
- *
- *----------------------------------------------------------------------
+ * Uses Tk-managed symbol, text and error-bar GCs but a private trace GC,
+ * including its dash state. Bitmap symbols retain their mask/background
+ * semantics. Does not map geometry or schedule drawing.
  */
 static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     LinePen *lpPtr;
@@ -3370,24 +3356,14 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Release derived line-pen resources.
  *
- * DestroyPen --
- *
- *      Release memory and resources allocated for the style.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Pen *penPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Everything associated with the pen style is freed up.
- *
- *----------------------------------------------------------------------
+ * Frees text-style resources, Tk-managed GCs, the private trace GC, bitmap
+ * and mask, and separately retained colors. Clears released fields.
+ * Does not free the pen record or its Tk option values; outer pen teardown
+ * owns those. Requires the graph display to remain valid.
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     LinePen *lpPtr;
@@ -3437,23 +3413,14 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Initialize a zero-allocated line pen before option setup.
  *
- * InitPen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      LinePen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Installs configuration/destruction callbacks, option specifications and
+ * baseline symbol, error-bar and value-label settings. Does not zero the
+ * whole record, initialize Tk options, or allocate GCs. The initial empty
+ * name is borrowed; the factory replaces it with owned storage.
  */
 static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags) {
     Pen *corePtr;
@@ -3481,23 +3448,14 @@ static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned 
     penPtr->valueShow = SHOW_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Allocate an unregistered line pen.
  *
- * Rbc_LinePen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      char *penName
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * The exact name activeLine selects active specifications; all other names
+ * select normal specifications. Duplicates the name and returns the embedded
+ * Pen pointer. Allocation is asserted. Registry insertion, Tk option
+ * initialization and configuration belong to the caller.
  */
 Pen *Rbc_LinePen(const char *penName) {
     const Tk_OptionSpec *optionSpecs;
@@ -3532,27 +3490,16 @@ Pen *Rbc_LinePen(const char *penName) {
  * ----------------------------------------------------------------------
  */
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Compute a bounded odd screen size for symbols.
  *
- * ScaleSymbol --
- *
- *      Returns the scaled size for the line element. Scaling depends
- *      upon when the base line ranges for the element were set and
- *      the current range of the graph.
- *
- * Parameters:
- *      Element *elemPtr
- *      int normalSize
- *
- * Results:
- *      The new size of the symbol, after considering how much the
- *      graph has been scaled, is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * When symbol scaling is enabled, SCALE_SYMBOL captures current axis ranges
+ * as the baseline. Later calls use the smaller finite positive range ratio;
+ * invalid ranges or ratios retain unit scaling. May update the baseline and
+ * clear SCALE_SYMBOL. Clamps before integer conversion to at least one and
+ * at most the smaller graph screen range, then chooses an odd size without
+ * exceeding that cap. Does not allocate or invoke Tcl.
  */
 static int ScaleSymbol(Element *elemPtr, int normalSize) {
     double scale;
@@ -3640,26 +3587,18 @@ static int ScaleSymbol(Element *elemPtr, int normalSize) {
     return newSize;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Build owned mapped points with original source indices.
  *
- * GetScreenPoints --
+ * Initializes the output map to empty; callers must first release any old
+ * map storage. Reads finite source points and retains only finite mapped
+ * coordinates. Does not clip them to the viewport or synchronize sources.
+ * Allocates a break-before array only when retained indices contain gaps.
  *
- *      Generates a coordinate array of transformed screen coordinates
- *      from the data points.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      The transformed screen coordinates are returned.
- *
- * Side effects:
- *      Memory is allocated for the coordinate array.
- *
- *----------------------------------------------------------------------
+ * Transfers the point, index and optional break arrays to the map on success.
+ * Checked-size or allocation failure frees candidates and leaves an empty
+ * map without an interpreter diagnostic.
  */
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
@@ -5670,25 +5609,15 @@ static void DecimatePointsByPixels(Graph *graphPtr, MapInfo *mapPtr) {
     mapPtr->nScreenPts = count;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Simplify each continuous mapped run without joining gaps.
  *
- * ReducePoints --
- *
- *      Generates a coordinate array of transformed screen coordinates
- *      from the data points.
- *
- * Parameters:
- *      MapInfo *mapPtr
- *      double tolerance
- *
- * Results:
- *      The transformed screen coordinates are returned.
- *
- * Side effects:
- *      Memory is allocated for the coordinate array.
- *
- *----------------------------------------------------------------------
+ * Borrows the line point map and forwards the tolerance to Rbc_SimplifyLine.
+ * Selected points retain original source indices and break flags. Replaces
+ * and frees old arrays only after all replacement arrays are available.
+ * Invalid counts, size/allocation failures, or unchanged selection leave the
+ * original map intact. Does not modify source vectors or report Tcl errors.
  */
 static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     Point2D *screenPts;
@@ -5789,25 +5718,18 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     mapPtr->nScreenPts = n;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Replace a mapped polyline with stepped geometry.
  *
- * GenerateSteps --
+ * Processes each continuous run independently. Each intermediate point
+ * changes data X first while retaining the preceding data Y, accounting for
+ * inverted axes. Intermediate and following points use the following source
+ * index. Breaks copy the next point without inserting a connecting step.
  *
- *      Resets the coordinate and pen index arrays adding new points
- *      for step-and-hold type smoothing.
- *
- * Parameters:
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The temporary arrays for screen coordinates and pen indices
- *      are updated.
- *
- *----------------------------------------------------------------------
+ * Transfers newly allocated arrays and frees the old map on success. On
+ * size/allocation failure, retains old arrays and changes effective smooth
+ * to PEN_SMOOTH_NONE; the requested smoothing option is unchanged.
  */
 static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
@@ -6766,24 +6688,18 @@ static void FilterReducedSymbols(Line *linePtr, const MapInfo *mapPtr) {
     linePtr->nSymbolPts = count;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Rebuild visible symbols for explicit active indices.
  *
- * MapActiveSymbols --
+ * Releases the previous active point/index arrays first. Filters explicit
+ * indices against the current point count, finite source/mapped coordinates
+ * and symbol-map extents, preserving selection order and source indices.
+ * Whole-element activation is handled elsewhere, not expanded here.
  *
- *      Creates an array of points of the active graph coordinates.
- *
- * Parameters:
- *      Graph *graphPtr;
- *      Line *linePtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is freed and allocated for the active point array.
- *
- *----------------------------------------------------------------------
+ * Transfers candidate arrays only if points survive. Checked allocation
+ * failure or an empty result leaves no active geometry. Clears ACTIVE_PENDING
+ * on every exit, without changing the retained activation selection.
  */
 static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
     Extents2D exts;
@@ -7290,23 +7206,13 @@ static void SaveTrace(Line *linePtr, Tcl_Size start, Tcl_Size length, MapInfo *m
     Rbc_ChainAppend(linePtr->traces, tracePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Release all owned line traces and their chain.
  *
- * FreeTraces --
- *
- *      Deletes all the traces for the line.
- *
- * Parameters:
- *      Line *linePtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Frees each trace's point and source-index arrays and the trace record,
+ * then destroys the chain and clears its pointer. Does not release source
+ * data or other mapped arrays.
  */
 static void FreeTraces(Line *linePtr) {
     Rbc_ChainLink *linkPtr;
@@ -7764,23 +7670,17 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
     ckfree(lower);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Discard mapped geometry before rebuilding a line.
  *
- * ResetLine --
+ * Releases area/error-band polygons, traces, symbols, strips, explicit
+ * active geometry and X/Y error-bar arrays with their source-index maps.
+ * Clears palette counts, array pointers, geometry counts and pointMapOmitted.
+ * Explicit active indices request remapping through ACTIVE_PENDING.
  *
- *      TODO: Description
- *
- * Parameters:
- *      Line *linePtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Retains source data, pens, activation indices and the source decimation
+ * cache. This is a geometry reset, not complete element teardown.
  */
 static void ResetLine(Line *linePtr) {
     LineBandPolygon *polygonPtr;
@@ -7849,7 +7749,15 @@ static void ResetLine(Line *linePtr) {
     linePtr->core.yErrorBarCnt = 0;
 }
 
-/* Compact complete error bars by source index, keeping shafts and caps together. */
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Compact error segments and source indices in place.
+ *
+ * Keeps segments whose source index is selected, preserving order and
+ * parallel indices, and returns the retained count. All parts of a selected
+ * bar, including caps, survive. The caller supplies valid source indices
+ * and selection storage; this helper does not check bounds or allocate.
+ */
 static Tcl_Size FilterErrorBarSegments(Segment2D *segments, Tcl_Size *indices, Tcl_Size count,
                                        const unsigned char *selected) {
     Tcl_Size i, kept = 0;
@@ -7863,7 +7771,19 @@ static Tcl_Size FilterErrorBarSegments(Segment2D *segments, Tcl_Size *indices, T
     return kept;
 }
 
-/* Match the palette order used by symbol drawing, before MergePens reorders arrays. */
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Match retained error bars to the symbol selection.
+ *
+ * Runs before palette geometry is reordered by MergePens. When symbol
+ * limits or reduced-symbol mode require filtering, builds a source-index
+ * selection using palette traversal and the shared symbol interval counter.
+ * Compacts X/Y error-bar segments with their parallel index arrays.
+ *
+ * Borrows a valid data-to-style map. Allocates temporary selection storage
+ * with checked byte count and ckalloc, then frees it. Does not resize the
+ * segment allocations, change source data, or regenerate geometry.
+ */
 static void FilterLineErrorBars(Line *linePtr, PenStyle **dataToStyle) {
     Element *elemPtr = &linePtr->core;
     unsigned char *selected;
@@ -10365,24 +10285,18 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Release resources owned by a line, strip or polar element.
  *
- * DestroyLine --
+ * Releases named pen references, built-in pen resources, data subscriptions,
+ * decimation cache, mapped geometry, palette, tags, activation indices and
+ * fill/error-band drawing resources. External source vectors and images
+ * are not destroyed.
  *
- *      Release memory and resources allocated for the line element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Everything associated with the line element is freed up.
- *
- *----------------------------------------------------------------------
+ * The common element lifecycle guards this callback against repeated teardown;
+ * not every field is cleared here. It owns record/name and Tk option cleanup
+ * outside this callback. Requires a live display for drawing-resource release.
  */
 static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr;
@@ -10475,25 +10389,16 @@ static ElementProcs polarLineProcs = {
     PolarClosestInfo /* Polar/Smith closest information. */
 };
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Allocate an unregistered line-family element.
  *
- * Rbc_LineElement --
- *
- *      Allocate memory and initialize methods for the new line element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      char *name
- *      Rbc_Uid classUid
- *
- * Results:
- *      The pointer to the newly allocated element structure is returned.
- *
- * Side effects:
- *      Memory is allocated for the line element structure.
- *
- *----------------------------------------------------------------------
+ * Returns NULL if record allocation fails. Selects line, polar or strip
+ * specifications and the corresponding dispatch table, duplicates name and
+ * label, initializes the built-in normal pen and creates the palette.
+ * Starts with XY data, no requested smoothing and pending symbol-scale
+ * baseline capture. Caller owns registration, Tk option initialization and
+ * configuration of the returned embedded Element pointer.
  */
 Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Line *linePtr;
@@ -10541,7 +10446,16 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     return elemPtr;
 }
 
-/* Refresh named pens (including active/style pens) and private element pens. */
+/**
+ * @ingroup line_geometry_lifecycle
+ * @brief Invalidate cached value-label text styles after font changes.
+ *
+ * Visits registered line pens and built-in pens of all line, strip and
+ * polar elements, including hidden elements. Resets styles with a non-NULL
+ * font. Shared named pens are visited through the registry rather than once
+ * per element. Borrows a live graph/window; does not itself schedule redraw
+ * or layout.
+ */
 void Rbc_LineFontsChanged(Graph *graphPtr) {
     Tcl_HashSearch iter;
     Tcl_HashEntry *entryPtr;

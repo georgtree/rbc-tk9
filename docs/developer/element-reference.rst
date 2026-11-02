@@ -82,3 +82,17 @@ The scope below separates generic handler names from other modules' private name
    :members:
 
 .. c:namespace-pop::
+
+Line geometry and resource lifecycle
+------------------------------------
+
+These contracts cover line, strip and polar mapping storage and pen resources.
+See :doc:`elements` for the reset and teardown boundaries. The scope is
+documentation-only.
+
+.. c:namespace-push:: rbcGrLineGeometry
+
+.. doxygengroup:: line_geometry_lifecycle
+   :members:
+
+.. c:namespace-pop::

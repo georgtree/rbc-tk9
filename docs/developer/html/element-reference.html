@@ -1128,6 +1128,147 @@ The scope below separates generic handler names from other modules’ private na
 </dd></dl>
 
 </section>
+<section id="line-geometry-and-resource-lifecycle">
+<h2>Line geometry and resource lifecycle<a class="headerlink" href="#line-geometry-and-resource-lifecycle" title="Link to this heading">¶</a></h2>
+<p>These contracts cover line, strip and polar mapping storage and pen resources.
+See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the reset and teardown boundaries. The scope is
+documentation-only.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__line__geometry__lifecycle"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">geometry</span> <span class="pre">and</span> <span class="pre">resource</span> <span class="pre">lifecycle</span></span></dt>
+<dd><p>Private mapping, cache ownership and line-family pen/element lifecycle. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.ClearPalette">
+<span class="target" id="group__line__geometry__lifecycle_1ga5fb51e5edadef9b16da8a2b58fefa03d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClearPalette</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.ClearPalette" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clear palette counts without releasing storage. </p>
+<p>Zeros each style’s symbol, strip and X/Y error-bar counts. Array pointers and pen references remain unchanged; the owning line releases shared geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.ConfigurePen">
+<span class="target" id="group__line__geometry__lifecycle_1gac559e46743835327804bc84770b6f279"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.ConfigurePen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage and replace a line pen’s derived drawing resources. </p>
+<p>Borrows the graph and pen. Validates option representations and stages colors, shadow and symbol resources before constructing replacement GCs. On conversion failure, frees staged resources and returns TCL_ERROR with an interpreter diagnostic, leaving existing derived resources intact. On success, releases old derived resources and transfers the candidates. The enclosing configuration transaction owns Tk option rollback.</p>
+<p>Uses Tk-managed symbol, text and error-bar GCs but a private trace GC, including its dash state. Bitmap symbols retain their mask/background semantics. Does not map geometry or schedule drawing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.DestroyPen">
+<span class="target" id="group__line__geometry__lifecycle_1ga8dc7762b910223725e2575fe725a41aa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.DestroyPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release derived line-pen resources. </p>
+<p>Frees text-style resources, Tk-managed GCs, the private trace GC, bitmap and mask, and separately retained colors. Clears released fields. Does not free the pen record or its Tk option values; outer pen teardown owns those. Requires the graph display to remain valid. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.InitPen">
+<span class="target" id="group__line__geometry__lifecycle_1gad5e21d1b8f20421d49fe0c35598b68af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionSpecs</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.InitPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize a zero-allocated line pen before option setup. </p>
+<p>Installs configuration/destruction callbacks, option specifications and baseline symbol, error-bar and value-label settings. Does not zero the whole record, initialize Tk options, or allocate GCs. The initial empty name is borrowed; the factory replaces it with owned storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.Rbc_LinePen">
+<span class="target" id="group__line__geometry__lifecycle_1gaac689a7817b614304f937d3cbcc6a60c"></span><span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LinePen</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.Rbc_LinePen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unregistered line pen. </p>
+<p>The exact name activeLine selects active specifications; all other names select normal specifications. Duplicates the name and returns the embedded Pen pointer. Allocation is asserted. Registry insertion, Tk option initialization and configuration belong to the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.ScaleSymbol">
+<span class="target" id="group__line__geometry__lifecycle_1ga17872b8ccecd3f3f407bf3294e3a5bc5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScaleSymbol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">normalSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.ScaleSymbol" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a bounded odd screen size for symbols. </p>
+<p>When symbol scaling is enabled, SCALE_SYMBOL captures current axis ranges as the baseline. Later calls use the smaller finite positive range ratio; invalid ranges or ratios retain unit scaling. May update the baseline and clear SCALE_SYMBOL. Clamps before integer conversion to at least one and at most the smaller graph screen range, then chooses an odd size without exceeding that cap. Does not allocate or invoke Tcl. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.GetScreenPoints">
+<span class="target" id="group__line__geometry__lifecycle_1gab06ee073e18b5dcdd0fdae32930c2e0b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetScreenPoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.GetScreenPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build owned mapped points with original source indices. </p>
+<p>Initializes the output map to empty; callers must first release any old map storage. Reads finite source points and retains only finite mapped coordinates. Does not clip them to the viewport or synchronize sources. Allocates a break-before array only when retained indices contain gaps.</p>
+<p>Transfers the point, index and optional break arrays to the map on success. Checked-size or allocation failure frees candidates and leaves an empty map without an interpreter diagnostic. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.ReducePoints">
+<span class="target" id="group__line__geometry__lifecycle_1ga75d17a78a83f457619b94dc52e2c7975"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReducePoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">tolerance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.ReducePoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Simplify each continuous mapped run without joining gaps. </p>
+<p>Borrows the line point map and forwards the tolerance to Rbc_SimplifyLine. Selected points retain original source indices and break flags. Replaces and frees old arrays only after all replacement arrays are available. Invalid counts, size/allocation failures, or unchanged selection leave the original map intact. Does not modify source vectors or report Tcl errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.GenerateSteps">
+<span class="target" id="group__line__geometry__lifecycle_1gafbb6b3deb0cc085d9c182744cf9c0d15"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GenerateSteps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.GenerateSteps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace a mapped polyline with stepped geometry. </p>
+<p>Processes each continuous run independently. Each intermediate point changes data X first while retaining the preceding data Y, accounting for inverted axes. Intermediate and following points use the following source index. Breaks copy the next point without inserting a connecting step.</p>
+<p>Transfers newly allocated arrays and frees the old map on success. On size/allocation failure, retains old arrays and changes effective smooth to PEN_SMOOTH_NONE; the requested smoothing option is unchanged. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.MapActiveSymbols">
+<span class="target" id="group__line__geometry__lifecycle_1ga0b9fe982b867fe619c6e0ab077c66187"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapActiveSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.MapActiveSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild visible symbols for explicit active indices. </p>
+<p>Releases the previous active point/index arrays first. Filters explicit indices against the current point count, finite source/mapped coordinates and symbol-map extents, preserving selection order and source indices. Whole-element activation is handled elsewhere, not expanded here.</p>
+<p>Transfers candidate arrays only if points survive. Checked allocation failure or an empty result leaves no active geometry. Clears ACTIVE_PENDING on every exit, without changing the retained activation selection. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.FreeTraces">
+<span class="target" id="group__line__geometry__lifecycle_1gaad42bea6751dfbee0f6475a762394624"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeTraces</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.FreeTraces" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release all owned line traces and their chain. </p>
+<p>Frees each trace’s point and source-index arrays and the trace record, then destroys the chain and clears its pointer. Does not release source data or other mapped arrays. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.ResetLine">
+<span class="target" id="group__line__geometry__lifecycle_1ga0c6a06143988fc8024b6613f904ce57c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.ResetLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Discard mapped geometry before rebuilding a line. </p>
+<p>Releases area/error-band polygons, traces, symbols, strips, explicit active geometry and X/Y error-bar arrays with their source-index maps. Clears palette counts, array pointers, geometry counts and pointMapOmitted. Explicit active indices request remapping through ACTIVE_PENDING.</p>
+<p>Retains source data, pens, activation indices and the source decimation cache. This is a geometry reset, not complete element teardown. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.FilterErrorBarSegments">
+<span class="target" id="group__line__geometry__lifecycle_1ga14faf39caeba477047ed9800fb185af3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FilterErrorBarSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indices</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">selected</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.FilterErrorBarSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compact error segments and source indices in place. </p>
+<p>Keeps segments whose source index is selected, preserving order and parallel indices, and returns the retained count. All parts of a selected bar, including caps, survive. The caller supplies valid source indices and selection storage; this helper does not check bounds or allocate. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.FilterLineErrorBars">
+<span class="target" id="group__line__geometry__lifecycle_1ga10dc011be6cbdf337315b99e9b13f601"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FilterLineErrorBars</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataToStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.FilterLineErrorBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Match retained error bars to the symbol selection. </p>
+<p>Runs before palette geometry is reordered by MergePens. When symbol limits or reduced-symbol mode require filtering, builds a source-index selection using palette traversal and the shared symbol interval counter. Compacts X/Y error-bar segments with their parallel index arrays.</p>
+<p>Borrows a valid data-to-style map. Allocates temporary selection storage with checked byte count and ckalloc, then frees it. Does not resize the segment allocations, change source data, or regenerate geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.DestroyLine">
+<span class="target" id="group__line__geometry__lifecycle_1gab54f33554e91ab82492a961a15eadc25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.DestroyLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release resources owned by a line, strip or polar element. </p>
+<p>Releases named pen references, built-in pen resources, data subscriptions, decimation cache, mapped geometry, palette, tags, activation indices and fill/error-band drawing resources. External source vectors and images are not destroyed.</p>
+<p>The common element lifecycle guards this callback against repeated teardown; not every field is cleared here. It owns record/name and Tk option cleanup outside this callback. Requires a live display for drawing-resource release. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.Rbc_LineElement">
+<span class="target" id="group__line__geometry__lifecycle_1ga8083c24900cf3306e12048d76c4d9592"></span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.Rbc_LineElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unregistered line-family element. </p>
+<p>Returns NULL if record allocation fails. Selects line, polar or strip specifications and the corresponding dispatch table, duplicates name and label, initializes the built-in normal pen and creates the palette. Starts with XY data, no requested smoothing and pending symbol-scale baseline capture. Caller owns registration, Tk option initialization and configuration of the returned embedded Element pointer. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineGeometry.Rbc_LineFontsChanged">
+<span class="target" id="group__line__geometry__lifecycle_1gaa58d54acc4fa5cac6b8d0194bd2c66e0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineFontsChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineGeometry.Rbc_LineFontsChanged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Invalidate cached value-label text styles after font changes. </p>
+<p>Visits registered line pens and built-in pens of all line, strip and polar elements, including hidden elements. Resets styles with a non-NULL font. Shared named pens are visited through the registry rather than once per element. Borrows a live graph/window; does not itself schedule redraw or layout. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1237,6 +1378,26 @@ The scope below separates generic handler names from other modules’ private na
 <li><a class="reference internal" href="#c.rbcGrElemCommands.ShowOp"><code class="docutils literal notranslate"><span class="pre">ShowOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrElemCommands.TypeOp"><code class="docutils literal notranslate"><span class="pre">TypeOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrElemCommands.Rbc_ElementOp"><code class="docutils literal notranslate"><span class="pre">Rbc_ElementOp()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#line-geometry-and-resource-lifecycle">Line geometry and resource lifecycle</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.ClearPalette"><code class="docutils literal notranslate"><span class="pre">ClearPalette()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.ConfigurePen"><code class="docutils literal notranslate"><span class="pre">ConfigurePen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.DestroyPen"><code class="docutils literal notranslate"><span class="pre">DestroyPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.InitPen"><code class="docutils literal notranslate"><span class="pre">InitPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.Rbc_LinePen"><code class="docutils literal notranslate"><span class="pre">Rbc_LinePen()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.ScaleSymbol"><code class="docutils literal notranslate"><span class="pre">ScaleSymbol()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.GetScreenPoints"><code class="docutils literal notranslate"><span class="pre">GetScreenPoints()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.ReducePoints"><code class="docutils literal notranslate"><span class="pre">ReducePoints()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.GenerateSteps"><code class="docutils literal notranslate"><span class="pre">GenerateSteps()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.MapActiveSymbols"><code class="docutils literal notranslate"><span class="pre">MapActiveSymbols()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.FreeTraces"><code class="docutils literal notranslate"><span class="pre">FreeTraces()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.ResetLine"><code class="docutils literal notranslate"><span class="pre">ResetLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.FilterErrorBarSegments"><code class="docutils literal notranslate"><span class="pre">FilterErrorBarSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.FilterLineErrorBars"><code class="docutils literal notranslate"><span class="pre">FilterLineErrorBars()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.DestroyLine"><code class="docutils literal notranslate"><span class="pre">DestroyLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.Rbc_LineElement"><code class="docutils literal notranslate"><span class="pre">Rbc_LineElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineGeometry.Rbc_LineFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_LineFontsChanged()</span></code></a></li>
 </ul>
 </li>
 </ul>
