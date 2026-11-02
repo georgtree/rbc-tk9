@@ -161,6 +161,75 @@ point <code class="docutils literal notranslate"><span class="pre">(+1,0)</span>
 infinite admittance. These reporting conventions do not change stored input,
 axis units or the data-mode selection.</p>
 </section>
+<section id="parallel-parameter-ownership-and-validation">
+<h2>Parallel parameter ownership and validation<a class="headerlink" href="#parallel-parameter-ownership-and-validation" title="Link to this heading">¶</a></h2>
+<p>Line and polar elements can retain a real parallel <code class="docutils literal notranslate"><span class="pre">-param</span></code> input for source
+metadata; strip elements do not expose this option. Parameter data has its own
+transaction and notification callback because it does not define plotted
+geometry. It can be a named real vector or a list of numeric expressions, using
+the common element parser. Complex <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> instead requires a named complex
+vector and has no list fallback.</p>
+<p>PrepareLineParamTransaction processes an initial option-database value unless an
+explicit parameter option overrides it. Every explicit occurrence is parsed in
+caller order. StageLineParam acquires a new candidate before discarding the old
+staged one, so failed parsing does not lose the earlier candidate. Preparation
+failure then releases all remaining staged ownership. It does not commit the
+candidate or validate its final relationship to the prospective data count.</p>
+<p>CommitLineParamTransaction moves the slot to the stable line record before
+installing its callback. A parameter notification refreshes borrowed metadata
+without resetting axes, remapping geometry or scheduling a redraw. Destruction
+clears the client and storage; lookup failure clears potentially stale storage
+while retaining the client ID for cleanup. These clear paths leave extrema
+unchanged, so length and storage validity must be checked before using values.</p>
+<p>The configured/not-configured decision uses the retained option text, not the
+source’s current length. An empty option disables the parallel mapping. Initial
+configuration and explicit changes to parameter or source-data options require
+matching lengths. Unrelated style changes remain legal while independent external
+vector updates have temporarily produced a mismatch. Validation occurs before
+any of the line’s prepared transactions commit; it neither frees nor commits the
+candidates itself.</p>
+</section>
+<section id="current-counts-versus-cached-sample-storage">
+<h2>Current counts versus cached sample storage<a class="headerlink" href="#current-counts-versus-cached-sample-storage" title="Link to this heading">¶</a></h2>
+<p>LinePointCount now reads named-vector lengths directly, so activation sees a
+resize even before its queued notification runs. It does not refresh cached array
+pointers or consume that notification. GetLineDataPoint, by contrast, reads cached
+slots. A caller must not use a fresh point count as permission to read an old
+array. Source synchronization and mapping remain separate responsibilities.</p>
+<p>Configuration validation selects staged slots where supplied and retained live
+slots otherwise. ProspectiveLinePointCount and ValidateLineParamLength query
+current lengths for named sources, including complex data and parameter vectors;
+literal candidates use their stored counts. This makes validation independent of
+whether pending resize notifications have run. It neither refreshes borrowed
+sample arrays nor delivers or cancels notifications. Real mismatches are still
+rejected before commit, and unrelated style changes retain the existing policy
+of permitting temporary data/parameter mismatch.</p>
+<p>Cartesian X/Y sample access returns source values without a finite check. Polar
+X/Y access checks finite theta and radius before converting radians; complex
+access delegates to its representation-specific converter. Callers must honor
+failure and validate mapped results. Source length, available cached sample and
+finite graph coordinate are separate conditions.</p>
+</section>
+<section id="complex-mode-selection-and-cleanup">
+<h2>Complex mode selection and cleanup<a class="headerlink" href="#complex-mode-selection-and-cleanup" title="Link to this heading">¶</a></h2>
+<p>PrepareLineComplexDataTransaction tracks both a candidate source and the selected
+mode. Explicit ordinary data options select X/Y; a later nonempty complex option
+selects complex mode again. Canonical aliases participate in this same sequence.
+An invalid earlier complex option still fails even if a later option would switch
+away from it. A staged client may therefore need cleanup even when the final mode
+is X/Y.</p>
+<p>Commit in complex mode transfers any staged source and installs the callback;
+without a candidate it retains the live source. Commit in X/Y mode releases both
+live and staged complex clients and clears the retained complex option object.
+The transaction cleanup functions are safe after commit because moved ownership
+is cleared. None of these cleanup paths destroys the application’s source vector.
+ReplaceLineOptionObject retains a replacement before releasing the previous Tcl
+object and treats identical pointers as a no-op.</p>
+<p>Complex notifications invalidate axes and mapping and schedule redraw for visible
+plotted elements. Parameter notifications deliberately do none of those things.
+The difference reflects the role of the data, rather than an interchangeable
+implementation of the common X/Y notification policy.</p>
+</section>
 </section>
 
 
@@ -179,6 +248,9 @@ axis units or the data-mode selection.</p>
 <li><a class="reference internal" href="#polar-grid-construction">Polar grid construction</a></li>
 <li><a class="reference internal" href="#smith-grid-construction">Smith grid construction</a></li>
 <li><a class="reference internal" href="#integration-boundaries">Integration boundaries</a></li>
+<li><a class="reference internal" href="#parallel-parameter-ownership-and-validation">Parallel parameter ownership and validation</a></li>
+<li><a class="reference internal" href="#current-counts-versus-cached-sample-storage">Current counts versus cached sample storage</a></li>
+<li><a class="reference internal" href="#complex-mode-selection-and-cleanup">Complex mode selection and cleanup</a></li>
 </ul>
 </li>
 </ul>

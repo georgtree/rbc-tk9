@@ -1636,19 +1636,22 @@ void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr) {
 }
 
 Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTransaction *transactionPtr) {
+    const ElemVector *xPtr = &elemPtr->x;
+    const ElemVector *yPtr = &elemPtr->y;
     Tcl_Size nX;
     Tcl_Size nY;
 
-    nX = elemPtr->x.nValues;
-    nY = elemPtr->y.nValues;
     if (transactionPtr != NULL) {
         if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) {
-            nX = transactionPtr->x.nValues;
+            xPtr = &transactionPtr->x;
         }
         if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y)) {
-            nY = transactionPtr->y.nValues;
+            yPtr = &transactionPtr->y;
         }
     }
+    /* Count current sources without refreshing arrays or delivering callbacks. */
+    nX = xPtr->clientId != NULL ? Rbc_VectorLength(xPtr->vecPtr) : xPtr->nValues;
+    nY = yPtr->clientId != NULL ? Rbc_VectorLength(yPtr->vecPtr) : yPtr->nValues;
     return MIN(nX, nY);
 }
 

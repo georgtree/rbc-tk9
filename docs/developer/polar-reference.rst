@@ -15,3 +15,17 @@ Grid geometry (rbcGrPolar.c)
 
 .. doxygengroup:: polar_geometry
    :members:
+
+Line and polar data transactions (rbcGrLine.c)
+----------------------------------------------
+
+These helpers also cover the real parallel parameter input shared by graph line
+and polar elements. The documentation-only scope keeps private names distinct
+from similarly named helpers in other modules.
+
+.. c:namespace-push:: rbcGrLineData
+
+.. doxygengroup:: line_data_transactions
+   :members:
+
+.. c:namespace-pop::

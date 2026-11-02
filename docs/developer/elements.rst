@@ -64,7 +64,9 @@ staged mask and moved candidates. Freeing the transaction afterward is safe.
 An abandoned successful transaction must also be freed.
 
 ``Rbc_ElemDataTransactionPointCount`` returns the smaller effective X/Y length
-without committing. It is an ordinary paired-data helper, not the polymorphic
+without committing. It selects staged or retained slots and queries current
+named-vector lengths without consuming pending notifications. Literal inputs use
+their stored counts. It is an ordinary paired-data helper, not the polymorphic
 point-count service used for polar elements.
 
 Updates and invalidation
@@ -575,3 +577,7 @@ optional error fields and writes the snapshot. A miss writes an empty name;
 other old metadata fields are not generally erased. A write error preserves
 preceding writes and returns its diagnostic. Concrete closest-info collectors
 must remain script-free for this separation to protect graph lifetime.
+
+For the line-specific complex and parallel-parameter transactions, see
+:doc:`polar` and the grouped contracts in :doc:`polar-reference`. Those paths
+have different input restrictions and notification policies from common X/Y data.

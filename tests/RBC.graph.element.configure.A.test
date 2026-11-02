@@ -4400,5 +4400,167 @@ namespace eval graph.element {
         unset -nocomplain before code message options result
     } -result {1 1 {TK VALUE PIXELS} 1 red}
 
+    test RBC.graph.element.configure.A.64.1 {
+        parameter validation: pending data resize matches new parameter, length 0
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        graph .w
+        .w element create a -xdata lengthX -ydata lengthY -param lengthP
+        update
+    } -body {
+        lengthX set {}
+        lengthY set {}
+        set code [catch {.w element configure a -param lengthP} msg]
+        set rejected [expr {$code == (0 != 3)}]
+        lengthP set {}
+        .w element configure a -param lengthP
+        list $rejected [.w element cget a -param]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 lengthP}
+
+    test RBC.graph.element.configure.A.64.2 {
+        parameter validation: pending parameter resize matches new data, length 0
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        graph .w
+        .w element create a -xdata lengthX -ydata lengthY -param lengthP
+        update
+    } -body {
+        lengthP set {}
+        .w element configure a -data {}
+        list [.w element cget a -param] [lengthP length]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {lengthP 0}
+
+    test RBC.graph.element.configure.A.64.3 {
+        parameter validation: pending data resize matches new parameter, length 2
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        graph .w
+        .w element create a -xdata lengthX -ydata lengthY -param lengthP
+        update
+    } -body {
+        lengthX set {0 1}
+        lengthY set {0 1}
+        set code [catch {.w element configure a -param lengthP} msg]
+        set rejected [expr {$code == (2 != 3)}]
+        lengthP set {0 1}
+        .w element configure a -param lengthP
+        list $rejected [.w element cget a -param]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 lengthP}
+
+    test RBC.graph.element.configure.A.64.4 {
+        parameter validation: pending parameter resize matches new data, length 2
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        graph .w
+        .w element create a -xdata lengthX -ydata lengthY -param lengthP
+        update
+    } -body {
+        lengthP set {0 1}
+        .w element configure a -data {0 0 1 1}
+        list [.w element cget a -param] [lengthP length]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {lengthP 2}
+
+    test RBC.graph.element.configure.A.64.5 {
+        parameter validation: pending data resize matches new parameter, length 4
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        graph .w
+        .w element create a -xdata lengthX -ydata lengthY -param lengthP
+        update
+    } -body {
+        lengthX set {0 1 2 3}
+        lengthY set {0 1 2 3}
+        set code [catch {.w element configure a -param lengthP} msg]
+        set rejected [expr {$code == (4 != 3)}]
+        lengthP set {0 1 2 3}
+        .w element configure a -param lengthP
+        list $rejected [.w element cget a -param]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 lengthP}
+
+    test RBC.graph.element.configure.A.64.6 {
+        parameter validation: pending parameter resize matches new data, length 4
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        graph .w
+        .w element create a -xdata lengthX -ydata lengthY -param lengthP
+        update
+    } -body {
+        lengthP set {0 1 2 3}
+        .w element configure a -data {0 0 1 1 2 2 3 3}
+        list [.w element cget a -param] [lengthP length]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {lengthP 4}
+
+    test RBC.graph.element.configure.A.64.7 {
+        parameter validation: current mismatch rejects data change and preserves options
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        graph .w
+        .w element create a -xdata lengthX -ydata lengthY -param lengthP
+        update
+    } -body {
+        lengthP set {10 20}
+        set before [.w element configure a]
+        set code [catch {.w element configure a -xdata lengthX -color red} msg]
+        set unchanged [expr {$before eq [.w element configure a]}]
+        .w element configure a -color blue
+        list $code $msg $unchanged [.w element cget a -color]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 {parameter vector has 2 values, but element has 3 data points} 1 blue}
+
 	cleanupTests
 }

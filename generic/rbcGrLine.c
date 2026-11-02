@@ -10,7 +10,7 @@
  * See "license.terms" for details.
  */
 /** @file rbcGrLine.c
- * Line/strip/polar implementation; selected decimation contracts are extracted.
+ * Line/strip/polar data, geometry, drawing and transaction contracts.
  */
 /** @defgroup line_decimation Line decimation internals
  * Private screen-density reduction services. All objects are borrowed from
@@ -24,6 +24,10 @@
 
 /** @defgroup polar_data Polar element data internals
  * Private adapters from retained source data to Cartesian graph coordinates.
+ */
+
+/** @defgroup line_data_transactions Line and polar data transactions
+ * Source ownership, parallel parameters, notification policy and staged commit.
  */
 
 #include <math.h>
@@ -1657,6 +1661,13 @@ static int GetComplexLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, 
     return FALSE;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Release an owned line-pen color unless it is NULL or COLOR_DEFAULT.
+ *
+ * The sentinel represents inheritance rather than a Tk color allocation.
+ * Does not clear the caller's pointer; callers must not release it twice.
+ */
 static void FreeLinePenColor(XColor *colorPtr) {
     if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
         Tk_FreeColor(colorPtr);
@@ -1664,6 +1675,14 @@ static void FreeLinePenColor(XColor *colorPtr) {
 }
 
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Validate a count-to-byte multiplication without allocating storage.
+ *
+ * Rejects negative counts, zero element size and SIZE_MAX overflow. Assigns
+ * bytesPtr only on success. Zero count is valid with a positive element size.
+ * Returns TCL_OK or TCL_ERROR without setting an interpreter diagnostic.
+ */
 static int GetLineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *bytesPtr) {
     if ((count < 0) || (elementSize == 0) || ((uintmax_t)count > (uintmax_t)(SIZE_MAX / elementSize))) {
         return TCL_ERROR;
@@ -1672,7 +1691,15 @@ static int GetLineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byt
     return TCL_OK;
 }
 
-/* Query live vector lengths even before queued change notifications arrive. */
+/**
+ * @ingroup line_data_transactions
+ * @brief Return the current source point count for a line representation.
+ *
+ * Complex mode uses Z length; X/Y mode uses the smaller length. Named sources
+ * are queried directly so pending notifications do not hide a resize. Literal
+ * slots use cached counts. Does not refresh cached pointers or deliver callbacks;
+ * a current count alone does not make cached sample storage current.
+ */
 static Tcl_Size LinePointCount(Element *elemPtr) {
     Line *linePtr;
 
@@ -1684,6 +1711,16 @@ static Tcl_Size LinePointCount(Element *elemPtr) {
                elemPtr->y.clientId != NULL ? Rbc_VectorLength(elemPtr->y.vecPtr) : elemPtr->y.nValues);
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Read a cached source sample and convert it to graph-plane coordinates.
+ *
+ * Complex input delegates to GetComplexLineDataPoint. X/Y input checks cached
+ * paired length and non-NULL arrays. Polar X/Y requires finite theta/radius and
+ * converts radians to Cartesian coordinates; Cartesian X/Y copies directly,
+ * without rejecting nonfinite values. Returns a boolean; callers must reject
+ * unusable outputs and ensure borrowed arrays are synchronized before reading.
+ */
 static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {
     if (linePtr->dataMode == LINE_DATA_COMPLEX) {
         return GetComplexLineDataPoint(linePtr, index, xPtr, yPtr);
@@ -1714,12 +1751,26 @@ static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double 
     }
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Refresh a complex slot's borrowed length, capacity and array pointer.
+ *
+ * Requires a live vecPtr of complex type. Does not own the array, install a
+ * callback, compute extrema, invalidate mapping or schedule redraw.
+ */
 static void SyncComplexVector(ElemComplexVector *vPtr) {
     vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
     vPtr->arraySize = Rbc_VectorSize(vPtr->vecPtr);
     vPtr->valueArr = Rbc_VectorComplexData(vPtr->vecPtr);
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Detach a complex-vector client and zero the whole slot.
+ *
+ * Accepts an empty slot. Does not destroy the source vector or free its borrowed
+ * numeric storage. The previous elemPtr owner association is also cleared.
+ */
 static void FreeComplexVector(ElemComplexVector *vPtr) {
     if (vPtr->clientId != NULL) {
         Rbc_FreeVectorId(vPtr->clientId);
@@ -1727,6 +1778,16 @@ static void FreeComplexVector(ElemComplexVector *vPtr) {
     memset(vPtr, 0, sizeof(*vPtr));
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Refresh or clear a stable complex-data slot on vector notification.
+ *
+ * Client data must identify the committed line member. Destruction clears the
+ * client ID, vector, array, length and capacity. Update reacquires the vector and
+ * refreshes cached storage on success. Always marks axes and element mapping
+ * dirty, scheduling backing-store redraw only when not hidden or plotHidden.
+ * No partial changed-range accumulation is performed by this callback.
+ */
 static void ComplexVectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     ElemComplexVector *vPtr;
     Element *elemPtr;
@@ -1803,6 +1864,13 @@ static int ParseComplexVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Replace one retained Tcl option object with balanced references.
+ *
+ * An identical pointer is a no-op. Retains the replacement before releasing the
+ * old object; NULL clears the slot. Does not parse, configure or evaluate it.
+ */
 static void ReplaceLineOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
     Tcl_Obj *oldObjPtr;
 
@@ -1819,6 +1887,14 @@ static void ReplaceLineOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
     }
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Replace a staged complex source only after candidate parsing succeeds.
+ *
+ * Uses ParseComplexVectorObj, then releases an earlier staged client and transfers
+ * the new candidate. Failure leaves the earlier candidate untouched. The caller
+ * owns transaction cleanup; no callback is registered in temporary storage.
+ */
 static int StageComplexData(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
                             LineComplexDataTransaction *transactionPtr) {
     ElemComplexVector candidate;
@@ -1834,6 +1910,17 @@ static int StageComplexData(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPt
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Prepare complex-source replacement and data-mode selection in option order.
+ *
+ * Initializes a fresh transaction from the current mode. First configuration
+ * considers the retained default unless explicit -cdata was supplied. Processes
+ * canonical explicit options in caller order: nonempty -cdata selects complex,
+ * empty -cdata or ordinary data options select X/Y. Later mode selection does not
+ * excuse an invalid earlier complex source. Failure frees staged clients and
+ * zeros the transaction, leaving live line storage unchanged.
+ */
 static int PrepareLineComplexDataTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                              LineComplexDataTransaction *transactionPtr) {
     int explicitCData;
@@ -1897,6 +1984,16 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Commit a prepared complex-source transaction into stable line storage.
+ *
+ * In complex mode, transfers a staged slot and then registers its notification
+ * callback against linePtr->z; an unstaged complex slot remains unchanged.
+ * In X/Y mode, frees live and staged complex clients and clears retained -cdata.
+ * Stores the selected mode and clears staged ownership. Does not free external
+ * vectors or itself schedule graph redraw; preparation must already have passed.
+ */
 static void CommitLineComplexDataTransaction(Line *linePtr, LineComplexDataTransaction *transactionPtr) {
     if (transactionPtr->mode == LINE_DATA_COMPLEX) {
         if (transactionPtr->staged) {
@@ -1921,6 +2018,13 @@ static void CommitLineComplexDataTransaction(Line *linePtr, LineComplexDataTrans
     transactionPtr->staged = FALSE;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Release an abandoned staged complex source and zero its transaction.
+ *
+ * Safe after commit because staged ownership has been cleared. Does not release
+ * the live line source or change data mode.
+ */
 static void FreeLineComplexDataTransaction(LineComplexDataTransaction *transactionPtr) {
     if (transactionPtr->staged) {
         FreeComplexVector(&transactionPtr->z);
@@ -1928,6 +2032,13 @@ static void FreeLineComplexDataTransaction(LineComplexDataTransaction *transacti
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Refresh a live real parameter slot's borrowed storage and extrema.
+ *
+ * Requires a valid vecPtr. Copies length, capacity, array and vector range without
+ * geometry invalidation, notification delivery or ownership transfer.
+ */
 static void SyncLineParamVector(ElemVector *vPtr) {
     vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
     vPtr->arraySize = Rbc_VectorSize(vPtr->vecPtr);
@@ -1935,9 +2046,14 @@ static void SyncLineParamVector(ElemVector *vPtr) {
     Rbc_VectorGetRange(vPtr->vecPtr, &vPtr->min, &vPtr->max);
 }
 
-/*
- * Parameter-vector changes do not affect element geometry, axes, or
- * drawing.  Only keep the parallel parameter storage synchronized.
+/**
+ * @ingroup line_data_transactions
+ * @brief Refresh parallel parameter data without invalidating plotted geometry.
+ *
+ * Destruction clears client identity and borrowed storage. Update reacquires the
+ * source and synchronizes it; failed lookup clears vector/array/count/capacity
+ * while retaining the client ID for later cleanup. Cached extrema are not reset
+ * on those clear paths. Does not reset axes, map geometry or request redraw.
  */
 static void LineParamVectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     ElemVector *vPtr;
@@ -1969,6 +2085,15 @@ static void LineParamVectorChangedProc(Tcl_Interp *interp, ClientData clientData
     }
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Parse and retain a replacement parameter candidate transactionally.
+ *
+ * Accepts the common real-vector or numeric-expression-list input. On failure
+ * releases the local candidate and retains any earlier staged value. On success
+ * frees the earlier staged slot and transfers the candidate. Does not install
+ * parameter notifications until commit moves it to stable line storage.
+ */
 static int StageLineParam(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, LineParamTransaction *transactionPtr) {
     ElemVector candidate;
 
@@ -1985,6 +2110,15 @@ static int StageLineParam(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Prepare parameter input from defaults and ordered explicit options.
+ *
+ * Initializes a fresh transaction. On first configuration uses the retained
+ * default only when no explicit canonical -param occurs. Validates every explicit
+ * occurrence in order, including values superseded later. Failure frees staged
+ * storage and zeros the transaction. Length compatibility is a separate check.
+ */
 static int PrepareLineParamTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                        LineParamTransaction *transactionPtr) {
     int explicitParam;
@@ -2033,6 +2167,14 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Transfer staged parameter ownership to the line and install its callback.
+ *
+ * No-op without a staged candidate. Releases the old live slot, moves the new
+ * one, restores its owner pointer and registers LineParamVectorChangedProc for
+ * a named source. Clears candidate ownership for subsequent transaction cleanup.
+ */
 static void CommitLineParamTransaction(Line *linePtr, LineParamTransaction *transactionPtr) {
     if (!transactionPtr->staged) {
         return;
@@ -2047,6 +2189,13 @@ static void CommitLineParamTransaction(Line *linePtr, LineParamTransaction *tran
     transactionPtr->staged = FALSE;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Release a staged parameter candidate and zero its transaction.
+ *
+ * Safe on an empty or committed transaction. Uses common slot cleanup for owned
+ * list arrays and retained vector clients, without destroying source vectors.
+ */
 static void FreeLineParamTransaction(LineParamTransaction *transactionPtr) {
     if (transactionPtr->staged) {
         Rbc_FreeElemVector(&transactionPtr->param);
@@ -2054,16 +2203,24 @@ static void FreeLineParamTransaction(LineParamTransaction *transactionPtr) {
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Test whether the retained parameter option is nonempty.
+ *
+ * Examines paramObjPtr text only, not current numeric length or client validity.
+ * A nonempty option whose external source became empty is still configured.
+ */
 static int LineParamConfigured(Line *linePtr) {
     return ((linePtr->paramObjPtr != NULL) && (Tcl_GetCharLength(linePtr->paramObjPtr) > 0));
 }
 
-/*
- * Only changes capable of altering the point-to-parameter relationship
- * require strict length validation.
+/**
+ * @ingroup line_data_transactions
+ * @brief Decide whether configuration must validate parallel parameter length.
  *
- * Other configuration changes remain legal while independently resized
- * external data/parameter vectors are temporarily mismatched.
+ * Returns true on initial configuration or an explicit canonical -param, -data,
+ * -x, -y or -cdata option. Other changes may proceed during a temporary mismatch
+ * caused by independently resized external vectors. Does not compare lengths.
  */
 static int LineParamLengthValidationNeeded(Element *elemPtr) {
     Tcl_Size i;
@@ -2086,6 +2243,15 @@ static int LineParamLengthValidationNeeded(Element *elemPtr) {
     return FALSE;
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Count prospective data points using current named-vector lengths.
+ *
+ * Uses the staged mode when a complex transaction is supplied. Complex mode
+ * selects staged or live Z storage; X/Y delegates to the common transaction
+ * count. Named sources are queried directly, while literals use their stored
+ * counts. Does not refresh arrays, deliver notifications or commit candidates.
+ */
 static Tcl_Size ProspectiveLinePointCount(Line *linePtr, const ElemDataTransaction *dataTransactionPtr,
                                           const LineComplexDataTransaction *complexDataTransactionPtr) {
     LineDataMode mode;
@@ -2095,17 +2261,30 @@ static Tcl_Size ProspectiveLinePointCount(Line *linePtr, const ElemDataTransacti
         mode = complexDataTransactionPtr->mode;
     }
     if (mode == LINE_DATA_COMPLEX) {
+        const ElemComplexVector *zPtr = &linePtr->z;
+
         if ((complexDataTransactionPtr != NULL) && complexDataTransactionPtr->staged) {
-            return complexDataTransactionPtr->z.nValues;
+            zPtr = &complexDataTransactionPtr->z;
         }
-        return linePtr->z.nValues;
+        return zPtr->clientId != NULL ? Rbc_VectorLength(zPtr->vecPtr) : zPtr->nValues;
     }
     return Rbc_ElemDataTransactionPointCount(&linePtr->core, dataTransactionPtr);
 }
 
+/**
+ * @ingroup line_data_transactions
+ * @brief Require configured parameter length to match prospective data length.
+ *
+ * Empty retained -param disables the check. Selects staged parameter storage
+ * when available, otherwise the live slot, querying current named-vector length.
+ * Obtains data length through ProspectiveLinePointCount. Returns TCL_ERROR with
+ * both counts on mismatch, TCL_OK otherwise. Does not refresh arrays, deliver
+ * notifications, commit candidates or free them.
+ */
 static int ValidateLineParamLength(Graph *graphPtr, Line *linePtr, const ElemDataTransaction *dataTransactionPtr,
                                    const LineComplexDataTransaction *complexDataTransactionPtr,
                                    const LineParamTransaction *paramTransactionPtr) {
+    const ElemVector *paramPtr = &linePtr->param;
     Tcl_Size nParam;
     Tcl_Size nPoints;
 
@@ -2116,10 +2295,9 @@ static int ValidateLineParamLength(Graph *graphPtr, Line *linePtr, const ElemDat
         return TCL_OK;
     }
     if ((paramTransactionPtr != NULL) && paramTransactionPtr->staged) {
-        nParam = paramTransactionPtr->param.nValues;
-    } else {
-        nParam = linePtr->param.nValues;
+        paramPtr = &paramTransactionPtr->param;
     }
+    nParam = paramPtr->clientId != NULL ? Rbc_VectorLength(paramPtr->vecPtr) : paramPtr->nValues;
     nPoints = ProspectiveLinePointCount(linePtr, dataTransactionPtr, complexDataTransactionPtr);
     if (nParam != nPoints) {
         Tcl_SetObjResult(graphPtr->interp,

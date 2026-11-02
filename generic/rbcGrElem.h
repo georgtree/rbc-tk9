@@ -411,6 +411,8 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
  * @return Minimum of the effective X and Y lengths.
  *
  * Does not commit data or invoke a type-specific polar point-count callback.
+ * Named sources use current vector lengths, including pending resizes; literal
+ * slots use stored counts. Does not refresh arrays or deliver notifications.
  */
 Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTransaction *transactionPtr);
 /**
