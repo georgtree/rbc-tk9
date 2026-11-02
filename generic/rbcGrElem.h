@@ -134,8 +134,10 @@ typedef void(ElementDrawSymbolProc)(Graph *graphPtr, Drawable drawable, Element 
 typedef void(ElementSymbolExportProc)(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y,
                                             int symSize);
 typedef Tcl_Size(ElementPointCountProc)(Element *elemPtr);
+/* Append owned values to a private result dictionary; never write Tcl variables
+ * or run callbacks. The caller publishes it after all element reads finish. */
 typedef int(ElementClosestInfoProc)(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr,
-                                    Tcl_Obj *varNameObjPtr);
+                                    Tcl_Obj *resultObjPtr);
 
 typedef struct {
     ElementClosestProc *closestProc;

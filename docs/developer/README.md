@@ -13,7 +13,7 @@ contracts and private subdivision helpers, chain/list ownership, insertion and k
 export orchestration, SVG definitions and image encoding, PDF resource serialization and document
 ownership, PDF/PostScript drawing primitives and shared export capture, crosshair presentation and XOR configuration, legend ownership and layout, grid inheritance,
 tick-list transactions and output, pen and
-palette ownership, named-pen dispatch and revival, palette staging and range defaults, marker lifecycle, element data and dispatch, shared configuration transactions and retained coordinate representations, axis and track mapping, shared
+palette ownership, named-pen dispatch and revival, palette staging and range defaults, marker lifecycle, element data and dispatch, shared configuration transactions and retained coordinate representations, element data observation, extrema and value-label formatting, axis and track mapping, shared
 GC/window services, standalone window/photo command dispatch, EPS canvas parsing and preview
 ownership, allocation and UID ownership, typed operation dispatch, shared value conversion and legacy option-adapter ownership, dictionary ordering, stdio and fatal diagnostics, numeric
 compatibility, and source-comment conventions.

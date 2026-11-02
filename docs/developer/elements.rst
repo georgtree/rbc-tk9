@@ -262,3 +262,132 @@ CommitElemVector installs a vector-change callback only after moving the slot
 to its stable destination. A callback must never retain a pointer to a temporary
 transaction field. Moving the client ID transfers observation ownership, not
 ownership of the named source vector or its storage.
+
+Parsing, allocation and extrema
+-------------------------------
+
+GetElemArrayByteCount rejects negative counts, zero element size and products
+that exceed SIZE_MAX, assigning its result only on success. Zero count is
+valid. This check cannot repair overflow that occurred while a caller computed
+the count before invoking it.
+
+EvalExprListObj initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc
+for a nonempty result. Each list member is evaluated with Tcl_ExprDouble; an
+error releases the temporary numeric array. The helper borrows the list's
+object-pointer array across evaluation. It does not take an immutable snapshot
+or add an owner-preservation boundary, so this local allocation cleanup must
+not be confused with protection against callbacks that mutate owners or input
+representations.
+
+ParseElemVectorPairsObj evaluates the flat input before checking whether its
+length is even. An odd-length failure can therefore follow expression side
+effects; it is not a side-effect-free prevalidation pass. Successful parsing
+uses a temporary flat array followed by separate X and Y arrays, computes
+extrema, and releases the temporary array. This paired-input parser always
+treats input as expressions, unlike Rbc_ParseElemVectorObj's initial named-vector
+lookup.
+
+The range helpers have distinct contracts:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 40 34
+
+   * - Helper
+     - Behavior
+     - Empty/unusable data
+   * - SyncElemVector
+     - Borrows source storage and obtains source-maintained extrema
+     - Requires a live source vector
+   * - FindRange
+     - Scans literal data, ignoring nonfinite samples
+     - Empty/NULL leaves cached extrema untouched; all-nonfinite nonempty data gives DBL_MAX/-DBL_MAX
+   * - Rbc_FindElemVectorMinimum
+     - Returns the smallest finite value at or above minLimit
+     - Returns minLimit if its accumulator remains DBL_MAX
+
+Neither scanning helper computes and stores a separate positive minimum. The
+bounded-minimum helper also treats a sole qualifying DBL_MAX value as its
+unchanged sentinel and returns minLimit. That is current compatibility behavior,
+not a promise that every finite sample has a distinct successful result.
+
+Notification metadata and synchronous refresh
+---------------------------------------------
+
+RecordElemVectorChange merges inclusive source intervals by their outer bounds.
+An unknown/full change dominates later precise ranges until the owning mapping
+code consumes or resets that pending state. The helper itself neither validates
+indices nor fetches data. Reading the vector's client-specific changed range
+belongs inside VectorChangedProc, while that notification snapshot is valid.
+
+The destruction notification clears clientId, valueArr and nValues and records
+a full change. It does not zero vecPtr, capacity or extrema. Those remaining
+fields must not be treated as valid source storage after destruction; the
+cleared live-data fields govern subsequent use.
+
+Rbc_SyncElementVectors visits the registry rather than only the visible display
+list. Pending common X/Y, weight and error inputs refresh their borrowed arrays
+and mark a full change before immediate layout or export. It neither delivers
+nor cancels the queued notification and does not independently queue a redraw.
+VectorChangedProc has a different scheduling policy: it always marks axes and
+mapping dirty, but only schedules backing-store redraw for plotted elements.
+
+Value-label formatting
+----------------------
+
+Rbc_ValidateValueFormat accepts literal-only strings, escaped percent signs and
+at most one floating conversion. Formatting passes one double at a time; even
+SHOW_BOTH formats X and Y separately with the same format and joins them with a
+comma. Dynamic widths/precisions and conversions requiring another argument type
+are rejected. Format length, width and precision are each bounded by the current
+VALUE_FORMAT_LIMIT of 200. Validation does not guarantee that every formatted
+number fits the destination buffer.
+
+FormatValueLabel supplies terminated, bounded fallback text. It avoids appending
+Y when X has already been truncated. Rbc_GetElementValueLabel creates and retains
+that fallback before executing application code. A nonempty command prefix is
+duplicated, then receives graph path, element name, original index, X and Y in
+the global Tcl evaluation context. The returned label owns one Tcl reference
+which the drawing caller must release. Successful callback text is not limited
+to the fallback buffer size.
+
+Command-prefix validation checks list syntax only; it does not check command
+existence. Empty prefixes retain fallback formatting. Callback errors are
+reported through the background exception mechanism and use fallback text, while
+the enclosing interpreter state is restored. This result preservation is not
+lifetime protection for drawing records: value-label callbacks must not mutate
+drawing state or enter a nested event loop.
+
+Offsets are a separate parser: Rbc_GetValueOffset requires two signed Tcl ints,
+commits both together, and accepts no screen-unit suffixes. It stores the parsed
+values in the double fields of Point2D without evaluating expressions.
+
+Closest-result source values and traces
+---------------------------------------
+
+ClosestErrorValue rejects a pending named-vector update before touching its
+borrowed array. It also rejects out-of-range indices, NULL arrays and nonfinite
+samples. AppendClosestErrors reports the original source error values, including
+explicit low/high bounds, rather than transformed or bar-translated positions.
+A nonempty symmetric-error vector takes precedence; an unusable symmetric sample
+does not fall back to explicit bounds. Explicit low and high must both be usable
+before either is reported for that axis.
+
+Closest results are collected into a private dictionary before any destination
+array unset or write. The snapshot owns common fields, mapped bar rectangles,
+source error values and concrete line/polar metadata. Concrete closest-info
+callbacks append values to this dictionary without running Tcl scripts.
+
+Publication clears the same optional error fields and writes snapshot entries in
+collection order. Both unset and write traces may change vectors, delete the
+selected element or destroy the graph: publication makes no further graph or
+element reads. A failing write returns its diagnostic and leaves earlier writes
+in place; this is a stable snapshot, not an atomic Tcl-array transaction. The
+snapshot is released on success and failure. Existing unrelated/stale fields
+other than the six optional error fields retain their previous behavior.
+
+GetIndex similarly captures the point count before evaluating non-``end`` input
+as a Tcl expression. It converts the result to Tcl_Size and checks against those
+captured bounds. A caller that permits data changes during evaluation needs its
+own lifetime and post-callback validity checks. Exact ``end`` avoids expression
+evaluation; empty elements are rejected before either path.

@@ -211,5 +211,68 @@ namespace eval graph.element.closest.errors {
         }
     }
 
+    # Compare complete results, including bar rectangles and polar metadata.
+    proc Snapshot {} {
+        variable hit
+        set result {}
+        foreach key [lsort [array names hit]] {lappend result $key $hit($key)}
+        return $result
+    }
+    proc ChangeOnTrace {target script name key op} {
+        variable traceCount
+        if {$key ne $target} {return}
+        trace remove variable ::graph.element.closest.errors::hit $op \
+            [list ::graph.element.closest.errors::ChangeOnTrace $target $script]
+        incr traceCount
+        uplevel #0 $script
+    }
+    set case 0
+    foreach kind {graph stripchart polar barchart} {
+        foreach {event key} {write name write xerror unset xerror} {
+            foreach action {
+                {.ce element configure e -xerror {7 8 9} -yerror {10 11 12}}
+                {.ce element delete e}
+                {destroy .ce}
+            } {
+                test RBC.graph.element.closest.errors.A.11.[incr case] {
+                    closest publication retains a complete snapshot across destructive traces
+                } -setup {
+                    Create $kind
+                    .ce element configure e -xerror {1 2 3} -yerror {4 5 6}
+                    if {$kind in {graph polar}} {.ce element configure e -param {10 20 30}}
+                    Query
+                    set expected [Snapshot]
+                    set traceCount 0
+                    set callback [list ::graph.element.closest.errors::ChangeOnTrace $key $action]
+                    trace add variable ::graph.element.closest.errors::hit $event $callback
+                } -body {
+                    Query
+                    list $traceCount [expr {[Snapshot] eq $expected}]
+                } -cleanup {
+                    catch {trace remove variable ::graph.element.closest.errors::hit $event $callback}
+                    catch {destroy .ce}
+                    unset -nocomplain hit
+                } -result {1 1}
+            }
+        }
+    }
+    test RBC.graph.element.closest.errors.A.12.1 {
+        failed publication preserves the write-trace diagnostic and stops subsequent writes
+    } -setup {
+        Create graph
+        .ce element configure e -xerror {1 2 3} -yerror {4 5 6}
+        Query
+        set traceCount 0
+        set callback [list ::graph.element.closest.errors::ChangeOnTrace xerror {error closest-trace-failed}]
+        trace add variable ::graph.element.closest.errors::hit write $callback
+    } -body {
+        set code [catch {Query} message]
+        list $code [string match *closest-trace-failed* $message] $traceCount [info exists hit(yerror)]
+    } -cleanup {
+        catch {trace remove variable ::graph.element.closest.errors::hit write $callback}
+        destroy .ce
+        unset -nocomplain hit
+    } -result {1 1 1 0}
+
 ::tcltest::cleanupTests
 }

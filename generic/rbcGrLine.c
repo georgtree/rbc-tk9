@@ -1550,33 +1550,24 @@ static int ComplexDivide(double nr, double ni, double dr, double di, double *rea
 
 #define LINE_PI 3.14159265358979323846264338327950288
 
-static int SetClosestInfoObj(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, Tcl_Obj *valueObjPtr) {
-    Tcl_Obj *nameObjPtr;
-    Tcl_Obj *resultObjPtr;
-
-    nameObjPtr = Tcl_NewStringObj(name, -1);
-    Tcl_IncrRefCount(nameObjPtr);
-    Tcl_IncrRefCount(valueObjPtr);
-    resultObjPtr = Tcl_ObjSetVar2(interp, varNameObjPtr, nameObjPtr, valueObjPtr, TCL_LEAVE_ERR_MSG);
-    Tcl_DecrRefCount(valueObjPtr);
-    Tcl_DecrRefCount(nameObjPtr);
-    return (resultObjPtr != NULL) ? TCL_OK : TCL_ERROR;
+static int SetClosestInfoObj(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, Tcl_Obj *valueObjPtr) {
+    return Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj(name, -1), valueObjPtr);
 }
 
-static int SetClosestInfoDouble(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, double value) {
-    return SetClosestInfoObj(interp, varNameObjPtr, name, Tcl_NewDoubleObj(value));
+static int SetClosestInfoDouble(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, double value) {
+    return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewDoubleObj(value));
 }
 
-static int SetClosestInfoString(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, const char *value) {
-    return SetClosestInfoObj(interp, varNameObjPtr, name, Tcl_NewStringObj(value, -1));
+static int SetClosestInfoString(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, const char *value) {
+    return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewStringObj(value, -1));
 }
 
-static int SetClosestInfoPair(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, double real, double imag) {
+static int SetClosestInfoPair(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, double real, double imag) {
     Tcl_Obj *objv[2];
 
     objv[0] = Tcl_NewDoubleObj(real);
     objv[1] = Tcl_NewDoubleObj(imag);
-    return SetClosestInfoObj(interp, varNameObjPtr, name, Tcl_NewListObj(2, objv));
+    return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewListObj(2, objv));
 }
 
 static int GammaToNormalizedImpedance(double gammaReal, double gammaImag, double *resistancePtr, double *reactancePtr) {
@@ -8824,7 +8815,7 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
 }
 
 static int AppendLineParamClosestInfo(Graph *graphPtr, Line *linePtr, const ClosestSearch *searchPtr,
-                                      Tcl_Obj *varNameObjPtr) {
+                                      Tcl_Obj *resultObjPtr) {
     ElemVector *paramPtr;
     Tcl_Size nPoints;
 
@@ -8852,14 +8843,14 @@ static int AppendLineParamClosestInfo(Graph *graphPtr, Line *linePtr, const Clos
      * index reported by info(index).  It is intentionally not a
      * geometrically interpolated parameter value.
      */
-    return SetClosestInfoDouble(graphPtr->interp, varNameObjPtr, "param", paramPtr->valueArr[searchPtr->index]);
+    return SetClosestInfoDouble(graphPtr->interp, resultObjPtr, "param", paramPtr->valueArr[searchPtr->index]);
 }
 
-static int LineClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *varNameObjPtr) {
-    return AppendLineParamClosestInfo(graphPtr, LINE_FROM_CORE(elemPtr), searchPtr, varNameObjPtr);
+static int LineClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *resultObjPtr) {
+    return AppendLineParamClosestInfo(graphPtr, LINE_FROM_CORE(elemPtr), searchPtr, resultObjPtr);
 }
 
-static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *varNameObjPtr) {
+static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *resultObjPtr) {
     Line *linePtr;
     Tcl_Interp *interp;
     double real;
@@ -8869,7 +8860,7 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
 
     linePtr = LINE_FROM_CORE(elemPtr);
     interp = graphPtr->interp;
-    if (AppendLineParamClosestInfo(graphPtr, linePtr, searchPtr, varNameObjPtr) != TCL_OK) {
+    if (AppendLineParamClosestInfo(graphPtr, linePtr, searchPtr, resultObjPtr) != TCL_OK) {
         return TCL_ERROR;
     }
     /*
@@ -8905,10 +8896,10 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
             angle = 0.0;
         }
     }
-    if (SetClosestInfoDouble(interp, varNameObjPtr, "radius", radius) != TCL_OK) {
+    if (SetClosestInfoDouble(interp, resultObjPtr, "radius", radius) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (SetClosestInfoDouble(interp, varNameObjPtr, "angle", angle) != TCL_OK) {
+    if (SetClosestInfoDouble(interp, resultObjPtr, "angle", angle) != TCL_OK) {
         return TCL_ERROR;
     }
     /*
@@ -8916,12 +8907,12 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
      * not alter the meaning of x/y above.
      */
     if (linePtr->dataMode == LINE_DATA_COMPLEX) {
-        if (SetClosestInfoString(interp, varNameObjPtr, "dataFormat",
+        if (SetClosestInfoString(interp, resultObjPtr, "dataFormat",
                                  lineComplexDataFormatNames[linePtr->cDataFormat]) != TCL_OK) {
             return TCL_ERROR;
         }
     } else {
-        if (SetClosestInfoString(interp, varNameObjPtr, "dataFormat",
+        if (SetClosestInfoString(interp, resultObjPtr, "dataFormat",
                                  (linePtr->dataCoordinates == LINE_COORDINATES_POLAR) ? "polar" : "xy") != TCL_OK) {
             return TCL_ERROR;
         }
@@ -8934,10 +8925,10 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
     if (graphPtr->representation != POLAR_REPRESENTATION_SMITH) {
         return TCL_OK;
     }
-    if (SetClosestInfoPair(interp, varNameObjPtr, "gamma", real, imag) != TCL_OK) {
+    if (SetClosestInfoPair(interp, resultObjPtr, "gamma", real, imag) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (SetClosestInfoDouble(interp, varNameObjPtr, "z0", linePtr->z0) != TCL_OK) {
+    if (SetClosestInfoDouble(interp, resultObjPtr, "z0", linePtr->z0) != TCL_OK) {
         return TCL_ERROR;
     }
     {
@@ -8950,22 +8941,22 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
 
             physicalResistance = resistance * linePtr->z0;
             physicalReactance = reactance * linePtr->z0;
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedResistance", resistance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "normalizedResistance", resistance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedReactance", reactance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "normalizedReactance", reactance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoPair(interp, varNameObjPtr, "normalizedImpedance", resistance, reactance) != TCL_OK) {
+            if (SetClosestInfoPair(interp, resultObjPtr, "normalizedImpedance", resistance, reactance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "resistance", physicalResistance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "resistance", physicalResistance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "reactance", physicalReactance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "reactance", physicalReactance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoPair(interp, varNameObjPtr, "impedance", physicalResistance, physicalReactance) !=
+            if (SetClosestInfoPair(interp, resultObjPtr, "impedance", physicalResistance, physicalReactance) !=
                 TCL_OK) {
                 return TCL_ERROR;
             }
@@ -8984,22 +8975,22 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
              */
             physicalConductance = conductance / linePtr->z0;
             physicalSusceptance = susceptance / linePtr->z0;
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedConductance", conductance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "normalizedConductance", conductance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedSusceptance", susceptance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "normalizedSusceptance", susceptance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoPair(interp, varNameObjPtr, "normalizedAdmittance", conductance, susceptance) != TCL_OK) {
+            if (SetClosestInfoPair(interp, resultObjPtr, "normalizedAdmittance", conductance, susceptance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "conductance", physicalConductance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "conductance", physicalConductance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoDouble(interp, varNameObjPtr, "susceptance", physicalSusceptance) != TCL_OK) {
+            if (SetClosestInfoDouble(interp, resultObjPtr, "susceptance", physicalSusceptance) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (SetClosestInfoPair(interp, varNameObjPtr, "admittance", physicalConductance, physicalSusceptance) !=
+            if (SetClosestInfoPair(interp, resultObjPtr, "admittance", physicalConductance, physicalSusceptance) !=
                 TCL_OK) {
                 return TCL_ERROR;
             }

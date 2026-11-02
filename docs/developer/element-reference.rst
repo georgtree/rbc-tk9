@@ -42,3 +42,16 @@ failure and cleanup rules.
 
 .. doxygengroup:: element_transaction_internals
    :members:
+
+Data observation and value presentation
+---------------------------------------
+
+The documentation-only scope distinguishes private names such as GetIndex from
+similarly named helpers in other C files. It does not change C symbols.
+
+.. c:namespace-push:: rbcGrElemData
+
+.. doxygengroup:: element_data_internals
+   :members:
+
+.. c:namespace-pop::

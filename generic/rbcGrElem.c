@@ -24,6 +24,10 @@
  * Candidate ownership, option identity and retained representations.
  */
 
+/** @defgroup element_data_internals Element data and value-label internals
+ * Borrowed arrays, notifications and source-value presentation.
+ */
+
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
 #include "rbcChain.h"
@@ -97,6 +101,17 @@ typedef enum { ELEM_AXIS_OPTION_NONE, ELEM_AXIS_OPTION_X, ELEM_AXIS_OPTION_Y } E
 
 #define ELEM_AXIS_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/**
+ * @ingroup element_data_internals
+ * @brief Validate element-array multiplication before allocation.
+ * @param interp Interpreter receiving an overflow/size diagnostic.
+ * @param count Nonnegative logical element count.
+ * @param elementSize Positive byte size of one element.
+ * @param[out] byteCountPtr Receives the product only on success.
+ * @return TCL_OK on representable multiplication, TCL_ERROR otherwise.
+ * Zero count is valid and yields zero bytes. Does not allocate memory or validate
+ * arithmetic used by the caller to compute count.
+ */
 static int GetElemArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
     if ((count < 0) || (elementSize == 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("element data array is too large", -1));
@@ -164,18 +179,14 @@ static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, Pe
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ValidateValueCommand --
- *
- *      Validates a value-label command prefix before option commit.
- *      Empty prefixes retain printf-style formatting.
- *
- * Results:
- *      TCL_OK or TCL_ERROR.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Validate the list structure of an optional value-label command prefix.
+ * @param interp Interpreter for list-syntax errors.
+ * @param commandObjPtr Borrowed prefix object; NULL and empty lists are accepted.
+ * @return TCL_OK for valid structure, TCL_ERROR otherwise.
+ * Does not resolve the command name, execute it, or guarantee that later evaluation
+ * succeeds. An empty prefix selects ordinary format-based labels.
  */
 int Rbc_ValidateValueCommand(Tcl_Interp *interp, Tcl_Obj *commandObjPtr) {
     Tcl_Size length;
@@ -186,14 +197,15 @@ int Rbc_ValidateValueCommand(Tcl_Interp *interp, Tcl_Obj *commandObjPtr) {
     return Tcl_ListObjLength(interp, commandObjPtr, &length);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetValueOffset --
- *
- *     Parse two signed pixel offsets without changing the output on error.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Parse exactly two signed integer pixel offsets transactionally.
+ * @param interp Interpreter for list/number diagnostics.
+ * @param objPtr Borrowed two-element list.
+ * @param[out] offsetPtr Receives both coordinates only after both integers parse.
+ * @return TCL_OK on success; TCL_ERROR leaves the entire point unchanged.
+ * Uses Tcl_GetIntFromObj, not screen-unit conversion or expression evaluation.
+ * Negative values are permitted; the resulting ints are stored as doubles.
  */
 int Rbc_GetValueOffset(Tcl_Interp *interp, Tcl_Obj *objPtr, Point2D *offsetPtr) {
     Tcl_Obj **objv;
@@ -216,23 +228,23 @@ int Rbc_GetValueOffset(Tcl_Interp *interp, Tcl_Obj *objPtr, Point2D *offsetPtr) 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetElementValueLabel --
- *
- *      Formats a source point using the pen's command or value format.
- *      Commands receive graph, element, source index, X and Y. They
- *      must not mutate drawing state or enter a nested event loop.
- *      Errors are reported in the background and use the default text,
- *      as with axis tick formatters. Preserve the enclosing command's
- *      interpreter result, including during PostScript generation.
- *
- * Results:
- *      A referenced Tcl object; the caller must decrement its reference
- *      count after drawing. Callback text is not buffer-truncated.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Obtain a referenced label object from fallback formatting or a callback.
+ * @param elemPtr Live element with graph, interpreter, window and name.
+ * @param commandObjPtr Optional borrowed command-prefix list.
+ * @param format Validated fallback printf format or NULL.
+ * @param show Coordinate selection; SHOW_NONE suppresses callback evaluation.
+ * @param index Original source index passed to the command.
+ * @param x Source X value.
+ * @param y Source Y value.
+ * @return Tcl object with one owned reference; caller must Tcl_DecrRefCount it.
+ * Copies bounded fallback text first. A nonempty prefix is duplicated and invoked
+ * globally with graph path, element name, index, X and Y appended. Successful text
+ * is retained without the fallback buffer limit; errors go to the background and
+ * retain fallback text. Saves/restores the enclosing interpreter state. Does not
+ * preserve drawing records against callback mutation: callbacks must not mutate
+ * drawing state or enter nested event loops.
  */
 Tcl_Obj *Rbc_GetElementValueLabel(Element *elemPtr, Tcl_Obj *commandObjPtr, const char *format,
                                  int show, Tcl_Size index, double x, double y) {
@@ -290,23 +302,16 @@ Tcl_Obj *Rbc_GetElementValueLabel(Element *elemPtr, Tcl_Obj *commandObjPtr, cons
 
 #define VALUE_FORMAT_LIMIT 200
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ValidateValueFormat --
- *
- *      Validates a printf-style format used for graph element value
- *      labels.
- *
- *      Formatting receives exactly one double at a time.  Therefore
- *      the format may contain at most one floating-point conversion.
- *      Literal-only formats are permitted for compatibility.
- *
- * Results:
- *      TCL_OK if the format is safe for a double argument.
- *      TCL_ERROR otherwise.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Validate a printf format that receives one double argument.
+ * @param interp Interpreter receiving a format diagnostic on error.
+ * @param format Borrowed NUL-terminated format; NULL selects the default later.
+ * @return TCL_OK when accepted, TCL_ERROR otherwise.
+ * Permits literal-only text, escaped percent and at most one a/A/e/E/f/F/g/G
+ * conversion with optional lowercase l. Limits format length, width and precision
+ * to VALUE_FORMAT_LIMIT. Rejects dynamic width/precision and incompatible argument
+ * types. Does not format a value or guarantee untruncated output in every buffer.
  */
 int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format) {
     const char *p;
@@ -407,17 +412,19 @@ int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * FormatValueLabel --
- *
- *      Formats one graph element value label into a bounded buffer.
- *
- *      SHOW_BOTH formats X and Y independently using the same format,
- *      separated by a comma.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Format selected source coordinates into a bounded fallback buffer.
+ * @param buffer Writable storage of bufferSize bytes.
+ * @param bufferSize Capacity including terminator; zero performs no writes.
+ * @param format Previously validated format, or NULL for percent-g formatting.
+ * @param show SHOW_X, SHOW_Y, SHOW_BOTH or a value producing empty text.
+ * @param x Source X value.
+ * @param y Source Y value.
+ * Formats X/Y independently with one double each; BOTH separates results by a
+ * comma. Truncation remains terminated and a truncated X prevents Y append.
+ * Negative snprintf results clear the affected output. Performs no Tcl callback
+ * and does not validate the format; validation must precede this helper.
  */
 static void FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y) {
     const char *fmt;
@@ -473,23 +480,13 @@ static void FormatValueLabel(char *buffer, size_t bufferSize, const char *format
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * SyncElemVector --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ElemVector *vPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Refresh a data slot's borrowed vector storage and cached extrema.
+ * @param vPtr Slot whose vecPtr identifies a live real vector.
+ * Copies length, capacity, numeric-array pointer and range from the source.
+ * Does not acquire a reference, install callbacks, record a changed interval or
+ * schedule redraw. The source vector retains ownership of its numeric array.
  */
 static void SyncElemVector(ElemVector *vPtr) {
     vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
@@ -498,25 +495,14 @@ static void SyncElemVector(ElemVector *vPtr) {
     Rbc_VectorGetRange(vPtr->vecPtr, &vPtr->min, &vPtr->max);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * FindRange --
- *
- *      Find the minimum, positive minimum, and maximum values in a
- *      given vector and store the results in the vector structure.
- *
- * Parameters:
- *      ElemVector *vPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Minimum, positive minimum, and maximum values are stored in
- *      the vector.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Compute finite extrema for a literal element data slot.
+ * @param vPtr Initialized slot with storage for its nonnegative nValues.
+ * Returns without changing cached extrema for empty or NULL storage. Otherwise
+ * ignores nonfinite values; an all-nonfinite array yields DBL_MAX and -DBL_MAX.
+ * Does not compute a positive minimum, despite the historical comment. Does not
+ * change the array, allocate memory or notify observers.
  */
 static void FindRange(ElemVector *vPtr) {
     Tcl_Size i;
@@ -550,26 +536,14 @@ static void FindRange(ElemVector *vPtr) {
     vPtr->max = max;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FindElemVectorMinimum --
- *
- *      Find the minimum, positive minimum, and maximum values in a
- *      given vector and store the results in the vector structure.
- *
- * Parameters:
- *      ElemVector *vPtr
- *      double minLimit
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Minimum, positive minimum, and maximum values are stored in
- *      the vector.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Find a finite sample at or above a supplied lower bound.
+ * @param vPtr Slot with valid storage for every value counted by nValues.
+ * @param minLimit Lower bound and fallback value when no usable minimum is found.
+ * @return Smallest qualifying value, or minLimit if the accumulator remains
+ * DBL_MAX. A sole qualifying DBL_MAX value is therefore indistinguishable from
+ * no match. Does not modify cached extrema or filter minLimit itself.
  */
 double Rbc_FindElemVectorMinimum(ElemVector *vPtr, double minLimit) {
     const double *arr;
@@ -604,6 +578,18 @@ void Rbc_FreeElemVector(ElemVector *vPtr) {
     memset(vPtr, 0, sizeof(*vPtr));
 }
 
+/**
+ * @ingroup element_data_internals
+ * @brief Accumulate a pending source-change interval conservatively.
+ * @param vPtr Initialized element data slot.
+ * @param haveRange Nonzero when first/last describe a precise changed range.
+ * @param first Inclusive first source index, valid when haveRange is nonzero.
+ * @param last Inclusive last source index, valid when haveRange is nonzero.
+ * First notification initializes the pending state. Precise intervals are merged
+ * by their outer bounds; unknown/full changes set changeAll and clear endpoints.
+ * Later precise updates cannot narrow a pending full change. Does not validate
+ * indices, fetch data, consume the pending state or request redraw.
+ */
 static void RecordElemVectorChange(ElemVector *vPtr, int haveRange, Tcl_Size first, Tcl_Size last) {
     if (!vPtr->changePending) {
         vPtr->changePending = TRUE;
@@ -639,9 +625,19 @@ static void RecordElemVectorChange(ElemVector *vPtr, int haveRange, Tcl_Size fir
     }
 }
 
-/* Observe changes through the stable ElemVector slot. Update notifications
- * refresh borrowed storage and accumulate source ranges; destruction empties
- * the slot. Mark axes and mapping dirty, scheduling redraw only when plotted. */
+/**
+ * @ingroup element_data_internals
+ * @brief Refresh or invalidate a stable element slot during vector notification.
+ * @param interp Interpreter supplied by the vector notification service.
+ * @param clientData Stable ElemVector field whose owning element remains live.
+ * @param notify UPDATE or DESTROY; other values take the update path.
+ * During update, reads the client-specific changed range inside its valid callback
+ * scope, records it and refreshes source storage. Destruction records a full
+ * change and clears clientId, valueArr and nValues, but does not zero every cached
+ * field. Marks axes and mapping dirty; requests backing-store redraw only when
+ * neither hidden nor plotHidden. Never draws synchronously. The update path
+ * assumes its registered client ID still resolves successfully.
+ */
 static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     ElemVector *vPtr = clientData;
     Element *elemPtr = vPtr->elemPtr;
@@ -682,11 +678,15 @@ static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_Vec
     }
 }
 
-/*
- * Refresh borrowed arrays before synchronous layout/export. Notifications stay
- * queued: this does not invoke clients or process unrelated Tcl events. A full
- * change is conservative because ranged notification metadata is only available
- * inside the actual vector callback.
+/**
+ * @ingroup element_data_internals
+ * @brief Refresh pending named-vector inputs before synchronous layout/export.
+ * @param graphPtr Live graph with initialized element registry.
+ * Visits registered elements, including hidden ones, and checks common X/Y,
+ * weight and six error slots. Pending clients refresh borrowed storage and record
+ * a full change, marking mapping, axes and backing store dirty. Does not consume
+ * queued notifications, run their callbacks, process events or independently
+ * schedule an idle redraw. Literal inputs and nonpending clients are untouched.
  */
 void Rbc_SyncElementVectors(Graph *graphPtr) {
     Tcl_HashSearch search;
@@ -712,31 +712,18 @@ void Rbc_SyncElementVectors(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * EvalExprListObj --
- *
- *      Converts a Tcl list of numeric expressions into a newly
- *      allocated array of doubles.
- *
- * Parameters:
- *      Tcl_Interp *interp    - Interpreter for list and expression
- *                              parsing.
- *      Tcl_Obj *listObjPtr   - Tcl list containing numeric expressions.
- *      int *nElemPtr         - Receives the number of parsed values.
- *      double **arrayPtr     - Receives the allocated value array.
- *
- * Results:
- *      TCL_OK if all list elements were evaluated successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Allocates an array owned by the caller on success. On failure,
- *      any partially allocated array is released and the interpreter
- *      result describes the error.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Evaluate a Tcl list into a newly owned double array.
+ * @param interp Interpreter for list parsing, expression evaluation and errors.
+ * @param listObjPtr Borrowed list object valid throughout evaluation.
+ * @param[out] nElemPtr Cleared first; receives the list length on success.
+ * @param[out] arrayPtr Cleared first; receives storage to release with ckfree.
+ * @return TCL_OK on success, TCL_ERROR after releasing partial allocation.
+ * Empty input yields zero/NULL. Uses checked byte counts and Tcl_AttemptAlloc.
+ * Each entry is a Tcl expression, not merely a literal double: commands and
+ * traces can run. The borrowed list-element array is not snapshotted here; callers
+ * must not assume staging alone protects it or owner lifetimes across reentry.
  */
 static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, Tcl_Size *nElemPtr, double **arrayPtr) {
     Tcl_Obj **objv;
@@ -819,30 +806,20 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ParseElemVectorPairsObj --
- *
- *      Parses a flat Tcl list of X/Y coordinate pairs into two
- *      temporary element vectors without modifying the live element.
- *
- * Parameters:
- *      Tcl_Interp *interp           - Interpreter for error reporting.
- *      Element *elemPtr             - Element that will own the data.
- *      Tcl_Obj *objPtr              - Flat list of X/Y values.
- *      ElemVector *xCandidatePtr    - Receives staged X values.
- *      ElemVector *yCandidatePtr    - Receives staged Y values.
- *
- * Results:
- *      TCL_OK if all coordinate pairs were parsed successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Allocates value arrays on success. The caller must either
- *      commit or free both candidates.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Split evaluated alternating coordinates into two owned candidate slots.
+ * @param interp Interpreter for parsing and allocation diagnostics.
+ * @param elemPtr Live owner recorded in both candidates.
+ * @param objPtr Borrowed list of alternating X/Y expressions.
+ * @param[out] xCandidatePtr Fresh slot, zeroed before parsing.
+ * @param[out] yCandidatePtr Distinct fresh slot, zeroed before parsing.
+ * @return TCL_OK with both arrays and extrema prepared; TCL_ERROR with temporary
+ * arrays released. Caller may free both slots after either result.
+ * Evaluates the entire list before rejecting odd length. Thus evaluation side
+ * effects may already have occurred when odd input fails. Allocates a temporary
+ * flat array then separate X/Y arrays; empty input leaves both arrays NULL.
+ * Never treats this paired list as a named-vector reference.
  */
 static int ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,
                                 ElemVector *yCandidatePtr) {
@@ -3005,27 +2982,18 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetIndex --
- *
- *      Given a string representing the index of a pair of x,y
- *      coordinates, return the numeric index.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Element *elemPtr
- *      char *string
- *      int *indexPtr
- *
- * Results:
- *      A standard TCL result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_data_internals
+ * @brief Resolve end or an integer expression against the element point count.
+ * @param interp Interpreter for expression and range diagnostics.
+ * @param elemPtr Live element supplying the initial polymorphic point count.
+ * @param string Borrowed NUL-terminated index text.
+ * @param[out] indexPtr Receives the validated Tcl_Size index only on success.
+ * @return TCL_OK on success, TCL_ERROR for empty data, evaluation/conversion
+ * failure or an out-of-range index. Only exact end is special. Other input uses
+ * Tcl_ExprObj followed by Tcl_GetSizeIntFromObj and can execute commands/traces.
+ * Bounds are captured before evaluation; caller owns callback lifetime and any
+ * needed revalidation if data changes during evaluation.
  */
 static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tcl_Size *indexPtr) {
     Tcl_Size nPoints;
@@ -3996,7 +3964,16 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
     return TCL_OK;
 }
 
-/* Error metadata refers to the selected source index, not an interpolated value. */
+/**
+ * @ingroup element_data_internals
+ * @brief Read one finite, current error-data sample without synchronizing it.
+ * @param vectorPtr Borrowed error-data slot.
+ * @param index Source index to inspect.
+ * @param[out] valuePtr Assigned only if a valid sample is available.
+ * @return Nonzero on success; zero for pending vector updates, invalid index,
+ * NULL storage or nonfinite data. Does not dereference storage while a vector
+ * notification is pending. No allocation, callbacks or graph changes occur.
+ */
 static int ClosestErrorValue(const ElemVector *vectorPtr, Tcl_Size index, double *valuePtr) {
     if ((vectorPtr->clientId != NULL) && Rbc_VectorNotifyPending(vectorPtr->clientId)) {
         return FALSE;
@@ -4009,7 +3986,21 @@ static int ClosestErrorValue(const ElemVector *vectorPtr, Tcl_Size index, double
     return TRUE;
 }
 
-static int AppendClosestErrors(Tcl_Interp *interp, Element *elemPtr, Tcl_Size index, Tcl_Obj *varNameObjPtr) {
+/**
+ * @ingroup element_data_internals
+ * @brief Collect available source error values in a private result dictionary.
+ * @param interp Interpreter for dictionary errors.
+ * @param elemPtr Live selected element with error slots.
+ * @param index Selected original source index.
+ * @param resultObjPtr Unshared result dictionary owned by the caller.
+ * @return TCL_OK after collection; TCL_ERROR on dictionary failure.
+ * For each axis, a nonempty symmetric vector takes precedence; an unusable sample
+ * does not fall back to explicit bounds. Otherwise both low/high values must be
+ * usable. Reports source values, not translated bar positions. Copies values
+ * into owned Tcl objects without variable writes or script evaluation. The caller
+ * must finish all metadata collection before publishing any array fields.
+ */
+static int AppendClosestErrors(Tcl_Interp *interp, Element *elemPtr, Tcl_Size index, Tcl_Obj *resultObjPtr) {
     const ElemVector *vectors[] = {&elemPtr->xError, &elemPtr->xLow, &elemPtr->xHigh,
                                   &elemPtr->yError, &elemPtr->yLow, &elemPtr->yHigh};
     static const char *names[] = {"xerror", "xlow", "xhigh", "yerror", "ylow", "yhigh"};
@@ -4034,12 +4025,38 @@ static int AppendClosestErrors(Tcl_Interp *interp, Element *elemPtr, Tcl_Size in
             last = 2;
         }
         for (i = first; i <= last; i++) {
-            if (Tcl_ObjSetVar2(interp, varNameObjPtr, Tcl_NewStringObj(names[axis + i], -1),
-                               Tcl_NewDoubleObj(values[i]), TCL_LEAVE_ERR_MSG) == NULL) {
+            if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj(names[axis + i], -1),
+                               Tcl_NewDoubleObj(values[i])) != TCL_OK) {
                 return TCL_ERROR;
             }
         }
     }
+    return TCL_OK;
+}
+
+/* Publish only owned snapshot objects. Unset/write traces may delete the
+ * selected element or graph, replace its vectors, or recursively query it. */
+static int PublishClosestInfo(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, Tcl_Obj *resultObjPtr, int found) {
+    static const char *names[] = {"xerror", "xlow", "xhigh", "yerror", "ylow", "yhigh"};
+    Tcl_DictSearch cursor;
+    Tcl_Obj *keyObjPtr, *valueObjPtr;
+    int done, k;
+
+    /* Retain the existing optional-field cleanup and publication order. */
+    for (k = 0; k < 6; k++) {
+        Tcl_UnsetVar2(interp, Tcl_GetString(varNameObjPtr), names[k], 0);
+    }
+    if (Tcl_DictObjFirst(interp, resultObjPtr, &cursor, &keyObjPtr, &valueObjPtr, &done) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    for (; !done; Tcl_DictObjNext(&cursor, &keyObjPtr, &valueObjPtr, &done)) {
+        if (Tcl_ObjSetVar2(interp, varNameObjPtr, keyObjPtr, valueObjPtr, TCL_LEAVE_ERR_MSG) == NULL) {
+            Tcl_DictObjDone(&cursor);
+            return TCL_ERROR;
+        }
+    }
+    Tcl_DictObjDone(&cursor);
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(found));
     return TCL_OK;
 }
 
@@ -4091,7 +4108,8 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
     ClosestSearch search;
     Tcl_Size i;
     int x, y;
-    int flags = TCL_LEAVE_ERR_MSG;
+    Tcl_Obj *resultObjPtr;
+    int found, result;
 
     Rbc_SyncElementVectors(graphPtr);
     if (graphPtr->flags & RESET_AXES) {
@@ -4174,39 +4192,29 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
             }
         }
     }
-    /* Clear optional error fields when callers reuse the result array. */
-    {
-        static const char *names[] = {"xerror", "xlow", "xhigh", "yerror", "ylow", "yhigh"};
-        int k;
-
-        for (k = 0; k < 6; k++) {
-            Tcl_UnsetVar2(interp, Tcl_GetString(objv[5]), names[k], 0);
-        }
-    }
-    /* varname = objv[5] */
-    if (search.dist < (double)search.halo) {
+    resultObjPtr = Tcl_NewDictObj();
+    Tcl_IncrRefCount(resultObjPtr);
+    found = (search.dist < (double)search.halo);
+    if (found) {
         /*
          * Return the common closest-element information.
          */
-        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("name", -1), Tcl_NewStringObj(search.elemPtr->name, -1),
-                           flags) == NULL) {
-            return TCL_ERROR;
+        if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("name", -1),
+                           Tcl_NewStringObj(search.elemPtr->name, -1)) != TCL_OK) {
+            goto error;
         }
-        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("index", -1), Tcl_NewWideIntObj((Tcl_WideInt)search.index),
-                           flags) == NULL) {
-            return TCL_ERROR;
+        if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("index", -1),
+                           Tcl_NewWideIntObj((Tcl_WideInt)search.index)) != TCL_OK) {
+            goto error;
         }
-        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("x", -1), Tcl_NewDoubleObj(search.point.x), flags) ==
-            NULL) {
-            return TCL_ERROR;
+        if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("x", -1), Tcl_NewDoubleObj(search.point.x)) != TCL_OK) {
+            goto error;
         }
-        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("y", -1), Tcl_NewDoubleObj(search.point.y), flags) ==
-            NULL) {
-            return TCL_ERROR;
+        if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("y", -1), Tcl_NewDoubleObj(search.point.y)) != TCL_OK) {
+            goto error;
         }
-        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("dist", -1), Tcl_NewDoubleObj(search.dist), flags) ==
-            NULL) {
-            return TCL_ERROR;
+        if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("dist", -1), Tcl_NewDoubleObj(search.dist)) != TCL_OK) {
+            goto error;
         }
         /*
          * Bar elements additionally report the physical screen
@@ -4220,44 +4228,45 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
             Extents2D exts;
 
             if (Rbc_GetBarRectangle(search.elemPtr, search.index, &exts)) {
-                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("left", -1), Tcl_NewDoubleObj(exts.left), flags) ==
-                    NULL) {
-                    return TCL_ERROR;
+                if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("left", -1), Tcl_NewDoubleObj(exts.left)) != TCL_OK) {
+                    goto error;
                 }
-                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("top", -1), Tcl_NewDoubleObj(exts.top), flags) ==
-                    NULL) {
-                    return TCL_ERROR;
+                if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("top", -1), Tcl_NewDoubleObj(exts.top)) != TCL_OK) {
+                    goto error;
                 }
-                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("right", -1), Tcl_NewDoubleObj(exts.right),
-                                   flags) == NULL) {
-                    return TCL_ERROR;
+                if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("right", -1), Tcl_NewDoubleObj(exts.right)) != TCL_OK) {
+                    goto error;
                 }
-                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("bottom", -1), Tcl_NewDoubleObj(exts.bottom),
-                                   flags) == NULL) {
-                    return TCL_ERROR;
+                if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("bottom", -1), Tcl_NewDoubleObj(exts.bottom)) != TCL_OK) {
+                    goto error;
                 }
             }
         }
-        if (AppendClosestErrors(interp, search.elemPtr, search.index, objv[5]) != TCL_OK) {
-            return TCL_ERROR;
+        if (AppendClosestErrors(interp, search.elemPtr, search.index, resultObjPtr) != TCL_OK) {
+            goto error;
         }
         /*
          * Allow the concrete element type to append representation-specific
          * closest information.
          */
         if ((search.elemPtr->procsPtr->closestInfoProc != NULL) &&
-            ((*search.elemPtr->procsPtr->closestInfoProc)(graphPtr, search.elemPtr, &search, objv[5]) != TCL_OK)) {
-            return TCL_ERROR;
+            ((*search.elemPtr->procsPtr->closestInfoProc)(graphPtr, search.elemPtr, &search, resultObjPtr) != TCL_OK)) {
+            goto error;
         }
-        Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
     } else {
         /* an array with values "name" -> "" */
-        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("name", -1), Tcl_NewObj(), flags) == NULL) {
-            return TCL_ERROR;
+        if (Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj("name", -1), Tcl_NewObj()) != TCL_OK) {
+            goto error;
         }
-        Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
     }
-    return TCL_OK;
+    /* No graph or element access is permitted after publication starts. */
+    result = PublishClosestInfo(interp, objv[5], resultObjPtr, found);
+    Tcl_DecrRefCount(resultObjPtr);
+    return result;
+
+error:
+    Tcl_DecrRefCount(resultObjPtr);
+    return TCL_ERROR;
 }
 
 /*
