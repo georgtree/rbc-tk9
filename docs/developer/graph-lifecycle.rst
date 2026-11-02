@@ -251,3 +251,92 @@ repicking. Windows crosshairs additionally depend on preserving the single
 presentation step; separating erase and redraw can reintroduce flicker.
 These are behavioral checks for future code changes; this documentation change
 only adds contracts and prose.
+
+Widget commands and geometry queries
+------------------------------------
+
+The instance dispatcher resolves an operation and validates its argument count
+before preserving the graph allocation around the handler. Component commands
+retain their own dispatchers. Explicit bar, line and strip operations supply a
+class identifier; the generic element operation supplies the graph's default
+class. Logical X/X2/Y/Y2 operations select their physical margins according to
+inversion before entering the margin-axis dispatcher.
+
+Preservation delays freeing the graph record, not destruction of its window or
+component registries. A handler which evaluates Tcl cannot infer component
+validity from that preservation alone. The dispatcher blocks snapshot and
+document-output recursion during axis label formatting before those operations
+can alter dimensions. It also rejects widget-wide transform and invtransform
+on trackgraphs: callers must select a track through the track interface.
+
+Geometry queries do not all have the same freshness guarantee:
+
+.. list-table:: Widget geometry query behavior
+   :header-rows: 1
+   :widths: 24 42 34
+
+   * - Operation
+     - Preparation
+     - Result
+   * - extents
+     - Reads cached geometry without layout.
+     - Scalar size or x/y/width/height; plot sizes include both endpoints.
+   * - inside
+     - Parses Tk screen distances and reads graph extents.
+     - Boolean for the overall plot region, not a track selection.
+   * - transform
+     - Evaluates expressions, synchronizes vectors and resets dirty ranges.
+     - Rounded integer screen coordinates on the first logical X/Y pair.
+   * - invtransform
+     - Same expression and range preparation.
+     - Double data coordinates on that axis pair.
+
+Range synchronization is not full margin layout. Widget transforms can therefore
+use scales from an earlier layout while other changes are pending. Each Tcl
+expression is followed by a widget-validity check before the next expression
+or graph-resource access. Inputs must be finite. Forward mapping rounds in
+double precision and checks the integer range before conversion; ordinary
+coordinate rounding remains unchanged.
+
+Screen composition and snapshot capture
+---------------------------------------
+
+``DrawPlotRegion`` constructs the cacheable layer: background, track separators,
+grids, Polar/Smith labels, under markers, lowered legends, axis-limit annotations
+and ordinary elements. It checks callback validity after the Polar label stage.
+Its caller must also check validity because a void drawing return does not
+communicate cancellation. ``Rbc_DrawGraph`` adds above markers, active elements,
+margins, raised legends, outer border and focus decoration around that layer.
+
+Margin drawing sets a shared tile origin and fills four rectangles surrounding
+the plot. Nonpositive rectangles are skipped at the fill helper. The plot
+border, margin legend, graph title and axes follow. These helpers consume mapped
+geometry and borrowed renderer resources; they do not lay out or present a frame.
+
+A photo snapshot is a new rendering into a temporary pixmap, not a readback of
+the displayed window. Width and height are parsed as integers; values below two
+use the current Tk dimension. The handler assigns those dimensions to the graph,
+requests layout, marks the world dirty and draws without the element backing
+store. Callback cancellation releases the pixmap before returning an error.
+The normal photo path captures into the named photo and releases the pixmap.
+
+On Windows the same command also supports EMF and WMF. It records drawing into
+an enhanced-metafile DC, then copies an EMF or converts the recording to a
+placeable WMF file. The special CLIPBOARD target requests system ownership of
+the enhanced metafile. These are native recording paths, separate from the
+renderer-independent document exporters.
+
+The snapshot wrapper saves graph dimensions and existing flags before capture.
+It marks temporary rendering as export work, forces layout at the requested
+size, then restores dimensions and merges dirty flags on every return path.
+A surviving, uncancelled widget is immediately laid out at its original size;
+a later redraw also invalidates backing pixels. Existing pending-idle flags
+are retained. Capture errors survive restoration, while a restoration failure
+is reported when capture itself succeeded. Destroyed windows are never used
+for restoration or redraw scheduling.
+
+Margin reporting copies configured variable names and cached sizes before the
+first traced write. Reconfiguration cannot invalidate those names mid-loop.
+After each write it checks whether the widget survives and layout remains
+valid, stopping both further writes and the subsequent track-view notification
+on cancellation. Assignment errors continue to be ignored for compatibility.

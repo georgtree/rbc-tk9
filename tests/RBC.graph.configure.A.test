@@ -3294,5 +3294,103 @@ namespace eval graph.configure {
         unset -nocomplain before code message options result
     } -result {1 1 {TK VALUE PIXELS} 1 changed}
 
+
+    foreach operation {transform invtransform} {
+        foreach coordinate {0 1} {
+            test RBC.graph.configure.A.42.$operation.$coordinate {transform expression may destroy its widget} -setup {
+                graph .graph1
+                pack .graph1
+                update
+                set ::graphExpressionNext 0
+            } -body {
+                set args [list 1 1]
+                lset args $coordinate {[destroy .graph1; set ::graphExpressionDeleted 1]}
+                if {$coordinate == 0} {
+                    lset args 1 {[set ::graphExpressionNext 1]}
+                }
+                set code [catch {.graph1 $operation {*}$args} message options]
+                list $code [winfo exists .graph1] $::graphExpressionNext \
+                    [dict get $options -errorcode]
+            } -cleanup {
+                catch {destroy .graph1}
+                unset -nocomplain ::graphExpressionNext ::graphExpressionDeleted
+            } -result {1 0 0 {RBC GRAPH CALLBACK}}
+        }
+    }
+
+    test RBC.graph.configure.A.43.1 {nonfinite and overflowing widget transforms report errors} -setup {
+        graph .graph1
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 1
+        .graph1 axis configure y -min 0 -max 1
+        update
+    } -body {
+        list [catch {.graph1 transform Inf 0}] [catch {.graph1 invtransform 0 Inf}] \
+            [catch {.graph1 transform 1e300 0}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 1}
+
+    foreach failed {0 1} {
+        test RBC.graph.configure.A.44.$failed {snapshot restores geometry immediately including capture failure} -setup {
+            graph .graph1 -width 400 -height 300
+            pack .graph1
+            .graph1 element create line -xdata {0 1 2} -ydata {0 1 0} \
+                -color #ff00ff -symbol square -pixels 10
+            update
+            set photo [image create photo]
+            set before [.graph1 transform 1 1]
+            set extents [.graph1 extents plotarea]
+        } -body {
+            set target [expr {$failed ? "::noSuchGraphPhoto" : $photo}]
+            set code [catch {.graph1 snap $target -width 800 -height 600} message]
+            set result [list [expr {$code == $failed}] \
+                [expr {$before eq [.graph1 transform 1 1]}] \
+                [expr {$extents eq [.graph1 extents plotarea]}]]
+            if {!$failed} {
+                set remapped 0
+                for {set y 0} {$y < [image height $photo]} {incr y} {
+                    for {set x 600} {$x < [image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] red green blue
+                        if {$red > 200 && $green < 80 && $blue > 200} {
+                            set remapped 1
+                            break
+                        }
+                    }
+                    if {$remapped} {break}
+                }
+                lappend result [expr {$remapped && [image width $photo] == 800 && [image height $photo] == 600}]
+            } else {
+                lappend result [expr {[string first noSuchGraphPhoto $message] >= 0}]
+            }
+            update
+            lappend result [expr {$before eq [.graph1 transform 1 1]}]
+            set result
+        } -cleanup {
+            destroy .graph1
+            image delete $photo
+        } -result {1 1 1 1 1}
+    }
+
+    proc DeleteFromMargin {args} {
+        destroy .graph1
+    }
+    test RBC.graph.configure.A.45.1 {margin trace deletion stops subsequent variable writes} -setup {
+        graph .graph1
+        pack .graph1
+        update
+        unset -nocomplain ::graphMarginBottom ::graphMarginLeft
+        trace add variable ::graphMarginBottom write [namespace code DeleteFromMargin]
+    } -body {
+        .graph1 configure -bottomvariable ::graphMarginBottom -leftvariable ::graphMarginLeft
+        update
+        list [winfo exists .graph1] [info exists ::graphMarginLeft]
+    } -cleanup {
+        trace remove variable ::graphMarginBottom write [namespace code DeleteFromMargin]
+        unset -nocomplain ::graphMarginBottom ::graphMarginLeft
+        catch {destroy .graph1}
+    } -result {0 0}
+    rename DeleteFromMargin {}
+
 	cleanupTests
 }

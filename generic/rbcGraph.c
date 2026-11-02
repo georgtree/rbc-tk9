@@ -356,7 +356,7 @@ static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rb
 
 static void DrawMargins(Graph *graphPtr, Drawable drawable);
 static void DrawPlotRegion(Graph *graphPtr, Drawable drawable);
-static void UpdateMarginTraces(Graph *graphPtr);
+static int UpdateMarginTraces(Graph *graphPtr);
 
 static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
@@ -2260,27 +2260,17 @@ error:
     return NULL;
 }
 
-/* Widget sub-commands */
-/*
- *----------------------------------------------------------------------
+/**
+ * @defgroup graph_commands_drawing Graph commands and screen composition
+ * @brief Widget routing, cached geometry queries and snapshot drawing.
+ */
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch the X margin-axis operation.
  *
- * XAxisOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the bottom margin normally and the left margin when inverted.
+ * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
+ * axis lookup, mutation and result construction belong to that dispatcher.
  */
 static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2289,26 +2279,13 @@ static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     return Rbc_AxisOp(graphPtr, margin, objc, objv);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch the secondary X margin-axis operation.
  *
- * X2AxisOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the top margin normally and the right margin when inverted.
+ * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
+ * axis lookup, mutation and result construction belong to that dispatcher.
  */
 static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2317,26 +2294,13 @@ static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return Rbc_AxisOp(graphPtr, margin, objc, objv);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch the Y margin-axis operation.
  *
- * YAxisOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the left margin normally and the bottom margin when inverted.
+ * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
+ * axis lookup, mutation and result construction belong to that dispatcher.
  */
 static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2345,26 +2309,13 @@ static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     return Rbc_AxisOp(graphPtr, margin, objc, objv);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch the secondary Y margin-axis operation.
  *
- * Y2AxisOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the right margin normally and the top margin when inverted.
+ * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
+ * axis lookup, mutation and result construction belong to that dispatcher.
  */
 static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2373,105 +2324,62 @@ static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return Rbc_AxisOp(graphPtr, margin, objc, objv);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch a bar operation through the shared element interface.
  *
- * BarOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Passes rbcBarElementUid as the element class with the original borrowed
+ * arguments. Returns the element dispatcher status unchanged; does not acquire
+ * an element reference or perform drawing itself.
  */
 static int BarOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcBarElementUid);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch a strip operation through the shared element interface.
  *
- * LineOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Passes rbcStripElementUid as the element class with the original borrowed
+ * arguments. Returns the element dispatcher status unchanged; does not acquire
+ * an element reference or perform drawing itself.
  */
 static int StripOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcStripElementUid);
 }
 
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch a line operation through the shared element interface.
+ *
+ * Passes rbcLineElementUid as the element class with the original borrowed
+ * arguments. Returns the element dispatcher status unchanged; does not acquire
+ * an element reference or perform drawing itself.
+ */
 static int LineOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcLineElementUid);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch a default element operation through the shared element interface.
  *
- * ElementOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Passes graphPtr->classUid as the element class with the original borrowed
+ * arguments. Returns the element dispatcher status unchanged; does not acquire
+ * an element reference or perform drawing itself.
  */
 static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, graphPtr->classUid);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Query option metadata or configure the graph.
  *
- * ConfigureOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * With two arguments returns all Tk option descriptions; with three returns
+ * one description. Longer calls delegate option/value pairs to
+ * ConfigureGraphOptions. Requires initialized options; returns TCL_ERROR on
+ * lookup or configuration failure.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *infoObjPtr;
@@ -2497,26 +2405,13 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return ConfigureGraphOptions(graphPtr, objc - 2, objv + 2, NULL);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Return one Tk-managed option value.
  *
- * CgetOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc - Not used.
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires initialized options and dispatcher-validated arity. Installs the
+ * value as the interpreter result, or propagates a Tk lookup error. Does not
+ * convert retained values into derived graph fields.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *valueObjPtr;
@@ -2531,36 +2426,14 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Report cached plot, margin or legend geometry.
  *
- * ExtentsOp --
- *
- *      Reports the size of one of several items within the graph.
- *      The following are valid items:
- *
- *        "bottommargin"    Height of the bottom margin
- *        "leftmargin"      Width of the left margin
- *        "legend"          x y w h of the legend
- *        "plotarea"        x y w h of the plotarea
- *        "plotheight"      Height of the plot area
- *        "rightmargin"     Width of the right margin
- *        "topmargin"       Height of the top margin
- *        "plotwidth"       Width of the plot area
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc - Not used.
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Always returns TCL_OK.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Accepts Tcl unambiguous abbreviations. Plot area and legend return x, y,
+ * width and height; other selectors return one integer. Plot dimensions use
+ * inclusive endpoints. Does not perform layout; invalid selectors return
+ * TCL_ERROR rather than unconditional success.
  */
 static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const extentOps[] = {"plotheight", "plotwidth",   "plotarea",  "legend",
@@ -2611,28 +2484,13 @@ static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Test a window point against the graph plotting extents.
  *
- * InsideOp --
- *
- *      Returns true of false whether the given point is inside
- *      the plotting area (defined by left,bottom right, top).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Always returns TCL_OK.  The interpreter result will contain
- *      the boolean string representation.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Converts both coordinates through Tk screen-distance parsing and returns
+ * a Tcl boolean. Conversion errors propagate. Uses current graph extents
+ * without laying out pending geometry; it does not select an individual track.
  */
 static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int x, y;
@@ -2651,32 +2509,14 @@ static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- * -------------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Map a window point to the first logical X/Y axis pair.
  *
- * InvtransformOp --
- *
- *      This procedure returns a list of the graph coordinate
- *      values corresponding with the given window X and Y
- *      coordinate positions.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc - Not used.
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result.  If an error occurred while
- *      parsing the window positions, TCL_ERROR is returned, and
- *      the interpreter result will contain the error message.
- *      Otherwise, the interpreter result will contain a Tcl list
- *      of the x and y coordinates.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ------------------------------------------------------------------------
+ * Evaluates both coordinates as Tcl expressions, synchronizes element
+ * vectors and resets dirty ranges, then returns two doubles. Does not perform
+ * full margin layout. Checks widget validity after each expression before
+ * accessing graph resources, and rejects nonfinite input coordinates.
  */
 static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double x, y;
@@ -2684,7 +2524,14 @@ static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
     Axis2D axes;
     Tcl_Obj *resultObj[2];
 
-    if (Tcl_ExprDoubleObj(interp, objv[2], &x) != TCL_OK || Tcl_ExprDoubleObj(interp, objv[3], &y) != TCL_OK) {
+    if (Tcl_ExprDoubleObj(interp, objv[2], &x) != TCL_OK || !Rbc_GraphCallbackValid(graphPtr)) {
+        return TCL_ERROR;
+    }
+    if (Tcl_ExprDoubleObj(interp, objv[3], &y) != TCL_OK || !Rbc_GraphCallbackValid(graphPtr)) {
+        return TCL_ERROR;
+    }
+    if (!FINITE(x) || !FINITE(y)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("coordinates must be finite", -1));
         return TCL_ERROR;
     }
     Rbc_SyncElementVectors(graphPtr);
@@ -2706,30 +2553,15 @@ static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
     return TCL_OK;
 }
 
-/*
- * --------------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Map a data point to rounded integer window coordinates.
  *
- * TransformOp --
- *
- *      This procedure returns a list of the window coordinates
- *      corresponding with the given graph x and y coordinates.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc - Not used.
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result contains
- *      the list of the graph coordinates. If an error occurred
- *      while parsing the window positions, TCL_ERROR is returned,
- *      then the interpreter result will contain an error message.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -------------------------------------------------------------------------
+ * Evaluates Tcl expressions, synchronizes element vectors and resets dirty
+ * ranges before selecting the first logical X/Y axis pair. Checks validity
+ * after each expression and rejects nonfinite input or out-of-range rounded
+ * output before integer conversion. Does not perform full layout. Trackgraphs
+ * are rejected by the enclosing dispatcher.
  */
 static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double x, y;
@@ -2737,7 +2569,14 @@ static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     Axis2D axes;
     Tcl_Obj *resultObj[2];
 
-    if (Tcl_ExprDoubleObj(interp, objv[2], &x) != TCL_OK || Tcl_ExprDoubleObj(interp, objv[3], &y) != TCL_OK) {
+    if (Tcl_ExprDoubleObj(interp, objv[2], &x) != TCL_OK || !Rbc_GraphCallbackValid(graphPtr)) {
+        return TCL_ERROR;
+    }
+    if (Tcl_ExprDoubleObj(interp, objv[3], &y) != TCL_OK || !Rbc_GraphCallbackValid(graphPtr)) {
+        return TCL_ERROR;
+    }
+    if (!FINITE(x) || !FINITE(y)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("coordinates must be finite", -1));
         return TCL_ERROR;
     }
     Rbc_SyncElementVectors(graphPtr);
@@ -2752,8 +2591,15 @@ static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     axes.x = Rbc_GetFirstAxis(graphPtr->axisChain[0]);
     axes.y = Rbc_GetFirstAxis(graphPtr->axisChain[1]);
     point = Rbc_Map2D(graphPtr, x, y, &axes);
-    resultObj[0] = Tcl_NewIntObj(ROUND(point.x));
-    resultObj[1] = Tcl_NewIntObj(ROUND(point.y));
+    point.x = round(point.x);
+    point.y = round(point.y);
+    if (!FINITE(point.x) || !FINITE(point.y) || point.x < INT_MIN ||
+        point.x > INT_MAX || point.y < INT_MIN || point.y > INT_MAX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("transformed coordinates are out of range", -1));
+        return TCL_ERROR;
+    }
+    resultObj[0] = Tcl_NewIntObj((int)point.x);
+    resultObj[1] = Tcl_NewIntObj((int)point.y);
     Tcl_SetObjResult(interp, Tcl_NewListObj(2, resultObj));
     return TCL_OK;
 }
@@ -2877,31 +2723,19 @@ error:
 }
 #endif /*WIN32*/
 
-/*
- * --------------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Render the graph to a photo or a Windows metafile target.
  *
- * SnapOp --
- *
- *      Snaps a picture of the graph and stores it in the specified image
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Tcl_Size objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result contains
- *      the list of the graph coordinates. If an error occurred
- *      while parsing the window positions, TCL_ERROR is returned,
- *      then the interpreter result will contain an error message.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -------------------------------------------------------------------------
+ * Parses paired format and integer size options; sizes below two use the
+ * current Tk window dimension. Temporarily assigns graph dimensions, requests
+ * layout and draws without the element backing store. Photo output owns a
+ * temporary pixmap and releases it after capture or callback cancellation.
+ * Windows output owns a recording DC and metafile; CLIPBOARD requests transfer
+ * of the metafile to the system. The enclosing SnapOp restores screen dimensions
+ * and invalidates temporary geometry on every return, including capture errors.
  */
-static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+static int SnapGraph(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int result;
     Pixmap drawable;
     int noBackingStore = 0;
@@ -2969,6 +2803,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     /* Always re-compute the layout of the graph before snapping the photo. */
     graphPtr->width = data.width;
     graphPtr->height = data.height;
+    graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
     if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -3065,8 +2900,46 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         Rbc_AppendResultStrings(interp, "bad snapshot format", (char *)NULL);
         return TCL_ERROR;
     }
-    graphPtr->flags = MAP_WORLD;
-    Rbc_EventuallyRedrawGraph(graphPtr);
+    return result;
+}
+
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Capture a snapshot and restore screen geometry on every return path.
+ *
+ * Keep pre-existing dirty and idle-request flags. Restoration preserves the
+ * capture error when capture failed, and reports layout failure otherwise.
+ * A deleted window is never used for restoration or redraw scheduling.
+ */
+static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int width = graphPtr->width, height = graphPtr->height;
+    unsigned int flags = graphPtr->flags;
+    int result;
+    Tcl_InterpState state;
+
+    graphPtr->flags |= GRAPH_EXPORT;
+    result = SnapGraph(graphPtr, interp, objc, objv);
+    state = Tcl_SaveInterpState(interp, result);
+    graphPtr->width = width;
+    graphPtr->height = height;
+    graphPtr->flags |= flags | LAYOUT_NEEDED | MAP_WORLD | REDRAW_BACKING_STORE;
+    if (!(flags & GRAPH_EXPORT)) {
+        graphPtr->flags &= ~GRAPH_EXPORT;
+    }
+    if (graphPtr->tkwin != NULL) {
+        if (!graphPtr->axisFormatInvalid) {
+            int restored = Rbc_LayoutGraph(graphPtr);
+            if (result == TCL_OK && restored != TCL_OK) {
+                Tcl_DiscardInterpState(state);
+                state = Tcl_SaveInterpState(interp, restored);
+                result = restored;
+            }
+        }
+        if (graphPtr->tkwin != NULL) {
+            Rbc_EventuallyRedrawGraph(graphPtr);
+        }
+    }
+    Tcl_RestoreInterpState(interp, state);
     return result;
 }
 
@@ -3099,6 +2972,14 @@ static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_Virtu
 
 };
 
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Resolve a widget operation and validate its argument count.
+ *
+ * Uses the shared operation-table dispatcher at argument one. Returns a
+ * borrowed static procedure pointer, or NULL with a Tcl diagnostic. Does not
+ * execute the operation or retain any arguments.
+ */
 static Rbc_GraphOpProc *GetGraphOpFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
 
@@ -3109,26 +2990,15 @@ static Rbc_GraphOpProc *GetGraphOpFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl
     return graphOps[index].proc;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Dispatch a graph widget command under graph preservation.
  *
- * Rbc_GraphInstCmdProc --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Rejects widget-wide transforms for trackgraphs and recursive snapshot or
+ * document output during axis formatting. Preserves the Graph allocation
+ * across the selected handler, then releases it and returns the handler status.
+ * Preservation does not keep the Tk window or separately owned components alive;
+ * handlers crossing Tcl callbacks still need validity checks.
  */
 int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_GraphOpProc *proc;
@@ -3164,27 +3034,13 @@ int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
     return result;
 }
 
-/*
- * --------------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Create a widget and return its Tk pathname.
  *
- * NewGraph --
- *
- *      Creates a new window and Tcl command representing an
- *      instance of a graph widget.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *      Rbc_Uid classUid
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- * --------------------------------------------------------------------------
+ * Requires a pathname argument, then delegates construction to CreateGraph.
+ * On failure propagates TCL_ERROR; on success installs a new pathname string
+ * as the result. The created graph belongs to the widget lifecycle.
  */
 static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Graph *graphPtr;
@@ -3201,88 +3057,58 @@ static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rb
     return TCL_OK;
 }
 
-/*
- * --------------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Create a graph widget through the common constructor.
  *
- * GraphCmd --
- *
- *      Creates a new window and Tcl command representing an
- *      instance of a graph widget.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- * --------------------------------------------------------------------------
+ * Passes rbcLineElementUid to NewGraph and returns its Tcl status unchanged.
+ * The clientData argument is unused; construction owns the new widget resources.
  */
 static int GraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcLineElementUid);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Create a barchart widget through the common constructor.
  *
- * BarchartCmd --
- *
- *      Creates a new window and Tcl command representing an
- *      instance of a barchart widget.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- *--------------------------------------------------------------
+ * Passes rbcBarElementUid to NewGraph and returns its Tcl status unchanged.
+ * The clientData argument is unused; construction owns the new widget resources.
  */
 static int BarchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcBarElementUid);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Create a stripchart widget through the common constructor.
  *
- * StripchartCmd --
- *
- *      Creates a new window and Tcl command representing an
- *      instance of a barchart widget.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- *--------------------------------------------------------------
+ * Passes rbcStripElementUid to NewGraph and returns its Tcl status unchanged.
+ * The clientData argument is unused; construction owns the new widget resources.
  */
 static int StripchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcStripElementUid);
 }
 
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Create a polar widget through the common constructor.
+ *
+ * Passes rbcPolarElementUid to NewGraph and returns its Tcl status unchanged.
+ * The clientData argument is unused; construction owns the new widget resources.
+ */
 static int PolarObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcPolarElementUid);
 }
 
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Fill one positive-sized margin rectangle.
+ *
+ * Borrows the drawable and graph resources. Uses the tile when present,
+ * otherwise the margin fill GC, through the screen renderer. Nonpositive
+ * width or height is a no-op; this helper does not set tile origin.
+ */
 static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y, int width, int height) {
     if ((width <= 0) || (height <= 0)) {
         return;
@@ -3294,54 +3120,14 @@ static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y
     }
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Paint margins, the plot border, margin legend, title and axes.
  *
- * DrawMargins --
- *
- *      Draws the exterior region of the graph (axes, ticks, titles, etc)
- *      onto a pixmap. The interior region is defined by the given
- *      rectangle structure.
- *
- *      ---------------------------------
- *          |                               |
- *          |           rectArr[0]          |
- *          |                               |
- *      ---------------------------------
- *          |     |top           right|     |
- *          |     |                   |     |
- *          |     |                   |     |
- *          | [1] |                   | [2] |
- *          |     |                   |     |
- *          |     |                   |     |
- *          |     |                   |     |
- *          |     |                   |     |
- *          |     |                   |     |
- *          |     |left         bottom|     |
- *      ---------------------------------
- *          |                               |
- *          |          rectArr[3]           |
- *          |                               |
- *      ---------------------------------
- *
- *          X coordinate axis
- *          Y coordinate axis
- *          legend
- *          interior border
- *          exterior border
- *          titles (X and Y axis, graph)
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Returns:
- *      None.
- *
- * Side Effects:
- *      Exterior of graph is displayed in its window.
- *
- * -----------------------------------------------------------------------
+ * Sets tile origin to the widget origin, fills four surrounding rectangles,
+ * then draws decorations in that order. Uses current mapped geometry and
+ * borrowed resources. Opens and closes a screen-text context for the title;
+ * does not recompute layout or present the drawable.
  */
 static void DrawMargins(Graph *graphPtr, Drawable drawable) {
     int middleHeight;
@@ -3388,28 +3174,15 @@ static void DrawMargins(Graph *graphPtr, Drawable drawable) {
     Rbc_DrawAxes(graphPtr, drawable);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Compose the cacheable plot layer in drawing order.
  *
- * DrawPlotRegion --
- *
- *      Draws the contents of the plotting area.  This consists of
- *      the elements, markers (draw under elements), axis limits,
- *      grid lines, and possibly the legend.  Typically, the output
- *      will be cached into a backing store pixmap, so that redraws
- *      can occur quickly.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Clears the inclusive plot rectangle, draws track separators and grids,
+ * then Polar or Smith labels. After checking callback validity, draws under
+ * markers, lowered local/global legends, axis limits and ordinary elements.
+ * Borrows the drawable and mapped geometry. A void return does not indicate
+ * callback success; callers must check Rbc_GraphCallbackValid.
  */
 static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     /* Clear the background of the plotting area. */
@@ -3567,40 +3340,50 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Publish cached margin dimensions to global Tcl variables.
  *
- * UpdateMarginTraces --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Writes left/right widths and top/bottom heights for configured variables.
+ * Copies names and sizes before invoking traces so configuration changes cannot
+ * invalidate borrowed option strings. Stops writes and returns false if a trace
+ * destroys the widget or cancels layout. Assignment errors remain ignored for
+ * compatibility. The display wrapper preserves graph and interpreter storage.
  */
-static void UpdateMarginTraces(Graph *graphPtr) {
-    Margin *marginPtr;
-    int size;
-    int i;
+static int UpdateMarginTraces(Graph *graphPtr) {
+    Tcl_Obj *names[4] = {NULL, NULL, NULL, NULL};
+    int sizes[4];
+    int i, valid = TRUE;
 
+    /* Traces may replace option strings or destroy the widget. Snapshot all
+     * names before the first write, and never borrow them across a trace. */
     for (i = 0; i < 4; i++) {
-        marginPtr = graphPtr->margins + i;
-        if (marginPtr->varName != NULL) { /* Trigger variable traces */
-            if ((marginPtr->site == MARGIN_LEFT) || (marginPtr->site == MARGIN_RIGHT)) {
-                size = marginPtr->width;
-            } else {
-                size = marginPtr->height;
-            }
-            Tcl_SetVar(graphPtr->interp, marginPtr->varName, Rbc_Itoa(size), TCL_GLOBAL_ONLY);
+        Margin *marginPtr = graphPtr->margins + i;
+        if (marginPtr->varName != NULL) {
+            names[i] = Tcl_NewStringObj(marginPtr->varName, -1);
+            Tcl_IncrRefCount(names[i]);
+            sizes[i] = ((marginPtr->site == MARGIN_LEFT) || (marginPtr->site == MARGIN_RIGHT))
+                           ? marginPtr->width : marginPtr->height;
         }
     }
+    for (i = 0; i < 4; i++) {
+        if (names[i] != NULL) {
+            Tcl_Obj *value = Tcl_NewIntObj(sizes[i]);
+            Tcl_IncrRefCount(value);
+            Tcl_ObjSetVar2(graphPtr->interp, names[i], NULL, value, TCL_GLOBAL_ONLY);
+            Tcl_DecrRefCount(value);
+            if (graphPtr->tkwin == NULL || graphPtr->axisFormatInvalid) {
+                valid = FALSE;
+                break;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (names[i] != NULL) {
+            Tcl_DecrRefCount(names[i]);
+        }
+    }
+    return valid;
 }
 
 /**
@@ -3714,7 +3497,9 @@ static void DisplayGraphFrame(ClientData clientData) {
     if (!(graphPtr->flags & GRAPH_EXPORT) && (graphPtr->hRange > 1) && (graphPtr->vRange > 1)) {
         Rbc_NotifyAxisChanges(graphPtr);
     }
-    UpdateMarginTraces(graphPtr);
+    if (!UpdateMarginTraces(graphPtr)) {
+        return;
+    }
     Rbc_NotifyTrackView(graphPtr);
 }
 
@@ -3741,23 +3526,12 @@ static void DisplayGraph(ClientData clientData) {
     Tcl_Release(interp);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_commands_drawing
+ * @brief Create a trackgraph widget through the common constructor.
  *
- * Rbc_GraphInit --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Passes trackGraphUid to NewGraph and returns its Tcl status unchanged.
+ * The clientData argument is unused; construction owns the new widget resources.
  */
 static int TrackgraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, trackGraphUid);
