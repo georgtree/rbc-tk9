@@ -423,3 +423,73 @@ bevel geometry and shades remain consistent with Tk. The emulated request-size
 function is a historical constant, not a live device-capacity query. These
 compatibility services are not independent renderers and should not become new
 entry points for graph components.
+
+Windows compatibility primitives
+--------------------------------
+
+The remaining rbcWinDraw.c entry points implement Xlib-shaped rectangle, arc,
+segment, point and text operations. They are lower-level compatibility services,
+not graph mappers. Arrays and GCs remain borrowed, and the caller supplies valid
+mapped geometry. Most entry points reject empty arrays or None targets, but do
+not turn every GDI failure into a Tcl error or restore already painted pixels.
+
+Rectangles and arcs
+~~~~~~~~~~~~~~~~~~~
+
+Rectangle outlines use one acquired DC and GC-derived pen for the entire array,
+with a stock null brush. Their far edges include an extra pixel to retain the
+historical X-to-Windows convention. Rectangles remain in input order, so
+intersections can be painted repeatedly under the configured raster operation.
+
+The arc converter accepts XArc angles in units of one sixty-fourth degree.
+Sweeps with magnitude at least a full turn select Ellipse. Partial sweeps
+normalize the starting/ending directions, swap them for negative extent and
+invert the sine contribution for screen Y. Radial endpoints retain the existing
+add-one-half then integer conversion; this is not symmetric rounding for
+negative coordinates. Bounding-box far edges likewise gain one pixel.
+
+A zero brush argument chooses an open Arc. A nonzero brush chooses Chord or Pie
+according to the arc mode, with the actual pen and brush already selected by the
+caller. The filled-arc entry point retains a GC-derived pen alongside its solid
+brush, so it is not implemented as a null-pen fill-only operation. Zero sweeps
+are not explicitly rejected in the converter, and DC arc direction is not set
+there. These details describe the compatibility implementation; they do not
+replace the higher-level arc marker's mapping contract.
+
+XOR composition and direct fallback
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The XOR segment helper computes the segment bounds, expands them for stroke
+width and intersects them with the destination clip box. Empty coverage is a
+successful no-op. Otherwise it creates a compatible bitmap and memory DC,
+clears the bitmap to black and translates the viewport so absolute segment
+coordinates can be reused. Black is the XOR identity, so no destination
+readback is required for composition.
+
+Each segment is drawn as an independent Polyline into that bitmap. This keeps
+dash restart and cancellation at intersections consistent whether crosshairs
+are shown, hidden, or moved using a combined old/new segment set. Once all
+segments have been composed, a single SRCINVERT operation presents the result.
+This avoids displaying the intermediate erased crosshair state.
+
+A failed offscreen attempt selects direct fallback. That path still uses one
+Polyline per XOR segment; it must not switch to grouped XOR PolyPolyline calls,
+which previously made erasure depend on batch grouping. Other raster operations
+use bounded PolyPolyline batches, with MoveToEx/LineTo per-segment fallback if a
+batch is rejected. The direct path may expose intermediate drawing and does not
+provide transactional rollback. Setup, composition and destination-copy failure
+must therefore be distinguished when changing replay policy.
+
+Points and text
+~~~~~~~~~~~~~~~
+
+Point drawing selects the GC raster operation but writes foreground colors with
+SetPixelV. It does not implement an explicit pixel-combination algorithm of its
+own. Absolute mode uses each XPoint directly; other modes accumulate offsets in
+LONG coordinates without an overflow check. Do not infer complete X11 raster
+semantics solely from the presence of the ROP2 setup call.
+
+String drawing delegates directly to Tk_DrawChars with the Tk_Font stored in
+the GC, the counted string and baseline coordinates. Font ownership, encoding
+interpretation and actual native text drawing remain with that Tk service.
+The compatibility wrapper neither creates a separate font nor retains text.

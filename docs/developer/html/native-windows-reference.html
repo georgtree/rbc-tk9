@@ -410,6 +410,77 @@ function and structure names cannot merge with the X11 implementation.</p>
 </dd></dl>
 
 </section>
+<section id="compatibility-drawing-primitives">
+<h2>Compatibility drawing primitives<a class="headerlink" href="#compatibility-drawing-primitives" title="Link to this heading">¶</a></h2>
+<p>These entries implement the Windows Xlib-shaped drawing boundary. They consume
+mapped integer geometry and configured GCs, with the historical conversions
+and fallback policies described in <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__windows__drawing__primitives"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">compatibility</span> <span class="pre">primitives</span></span></dt>
+<dd><p>Xlib-shaped drawing entry points implemented with native Windows operations. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.Rbc_EmulateXDrawRectangles">
+<span class="target" id="group__windows__drawing__primitives_1ga54ba99fcf8046a43b6596150bd15faa8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXDrawRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawRectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw rectangle outlines through one acquired Windows DC. </p>
+<p>Ignores None target, NULL array and nonpositive count. Borrows GC/rectangles; selects an owned GC-derived pen and stock null brush, then draws rectangles in input order. Adds one to each far edge for the Windows pixel convention. Restores selections, deletes the displaced objects and releases DC state. Requires valid GC and usable DC; GDI results are not propagated. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.DrawArc">
+<span class="target" id="group__windows__drawing__primitives_1ga8792ed91f7d154f7bd73441e8015bffa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawArc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">arcMode</span></span>, <span class="n"><span class="pre">XArc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arcPtr</span></span>, <span class="n"><span class="pre">HPEN</span></span><span class="w"> </span><span class="n"><span class="pre">pen</span></span>, <span class="n"><span class="pre">HBRUSH</span></span><span class="w"> </span><span class="n"><span class="pre">brush</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.DrawArc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translate XArc angle units and closure into a GDI arc operation. </p>
+<p>Borrows an already configured DC and XArc. Sweeps of at least one full turn in magnitude use Ellipse. Other sweeps normalize angles in 1/64 degrees and swap endpoints for negative extent. Converts radial endpoints with the historical add-one-half then int conversion, accounting for inverted Y. Adds one to bounding-box far edges. A zero brush argument selects open Arc; a nonzero brush selects Chord or Pie from arcMode. Pen/brush selection is the caller’s responsibility; the pen argument is not otherwise used. Does not explicitly reject zero sweep or change the DC arc direction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.Rbc_EmulateXDrawArcs">
+<span class="target" id="group__windows__drawing__primitives_1ga8d3e08a8481d39b6a88e825823ad6162"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXDrawArcs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XArc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arcArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nArcs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawArcs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw open arcs with a retained pen and null brush. </p>
+<p>Ignores None target, NULL input and nonpositive count. Acquires one DC, sets the GC raster operation and selects a GC-derived pen and stock null brush. Calls DrawArc for each item in order, then restores selections, deletes displaced objects and releases state. GC and array remain borrowed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.Rbc_EmulateXFillArcs">
+<span class="target" id="group__windows__drawing__primitives_1ga14eb531538628871c66b287c517c9f3a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXFillArcs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XArc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arcArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nArcs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.Rbc_EmulateXFillArcs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw filled arc figures with a solid foreground brush. </p>
+<p>Acquires one DC and selects both a GC-derived pen and an owned solid brush. DrawArc chooses chord/pieslice closure or a full ellipse. Thus this path retains a drawing pen rather than selecting a null pen for fill-only output. Ignores empty input; restores selections, deletes owned objects and releases DC state. Does not report individual GDI failures. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.DrawXorSegments">
+<span class="target" id="group__windows__drawing__primitives_1ga0cbdd681a8e8fab14bfa92a8571c3a74"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawXorSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XSegment</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.DrawXorSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compose independent XOR segments offscreen and present once. </p>
+<p>Requires nonempty valid segments, GC and DC. Intersects expanded segment bounds with GetClipBox and returns TRUE for empty coverage. Owns a compatible DC, bitmap and GC-derived pen. Clears black (XOR identity), translates the viewport and draws each segment as its own Polyline. Only successful composition triggers one SRCINVERT copy to the destination. Restores selected objects and frees temporary resources on handled failure paths. FALSE asks the caller to retry directly; no destination rollback is implemented. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.Rbc_EmulateXDrawSegments">
+<span class="target" id="group__windows__drawing__primitives_1gafccb730652cabbc9fba0af299a671725"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXDrawSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XSegment</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw independent segments with XOR-specific presentation. </p>
+<p>Rejects missing target/GC/segments and nonpositive count. GXxor first tries DrawXorSegments and stops if handled. Otherwise owns bounded POINT/count arrays and an acquired DC/pen: batches contain 8192 segments, or 680 for wide lines. XOR fallback uses individual Polyline calls to retain dash phase and overlap cancellation. Other operations use PolyPolyline, with per-segment MoveToEx/LineTo fallback on failure. Frees arrays and restores/releases pen and DC state. Void return does not report partial output or GDI failures. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.Rbc_EmulateXDrawPoints">
+<span class="target" id="group__windows__drawing__primitives_1gab235480c96679eb7b8b9029814fb8584"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXDrawPoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write foreground pixels at absolute or accumulated positions. </p>
+<p>Ignores None target, NULL array and nonpositive count. Acquires one DC and sets its raster operation, then calls SetPixelV with GC foreground for each point. CoordModeOrigin uses absolute positions; any other mode accumulates LONG offsets from the first point. Releases DC state. No explicit pixel read/modify/write composition or overflow check is performed here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPrimitives.Rbc_EmulateXDrawString">
+<span class="target" id="group__windows__drawing__primitives_1ga028f829c7429c800723d83aab39783cd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EmulateXDrawString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawString" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a counted string using the Tk font in the GC. </p>
+<p>Ignores None target, NULL string and nonpositive byte length. Delegates to Tk_DrawChars with gc-&gt;font cast to Tk_Font and baseline coordinates. Borrows all arguments and does not create a DC, font or converted string itself. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -473,6 +544,17 @@ function and structure names cannot merge with the X11 implementation.</p>
 <li><a class="reference internal" href="#c.rbcWindowsResources.GetGCDashValues"><code class="docutils literal notranslate"><span class="pre">GetGCDashValues()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_GCToPen"><code class="docutils literal notranslate"><span class="pre">Rbc_GCToPen()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinDrawableDC</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#compatibility-drawing-primitives">Compatibility drawing primitives</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawRectangles()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.DrawArc"><code class="docutils literal notranslate"><span class="pre">DrawArc()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawArcs"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawArcs()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXFillArcs"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXFillArcs()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.DrawXorSegments"><code class="docutils literal notranslate"><span class="pre">DrawXorSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawPoints"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawPoints()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawString"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawString()</span></code></a></li>
 </ul>
 </li>
 </ul>

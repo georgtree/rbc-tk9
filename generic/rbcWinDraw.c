@@ -16,6 +16,9 @@
 /** @defgroup windows_drawing_resources Windows drawing resource helpers
  * Drawable wrappers, acquisition records, raster fast paths and GC conversion.
  */
+/** @defgroup windows_drawing_primitives Windows compatibility primitives
+ * Xlib-shaped drawing entry points implemented with native Windows operations.
+ */
 #include "rbcInt.h"
 #include <X11/Xutil.h>
 #include <X11/Xlib.h>
@@ -685,38 +688,15 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
     return pen;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw rectangle outlines through one acquired Windows DC.
+ * @ingroup windows_drawing_primitives
  *
- * Rbc_EmulateXDrawRectangles --
- *
- *      Draws the outlines of the specified rectangles as if a
- *      five-point PolyLine protocol request were specified for each
- *      rectangle:
- *
- *        [x,y] [x+width,y] [x+width,y+height] [x,y+height]
- *        [x,y]
- *
- *      For the specified rectangles, these functions do not draw a
- *      pixel more than once.  XDrawRectangles draws the rectangles in
- *      the order listed in the array.  If rectangles intersect, the
- *      intersecting pixels are drawn multiple times.  Draws a
- *      rectangle.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      XRectangle *rectArr
- *      int nRects
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Draws rectangles on the specified drawable.
- *
- *----------------------------------------------------------------------
+ * Ignores None target, NULL array and nonpositive count. Borrows GC/rectangles;
+ * selects an owned GC-derived pen and stock null brush, then draws rectangles
+ * in input order. Adds one to each far edge for the Windows pixel convention.
+ * Restores selections, deletes the displaced objects and releases DC state.
+ * Requires valid GC and usable DC; GDI results are not propagated.
  */
 void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRectangle *rectArr, int nRects) {
     HPEN pen, oldPen;
@@ -745,28 +725,18 @@ void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRec
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Translate XArc angle units and closure into a GDI arc operation.
+ * @ingroup windows_drawing_primitives
  *
- * DrawArc --
- *
- *      This procedure handles the rendering of drawn or filled
- *      arcs and chords.
- *
- * Parameters:
- *      HDC dc
- *      int arcMode - Mode: either ArcChord or ArcPieSlice
- *      XArc *arcPtr
- *      HPEN pen
- *      HBRUSH brush
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Renders the requested arcs.
- *
- *----------------------------------------------------------------------
+ * Borrows an already configured DC and XArc. Sweeps of at least one full turn
+ * in magnitude use Ellipse. Other sweeps normalize angles in 1/64 degrees
+ * and swap endpoints for negative extent. Converts radial endpoints with
+ * the historical add-one-half then int conversion, accounting for inverted Y.
+ * Adds one to bounding-box far edges. A zero brush argument selects open Arc;
+ * a nonzero brush selects Chord or Pie from arcMode. Pen/brush selection is
+ * the caller's responsibility; the pen argument is not otherwise used.
+ * Does not explicitly reject zero sweep or change the DC arc direction.
  */
 static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
     int start, extent, clockwise;
@@ -832,34 +802,14 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw open arcs with a retained pen and null brush.
+ * @ingroup windows_drawing_primitives
  *
- * Rbc_EmulateXDrawArcs --
- *
- *      Draws multiple circular or elliptical arcs.  Each arc is
- *      specified by a rectangle and two angles.  The center of the
- *      circle or ellipse is the center of the rect- angle, and the
- *      major and minor axes are specified by the width and height.
- *      Positive angles indicate counterclock- wise motion, and
- *      negative angles indicate clockwise motion.  If the magnitude
- *      of angle2 is greater than 360 degrees, XDrawArcs truncates it
- *      to 360 degrees.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      XArc *arcArr
- *      int nArcs
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Draws an arc for each array element on the specified drawable.
- *
- *----------------------------------------------------------------------
+ * Ignores None target, NULL input and nonpositive count. Acquires one DC,
+ * sets the GC raster operation and selects a GC-derived pen and stock null
+ * brush. Calls DrawArc for each item in order, then restores selections,
+ * deletes displaced objects and releases state. GC and array remain borrowed.
  */
 void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs) {
     HPEN pen, oldPen;
@@ -887,27 +837,15 @@ void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw filled arc figures with a solid foreground brush.
+ * @ingroup windows_drawing_primitives
  *
- * Rbc_EmulateXFillArcs --
- *
- *      Draw a filled arc.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      XArc *arcArr
- *      int nArcs
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Draws a filled arc for each array element on the specified drawable.
- *
- *----------------------------------------------------------------------
+ * Acquires one DC and selects both a GC-derived pen and an owned solid brush.
+ * DrawArc chooses chord/pieslice closure or a full ellipse. Thus this path
+ * retains a drawing pen rather than selecting a null pen for fill-only output.
+ * Ignores empty input; restores selections, deletes owned objects and releases
+ * DC state. Does not report individual GDI failures.
  */
 void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs) {
     HBRUSH brush, oldBrush;
@@ -935,38 +873,17 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Compose independent XOR segments offscreen and present once.
+ * @ingroup windows_drawing_primitives
  *
- * Rbc_EmultateXDrawSegments --
- *
- *      Draws multiple, unconnected lines. For each segment, draws a
- *      line between (x1, y1) and (x2, y2).  It draws the lines in the
- *      order listed in the array of XSegment structures and does not
- *      perform joining at coincident endpoints.  For any given line,
- *      does not draw a pixel more than once. If lines intersect, the
- *      intersecting pixels are drawn multiple times.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      XSegment *segArr
- *      int nSegments
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Draws unconnected line segments on the specified drawable.
- *
- *----------------------------------------------------------------------
- */
-/*
- * Compose XOR coverage away from the window, then apply it once. Independent
- * polylines preserve dash phase and XOR cancellation at intersections, while
- * a single SRCINVERT avoids presenting the erased half of a crosshair move.
- * A black pixel is the identity for XOR, so no screen readback is needed.
+ * Requires nonempty valid segments, GC and DC. Intersects expanded segment
+ * bounds with GetClipBox and returns TRUE for empty coverage. Owns a compatible
+ * DC, bitmap and GC-derived pen. Clears black (XOR identity), translates the
+ * viewport and draws each segment as its own Polyline. Only successful
+ * composition triggers one SRCINVERT copy to the destination. Restores selected
+ * objects and frees temporary resources on handled failure paths. FALSE asks
+ * the caller to retry directly; no destination rollback is implemented.
  */
 static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
     RECT clip;
@@ -1037,6 +954,18 @@ static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
     return result;
 }
 
+/**
+ * @brief Draw independent segments with XOR-specific presentation.
+ * @ingroup windows_drawing_primitives
+ *
+ * Rejects missing target/GC/segments and nonpositive count. GXxor first tries
+ * DrawXorSegments and stops if handled. Otherwise owns bounded POINT/count
+ * arrays and an acquired DC/pen: batches contain 8192 segments, or 680 for
+ * wide lines. XOR fallback uses individual Polyline calls to retain dash phase
+ * and overlap cancellation. Other operations use PolyPolyline, with per-segment
+ * MoveToEx/LineTo fallback on failure. Frees arrays and restores/releases pen
+ * and DC state. Void return does not report partial output or GDI failures.
+ */
 void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments) {
     enum {
         /*
@@ -1156,32 +1085,15 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
     ckfree(points);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Write foreground pixels at absolute or accumulated positions.
+ * @ingroup windows_drawing_primitives
  *
- * Rbc_EmulateXDrawPoints --
- *
- *      Uses the foreground pixel and function components of the GC to
- *      draw a multiple points into the specified drawable.
- *      CoordModeOrigin treats all coordinates as relative to the
- *      origin, and CoordModePrevious treats all coordinates after
- *      the first as relative to the previous point.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      XPoint *pointArr
- *      int nPoints
- *      int mode
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Draws points on the specified drawable.
- *
- *----------------------------------------------------------------------
+ * Ignores None target, NULL array and nonpositive count. Acquires one DC and
+ * sets its raster operation, then calls SetPixelV with GC foreground for each
+ * point. CoordModeOrigin uses absolute positions; any other mode accumulates
+ * LONG offsets from the first point. Releases DC state. No explicit pixel
+ * read/modify/write composition or overflow check is performed here.
  */
 void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode) {
     HDC dc;
@@ -1212,29 +1124,13 @@ void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw a counted string using the Tk font in the GC.
+ * @ingroup windows_drawing_primitives
  *
- * Rbc_EmultateXDrawString --
- *
- *      Draw a single string in the current font.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      int x
- *      int y
- *      _Xconst char *string
- *      int length
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Renders the specified string in the drawable.
- *
- *----------------------------------------------------------------------
+ * Ignores None target, NULL string and nonpositive byte length. Delegates to
+ * Tk_DrawChars with gc->font cast to Tk_Font and baseline coordinates. Borrows
+ * all arguments and does not create a DC, font or converted string itself.
  */
 void Rbc_EmulateXDrawString(Display *display, Drawable drawable, GC gc, int x, int y, _Xconst char *string,
                             int length) {

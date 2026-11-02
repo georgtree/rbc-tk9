@@ -474,6 +474,67 @@ function is a historical constant, not a live device-capacity query. These
 compatibility services are not independent renderers and should not become new
 entry points for graph components.</p>
 </section>
+<section id="windows-compatibility-primitives">
+<h2>Windows compatibility primitives<a class="headerlink" href="#windows-compatibility-primitives" title="Link to this heading">¶</a></h2>
+<p>The remaining rbcWinDraw.c entry points implement Xlib-shaped rectangle, arc,
+segment, point and text operations. They are lower-level compatibility services,
+not graph mappers. Arrays and GCs remain borrowed, and the caller supplies valid
+mapped geometry. Most entry points reject empty arrays or None targets, but do
+not turn every GDI failure into a Tcl error or restore already painted pixels.</p>
+<section id="rectangles-and-arcs">
+<h3>Rectangles and arcs<a class="headerlink" href="#rectangles-and-arcs" title="Link to this heading">¶</a></h3>
+<p>Rectangle outlines use one acquired DC and GC-derived pen for the entire array,
+with a stock null brush. Their far edges include an extra pixel to retain the
+historical X-to-Windows convention. Rectangles remain in input order, so
+intersections can be painted repeatedly under the configured raster operation.</p>
+<p>The arc converter accepts XArc angles in units of one sixty-fourth degree.
+Sweeps with magnitude at least a full turn select Ellipse. Partial sweeps
+normalize the starting/ending directions, swap them for negative extent and
+invert the sine contribution for screen Y. Radial endpoints retain the existing
+add-one-half then integer conversion; this is not symmetric rounding for
+negative coordinates. Bounding-box far edges likewise gain one pixel.</p>
+<p>A zero brush argument chooses an open Arc. A nonzero brush chooses Chord or Pie
+according to the arc mode, with the actual pen and brush already selected by the
+caller. The filled-arc entry point retains a GC-derived pen alongside its solid
+brush, so it is not implemented as a null-pen fill-only operation. Zero sweeps
+are not explicitly rejected in the converter, and DC arc direction is not set
+there. These details describe the compatibility implementation; they do not
+replace the higher-level arc marker’s mapping contract.</p>
+</section>
+<section id="xor-composition-and-direct-fallback">
+<h3>XOR composition and direct fallback<a class="headerlink" href="#xor-composition-and-direct-fallback" title="Link to this heading">¶</a></h3>
+<p>The XOR segment helper computes the segment bounds, expands them for stroke
+width and intersects them with the destination clip box. Empty coverage is a
+successful no-op. Otherwise it creates a compatible bitmap and memory DC,
+clears the bitmap to black and translates the viewport so absolute segment
+coordinates can be reused. Black is the XOR identity, so no destination
+readback is required for composition.</p>
+<p>Each segment is drawn as an independent Polyline into that bitmap. This keeps
+dash restart and cancellation at intersections consistent whether crosshairs
+are shown, hidden, or moved using a combined old/new segment set. Once all
+segments have been composed, a single SRCINVERT operation presents the result.
+This avoids displaying the intermediate erased crosshair state.</p>
+<p>A failed offscreen attempt selects direct fallback. That path still uses one
+Polyline per XOR segment; it must not switch to grouped XOR PolyPolyline calls,
+which previously made erasure depend on batch grouping. Other raster operations
+use bounded PolyPolyline batches, with MoveToEx/LineTo per-segment fallback if a
+batch is rejected. The direct path may expose intermediate drawing and does not
+provide transactional rollback. Setup, composition and destination-copy failure
+must therefore be distinguished when changing replay policy.</p>
+</section>
+<section id="points-and-text">
+<h3>Points and text<a class="headerlink" href="#points-and-text" title="Link to this heading">¶</a></h3>
+<p>Point drawing selects the GC raster operation but writes foreground colors with
+SetPixelV. It does not implement an explicit pixel-combination algorithm of its
+own. Absolute mode uses each XPoint directly; other modes accumulate offsets in
+LONG coordinates without an overflow check. Do not infer complete X11 raster
+semantics solely from the presence of the ROP2 setup call.</p>
+<p>String drawing delegates directly to Tk_DrawChars with the Tk_Font stored in
+the GC, the counted string and baseline coordinates. Font ownership, encoding
+interpretation and actual native text drawing remain with that Tk service.
+The compatibility wrapper neither creates a separate font nor retains text.</p>
+</section>
+</section>
 </section>
 
 
@@ -500,6 +561,12 @@ entry points for graph components.</p>
 <li><a class="reference internal" href="#failure-and-cleanup-boundaries">Failure and cleanup boundaries</a></li>
 <li><a class="reference internal" href="#windows-compatibility-resource-boundary">Windows compatibility resource boundary</a></li>
 <li><a class="reference internal" href="#monochrome-readback-and-fast-paths">Monochrome readback and fast paths</a></li>
+<li><a class="reference internal" href="#windows-compatibility-primitives">Windows compatibility primitives</a><ul>
+<li><a class="reference internal" href="#rectangles-and-arcs">Rectangles and arcs</a></li>
+<li><a class="reference internal" href="#xor-composition-and-direct-fallback">XOR composition and direct fallback</a></li>
+<li><a class="reference internal" href="#points-and-text">Points and text</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

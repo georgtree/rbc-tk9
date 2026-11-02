@@ -41,3 +41,18 @@ These compatibility services confine private Tk drawable/DC representations to
    :members:
 
 .. c:namespace-pop::
+
+Compatibility drawing primitives
+--------------------------------
+
+These entries implement the Windows Xlib-shaped drawing boundary. They consume
+mapped integer geometry and configured GCs, with the historical conversions
+and fallback policies described in :doc:`native-rendering`.
+
+.. c:namespace:: rbcWindowsPrimitives
+
+.. doxygengroup:: windows_drawing_primitives
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::

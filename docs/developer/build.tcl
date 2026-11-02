@@ -160,6 +160,8 @@ proc ::rbcDocBuild::main {arguments} {
     append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcWinDraw.c]]\n"
     append winSettings "OUTPUT_DIRECTORY = [doxyQuote [file join $output doxygen-win]]\n"
     append winSettings "WARN_LOGFILE = [doxyQuote $winLog]\n"
+    # Xlib spelling is otherwise unknown without following platform headers.
+    append winSettings "PREDEFINED += _Xconst=const\n"
     writeFile $winConfig $winSettings
     writeFile $winLog {}
     set directory [pwd]
