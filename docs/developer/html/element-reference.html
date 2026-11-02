@@ -193,6 +193,347 @@ lifetime protection or make arbitrary Tcl callback reentry safe.</p>
 </pre></div>
 </div>
 </section>
+<section id="configuration-transaction-internals">
+<h2>Configuration transaction internals<a class="headerlink" href="#configuration-transaction-internals" title="Link to this heading">¶</a></h2>
+<p>These helpers separate candidate preparation from live-field commit and from
+retained Tcl option representations. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for their differing
+failure and cleanup rules.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__element__transaction__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">transaction</span> <span class="pre">internals</span></span></dt>
+<dd><p>Candidate ownership, option identity and retained representations. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CommitElemVector">
+<span class="target" id="group__element__transaction__internals_1ga5d92e3e7af249363c0b1d88a66339c3b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitElemVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destPtr</span></span>, <span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CommitElemVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move a parsed data slot into its stable element destination. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Live owner of the destination field. </p></li>
+<li><p><strong>destPtr</strong> – Initialized live slot to replace; distinct from candidatePtr. </p></li>
+<li><p><strong>candidatePtr</strong> – Successfully parsed slot whose ownership is transferred. Releases the old slot, copies the candidate and zeroes it. Installs the owning element and, for named-vector data, a change callback whose client data points to destPtr rather than temporary storage. Does not destroy the source vector, copy its numeric storage, or schedule redraw independently. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetElemDataOption">
+<span class="target" id="group__element__transaction__internals_1gad546b15a32ed6796e355eb9a56af476e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ElemDataOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemDataOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemDataOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Identify an element’s common data option after Tk validation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element with concrete optionSpecs. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed original option-name object. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The corresponding ElemDataOption, or NONE for unrelated/unresolved names. Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve through the concrete table. Does not parse values, acquire resources or change state. Exact -x and -y names must retain precedence over longer data names. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetElemAxisOption">
+<span class="target" id="group__element__transaction__internals_1ga395e582734fe701f7526d048a596d485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ElemAxisOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemAxisOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemAxisOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Identify an element’s axis mapping option after Tk validation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element with concrete optionSpecs. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed original option-name object. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>X or Y axis identity, or NONE for unrelated/unresolved names. Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve through the concrete table. Does not parse values, acquire resources or change state. Exact -x and -y names must retain precedence over longer data names. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IsElemStateOption">
+<span class="target" id="group__element__transaction__internals_1ga311c00d4eabd661e5ec67343cbbda6b6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsElemStateOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsElemStateOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Identify an element’s state option after Tk validation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element with concrete optionSpecs. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed original option-name object. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero only for the canonical -state option. Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve through the concrete table. Does not parse values, acquire resources or change state. Exact -x and -y names must retain precedence over longer data names. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IsElemBindTagsOption">
+<span class="target" id="group__element__transaction__internals_1gace03e4fbc47729b099141d17d44a3cfa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsElemBindTagsOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsElemBindTagsOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Identify an element’s binding tags option after Tk validation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element with concrete optionSpecs. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed original option-name object. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero only for the canonical -bindtags option. Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve through the concrete table. Does not parse values, acquire resources or change state. Exact -x and -y names must retain precedence over longer data names. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageElemTags">
+<span class="target" id="group__element__transaction__internals_1ga23b2d7177475224e20c70a0c316d7a74"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemTags</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemTagsTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemTags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace a candidate tag list only after its successor parses. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for list syntax diagnostics. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed tag-list object; NULL represents an empty list. </p></li>
+<li><p><strong>transactionPtr</strong> – Initialized transaction owning any earlier candidate. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on staging; TCL_ERROR preserves the earlier candidate. Success frees the old candidate block, transfers the new single-block string list and sets staged even for an empty list. Does not modify live element tags or execute a binding script. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeElemTagsTransaction">
+<span class="target" id="group__element__transaction__internals_1gaee1c90757b53c2b0cda4f55189be2e67"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeElemTagsTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemTagsTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeElemTagsTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release candidate binding tags and reset their transaction. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – Initialized transaction, possibly empty or already committed. Frees the owned string-list block if present and zeroes the complete record. Does not alter the element or free tags already transferred to it. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PrepareElemTagsTransaction">
+<span class="target" id="group__element__transaction__internals_1ga2fac3063b73fc1df6e1192abae994944"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PrepareElemTagsTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemTagsTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PrepareElemTagsTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate every relevant binding-tag occurrence before element commit. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph and interpreter. </p></li>
+<li><p><strong>elemPtr</strong> – Element with a validated, even optionObjv/optionObjc sequence. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh transaction; any earlier owned candidate must already have been released before this function zeroes the record. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on preparation; TCL_ERROR after freeing all staged tag storage. On initial configuration, processes the retained default only if not explicitly overridden. Then parses explicit occurrences in caller order, so a later valid value cannot hide an earlier invalid list. Live tags remain unchanged. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CommitElemTagsTransaction">
+<span class="target" id="group__element__transaction__internals_1gafac383b55d86ca1d5b7e315b410f71de"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CommitElemTagsTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemTagsTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CommitElemTagsTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transfer a prepared tag-list block into the live element. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Live destination element owning its previous tags. </p></li>
+<li><p><strong>transactionPtr</strong> – Successfully prepared tags transaction. Does nothing unless staged. Otherwise moves tags (including NULL), clears the candidate and flag, then frees the old live block. No parsing or binding script execution occurs; subsequent transaction cleanup is safe. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PrepareElemStateTransaction">
+<span class="target" id="group__element__transaction__internals_1ga889bd569dd58d82a889baf2b14f5cd68"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PrepareElemStateTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemStateTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PrepareElemStateTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate state values in their original configuration order. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph supplying the error interpreter. </p></li>
+<li><p><strong>elemPtr</strong> – Element with an even validated option sequence. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Transaction reset before preparation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK when all relevant values pass; TCL_ERROR on the first bad state. Uses the initial retained state only when not explicitly overridden, then checks every explicit occurrence. Does not change live state. Unlike owning resource transactions, failure may leave an earlier scalar candidate marked staged; there is nothing to free, but callers must not commit after TCL_ERROR. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CommitElemStateTransaction">
+<span class="target" id="group__element__transaction__internals_1ga4c58c93560ee2fbad4a3b286651a2aec"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CommitElemStateTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemStateTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CommitElemStateTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Install a successfully prepared scalar state. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Live destination element. </p></li>
+<li><p><strong>transactionPtr</strong> – Transaction whose preparation returned TCL_OK. Copies state only when staged, then clears staged. Performs no resource cleanup, redraw scheduling or binding repick; the configuration caller handles those. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageElemAxis">
+<span class="target" id="group__element__transaction__internals_1gad587897ebc40c38f2973635a1a62a86f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemAxisTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtrPtr</span></span>, <span class="n"><span class="pre">ElemAxisOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a replacement axis before releasing the staged predecessor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph containing the axis registry. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed axis-name object; an empty name is not accepted. </p></li>
+<li><p><strong>transactionPtr</strong> – Initialized axis transaction. </p></li>
+<li><p><strong>candidatePtrPtr</strong> – Address of the candidate matching option. </p></li>
+<li><p><strong>option</strong> – X or Y; any other identity is an internal fatal error. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after staging; TCL_ERROR retains the previous candidate. Rbc_GetAxisFromObj checks in-use orientation (or assigns the class of an unused axis) and acquires a reference without creating an absent axis. Success releases the earlier staged reference, stores the new one and sets its mask bit. Live element axes are unchanged. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeElemAxisTransaction">
+<span class="target" id="group__element__transaction__internals_1ga05529a05473f03256944b83b16768bed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeElemAxisTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">ElemAxisTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeElemAxisTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release owned candidate axes and clear their transaction. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph used for reference release. </p></li>
+<li><p><strong>transactionPtr</strong> – Initialized, partially prepared or committed transaction. Releases each non-NULL candidate independently, then zeroes the record. It does not release references transferred to live element fields by commit. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PrepareElemAxisTransaction">
+<span class="target" id="group__element__transaction__internals_1ga6545db1f8962f2eb20311f5a7bf4970d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PrepareElemAxisTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemAxisTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PrepareElemAxisTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve ordered element axis options into owned candidates. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live owning graph. </p></li>
+<li><p><strong>elemPtr</strong> – Element with even validated configuration arguments. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh transaction, zeroed before use. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on preparation; TCL_ERROR after releasing all staged references. Initial mapx/mapy defaults are processed only when not explicitly overridden. Every explicit occurrence is then resolved in caller order. Failure does not change live mappings; successful output must be committed or freed. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CommitElemAxisTransaction">
+<span class="target" id="group__element__transaction__internals_1ga8e7fc54bf4134aecb04d83de89b04e51"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CommitElemAxisTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemAxisTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CommitElemAxisTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move prepared axis references to the element and release old mappings. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph for release of replaced references. </p></li>
+<li><p><strong>elemPtr</strong> – Live destination element. </p></li>
+<li><p><strong>transactionPtr</strong> – Successfully prepared axis transaction. Only staged X/Y slots are replaced. Clears transferred pointers and then the mask, allowing later transaction cleanup. No lookup or parsing occurs here; reference release may destroy a delete-pending axis whose count reaches zero. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageElemDataVector">
+<span class="target" id="group__element__transaction__internals_1gaf146fb70121c0376eff57e0217afab36"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemDataVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtr</span></span>, <span class="n"><span class="pre">ElemDataOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemDataVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse a data slot before discarding its previous candidate. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter used by the data parser. </p></li>
+<li><p><strong>elemPtr</strong> – Live owning element. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed vector-name or expression-list object. </p></li>
+<li><p><strong>transactionPtr</strong> – Initialized common-data transaction. </p></li>
+<li><p><strong>candidatePtr</strong> – Candidate slot corresponding to option. </p></li>
+<li><p><strong>option</strong> – Data identity whose mask bit tracks this slot. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after transferring the parsed candidate, TCL_ERROR with the previous candidate intact. Frees a failed temporary candidate before returning. Named data owns a vector client ID; literal data owns an array. The parser can evaluate Tcl expressions, so caller-owned element and argument lifetimes must survive callbacks. This staging helper adds no preservation boundary. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StageElemDataPairs">
+<span class="target" id="group__element__transaction__internals_1ga2dc453876d562e82e6ad761d97358e40"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemDataPairs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemDataPairs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage a paired data value as an atomic X/Y candidate replacement. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter for pair parsing and expression errors. </p></li>
+<li><p><strong>elemPtr</strong> – Live owning element. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed alternating coordinate-expression list. </p></li>
+<li><p><strong>transactionPtr</strong> – Initialized common-data transaction. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after replacing both staged slots; TCL_ERROR preserves both previous candidates. Failure frees both temporary slots. Success frees earlier staged X/Y records only after pair parsing succeeds, moves the new records and sets both mask bits. Live coordinates remain unchanged. Parsing can run Tcl. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ReplaceElemOptionObject">
+<span class="target" id="group__element__transaction__internals_1ga1951192626000c953cf43428552077af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReplaceElemOptionObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtrPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReplaceElemOptionObject" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace one owned Tcl option-object reference. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtrPtr</strong> – Address of a retained object pointer, possibly NULL. </p></li>
+<li><p><strong>newObjPtr</strong> – Borrowed replacement object, or NULL to clear the field. Identical pointers are a no-op. Otherwise retains the new object before storing it and releasing the old reference. Does not copy contents, evaluate scripts or change internal numeric data. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SetElemDataPairOptionObjects">
+<span class="target" id="group__element__transaction__internals_1ga3d34b1965fca5c9a5043ada593892a6b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetElemDataPairOptionObjects</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetElemDataPairOptionObjects" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Retain paired data and derive coherent X/Y option representations. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element whose dataObjPtr, xObjPtr and yObjPtr are replaced. </p></li>
+<li><p><strong>dataObjPtr</strong> – Borrowed, already validated even-length coordinate list. Builds new X/Y lists using the original element objects, preserving expression spellings instead of reconstructing them from doubles. Retains all three results through ReplaceElemOptionObject. Invalid list structure or failure to assemble output is an internal Tcl_Panic, not a recoverable user error. Must run only after successful data validation; does not evaluate expressions. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SyncElemDataOptionObjects">
+<span class="target" id="group__element__transaction__internals_1ga139ee978a3a9b47bc48a8d5974c51a99"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SyncElemDataOptionObjects</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SyncElemDataOptionObjects" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Synchronize retained coordinate options after successful data commit. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Configured element with even, still-valid option arguments. Processes non-overridden initial defaults in data/X/Y order, then explicit arguments in caller order. A data occurrence sets coherent data/X/Y objects; an independent X or Y clears data and replaces that coordinate representation. Pins initial objects while replacing fields, then releases those temporary references. Does not rebuild numeric arrays or evaluate expressions. Call while optionsConfigured still identifies first configuration when applicable. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -219,6 +560,29 @@ lifetime protection or make arbitrary Tcl callback reentry safe.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#type-dispatch-signatures">Type dispatch signatures</a></li>
+<li><a class="reference internal" href="#configuration-transaction-internals">Configuration transaction internals</a><ul>
+<li><a class="reference internal" href="#c.CommitElemVector"><code class="docutils literal notranslate"><span class="pre">CommitElemVector()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetElemDataOption"><code class="docutils literal notranslate"><span class="pre">GetElemDataOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetElemAxisOption"><code class="docutils literal notranslate"><span class="pre">GetElemAxisOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.IsElemStateOption"><code class="docutils literal notranslate"><span class="pre">IsElemStateOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.IsElemBindTagsOption"><code class="docutils literal notranslate"><span class="pre">IsElemBindTagsOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageElemTags"><code class="docutils literal notranslate"><span class="pre">StageElemTags()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeElemTagsTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemTagsTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PrepareElemTagsTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemTagsTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CommitElemTagsTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemTagsTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PrepareElemStateTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemStateTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CommitElemStateTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemStateTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageElemAxis"><code class="docutils literal notranslate"><span class="pre">StageElemAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeElemAxisTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemAxisTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PrepareElemAxisTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemAxisTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CommitElemAxisTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemAxisTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageElemDataVector"><code class="docutils literal notranslate"><span class="pre">StageElemDataVector()</span></code></a></li>
+<li><a class="reference internal" href="#c.StageElemDataPairs"><code class="docutils literal notranslate"><span class="pre">StageElemDataPairs()</span></code></a></li>
+<li><a class="reference internal" href="#c.ReplaceElemOptionObject"><code class="docutils literal notranslate"><span class="pre">ReplaceElemOptionObject()</span></code></a></li>
+<li><a class="reference internal" href="#c.SetElemDataPairOptionObjects"><code class="docutils literal notranslate"><span class="pre">SetElemDataPairOptionObjects()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SyncElemDataOptionObjects"><code class="docutils literal notranslate"><span class="pre">Rbc_SyncElemDataOptionObjects()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

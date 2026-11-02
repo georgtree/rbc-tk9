@@ -32,3 +32,13 @@ lifetime protection or make arbitrary Tcl callback reentry safe.
    :language: c
    :start-at: typedef void(ElementDrawProc)
    :end-at: } ElementProcs;
+
+Configuration transaction internals
+-----------------------------------
+
+These helpers separate candidate preparation from live-field commit and from
+retained Tcl option representations. See :doc:`elements` for their differing
+failure and cleanup rules.
+
+.. doxygengroup:: element_transaction_internals
+   :members:

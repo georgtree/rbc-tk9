@@ -146,3 +146,119 @@ mapping and ranges dirty without delivering client callbacks or processing Tcl
 events. A full change is recorded because exact ranged metadata is only
 available inside the notification callback; the queued notification remains
 scheduled normally.
+
+Transaction records and failure rules
+-------------------------------------
+
+The shared configuration helpers operate on fresh temporary records. Prepare
+functions zero their output before use: they are not replacement operations
+for a transaction that still owns candidates. Release or commit that earlier
+transaction first. The concrete configurator prepares all required families
+before making live-field commits; a successful prepare in one family does not
+permit committing it while another family has failed.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Candidate family
+     - Preparation and ownership
+     - Commit/abandon behavior
+   * - Tags
+     - One Tcl-allocated block; empty input can be explicitly staged as NULL
+     - Commit moves it and frees old live tags; free releases the candidate
+   * - Axes
+     - One acquired reference per staged X/Y mapping
+     - Commit moves staged references and releases old mappings; free releases candidates
+   * - State
+     - Scalar value and staged flag, no owned resource
+     - Commit only after TCL_OK; failed preparation can retain an earlier staged scalar
+   * - Data
+     - Owned numeric arrays or named-vector client IDs
+     - Commit moves slots and binds callbacks to stable element fields; free releases candidates
+
+Tag and axis preparation clean their staged resources before returning an
+error. State preparation has nothing to release and may leave an earlier
+valid scalar marked staged when a later occurrence fails. Therefore checking
+``staged`` alone is insufficient: the caller must first check the preparation
+return code. State commit does not independently schedule redraw or repick
+bindings. Those remain responsibilities of the enclosing configuration path.
+
+Axis staging requires an existing axis and does not accept an empty mapping.
+Lookup checks the orientation of an in-use axis; an unused or untyped axis can
+acquire the requested class at lookup. Candidate cleanup releases the reference,
+but does not restore that class field. The guarantee here is unchanged live
+element mappings, not an unchanged axis registry. Staging acquires a successor before releasing the
+previous candidate, even if both resolve to the same record. At commit, each
+staged reference is moved to the live field before the old reference is
+released. A final release can destroy a delete-pending axis. Empty pen selection
+has different semantics; see :doc:`pens` rather than applying the axis rule to
+all named resources.
+
+Original arguments and repeated options
+---------------------------------------
+
+The identity helpers use the element's concrete option table through
+Rbc_GetCanonicalOptionName after Tk validation. They recognize canonical
+options, synonyms and accepted abbreviations. In particular, exact ``-x`` and
+``-y`` retain priority over longer names such as ``-xerror``. These helpers do
+not parse values or authorize a commit.
+
+Preparation first identifies which options were supplied explicitly. On first
+configuration, it processes retained defaults only for identities that were
+not explicitly supplied, then walks the original explicit option/value sequence
+in order. This serves two purposes: an explicit value can override an invalid
+unused default, but a later valid repeated option must not hide an invalid
+earlier explicit occurrence. Reading only the final Tk-managed object fields
+would lose that distinction.
+
+Data staging applies the same rule to aliases between destinations: ``-data``
+replaces both X and Y candidates, whereas a later independent coordinate option
+replaces only that coordinate. Both candidates from a paired parse must succeed
+before either previous candidate is released. The live element remains separate
+from all of this temporary storage.
+
+Retained coordinate representations
+-----------------------------------
+
+Internal numeric arrays and the objects reported by configuration queries are
+different representations with separate ownership. After a successful data
+commit, Rbc_SyncElemDataOptionObjects replays initial defaults and explicit
+arguments in the same order used for staging. It does not reevaluate numeric
+expressions or reconstruct input strings from floating-point results.
+
+For example, with expression objects preserved in the input:
+
+.. code-block:: tcl
+
+   .g element configure trace -data {1 {2+3} 2 {4+5}} -y {7 8}
+
+The later Y value makes the retained paired ``-data`` representation invalid,
+so it is cleared; X retains the values derived from the earlier pairs. Reversing
+the order lets the final ``-data`` establish both coordinates and a coherent
+paired representation again. The individual X/Y lists contain the original
+coordinate objects, preserving expression spellings such as ``2+3``.
+
+ReplaceElemOptionObject retains a new object before releasing the old one and
+handles identical pointers as a no-op. During first configuration, synchronization
+also pins initial option objects while replacing fields that may own their last
+reference. SetElemDataPairOptionObjects assumes prior validation: a malformed or
+odd-length list at this phase is an internal fatal error, not a second user-input
+validation opportunity. Run synchronization while the first-configuration flag
+still describes the configuration being committed.
+
+Callback boundaries
+-------------------
+
+String-list parsing for tags and exact state parsing do not execute binding
+scripts. Common numeric data parsing is different: list entries are expressions,
+and their evaluation can invoke Tcl commands or variable traces. Candidate
+staging protects the live value from a partial commit, but does not by itself
+preserve the graph, element or borrowed arguments across such callbacks. Audit
+those lifetimes at the caller and parser boundary separately; these contracts
+do not establish general reentrancy for configuration.
+
+CommitElemVector installs a vector-change callback only after moving the slot
+to its stable destination. A callback must never retain a pointer to a temporary
+transaction field. Moving the client ID transfers observation ownership, not
+ownership of the named source vector or its storage.

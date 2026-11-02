@@ -20,6 +20,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <limits.h>
+/** @defgroup element_transaction_internals Element transaction internals
+ * Candidate ownership, option identity and retained representations.
+ */
+
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
 #include "rbcChain.h"
@@ -897,28 +901,16 @@ static int ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CommitElemVector --
- *
- *      Replaces a live element vector with a previously parsed
- *      candidate.
- *
- * Parameters:
- *      Element *elemPtr         - Element owning the destination.
- *      ElemVector *destPtr      - Live vector to replace.
- *      ElemVector *candidatePtr - Successfully parsed candidate.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Releases the previous live vector, transfers ownership from the
- *      candidate, and installs an external-vector change callback when
- *      required.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Move a parsed data slot into its stable element destination.
+ * @param elemPtr Live owner of the destination field.
+ * @param destPtr Initialized live slot to replace; distinct from candidatePtr.
+ * @param candidatePtr Successfully parsed slot whose ownership is transferred.
+ * Releases the old slot, copies the candidate and zeroes it. Installs the owning
+ * element and, for named-vector data, a change callback whose client data points
+ * to destPtr rather than temporary storage. Does not destroy the source vector,
+ * copy its numeric storage, or schedule redraw independently.
  */
 static void CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr) {
     Rbc_FreeElemVector(destPtr);
@@ -935,29 +927,15 @@ static void CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetElemDataOption --
- *
- *      Determines which bar data option is represented by an option
- *      name accepted by Tk_SetOptions.
- *
- *      Exact names take precedence over prefix matching. This matters
- *      for "-x" and "-y", which are exact option names as well as
- *      prefixes of several longer options.
- *
- * Parameters:
- *      Tcl_Obj *objPtr - Option-name object.
- *
- * Results:
- *      The corresponding ElemDataOption value. ELEM_DATA_OPTION_NONE is
- *      returned when the option is unrelated to bar data.
- *
- * Side Effects:
- *      None.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Identify an element's common data option after Tk validation.
+ * @param elemPtr Element with concrete optionSpecs.
+ * @param objPtr Borrowed original option-name object.
+ * @return The corresponding ElemDataOption, or NONE for unrelated/unresolved names.
+ * Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve
+ * through the concrete table. Does not parse values, acquire resources or change
+ * state. Exact -x and -y names must retain precedence over longer data names.
  */
 static ElemDataOption GetElemDataOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -1024,28 +1002,15 @@ static ElemPenOption GetElemPenOption(Element *elemPtr, Tcl_Obj *objPtr) {
     return ELEM_PEN_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetElemAxisOption --
- *
- *      Determines whether an option represents "-mapx" or "-mapy".
- *
- *      Tk_SetOptions has already validated option abbreviations. This
- *      helper recovers the canonical option identity from the original
- *      option/value vector.
- *
- * Parameters:
- *      Tcl_Obj *objPtr - Option-name object.
- *
- * Results:
- *      The corresponding ElemAxisOption value.
- *      ELEM_AXIS_OPTION_NONE is returned for unrelated options.
- *
- * Side Effects:
- *      None.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Identify an element's axis mapping option after Tk validation.
+ * @param elemPtr Element with concrete optionSpecs.
+ * @param objPtr Borrowed original option-name object.
+ * @return X or Y axis identity, or NONE for unrelated/unresolved names.
+ * Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve
+ * through the concrete table. Does not parse values, acquire resources or change
+ * state. Exact -x and -y names must retain precedence over longer data names.
  */
 static ElemAxisOption GetElemAxisOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -1063,27 +1028,15 @@ static ElemAxisOption GetElemAxisOption(Element *elemPtr, Tcl_Obj *objPtr) {
     return ELEM_AXIS_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * IsElemStateOption --
- *
- *      Determines whether an option name represents "-state".
- *
- *      Tk_SetOptions has already validated abbreviations. This helper
- *      recovers the option identity from the original option/value
- *      vector.
- *
- * Parameters:
- *      Tcl_Obj *objPtr - Option-name object.
- *
- * Results:
- *      Non-zero if the option represents "-state"; zero otherwise.
- *
- * Side Effects:
- *      None.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Identify an element's state option after Tk validation.
+ * @param elemPtr Element with concrete optionSpecs.
+ * @param objPtr Borrowed original option-name object.
+ * @return Nonzero only for the canonical -state option.
+ * Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve
+ * through the concrete table. Does not parse values, acquire resources or change
+ * state. Exact -x and -y names must retain precedence over longer data names.
  */
 static int IsElemStateOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -1092,18 +1045,15 @@ static int IsElemStateOption(Element *elemPtr, Tcl_Obj *objPtr) {
     return ((name != NULL) && (strcmp(name, "-state") == 0));
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * IsElemBindTagsOption --
- *
- *      Determines whether an option name represents "-bindtags".
- *
- *      Tk_SetOptions has already validated abbreviations. This helper
- *      recovers the canonical option identity from the original
- *      option/value vector.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Identify an element's binding tags option after Tk validation.
+ * @param elemPtr Element with concrete optionSpecs.
+ * @param objPtr Borrowed original option-name object.
+ * @return Nonzero only for the canonical -bindtags option.
+ * Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve
+ * through the concrete table. Does not parse values, acquire resources or change
+ * state. Exact -x and -y names must retain precedence over longer data names.
  */
 static int IsElemBindTagsOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -1112,18 +1062,16 @@ static int IsElemBindTagsOption(Element *elemPtr, Tcl_Obj *objPtr) {
     return ((name != NULL) && (strcmp(name, "-bindtags") == 0));
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StageElemTags --
- *
- *      Parses a bind-tags value into temporary transaction storage
- *      without modifying the live element.
- *
- *      A previously staged candidate is released only after its
- *      replacement has parsed successfully.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Replace a candidate tag list only after its successor parses.
+ * @param interp Interpreter for list syntax diagnostics.
+ * @param objPtr Borrowed tag-list object; NULL represents an empty list.
+ * @param transactionPtr Initialized transaction owning any earlier candidate.
+ * @return TCL_OK on staging; TCL_ERROR preserves the earlier candidate.
+ * Success frees the old candidate block, transfers the new single-block string
+ * list and sets staged even for an empty list. Does not modify live element tags
+ * or execute a binding script.
  */
 static int StageElemTags(Tcl_Interp *interp, Tcl_Obj *objPtr, ElemTagsTransaction *transactionPtr) {
     char **newTags;
@@ -1144,14 +1092,12 @@ static int StageElemTags(Tcl_Interp *interp, Tcl_Obj *objPtr, ElemTagsTransactio
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeElemTagsTransaction --
- *
- *      Releases a staged bind-tags list and clears the transaction.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Release candidate binding tags and reset their transaction.
+ * @param transactionPtr Initialized transaction, possibly empty or already committed.
+ * Frees the owned string-list block if present and zeroes the complete record.
+ * Does not alter the element or free tags already transferred to it.
  */
 void Rbc_FreeElemTagsTransaction(ElemTagsTransaction *transactionPtr) {
     if (transactionPtr->tags != NULL) {
@@ -1160,19 +1106,17 @@ void Rbc_FreeElemTagsTransaction(ElemTagsTransaction *transactionPtr) {
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PrepareElemTagsTransaction --
- *
- *      Parses all bind-tags values involved in the current modern
- *      configuration without modifying the live element.
- *
- *      Explicit occurrences are processed in their original order.
- *      An invalid earlier repeated occurrence therefore causes the
- *      complete configuration to fail.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Validate every relevant binding-tag occurrence before element commit.
+ * @param graphPtr Live owning graph and interpreter.
+ * @param elemPtr Element with a validated, even optionObjv/optionObjc sequence.
+ * @param[out] transactionPtr Fresh transaction; any earlier owned candidate must
+ * already have been released before this function zeroes the record.
+ * @return TCL_OK on preparation; TCL_ERROR after freeing all staged tag storage.
+ * On initial configuration, processes the retained default only if not explicitly
+ * overridden. Then parses explicit occurrences in caller order, so a later valid
+ * value cannot hide an earlier invalid list. Live tags remain unchanged.
  */
 int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -1218,15 +1162,14 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CommitElemTagsTransaction --
- *
- *      Replaces the live bind-tags list with a successfully staged
- *      candidate.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Transfer a prepared tag-list block into the live element.
+ * @param elemPtr Live destination element owning its previous tags.
+ * @param transactionPtr Successfully prepared tags transaction.
+ * Does nothing unless staged. Otherwise moves tags (including NULL), clears the
+ * candidate and flag, then frees the old live block. No parsing or binding script
+ * execution occurs; subsequent transaction cleanup is safe.
  */
 void Rbc_CommitElemTagsTransaction(Element *elemPtr, ElemTagsTransaction *transactionPtr) {
     char **oldTags;
@@ -1243,37 +1186,17 @@ void Rbc_CommitElemTagsTransaction(Element *elemPtr, ElemTagsTransaction *transa
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PrepareElemStateTransaction --
- *
- *      Parses all element state values involved in the current modern
- *      configuration without modifying the live element.
- *
- *      Explicit occurrences are processed in their original order.
- *      An invalid earlier repeated value therefore causes the complete
- *      configuration to fail, even if a later occurrence is valid.
- *
- * Parameters:
- *      Graph *graphPtr
- *          Graph containing the element.
- *
- *      Element *elemPtr
- *          Element being configured.
- *
- *      ElemStateTransaction *transactionPtr
- *          Receives the staged state.
- *
- * Results:
- *      TCL_OK if every relevant state value is valid.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Sets the interpreter result on invalid input. The live element
- *      state is not modified.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Validate state values in their original configuration order.
+ * @param graphPtr Live graph supplying the error interpreter.
+ * @param elemPtr Element with an even validated option sequence.
+ * @param[out] transactionPtr Transaction reset before preparation.
+ * @return TCL_OK when all relevant values pass; TCL_ERROR on the first bad state.
+ * Uses the initial retained state only when not explicitly overridden, then checks
+ * every explicit occurrence. Does not change live state. Unlike owning resource
+ * transactions, failure may leave an earlier scalar candidate marked staged;
+ * there is nothing to free, but callers must not commit after TCL_ERROR.
  */
 int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemStateTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -1322,27 +1245,13 @@ int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemState
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CommitElemStateTransaction --
- *
- *      Commits a successfully parsed state to the live element.
- *
- * Parameters:
- *      Element *elemPtr
- *          Destination element.
- *
- *      ElemStateTransaction *transactionPtr
- *          Prepared state transaction.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Replaces elemPtr->state if a value was staged.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Install a successfully prepared scalar state.
+ * @param elemPtr Live destination element.
+ * @param transactionPtr Transaction whose preparation returned TCL_OK.
+ * Copies state only when staged, then clears staged. Performs no resource cleanup,
+ * redraw scheduling or binding repick; the configuration caller handles those.
  */
 void Rbc_CommitElemStateTransaction(Element *elemPtr, ElemStateTransaction *transactionPtr) {
     if (transactionPtr->staged) {
@@ -1351,31 +1260,19 @@ void Rbc_CommitElemStateTransaction(Element *elemPtr, ElemStateTransaction *tran
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StageElemAxis --
- *
- *      Resolves one element axis option into temporary transaction
- *      storage without modifying the live element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Obj *objPtr
- *      ElemAxisTransaction *transactionPtr
- *      Axis **candidatePtrPtr
- *      ElemAxisOption option
- *
- * Results:
- *      TCL_OK if the axis exists and has the required orientation.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Acquires an axis reference. A previously staged reference for
- *      the same option is released only after the replacement has been
- *      resolved successfully.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Acquire a replacement axis before releasing the staged predecessor.
+ * @param graphPtr Live graph containing the axis registry.
+ * @param objPtr Borrowed axis-name object; an empty name is not accepted.
+ * @param transactionPtr Initialized axis transaction.
+ * @param candidatePtrPtr Address of the candidate matching option.
+ * @param option X or Y; any other identity is an internal fatal error.
+ * @return TCL_OK after staging; TCL_ERROR retains the previous candidate.
+ * Rbc_GetAxisFromObj checks in-use orientation (or assigns the class of an unused
+ * axis) and acquires a reference without creating an absent axis. Success
+ * releases the earlier staged reference, stores the new
+ * one and sets its mask bit. Live element axes are unchanged.
  */
 static int StageElemAxis(Graph *graphPtr, Tcl_Obj *objPtr, ElemAxisTransaction *transactionPtr, Axis **candidatePtrPtr,
                          ElemAxisOption option) {
@@ -1415,15 +1312,13 @@ static int StageElemAxis(Graph *graphPtr, Tcl_Obj *objPtr, ElemAxisTransaction *
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeElemAxisTransaction --
- *
- *      Releases all axis references owned by a staged element-axis
- *      transaction.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Release owned candidate axes and clear their transaction.
+ * @param graphPtr Owning graph used for reference release.
+ * @param transactionPtr Initialized, partially prepared or committed transaction.
+ * Releases each non-NULL candidate independently, then zeroes the record. It does
+ * not release references transferred to live element fields by commit.
  */
 void Rbc_FreeElemAxisTransaction(Graph *graphPtr, ElemAxisTransaction *transactionPtr) {
     if (transactionPtr->xAxisPtr != NULL) {
@@ -1435,20 +1330,16 @@ void Rbc_FreeElemAxisTransaction(Graph *graphPtr, ElemAxisTransaction *transacti
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PrepareElemAxisTransaction --
- *
- *      Resolves all X- and Y-axis mappings involved in the current
- *      modern element configuration without modifying the live
- *      element.
- *
- *      Explicit option occurrences are processed in caller order, so
- *      an invalid earlier repeated value still causes the complete
- *      configuration to fail.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Resolve ordered element axis options into owned candidates.
+ * @param graphPtr Live owning graph.
+ * @param elemPtr Element with even validated configuration arguments.
+ * @param[out] transactionPtr Fresh transaction, zeroed before use.
+ * @return TCL_OK on preparation; TCL_ERROR after releasing all staged references.
+ * Initial mapx/mapy defaults are processed only when not explicitly overridden.
+ * Every explicit occurrence is then resolved in caller order. Failure does not
+ * change live mappings; successful output must be committed or freed.
  */
 int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -1518,15 +1409,15 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CommitElemAxisTransaction --
- *
- *      Replaces the live element axes with successfully staged axis
- *      references.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Move prepared axis references to the element and release old mappings.
+ * @param graphPtr Owning graph for release of replaced references.
+ * @param elemPtr Live destination element.
+ * @param transactionPtr Successfully prepared axis transaction.
+ * Only staged X/Y slots are replaced. Clears transferred pointers and then the
+ * mask, allowing later transaction cleanup. No lookup or parsing occurs here;
+ * reference release may destroy a delete-pending axis whose count reaches zero.
  */
 void Rbc_CommitElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & ELEM_AXIS_OPTION_MASK(ELEM_AXIS_OPTION_X)) {
@@ -1776,34 +1667,20 @@ Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTrans
     return MIN(nX, nY);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StageElemDataVector --
- *
- *      Parses one element data-vector option into temporary transaction
- *      storage.
- *
- *      If the same destination was staged previously, the previous
- *      candidate is released only after the replacement has parsed
- *      successfully.
- *
- * Parameters:
- *      Tcl_Interp *interp                    - Interpreter.
- *      Element *elemPtr                      - Owning element.
- *      Tcl_Obj *objPtr                       - Original option value.
- *      ElemDataTransaction *transactionPtr    - Current transaction.
- *      ElemVector *candidatePtr              - Destination candidate.
- *      ElemDataOption option                  - Candidate identity.
- *
- * Results:
- *      TCL_OK on success; TCL_ERROR on parsing failure.
- *
- * Side Effects:
- *      May allocate temporary vector storage or a vector client ID.
- *      The live element vector is not modified.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Parse a data slot before discarding its previous candidate.
+ * @param interp Interpreter used by the data parser.
+ * @param elemPtr Live owning element.
+ * @param objPtr Borrowed vector-name or expression-list object.
+ * @param transactionPtr Initialized common-data transaction.
+ * @param candidatePtr Candidate slot corresponding to option.
+ * @param option Data identity whose mask bit tracks this slot.
+ * @return TCL_OK after transferring the parsed candidate, TCL_ERROR with the
+ * previous candidate intact. Frees a failed temporary candidate before returning.
+ * Named data owns a vector client ID; literal data owns an array. The parser can
+ * evaluate Tcl expressions, so caller-owned element and argument lifetimes must
+ * survive callbacks. This staging helper adds no preservation boundary.
  */
 static int StageElemDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
                                ElemDataTransaction *transactionPtr, ElemVector *candidatePtr, ElemDataOption option) {
@@ -1824,27 +1701,17 @@ static int StageElemDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *ob
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StageElemDataPairs --
- *
- *      Parses the "-data" value into temporary X and Y candidates.
- *
- * Parameters:
- *      Tcl_Interp *interp                    - Interpreter.
- *      Element *elemPtr                      - Owning element.
- *      Tcl_Obj *objPtr                       - Original "-data" value.
- *      ElemDataTransaction *transactionPtr    - Current transaction.
- *
- * Results:
- *      TCL_OK on success; TCL_ERROR on parsing failure.
- *
- * Side Effects:
- *      Replaces the transaction's staged X and Y candidates only after
- *      both new candidates have parsed successfully.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Stage a paired data value as an atomic X/Y candidate replacement.
+ * @param interp Interpreter for pair parsing and expression errors.
+ * @param elemPtr Live owning element.
+ * @param objPtr Borrowed alternating coordinate-expression list.
+ * @param transactionPtr Initialized common-data transaction.
+ * @return TCL_OK after replacing both staged slots; TCL_ERROR preserves both
+ * previous candidates. Failure frees both temporary slots. Success frees earlier
+ * staged X/Y records only after pair parsing succeeds, moves the new records and
+ * sets both mask bits. Live coordinates remain unchanged. Parsing can run Tcl.
  */
 static int StageElemDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
                               ElemDataTransaction *transactionPtr) {
@@ -2078,26 +1945,14 @@ void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transa
     transactionPtr->stagedMask = 0;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ReplaceElemOptionObject --
- *
- *      Replaces one Tcl object retained by the bar element option
- *      table.
- *
- * Parameters:
- *      Tcl_Obj **objPtrPtr - Address of the retained option object.
- *      Tcl_Obj *newObjPtr  - Replacement object, or NULL.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Updates Tcl object reference counts and replaces the retained
- *      object.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Replace one owned Tcl option-object reference.
+ * @param objPtrPtr Address of a retained object pointer, possibly NULL.
+ * @param newObjPtr Borrowed replacement object, or NULL to clear the field.
+ * Identical pointers are a no-op. Otherwise retains the new object before storing
+ * it and releasing the old reference. Does not copy contents, evaluate scripts or
+ * change internal numeric data.
  */
 static void ReplaceElemOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
     Tcl_Obj *oldObjPtr;
@@ -2115,30 +1970,16 @@ static void ReplaceElemOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * SetElemDataPairOptionObjects --
- *
- *      Stores a coherent -data representation and derives the retained
- *      -x and -y representations from its alternating coordinate
- *      elements.
- *
- *      The original Tcl representations of the coordinate expressions
- *      are preserved. They are not reconstructed from the internal
- *      double arrays.
- *
- * Parameters:
- *      Element *elemPtr    - Bar element.
- *      Tcl_Obj *dataObjPtr - Valid, even-length -data list.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Replaces dataObjPtr, xObjPtr, and yObjPtr in the element.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Retain paired data and derive coherent X/Y option representations.
+ * @param elemPtr Element whose dataObjPtr, xObjPtr and yObjPtr are replaced.
+ * @param dataObjPtr Borrowed, already validated even-length coordinate list.
+ * Builds new X/Y lists using the original element objects, preserving expression
+ * spellings instead of reconstructing them from doubles. Retains all three
+ * results through ReplaceElemOptionObject. Invalid list structure or failure to
+ * assemble output is an internal Tcl_Panic, not a recoverable user error. Must
+ * run only after successful data validation; does not evaluate expressions.
  */
 static void SetElemDataPairOptionObjects(Element *elemPtr, Tcl_Obj *dataObjPtr) {
     Tcl_Obj **objv;
@@ -2168,34 +2009,16 @@ static void SetElemDataPairOptionObjects(Element *elemPtr, Tcl_Obj *dataObjPtr) 
     ReplaceElemOptionObject(&elemPtr->yObjPtr, yObjPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_SyncElemDataOptionObjects --
- *
- *      Synchronizes the retained -data, -x, and -y option objects after
- *      a successfully committed element-data transaction.
- *
- *      A retained -data value is valid only while both live coordinate
- *      vectors still originate from that -data value. Configuring -x or
- *      -y independently invalidates -data. A later -data occurrence
- *      restores a coherent representation.
- *
- *      Initial option-database values are processed before explicit
- *      option/value pairs. Explicit pairs are then processed in their
- *      original left-to-right order.
- *
- * Parameters:
- *      Element *elemPtr - Configured bar element.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Replaces retained Tcl option objects and updates their reference
- *      counts.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Synchronize retained coordinate options after successful data commit.
+ * @param elemPtr Configured element with even, still-valid option arguments.
+ * Processes non-overridden initial defaults in data/X/Y order, then explicit
+ * arguments in caller order. A data occurrence sets coherent data/X/Y objects;
+ * an independent X or Y clears data and replaces that coordinate representation.
+ * Pins initial objects while replacing fields, then releases those temporary
+ * references. Does not rebuild numeric arrays or evaluate expressions. Call while
+ * optionsConfigured still identifies first configuration when applicable.
  */
 void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
     Tcl_Obj *initialDataObjPtr;
