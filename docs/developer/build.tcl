@@ -157,7 +157,7 @@ proc ::rbcDocBuild::main {arguments} {
     set winConfig [file join $output Doxyfile-win]
     file delete -force $winXml
     set winSettings [readFile $config]
-    append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcWinDraw.c]]\n"
+    append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcWinDraw.c]] [doxyQuote [file join $root generic rbcWinImage.c]] [doxyQuote [file join $root generic rbcWinUtil.c]]\n"
     append winSettings "OUTPUT_DIRECTORY = [doxyQuote [file join $output doxygen-win]]\n"
     append winSettings "WARN_LOGFILE = [doxyQuote $winLog]\n"
     # Xlib spelling is otherwise unknown without following platform headers.

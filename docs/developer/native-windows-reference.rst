@@ -56,3 +56,18 @@ and fallback policies described in :doc:`native-rendering`.
    :members:
 
 .. c:namespace-pop::
+
+Bitmap capture and transforms
+-----------------------------
+
+Windows-specific image contracts are extracted without the same-named shared
+header declarations. See :doc:`images-tiles` for common image ownership and
+:doc:`native-rendering` for platform representations and limits.
+
+.. c:namespace:: rbcWindowsImages
+
+.. doxygengroup:: windows_bitmap_images
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::

@@ -12,23 +12,19 @@
 
 #include "rbcInt.h"
 
-/*
- *--------------------------------------------------------------
+/** @file rbcWinUtil.c
+ * Windows system-error formatting.
+ */
+/**
+ * @brief Format the current Windows error in borrowed static storage.
+ * @ingroup windows_bitmap_images
  *
- * Rbc_LastError --
- *
- *      TODO: Description
- *
- * Parameters:
- *      None
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Captures GetLastError before formatting. Uses FormatMessageA with the system
+ * default language and removes trailing CR/LF. Falls back to a numeric error
+ * string if formatting fails. The returned 1024-byte buffer is overwritten by
+ * later calls, is not thread-local, and must not be freed. Text is in the
+ * Windows ANSI encoding rather than guaranteed UTF-8; copy/convert if retained
+ * or exposed through a Tcl API expecting UTF-8.
  */
 char *Rbc_LastError(void) {
     static char buffer[1024];

@@ -10,6 +10,12 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcWinImage.c
+ * Windows drawable capture, transparency masks and monochrome transforms.
+ */
+/** @defgroup windows_bitmap_images Windows bitmap and capture services
+ * Platform implementation, extracted separately from shared image declarations.
+ */
 #include "rbcInt.h"
 #include "rbcImage.h"
 #include <stdint.h>
@@ -23,6 +29,14 @@
 #define SetBit(x, y)                                                                                                   \
     (destBits[((size_t)destBytesPerRow * (size_t)(destHeight - (y) - 1)) + ((size_t)(x) >> 3)] |= (0x80 >> ((x) & 7)))
 
+/**
+ * @brief Calculate a DWORD-aligned monochrome row stride.
+ * @ingroup windows_bitmap_images
+ *
+ * Returns zero for nonpositive width or width too large for the alignment
+ * addition. Otherwise returns ((width + 31) & ~31) / 8 bytes. Height and total
+ * allocation-size validation remain with the caller.
+ */
 static int GetMonoBitmapStride(int width) {
     if ((width <= 0) || (width > INT_MAX - 31)) {
         return 0;
@@ -30,31 +44,17 @@ static int GetMonoBitmapStride(int width) {
     return ((width + 31) & ~31) / 8;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Capture a Windows drawable rectangle into an owned color image.
+ * @ingroup windows_bitmap_images
  *
- * Rbc_DrawableToColorImage --
- *
- *      Takes a snapshot of an X drawable (pixmap or window) and
- *      converts it to a color image.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      int x
- *      int y
- *      int width
- *      int height - Dimension of the drawable. 
- *      double inputGamma
- *
- * Results:
- *      Returns a color image of the drawable.  If an error occurred,
- *      NULL is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Rejects nonpositive dimensions and nonfinite/nonpositive gamma. Borrows
+ * window/target, creates a 32-bit DIB and memory DC, then copies the rectangle
+ * with SRCCOPY. Converts bottom-up BGR rows using the bitmap row stride and
+ * a pow(channel/255, inputGamma) lookup; output alpha is fully opaque.
+ * Releases temporary bitmap/DC resources and any copied system palette.
+ * Returns NULL on checked capture failures; caller frees a successful image
+ * with Rbc_FreeColorImage. Not every GDI acquisition/selection is validated.
  */
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma) {
@@ -161,24 +161,16 @@ done:
     return image;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Create a Windows one-bit transparency mask from a Tk photo block.
+ * @ingroup windows_bitmap_images
  *
- * Rbc_PhotoImageMask --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Tk_PhotoImageBlock src
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows photo storage and honors pitch, pixelSize and alpha offset. Requires
+ * a valid block with accessible alpha bytes. Sets bits only for exactly zero
+ * alpha; partial alpha is treated as opaque. Uses aligned temporary rows and
+ * the existing photo-specific row traversal before CreateBitmapIndirect.
+ * Returns an owned Tk pixmap, or None for all-opaque input, invalid dimensions
+ * or bitmap creation failure. Releases temporary bits; caller frees the pixmap.
  */
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     Pixmap bitmap;
@@ -243,24 +235,15 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     return bitmap;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Create a one-bit transparency mask from RBC color pixels.
+ * @ingroup windows_bitmap_images
  *
- * Rbc_ColorImageMask --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Rbc_ColorImage image
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows a valid image and sets bits only where alpha equals zero. Uses
+ * aligned rows and the SetBit bottom-up addressing convention while traversing
+ * source pixels in logical row order. Returns None for all-opaque input or
+ * checked failure, otherwise an owned Tk pixmap to free with Tk_FreePixmap.
+ * Temporary bit storage is released after wrapping the native bitmap.
  */
 Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     Pixmap bitmap;
@@ -320,36 +303,18 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     return bitmap;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Create a rotated Windows monochrome pixmap.
+ * @ingroup windows_bitmap_images
  *
- * Rbc_RotateBitmap --
- *
- *      Creates a new bitmap containing the rotated image
- *      of the given bitmap.  We also need a special GC of
- *      depth 1, so that we do not need to rotate more than
- *      one plane of the bitmap.
- *
- *      Note that under Windows, monochrome bitmaps are
- *      stored bottom-to-top.  This is why the right angle
- *      rotations 0/180 and 90/270 look reversed.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Pixmap srcBitmap - Source bitmap to be rotated 
- *      int srcWidth
- *      int srcHeight - Width and height of the source bitmap 
- *      double theta - Right angle rotation to perform 
- *      int *destWidthPtr
- *      int *destHeightPtr
- *
- * Results:
- *      Returns a new bitmap containing the rotated image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows source/window. Rejects invalid sizes, nonfinite angle or missing
+ * output pointers before initializing outputs. After initial validation,
+ * outputs are zero until success. Normalizes angle to [0,360), rounds bounding
+ * dimensions upward and checks stride, size_t and DWORD image-size limits.
+ * Uses exact quadrant mappings or inverse mapping with ROUND and source bounds
+ * checks. Frees readback bits and temporary storage; failed upload frees the
+ * destination. Returns None on checked failure, otherwise owned pixmap and
+ * dimensions. Caller releases the pixmap with Tk_FreePixmap.
  */
 Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, double theta, int *destWidthPtr,
                         int *destHeightPtr) {
@@ -597,28 +562,15 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     return destBitmap;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Scale a monochrome bitmap through Windows StretchBlt.
+ * @ingroup windows_bitmap_images
  *
- * Rbc_ScaleBitmap --
- *
- *      Creates a new scaled bitmap from another bitmap.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Pixmap srcBitmap
- *      int srcWidth
- *      int srcHeight
- *      int destWidth
- *      int destHeight
- *
- * Results:
- *      The new scaled bitmap is returned.
- *
- * Side Effects:
- *      A new pixmap is allocated. The caller must release this.
- *
- * -----------------------------------------------------------------------
+ * Borrows source/window and allocates an owned destination pixmap. Acquires
+ * source and destination DC records and releases both after SRCCOPY scaling.
+ * Returns None if pixmap allocation fails. This path does not validate sizes
+ * or test DC acquisition and StretchBlt success separately; callers must
+ * supply valid dimensions. A returned pixmap is not proof of successful copy.
  */
 Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int destWidth, int destHeight) {
     Rbc_WinDrawableDC *srcStatePtr;
@@ -643,44 +595,18 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     return destBitmap;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Construct only a region of a virtual scaled/rotated bitmap.
+ * @ingroup windows_bitmap_images
  *
- * Rbc_ScaleRotateBitmapRegion --
- *
- *      Creates a scaled and rotated bitmap from a given bitmap.  The
- *      caller also provides (offsets and dimensions) the region of
- *      interest in the destination bitmap.  This saves having to
- *      process the entire destination bitmap is only part of it is
- *      showing in the viewport.
- *
- *      This uses a simple rotation/scaling of each pixel in the
- *      destination image.  For each pixel, the corresponding
- *      pixel in the source bitmap is used.  This means that
- *      destination coordinates are first scaled to the size of
- *      the rotated source bitmap.  These coordinates are then
- *      rotated back to their original orientation in the source.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Pixmap srcBitmap - Source bitmap. 
- *      unsigned int srcWidth
- *      unsigned int srcHeight - Size of source bitmap 
- *      int regionX
- *      int regionY - Offset of region in virtual destination bitmap. 
- *      unsigned int regionWidth
- *      unsigned int regionHeight - Desire size of bitmap region. 
- *      unsigned int virtWidth
- *      unsigned int virtHeight - Virtual size of destination bitmap. 
- *      double theta - Angle to rotate bitmap. 
- *
- * Results:
- *      The new rotated and scaled bitmap is returned.
- *
- * Side Effects:
- *      A new pixmap is allocated. The caller must release this.
- *
- * -----------------------------------------------------------------------
+ * Validates positive source, region and virtual sizes plus finite angle.
+ * Borrows source/window; owns destination pixmap and readback/output buffers.
+ * Normalizes rotation and inverse-maps region coordinates through virtual
+ * scaling into source bits. Exact quadrant paths assume an in-bounds region
+ * and directly sample; arbitrary angles bounds-check source coordinates.
+ * Callers must keep region offsets and coordinate arithmetic representable
+ * and within the virtual image. Checks stride/storage limits and frees the
+ * destination on checked readback/upload failure. Caller owns successful pixmap.
  */
 Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight,
                                    int regionX, int regionY, int regionWidth, int regionHeight,

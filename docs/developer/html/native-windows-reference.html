@@ -481,6 +481,77 @@ and fallback policies described in <a class="reference internal" href="native-re
 </dd></dl>
 
 </section>
+<section id="bitmap-capture-and-transforms">
+<h2>Bitmap capture and transforms<a class="headerlink" href="#bitmap-capture-and-transforms" title="Link to this heading">¶</a></h2>
+<p>Windows-specific image contracts are extracted without the same-named shared
+header declarations. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for common image ownership and
+<a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for platform representations and limits.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__windows__bitmap__images"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">bitmap</span> <span class="pre">and</span> <span class="pre">capture</span> <span class="pre">services</span></span></dt>
+<dd><p>Platform implementation, extracted separately from shared image declarations. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.GetMonoBitmapStride">
+<span class="target" id="group__windows__bitmap__images_1ga463d68af78fa99caa888ea08c28f3656"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMonoBitmapStride</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.GetMonoBitmapStride" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Calculate a DWORD-aligned monochrome row stride. </p>
+<p>Returns zero for nonpositive width or width too large for the alignment addition. Otherwise returns ((width + 31) &amp; ~31) / 8 bytes. Height and total allocation-size validation remain with the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.Rbc_DrawableToColorImage">
+<span class="target" id="group__windows__bitmap__images_1ga5de111faea25d4155c062496db057e17"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawableToColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">inputGamma</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.Rbc_DrawableToColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Capture a Windows drawable rectangle into an owned color image. </p>
+<p>Rejects nonpositive dimensions and nonfinite/nonpositive gamma. Borrows window/target, creates a 32-bit DIB and memory DC, then copies the rectangle with SRCCOPY. Converts bottom-up BGR rows using the bitmap row stride and a pow(channel/255, inputGamma) lookup; output alpha is fully opaque. Releases temporary bitmap/DC resources and any copied system palette. Returns NULL on checked capture failures; caller frees a successful image with Rbc_FreeColorImage. Not every GDI acquisition/selection is validated. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.Rbc_PhotoImageMask">
+<span class="target" id="group__windows__bitmap__images_1gad3fa40b5419da4693990afc0dfe7348e"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoImageMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.Rbc_PhotoImageMask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a Windows one-bit transparency mask from a Tk photo block. </p>
+<p>Borrows photo storage and honors pitch, pixelSize and alpha offset. Requires a valid block with accessible alpha bytes. Sets bits only for exactly zero alpha; partial alpha is treated as opaque. Uses aligned temporary rows and the existing photo-specific row traversal before CreateBitmapIndirect. Returns an owned Tk pixmap, or None for all-opaque input, invalid dimensions or bitmap creation failure. Releases temporary bits; caller frees the pixmap. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.Rbc_ColorImageMask">
+<span class="target" id="group__windows__bitmap__images_1ga60f0540d4903cd78163dcaa44a113f41"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.Rbc_ColorImageMask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a one-bit transparency mask from RBC color pixels. </p>
+<p>Borrows a valid image and sets bits only where alpha equals zero. Uses aligned rows and the SetBit bottom-up addressing convention while traversing source pixels in logical row order. Returns None for all-opaque input or checked failure, otherwise an owned Tk pixmap to free with Tk_FreePixmap. Temporary bit storage is released after wrapping the native bitmap. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.Rbc_RotateBitmap">
+<span class="target" id="group__windows__bitmap__images_1ga11bfeaa1709d2c58288e7f3e9964fb79"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RotateBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">srcBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcHeight</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destWidthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destHeightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.Rbc_RotateBitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a rotated Windows monochrome pixmap. </p>
+<p>Borrows source/window. Rejects invalid sizes, nonfinite angle or missing output pointers before initializing outputs. After initial validation, outputs are zero until success. Normalizes angle to [0,360), rounds bounding dimensions upward and checks stride, size_t and DWORD image-size limits. Uses exact quadrant mappings or inverse mapping with ROUND and source bounds checks. Frees readback bits and temporary storage; failed upload frees the destination. Returns None on checked failure, otherwise owned pixmap and dimensions. Caller releases the pixmap with Tk_FreePixmap. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.Rbc_ScaleBitmap">
+<span class="target" id="group__windows__bitmap__images_1ga3f034219fab50959938dc197e59ec73d"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScaleBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">srcBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.Rbc_ScaleBitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Scale a monochrome bitmap through Windows StretchBlt. </p>
+<p>Borrows source/window and allocates an owned destination pixmap. Acquires source and destination DC records and releases both after SRCCOPY scaling. Returns None if pixmap allocation fails. This path does not validate sizes or test DC acquisition and StretchBlt success separately; callers must supply valid dimensions. A returned pixmap is not proof of successful copy. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.Rbc_ScaleRotateBitmapRegion">
+<span class="target" id="group__windows__bitmap__images_1gafff4fb9e72065410099e4f3dfa129b84"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScaleRotateBitmapRegion</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">srcBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionY</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">virtWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">virtHeight</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.Rbc_ScaleRotateBitmapRegion" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Construct only a region of a virtual scaled/rotated bitmap. </p>
+<p>Validates positive source, region and virtual sizes plus finite angle. Borrows source/window; owns destination pixmap and readback/output buffers. Normalizes rotation and inverse-maps region coordinates through virtual scaling into source bits. Exact quadrant paths assume an in-bounds region and directly sample; arbitrary angles bounds-check source coordinates. Callers must keep region offsets and coordinate arithmetic representable and within the virtual image. Checks stride/storage limits and frees the destination on checked readback/upload failure. Caller owns successful pixmap. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsImages.Rbc_LastError">
+<span class="target" id="group__windows__bitmap__images_1gacda637077cffb06dc917186d145a0b6d"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LastError</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsImages.Rbc_LastError" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format the current Windows error in borrowed static storage. </p>
+<p>Captures GetLastError before formatting. Uses FormatMessageA with the system default language and removes trailing CR/LF. Falls back to a numeric error string if formatting fails. The returned 1024-byte buffer is overwritten by later calls, is not thread-local, and must not be freed. Text is in the Windows ANSI encoding rather than guaranteed UTF-8; copy/convert if retained or exposed through a Tcl API expecting UTF-8. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -555,6 +626,17 @@ and fallback policies described in <a class="reference internal" href="native-re
 <li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawSegments()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawPoints"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawPoints()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsPrimitives.Rbc_EmulateXDrawString"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXDrawString()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bitmap-capture-and-transforms">Bitmap capture and transforms</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsImages.GetMonoBitmapStride"><code class="docutils literal notranslate"><span class="pre">GetMonoBitmapStride()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_DrawableToColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawableToColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_PhotoImageMask"><code class="docutils literal notranslate"><span class="pre">Rbc_PhotoImageMask()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_ColorImageMask"><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageMask()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_RotateBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_RotateBitmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_ScaleBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_ScaleRotateBitmapRegion"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_LastError"><code class="docutils literal notranslate"><span class="pre">Rbc_LastError()</span></code></a></li>
 </ul>
 </li>
 </ul>

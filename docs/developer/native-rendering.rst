@@ -493,3 +493,63 @@ String drawing delegates directly to Tk_DrawChars with the Tk_Font stored in
 the GC, the counted string and baseline coordinates. Font ownership, encoding
 interpretation and actual native text drawing remain with that Tk service.
 The compatibility wrapper neither creates a separate font nor retains text.
+
+Windows bitmap capture and transforms
+-------------------------------------
+
+The Windows image backend sits below the common image API. Its temporary
+monochrome buffers use DWORD-aligned rows and MSB-first bit addressing. GetBit
+and SetBit translate logical Y through ``height-y-1``. The byte stride is
+``((width+31)&~31)/8``; the helper rejects widths that would overflow this
+alignment calculation. Individual callers still own height/product validation.
+
+Drawable capture uses a 32-bit DIB and SRCCOPY. Conversion reverses bottom-up
+rows, reads BGR channels using the DIB row stride and sets output alpha to 255.
+The gamma lookup applies ``pow(channel/255, inputGamma)``, with positive finite
+gamma required. Captured pixels therefore represent the drawable's composed
+appearance, not an extraction of original source-image alpha. The caller owns
+the resulting RBC color image; temporary DC, bitmap and palette resources stay
+inside the capture routine.
+
+Transparency masks are binary: only alpha zero sets a mask bit. Partial alpha
+is treated as opaque. None can mean that no transparent pixels were found as
+well as an invalid-size or creation failure, so it is not a diagnostic status.
+Photo blocks are traversed using their own pitch, pixel size and alpha offset.
+The photo-mask path and RBC color-image mask path retain different row traversal
+orders before CreateBitmapIndirect; they should not be consolidated by assuming
+identical source storage. Both return owned Tk pixmaps when a mask is created.
+
+.. list-table:: Monochrome transform contracts
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Operation
+     - Mapping
+     - Validation and result
+   * - Rotate whole bitmap
+     - Normalized angle; exact quadrant mappings or inverse rotation.
+     - Checks dimensions and storage, bounds-checks samples, publishes output
+       dimensions only on success after initial argument validation.
+   * - Scale bitmap
+     - StretchBlt with SRCCOPY.
+     - Caller supplies valid dimensions; drawing success is not checked.
+   * - Scale/rotate region
+     - Region coordinates mapped through a virtual destination size.
+     - Positive sizes and storage are checked; caller supplies an in-bounds,
+       representable region. Quadrant sampling has no per-pixel bounds check.
+
+The whole-bitmap rotation rounds its enclosing dimensions upward and checks
+both size_t allocation limits and the DWORD biSizeImage boundary. The regional
+operation allocates only the requested region, avoiding a full virtual bitmap.
+Both release a destination pixmap on checked readback/upload failure. Their
+SetDIBits success test is nonzero return, not an exact scanline-count check.
+ScaleBitmap is less defensive: it returns the allocated pixmap after StretchBlt
+without separately validating DC acquisition or the copy result. These contracts
+must not be generalized into a promise that every returned native bitmap has
+been fully verified.
+
+Rbc_LastError captures the Windows error code and formats it into one static
+buffer. The text is borrowed until the next call and is not thread-local. It
+strips trailing line endings and supplies a numeric fallback, but uses the ANSI
+FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl
+interface must account for lifetime and encoding separately.
