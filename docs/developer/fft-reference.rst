@@ -9,3 +9,9 @@ See :doc:`fft` for dispatch preconditions and commit/callback boundaries.
 .. doxygenfunction:: Rbc_VectorFftfreqOp
 
 .. doxygenfunction:: Rbc_VectorWindowOp
+
+Implementation helpers
+----------------------
+
+.. doxygengroup:: fft_internals
+   :members:

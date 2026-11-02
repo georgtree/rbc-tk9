@@ -1,7 +1,7 @@
 /*
  * rbcSpline.c --
  *
- *      TODO: Description
+ *      Cartesian and parametric interpolation, and the Tcl spline command.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,6 +9,12 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcSpline.c
+ * Spline implementation helpers.
+ */
+/** @defgroup spline_internals Spline implementation helpers
+ * Private implementation helpers; not installed C API entry points.
+ */
 #include <stdint.h>
 #include "rbcVectorInt.h"
 
@@ -75,6 +81,14 @@ static Tcl_Size QuadraticParametricSplineCore(const Point2D origPts[], Tcl_Size 
                                               Tcl_Size nIntpPts);
 
 
+/**
+ * @brief Check the byte size of a spline workspace array.
+ * @ingroup spline_internals
+ *
+ * Accepts zero count but rejects negative count, zero elementSize or SIZE_MAX
+ * overflow. Returns TCL_OK and writes byteCountPtr on success; otherwise returns
+ * TCL_ERROR without changing the output. No allocation or interpreter result.
+ */
 static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
     if ((count < 0) || (elementSize == 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
         return TCL_ERROR;
@@ -83,6 +97,13 @@ static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *b
     return TCL_OK;
 }
 
+/**
+ * @brief Validate both coordinates of a point array.
+ * @ingroup spline_internals
+ *
+ * Returns FALSE for NULL storage, negative count or a non-finite coordinate.
+ * A non-NULL array with zero points is valid. Does not modify the array.
+ */
 static int SplinePointsAreFinite(const Point2D *points, Tcl_Size nPoints) {
     Tcl_Size i;
 
@@ -97,6 +118,14 @@ static int SplinePointsAreFinite(const Point2D *points, Tcl_Size nPoints) {
     return TRUE;
 }
 
+/**
+ * @brief Validate finite source points with strictly increasing X.
+ * @ingroup spline_internals
+ *
+ * Requires at least two points and validates both coordinates before comparing
+ * adjacent abscissas. Returns boolean; the interpolation wrappers impose their
+ * own stronger minimum of three source points. Does not modify storage.
+ */
 static int SplinePointsHaveIncreasingX(const Point2D *points, Tcl_Size nPoints) {
     Tcl_Size i;
 
@@ -114,6 +143,14 @@ static int SplinePointsHaveIncreasingX(const Point2D *points, Tcl_Size nPoints) 
     return TRUE;
 }
 
+/**
+ * @brief Validate Cartesian query abscissas without inspecting ordinates.
+ * @ingroup spline_internals
+ *
+ * Rejects NULL storage, negative count and non-finite X. Accepts zero queries
+ * with a non-NULL pointer. Query Y may be uninitialized because kernels replace
+ * it. Returns boolean and does not change the array.
+ */
 static int SplineEvaluationPointsAreFinite(const Point2D *points, Tcl_Size nPoints) {
     Tcl_Size i;
 
@@ -128,29 +165,14 @@ static int SplineEvaluationPointsAreFinite(const Point2D *points, Tcl_Size nPoin
     return TRUE;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Find an exact knot or insertion position in sorted source X.
+ * @ingroup spline_internals
  *
- * Search --
- *
- *      Conducts a binary search for a value.  This routine is called
- *      only if key is between x(0) and x(len - 1).
- *
- * Parameters:
- *      Point2D points[] - Contains the abscissas of the data points of interpolation.
- *      int nPoints - Dimension of x.
- *      double key - Value whose relative position in x is to be located.
- *      int *foundPtr - (out) Returns 1 if s is found in x and 0 otherwise.
- *
- * Results:
- *      Returns the index of key when it is found.  Otherwise,
- *      returns the insertion position: the index of the smallest
- *      source value greater than key.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * Requires strictly increasing source abscissas and finite key. Callers search
+ * inside the source domain. Sets foundPtr TRUE for an exact knot, otherwise FALSE
+ * and returns the first position whose abscissa exceeds key (possibly nPoints
+ * for an out-of-domain caller). Reads only X; no allocation or mutation.
  */
 static Tcl_Size Search(const Point2D points[], Tcl_Size nPoints, double key, int *foundPtr) {
     Tcl_Size high;
@@ -177,31 +199,15 @@ static Tcl_Size Search(const Point2D points[], Tcl_Size nPoints, double key, int
     return low;
 }
 
-/*
- *-----------------------------------------------------------------------
+/**
+ * @brief Choose one of four quadratic interval constructions.
+ * @ingroup spline_internals
  *
- * QuadChoose --
- *
- *      Determines the case needed for the computation of the parame-
- *      ters of the quadratic spline.
- *
- * Parameters:
- *      Point2D *p - Coordinates of one of the points of interpolation
- *      Point2D *q - Coordinates of one of the points of interpolation
- *      double m1 - Derivative condition at point P
- *      double m2 - Derivative condition at point Q
- *      double epsilon - Error tolerance used to distinguish cases when m1 or m2 is relatively close to the slope or 
- *                       twice the slope of the line segment joining the points P and Q. If epsilon is not 0.0, then 
- *                       epsilon should be greater than or equal to machine epsilon.
- *
- * Results:
- *      Returns a case number (1-4) which controls how the parameters
- *      of the quadratic spline are evaluated.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *-----------------------------------------------------------------------
+ * p and q are ordered knots with distinct X; m1 and m2 are endpoint slopes.
+ * epsilon is a relative tolerance for slope comparisons (zero in the current
+ * Cartesian wrapper). Returns case 1 through 4 without modifying inputs. Case 4
+ * uses two interior knots; the other cases use one. Assumes valid finite inputs;
+ * intermediate arithmetic is not checked here.
  */
 static int QuadChoose(const Point2D *p, const Point2D *q, double m1, double m2, double epsilon) {
     double slope;
@@ -292,46 +298,14 @@ static int QuadChoose(const Point2D *p, const Point2D *q, double m1, double m2, 
     }
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Populate the ten parameters of a selected quadratic interval.
+ * @ingroup spline_internals
  *
- * QuadCases --
- *
- *       Computes the knots and other parameters of the spline on the
- *       interval PQ.
- *
- *
- *       On input--
- *
- *         P and Q    the coordinates of the points of interpolation.
- *         m1         the slope at P.
- *         m2         the slope at Q.
- *         ncase      controls the number and location of the knots.
- *
- *
- *      On output--
- *
- *        (v1,v2),(w1,w2),(z1,z2), (e1,e2)    the coordinates of the
- *                                            knots and other
- *                                            parameters of the spline
- *                                            on P.  (e1,e2) and Q
- *                                            are used only if ncase=4.
- *
- * Parameters:
- *      Point2D *p
- *      Point2D *q
- *      double m1
- *      double m2
- *      double param[]
- *      int which
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * Requires the case returned by QuadChoose for p, q, m1 and m2. Clears all
+ * QUAD_PARAM_COUNT entries before filling the case-dependent knot/control-point
+ * pairs V, W, Z, E and Y. The caller owns param and must supply ten doubles.
+ * No allocation or finite-result validation; QuadSpline consumes the same case.
  */
 static void QuadCases(const Point2D *p, const Point2D *q, double m1, double m2, double param[], int which) {
     Tcl_Size i;
@@ -398,28 +372,13 @@ static void QuadCases(const Point2D *p, const Point2D *q, double m1, double m2, 
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Choose a quadratic case and fill its parameter array.
+ * @ingroup spline_internals
  *
- * QuadSelect --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Point2D *p
- *      Point2D *q
- *      double m1
- *      double m2
- *      double epsilon
- *      double param[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Combines QuadChoose and QuadCases. Returns the case number and writes ten
+ * caller-owned doubles to param. Preconditions and unchecked intermediate
+ * arithmetic are the same as those helpers; no allocation or callbacks.
  */
 static int QuadSelect(const Point2D *p, const Point2D *q, double m1, double m2, double epsilon, double param[]) {
     int ncase;
@@ -429,28 +388,13 @@ static int QuadSelect(const Point2D *p, const Point2D *q, double m1, double m2, 
     return ncase;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the quadratic blend used within one spline piece.
+ * @ingroup spline_internals
  *
- * QuadGetImage --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double p1
- *      double p2
- *      double p3
- *      double x1
- *      double x2
- *      double x3
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses weights from x1-x2 and x2-x3 over the squared span x1-x3; p1, p2 and p3
+ * are the corresponding ordinates/control value. Requires distinct x1 and x3.
+ * Returns a scalar without finite checks, allocation or side effects.
  */
 INLINE static double QuadGetImage(double p1, double p2, double p3, double x1, double x2, double x3) {
     double A, B, C;
@@ -463,45 +407,14 @@ INLINE static double QuadGetImage(double p1, double p2, double p3, double x1, do
     return y;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Replace one query ordinate using a prepared quadratic interval.
+ * @ingroup spline_internals
  *
- * QuadSpline --
- *
- *      Finds the image of a point in x.
- *
- *      On input
- *
- *        x                             Contains the value at which
- *                                      the spline is evaluated.
- *        leftX, leftY                  Coordinates of the left-hand
- *                                      data point used in the
- *                                      evaluation of x values.
- *        rightX, rightY                Coordinates of the right-hand
- *                                      data point used in the
- *                                      evaluation of x values.
- *        Z1, Z2, Y1, Y2, E2, W2, V2    Parameters of the spline.
- *        ncase                         Controls the evaluation of
- *                                      the spline by indicating
- *                                      whether one or two knots
- *                                      were placed in the interval
- *                                      (xtabs,xtabs1).
- *
- * Parameters:
- *      Point2D *intp - Value at which spline is evaluated 
- *      Point2D *left - Point to the left of the data point to be evaluated
- *      Point2D *right - Point to the right of the data point to be evaluated
- *      double param[] - Parameters of the spline
- *      int ncase - Controls the evaluation of the spline by indicating whether one or two knots were placed in the
- *                  interval (leftX,rightX)
- *
- * Results:
- *      The image of the spline at x.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * Reads intp->x and writes only intp->y. left/right, param and ncase must describe
+ * the same interval selected by QuadSelect. Selects the appropriate subpiece,
+ * preserving an internal knot ordinate exactly. Allows extrapolation and performs
+ * no allocation or finite-result check.
  */
 static void QuadSpline(Point2D *intp, const Point2D *left, const Point2D *right, const double param[], int ncase) {
     double y;
@@ -548,31 +461,15 @@ static void QuadSpline(Point2D *intp, const Point2D *left, const Point2D *right,
     intp->y = y;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Estimate shape-preserving quadratic knot derivatives.
+ * @ingroup spline_internals
  *
- * QuadSlopes --
- *
- *       Calculates the derivative at each of the data points.  The
- *       slopes computed will insure that an osculatory quadratic
- *       spline will have one additional knot between two adjacent
- *       points of interpolation.  Convexity and monotonicity are
- *       preserved wherever these conditions are compatible with the
- *       data.
- *
- * Parameters:
- *      Point2D points[]
- *      double *m - (out) To be filled with the first derivative at each data point.
- *      int nPoints - Number of data points (dimension of x, y, and m).
- *
- * Results:
- *      The output array "m" is filled with the derivates at each
- *      data point.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * Requires at least three finite points with strictly increasing X and caller
+ * storage for nPoints derivatives. Uses adjacent secants, sets interior slopes
+ * to zero at flat or sign-changing joins, then derives endpoint slopes. Fills m
+ * without allocation; the caller must reject non-finite derivatives afterward.
+ * The construction preserves shape where compatible with the supplied data.
  */
 static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
     double xbar, xmid, xhat, ydif1, ydif2;
@@ -643,81 +540,19 @@ static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate ordered-source quadratic splines at arbitrary query X.
+ * @ingroup spline_internals
  *
- * QuadEval --
+ * Source X must increase strictly and m must supply one derivative per source
+ * knot. Query X need not be sorted. Preserves exact source knots, uses binary
+ * search otherwise, and caches parameters only for the last used interval.
+ * Outside-domain queries use the first or final interval for extrapolation.
  *
- *      QuadEval controls the evaluation of an osculatory
- *      quadratic spline.  The user may provide his own
- *      slopes at the points of interpolation or use the
- *      subroutine 'QuadSlopes' to calculate slopes which
- *      are consistent with the shape of the data.
- *
- *      ON INPUT--
- *
- *        intpPts      must be a nondecreasing vector of
- *                     points at which the spline will be
- *                     evaluated.
- *        origPts      contains the abscissas of the data
- *                     points to be interpolated. xtab must
- *                     be increasing.
- *        y            contains the ordinates of the data
- *                     points to be interpolated.
- *        m            contains the slope of the spline at
- *                     each point of interpolation.
- *        nPoints      number of data points (dimension of
- *                     xtab and y).
- *        numEval      the number of points of evaluation
- *                     (dimension of xval and yval).
- *        epsilon      a relative error tolerance used in
- *                     subroutine 'QuadChoose' to distinguish
- *                     the situation m(i) or m(i+1) is
- *                     relatively close to the slope or twice
- *                     the slope of the linear segment
- *                     between xtab(i) and xtab(i+1).  If
- *                     this situation occurs, roundoff may
- *                     cause a change in convexity or
- *                     monotonicity of the resulting spline
- *                     and a change in the case number
- *                     provided by 'QuadChoose'.  If epsilon
- *                     is not equal to zero, then epsilon
- *                     should be greater than or equal to
- *                     machine epsilon.
- *
- *
- * Results:
- *      Returns 0 when all evaluation points are inside the source
- *      domain, 1 when one or more points are extrapolated, and 2
- *      on an internal evaluation error.
- *
- *      Evaluation points may appear in any order. Points outside
- *      the source domain are extrapolated using the first or last
- *      spline interval.
- *
- *
- *      QuadEval calls the following subroutines or functions:
- *
- *        Search
- *        QuadCases
- *        QuadChoose
- *        QuadSpline
- *
- * Parameters:
- *      Point2D origPts[]
- *      int nOrigPts
- *      Point2D intpPts[]
- *      int nIntpPts
- *      double *m - Slope of the spline at each point of interpolation.
- *      double epsilon - Relative error tolerance (see choose)
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns 0 for interpolation only, 1 if any query extrapolated, or 2 for an
+ * internal interval lookup failure. Replaces query Y incrementally, never X;
+ * outputs can be partially written on failure. The wrapper validates finite
+ * results afterward. No allocation or callbacks.
  */
 static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, const double *m,
                     double epsilon) {
@@ -999,6 +834,14 @@ static const SplineOpSpec splineOps[] = {{{"natural", 6, 6, "x y splx sply"}, Rb
                                          {{"quadratic", 6, 6, "x y splx sply"}, Rbc_QuadraticSpline},
                                          {{NULL, 0, 0, NULL}, NULL}};
 
+/**
+ * @brief Look up a real vector for the spline command.
+ * @ingroup spline_internals
+ *
+ * Returns TCL_OK for an existing real vector, otherwise TCL_ERROR with an
+ * interpreter message. vecPtrPtr is borrowed and may already be assigned if the
+ * type check fails. Does not create, resize, preserve or check writability.
+ */
 static int GetRealSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) {
     if (Rbc_GetVector(interp, name, vecPtrPtr) != TCL_OK) {
         return TCL_ERROR;
@@ -1010,6 +853,14 @@ static int GetRealSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vector 
     return TCL_OK;
 }
 
+/**
+ * @brief Look up a complex vector for the parametric command.
+ * @ingroup spline_internals
+ *
+ * Returns TCL_OK for an existing complex vector, otherwise TCL_ERROR with an
+ * interpreter message. vecPtrPtr is borrowed and may already be assigned if the
+ * type check fails. Does not create, resize, preserve or check writability.
+ */
 static int GetComplexSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) {
     if (Rbc_GetVector(interp, name, vecPtrPtr) != TCL_OK) {
         return TCL_ERROR;
@@ -1021,11 +872,22 @@ static int GetComplexSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vect
     return TCL_OK;
 }
 
-/*
- * SplineStoreResult -- Install completed data before traces or observers run.
- * New real vectors keep their traditional array mapping, but the mapping is
- * established only after all values are installed. Preserve identity across
- * callbacks: a replacement with the same name is never written by this call.
+/**
+ * @brief Copy completed points and commit a typed spline result.
+ * @ingroup spline_internals
+ *
+ * Requires validated points and a real or complex type. Copies Y into real
+ * storage, or X/Y into complex storage, before resolving or creating the output.
+ * Existing outputs must match type and be writable. Installs the complete owned
+ * buffer before custom old-storage release, array mapping/traces or notification.
+ * Preserves record/interpreter lifetime and checks destruction after callbacks.
+ *
+ * New real outputs receive automatic mapping unless their names contain an
+ * opening parenthesis. Mapping failure deletes only the newly created original
+ * record, never a callback-created replacement. Returns TCL_OK with an empty
+ * result or TCL_ERROR with diagnostics. Precommit failures leave an existing
+ * output unchanged; callback mutations after commit are not rolled back.
+ * The caller retains ownership of points.
  */
 static int SplineStoreResult(Tcl_Interp *interp, const char *name, Rbc_VectorType type,
                              const Point2D *points, Tcl_Size length) {
@@ -1120,6 +982,17 @@ static int SplineStoreResult(Tcl_Interp *interp, const char *name, Rbc_VectorTyp
     return result;
 }
 
+/**
+ * @brief Evaluate the six-argument complex-vector spline command.
+ * @ingroup spline_internals
+ *
+ * The dispatcher must validate objc before entry. Accepts natural or quadratic,
+ * at least three finite source points without consecutive duplicates, and at
+ * least two output samples. Copies source coordinates before computation, stages
+ * the complete output and commits through SplineStoreResult only if the requested
+ * sample count was produced. Supports source/result aliasing. Frees both scratch
+ * arrays on every path; returns Tcl status and diagnostics.
+ */
 static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_Vector *source;
     const Rbc_Complex *sourceArr;
@@ -1235,26 +1108,19 @@ cleanup:
     return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Dispatch Cartesian or parametric Tcl spline operations.
+ * @ingroup spline_internals
  *
- * SplineObjCmd --
+ * Validates operation/arity through splineOps. Cartesian inputs are real vectors
+ * with equal X/Y lengths, at least three finite source points, strictly increasing
+ * X, and finite query X in any order. Empty queries are supported. Copies all
+ * source/query values before running a kernel, so output may alias any input.
  *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Commits only a completely successful numerical result through SplineStoreResult;
+ * all temporary arrays remain owned by this call and are released on exit.
+ * Returns TCL_OK with an empty result or TCL_ERROR with diagnostics. clientData
+ * is unused. Parametric operations delegate after argument-count validation.
  */
 static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_Vector *x;
@@ -1398,70 +1264,28 @@ cleanup:
     return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Register the Tcl spline command.
+ * @ingroup spline_internals
  *
- * Rbc_SplineInit --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Creates ::rbc::spline with SplineObjCmd and no client data or delete callback.
+ * Returns TCL_OK. Package initialization supplies the namespace; this routine
+ * allocates no persistent spline workspace.
  */
 int Rbc_SplineInit(Tcl_Interp *interp) {
     Tcl_CreateObjCommand2(interp, "::rbc::spline", SplineObjCmd, NULL, NULL);
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Factor a cyclic symmetric tridiagonal system in place.
+ * @ingroup spline_internals
  *
- * SolveCubic1 --
- *
- *      The Cholesky decomposition A = C^T * D * C (C is
- *      upper triangle with unit diagonal, D is diagonal)
- *      is calculated.
- *
- *      If x is assumed cyclic ( x[i]=x[n+i] ) the
- *      equations can be written as (i=0,1,...,n-1):
- *
- *        m[i][0] * x[i-1] + m[i][1] * x[i] + m[i][2] *
- *        x[i+1] = b[i] .
- *
- *      In matrix notation one gets A * x = b, where the
- *      matrix A is tridiagonal with additional elements
- *      in the upper right and lower left position:
- *
- *        A[i][0] = A_{i,i-1}  for i=1,2,...,n-1
- *          and    m[0][0] = A_{0,n-1} ,
- *
- *        A[i][1] = A_{i, i }  for i=0,1,...,n-1
- *
- *        A[i][2] = A_{i,i+1}  for i=0,1,...,n-2
- *          and    m[n-1][2] = A_{n-1,0}.
- *
- *      A should be symmetric (A[i+1][0] == A[i][2]) and positive definite.
- *      The size of the system is given in n (n>=1).
- *
- * Parameters:
- *      TriDiagonalMatrix A[]
- *      int n
- *
- * Results:
- *      Return TRUE if decomposition exist.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * A stores lower/diagonal/upper entries in slots 0/1/2, including the cyclic
+ * corner entries A[0][0] and A[n-1][2]. Requires symmetric positive-definite input
+ * and n >= 1. Forms C-transpose * D * C with unit-diagonal upper C, overwriting A.
+ * Returns FALSE on detected invalid pivots and may leave partial factors.
+ * No allocation; later stages still must validate numerical finiteness.
  */
 static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n) {
     Tcl_Size i;
@@ -1499,49 +1323,14 @@ static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n) {
     return TRUE;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Solve two right-hand sides using the cyclic factors.
+ * @ingroup spline_internals
  *
- * SolveCubic2 --
- *
- *      The second procedure solves the linear system, with
- *      the Cholesky decomposition calculated above (in m[][])
- *      and the right side b given in x[]. The solution x
- *      overwrites the right side in x[].
- *
- *      If x is assumed cyclic ( x[i]=x[n+i] ) the
- *      equations can be written as (i=0,1,...,n-1):
- *
- *        m[i][0] * x[i-1] + m[i][1] * x[i] + m[i][2] *
- *        x[i+1] = b[i] .
- *
- *      In matrix notation one gets A * x = b, where the
- *      matrix A is tridiagonal with additional elements
- *      in the upper right and lower left position:
- *
- *        A[i][0] = A_{i,i-1}  for i=1,2,...,n-1
- *          and    m[0][0] = A_{0,n-1} ,
- *
- *        A[i][1] = A_{i, i }  for i=0,1,...,n-1
- *
- *        A[i][2] = A_{i,i+1}  for i=0,1,...,n-2
- *          and    m[n-1][2] = A_{n-1,0}.
- *
- *      A should be symmetric (A[i+1][0] == A[i][2]) and positive definite.
- *      The size of the system is given in n (n>=1).
- *
- * Parameters:
- *      TriDiagonalMatrix A[]
- *      CubicSpline spline[]
- *      int nIntervals
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires factors from successful SolveCubic1 and nIntervals >= 1. Forward,
+ * diagonal and backward substitution replace spline[].x and spline[].y with
+ * solutions, leaving t unchanged. Does not allocate, check finiteness or return
+ * status; CubicSlopes validates the solved values before using them.
  */
 static void SolveCubic2(const TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nIntervals) {
     Tcl_Size i;
@@ -1584,33 +1373,21 @@ static void SolveCubic2(const TriDiagonalMatrix A[], CubicSpline spline[], Tcl_S
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Build chord lengths and limited parametric cubic derivatives.
+ * @ingroup spline_internals
  *
- * CubicSlopes --
+ * Requires at least three finite points and positive finite unitX/unitY.
+ * Closed paths must already repeat the first point at the end. Divides coordinate
+ * differences by those units for the chord metric and rejects lengths no greater
+ * than DBL_EPSILON. Builds and solves a cyclic or open tridiagonal system.
  *
- *      Find second derivatives (x''(t_i),y''(t_i)) of cubic
- *      spline interpolation through list of points (x_i,y_i).
- *      The parameter t is calculated as the length of the
- *      linear stroke. The number of points must be at least 3.
- *
- *      Note: For CLOSED_CONTOURs the first and last point
- *      must be equal.
- *
- * Parameters:
- *      Point2D points[]
- *      int nPoints - Number of points (nPoints>=3)
- *      int isClosed - CLOSED_CONTOUR or OPEN_CONTOUR
- *      double unitX -  Unit length in x (norm=1)
- *      double unitY -  Unit length in y (norm=1)
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * The historical construction limits the scaled derivative right-hand-side norm
+ * to 8.5. Open endpoints copy adjacent solved derivatives rather than imposing
+ * zero second derivatives; this is distinct from the Cartesian natural kernel.
+ * Returns an owned nPoints CubicSpline array to release with ckfree, or NULL on
+ * validation, allocation or detected arithmetic failure. Only the first
+ * nPoints-1 t entries are interval lengths. Inputs are never modified.
  */
 static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY) {
     CubicSpline *spline;
@@ -1743,6 +1520,15 @@ static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int is
     return spline;
 }
 
+/**
+ * @brief Evaluate one parametric cubic at local chord distance.
+ * @ingroup spline_internals
+ *
+ * Caller guarantees valid interval and interval+1 indices in origPts/spline.
+ * Validates positive finite interval length and local t in [0,length], preserving
+ * endpoint coordinates exactly. Writes pointPtr and returns finite-result status;
+ * FALSE can follow non-finite output writes. No allocation or vector callbacks.
+ */
 static int CubicEvalPoint(const Point2D origPts[], const CubicSpline spline[], Tcl_Size interval, double t,
                           Point2D *pointPtr) {
     Point2D p;
@@ -1783,31 +1569,17 @@ static int CubicEvalPoint(const Point2D origPts[], const CubicSpline spline[], T
     return FINITE(pointPtr->x) && FINITE(pointPtr->y);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Sample a cubic path uniformly in its chord parameter.
+ * @ingroup spline_internals
  *
- * CubicEval --
- *
- *      Calculate interpolated values of the spline function
- *      (defined via p_cntr and the second derivatives
- *      dxdt2[] and dydt2[]). The number of tabulated values
- *      is n. On an equidistant grid n_intpol values are
- *      calculated.
- *
- * Parameters:
- *      Point2D origPts[]
- *      int nOrigPts
- *      Point2D intpPts[]
- *      int nIntpPts
- *      CubicSpline spline[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires non-NULL arrays, at least two source points and two output slots,
+ * and spline interval lengths matching the source. Validates the accumulated
+ * length, then uses (1-1e-7)*total/(samples-1) to avoid losing the last sample.
+ * Returns the number generated, or zero for detected failure. Failure can leave
+ * partial output; the caller must compare the count with its request. Does not
+ * restore the exact final endpoint (NaturalParametricSplineCore does that).
+ * No allocation; output must not overwrite source or coefficient storage.
  */
 static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
                           const CubicSpline spline[]) {
@@ -2123,7 +1895,18 @@ cleanup:
     return result;
 }
 
-/* Sample coordinate-wise quadratic splines on a common Euclidean chord parameter. */
+/**
+ * @brief Sample coordinate splines on a shared Euclidean chord parameter.
+ * @ingroup spline_internals
+ *
+ * Requires at least three finite source points and two output slots. Allocates
+ * private coordinate/imaginary-query arrays, rejects degenerate chords and
+ * non-increasing cumulative parameters, and evaluates both quadratic coordinates.
+ * Uses intpPts itself as real-query workspace before converting to X/Y, so a zero
+ * failure result may leave temporary parameters or partial coordinates there.
+ * Returns nIntpPts on success and restores both endpoints exactly. Releases all
+ * private arrays; caller-owned source and output must not overlap.
+ */
 static Tcl_Size QuadraticParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
                                               Tcl_Size nIntpPts) {
     Point2D *realPts;
@@ -2275,6 +2058,17 @@ cleanup:
     return result;
 }
 
+/**
+ * @brief Sample an open or closed limited cubic path.
+ * @ingroup spline_internals
+ *
+ * Requires at least three finite source points, two output slots and positive
+ * finite metric units. Appends a private closing point if requested and missing,
+ * then owns/reclaims CubicSlopes workspace. Returns the CubicEval count (zero on
+ * detected failure); restores the last endpoint exactly only for a full result.
+ * Output may be partially written on failure and must not overlap input. No
+ * vector lookup, notification or Tcl callback occurs.
+ */
 static Tcl_Size NaturalParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, double unitX, double unitY,
                                             int isClosed, Point2D intpPts[], Tcl_Size nIntpPts) {
     const Point2D *workPts;
@@ -2359,27 +2153,14 @@ Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts,
     return NaturalParametricSplineCore(origPts, nOrigPts, unitX, unitY, isClosed, intpPts, nIntpPts);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Build twice-scaled Catmull-Rom polynomial coefficients.
+ * @ingroup spline_internals
  *
- * CatromCoeffs --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Point2D *p
- *      Point2D *a
- *      Point2D *b
- *      Point2D *c
- *      Point2D *d
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Reads four consecutive control points and writes X/Y coefficients to a, b,
+ * c and d. The caller evaluates (d+t*(c+t*(b+t*a)))/2. Output records must be
+ * distinct and must not overlap control points. No validation or allocation;
+ * the caller handles non-finite evaluation results.
  */
 static void CatromCoeffs(const Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D *d) {
     a->x = -p[0].x + 3.0 * p[1].x - 3.0 * p[2].x + p[3].x;

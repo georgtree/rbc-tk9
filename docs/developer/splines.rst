@@ -131,3 +131,66 @@ Replacement geometry is committed only when interpolation succeeds. Failure
 retains the original mapped points and falls back to ordinary line segments.
 Smoothing does not edit the attached source vectors. Mapping, clipping and
 rendering remain separate responsibilities; see :doc:`mapping` and :doc:`elements`.
+
+Private helper contracts
+-------------------------
+
+The :doc:`spline-reference` now includes the internal validation, quadratic,
+cubic and command helpers. These are separate numerical and ownership layers;
+none of the interpolation kernels resolves vector names or invokes Tcl code.
+
+The byte-count helper accepts zero-length arrays and rejects overflow without
+setting an interpreter message. Its callers decide whether zero queries are
+valid and whether to allocate a non-NULL sentinel. Source validation checks
+both coordinates; Cartesian query validation checks only X because Y will be
+replaced. These checks are intentionally different.
+
+Quadratic preparation runs ``QuadSlopes`` once, then ``QuadSelect`` combines
+case selection and ten-parameter generation for each needed source interval.
+``QuadEval`` caches only the most recently selected interval. Arbitrarily
+ordered queries remain supported, but switching intervals rebuilds that small
+parameter set. Its status is not boolean: 0 means interpolation only, 1 means
+at least one extrapolation, and 2 means an internal lookup failure. The public
+wrapper accepts 0 and 1 and performs a final finite-coordinate check.
+
+The historical parametric cubic construction differs from the Cartesian
+natural cubic. ``CubicSlopes`` limits the scaled right-hand-side norm to 8.5
+before solving; for an open path it copies the adjacent solved second
+derivatives to the endpoints. It does **not** impose the zero endpoint second
+derivatives used by ``Rbc_NaturalSpline``. The existing natural-parametric
+operation name is retained, but should not be taken as a promise that these
+two kernels generate identical curves. Changing this construction would change
+existing smoothing and interpolation results.
+
+``SolveCubic1`` overwrites a symmetric cyclic tridiagonal matrix with factors.
+``SolveCubic2`` solves the X and Y right-hand sides together using those factors;
+it does not validate its results. ``CubicSlopes`` checks the solved derivatives
+and owns both coefficient and matrix allocations. Only the first N-1 ``t``
+entries of an N-point coefficient array are interval lengths.
+
+Failure contracts must also stay distinct:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Helper or entry point
+     - Output on failure
+   * - Cartesian natural/quadratic kernels
+     - Some query Y values may already have changed
+   * - Natural/quadratic parametric Eval
+     - Caller query parameters remain unchanged; coordinates are staged
+   * - ``CubicEval`` and uniform parametric cores
+     - Partial coordinates or temporary query parameters may remain; compare
+       returned count with requested count
+   * - Catmull-Rom Eval
+     - Parameters validate before writes, but arithmetic failure can leave
+       partial output
+   * - Tcl spline command
+     - Numerical failure discards private arrays before destination commit;
+       postcommit callback changes are not rolled back
+
+Direct numerical callers should use disjoint source and output arrays unless
+an entry point explicitly guarantees otherwise. The Tcl command supports vector
+aliasing by copying every input first; that command-level guarantee does not
+make each private array kernel safe for in-place use.

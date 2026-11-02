@@ -8,21 +8,23 @@
  * See "license.terms" for information on usage and redistribution.
  */
 
+/** @file rbcVecFft.c
+ * FFT workspace and commit helpers.
+ */
+/** @defgroup fft_internals FFT workspace and commit helpers
+ * Private implementation helpers; not installed C API entry points.
+ */
 #include "rbcVectorInt.h"
 #include <string.h>
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Allocate checked FFT or generator workspace.
+ * @ingroup fft_internals
  *
- * FftAllocate --
- *
- *      Allocates checked temporary storage. Allocation failure is a Tcl
- *      error and never changes a destination vector.
- *
- * Results:
- *      The allocated array, or NULL with an interpreter error.
- *
- * -----------------------------------------------------------------------
+ * Requires a nonzero elementSize and a positive count. Rejects byte-count
+ * overflow before Tcl_AttemptAlloc; reports allocation/size errors in interp.
+ * Returns owned storage to release with ckfree, or NULL without changing vectors.
+ * No callbacks run.
  */
 static void *FftAllocate(Tcl_Interp *interp, Tcl_Size count, size_t elementSize) {
     void *data;
@@ -38,20 +40,16 @@ static void *FftAllocate(Tcl_Interp *interp, Tcl_Size count, size_t elementSize)
     return data;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Transform a power-of-two complex array in place.
+ * @ingroup fft_internals
  *
- * FftTransform --
- *
- *      Transforms a nonempty power-of-two array in place. Roots contain
- *      exp(sign * 2*pi*i*k/N), where sign is -1 for fft and +1 for ifft.
- *      The caller scales inverse input by 1/N before summation, avoiding
- *      unnecessary intermediate overflow during an inverse transform.
- *
- * Results:
- *      None. The complete, unshifted spectrum replaces the input array.
- *
- * -----------------------------------------------------------------------
+ * The caller supplies a nonempty power-of-two length and length/2 roots
+ * exp(sign*2*pi*i*k/length), with negative sign for forward transformation.
+ * Roots may be NULL for length one. Inverse normalization belongs to the caller:
+ * scale input by 1/length before this kernel. Bit reversal precedes iterative
+ * butterflies; output is unshifted. No allocation, validation or callbacks occur.
+ * Arithmetic can become non-finite; the caller must validate the complete result.
  */
 static void FftTransform(Rbc_Complex *data, const Rbc_Complex *roots, Tcl_Size length) {
     Tcl_Size i, j, width;
@@ -99,18 +97,15 @@ static void FftTransform(Rbc_Complex *data, const Rbc_Complex *roots, Tcl_Size l
     }
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Resolve an existing whole-vector operand.
+ * @ingroup fft_internals
  *
- * FftVector --
- *
- *      Resolves an existing vector in the caller's namespace. A transform
- *      operates on whole vectors; partial range designators are rejected.
- *
- * Results:
- *      TCL_OK or TCL_ERROR. No vector is created or resized.
- *
- * -----------------------------------------------------------------------
+ * Uses the caller namespace through Rbc_VectorLookupName and rejects a selected
+ * range unless it spans the complete vector. Lookup can change the vector's
+ * selected range. On TCL_OK, writes a borrowed record to vPtrPtr; on TCL_ERROR,
+ * leaves that output unassigned and sets the interpreter result. Does not create,
+ * resize, preserve or test the numeric type/writability of the vector.
  */
 static int FftVector(VectorInterpData *dataPtr, Tcl_Obj *nameObj, VectorObject **vPtrPtr) {
     VectorObject *vPtr;
@@ -126,19 +121,16 @@ static int FftVector(VectorInterpData *dataPtr, Tcl_Obj *nameObj, VectorObject *
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Install completed storage without crossing a callback boundary.
+ * @ingroup fft_internals
  *
- * FftInstall --
- *
- *      Installs already allocated output storage without allocation or
- *      notification. Save old storage so both split outputs are committed
- *      before any free procedure, variable trace, or client can run.
- *
- * Results:
- *      None. Vector identity, type, offset and client bindings are retained.
- *
- * -----------------------------------------------------------------------
+ * Requires a writable destination of the correct type and an owned Tcl-allocated
+ * buffer with length values. Returns old storage and its release policy through
+ * oldDataPtr/oldFreeProcPtr; the caller must release that storage later. Transfers
+ * the new buffer to the vector as TCL_DYNAMIC, resets length/capacity/selection,
+ * and invalidates extrema. Retains identity, type, offset and observer bindings.
+ * Does not flush caches, notify clients, allocate, or release old storage.
  */
 static void FftInstall(VectorObject *vPtr, void *data, Tcl_Size length,
                        void **oldDataPtr, Tcl_FreeProc **oldFreeProcPtr) {
@@ -154,11 +146,21 @@ static void FftInstall(VectorObject *vPtr, void *data, Tcl_Size length,
     vPtr->notifyFlags |= UPDATE_RANGE;
 }
 
-/*
- * FftCommit -- Install all outputs before crossing any callback boundary.
- * Preserve records until the last callback has returned, and test destruction
- * after releasing old storage and flushing mapped arrays. Names describe the
- * committed objects, even if callbacks rename, replace or destroy them.
+/**
+ * @brief Commit one complex or one/two real output buffers.
+ * @ingroup fft_internals
+ *
+ * count must be one or two; destinations must be distinct, alive, writable and
+ * compatible with the supplied buffers. Takes ownership of every buffer and
+ * installs all outputs before releasing any old allocation. Preserves destination
+ * records and interp across custom free procedures, mapped-array traces and
+ * notifications. Skips destroyed records and stops updates after interpreter
+ * deletion; it never resolves destination names again after a callback.
+ *
+ * Returns TCL_OK with the committed qualified name, or a two-name list, saved
+ * before callbacks. Callback mutations are not rolled back; a returned name can
+ * have been renamed or destroyed. Restores interpreter state around callbacks.
+ * There is no fallible numerical work after installation.
  */
 static int FftCommit(Tcl_Interp *interp, VectorObject **dest, void **data, int count, Tcl_Size length) {
     void *oldData[2];
@@ -413,22 +415,14 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Transfer a completed real generator buffer to its vector.
+ * @ingroup fft_internals
  *
- * FftStoreReal --
- *
- *      Commits completed real generator data using the same storage and
- *      notification rules as fft. The caller has checked the vector type
- *      and all values before this routine takes ownership of the array.
- *
- * Results:
- *      TCL_OK and the vector's qualified name.
- *
- * Side effects:
- *      Replaces storage, invalidates cached values and notifies clients.
- *
- * -----------------------------------------------------------------------
+ * The caller has checked real type, writability, length and finite values.
+ * Consumes the Tcl-allocated data buffer through FftCommit, including old-storage
+ * release, cache flushing and notification. Returns TCL_OK with the qualified
+ * name recorded at commit time; callbacks can change or destroy the vector.
  */
 static int FftStoreReal(VectorObject *vPtr, Tcl_Interp *interp, double *data, Tcl_Size length) {
     void *output = data;

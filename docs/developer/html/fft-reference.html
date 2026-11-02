@@ -108,6 +108,61 @@ Accepts rectangular, Hann, Hamming, Blackman and Bartlett windows of any positiv
 </dl>
 </dd></dl>
 
+<section id="implementation-helpers">
+<h2>Implementation helpers<a class="headerlink" href="#implementation-helpers" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__fft__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">FFT</span> <span class="pre">workspace</span> <span class="pre">and</span> <span class="pre">commit</span> <span class="pre">helpers</span></span></dt>
+<dd><p>Private implementation helpers; not installed C API entry points. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FftAllocate">
+<span class="target" id="group__fft__internals_1ga94ac55ea1ca1d44162a32a107668b1ca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FftAllocate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elementSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FftAllocate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate checked FFT or generator workspace. </p>
+<p>Requires a nonzero elementSize and a positive count. Rejects byte-count overflow before Tcl_AttemptAlloc; reports allocation/size errors in interp. Returns owned storage to release with ckfree, or NULL without changing vectors. No callbacks run. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FftTransform">
+<span class="target" id="group__fft__internals_1gac38135f7ccbe9b56c418d991686a5371"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FftTransform</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">roots</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FftTransform" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transform a power-of-two complex array in place. </p>
+<p>The caller supplies a nonempty power-of-two length and length/2 roots exp(sign*2*pi*i*k/length), with negative sign for forward transformation. Roots may be NULL for length one. Inverse normalization belongs to the caller: scale input by 1/length before this kernel. Bit reversal precedes iterative butterflies; output is unshifted. No allocation, validation or callbacks occur. Arithmetic can become non-finite; the caller must validate the complete result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FftVector">
+<span class="target" id="group__fft__internals_1ga0a5fbf14e78d59224893183eb8cd1211"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FftVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nameObj</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FftVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve an existing whole-vector operand. </p>
+<p>Uses the caller namespace through Rbc_VectorLookupName and rejects a selected range unless it spans the complete vector. Lookup can change the vector’s selected range. On TCL_OK, writes a borrowed record to vPtrPtr; on TCL_ERROR, leaves that output unassigned and sets the interpreter result. Does not create, resize, preserve or test the numeric type/writability of the vector. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FftInstall">
+<span class="target" id="group__fft__internals_1ga7c0de3e7da2da33738188c169f7723a6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FftInstall</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">oldDataPtr</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">oldFreeProcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FftInstall" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Install completed storage without crossing a callback boundary. </p>
+<p>Requires a writable destination of the correct type and an owned Tcl-allocated buffer with length values. Returns old storage and its release policy through oldDataPtr/oldFreeProcPtr; the caller must release that storage later. Transfers the new buffer to the vector as TCL_DYNAMIC, resets length/capacity/selection, and invalidates extrema. Retains identity, type, offset and observer bindings. Does not flush caches, notify clients, allocate, or release old storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FftCommit">
+<span class="target" id="group__fft__internals_1ga24d677d171248b175b7620c3457ab37c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FftCommit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FftCommit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Commit one complex or one/two real output buffers. </p>
+<p>count must be one or two; destinations must be distinct, alive, writable and compatible with the supplied buffers. Takes ownership of every buffer and installs all outputs before releasing any old allocation. Preserves destination records and interp across custom free procedures, mapped-array traces and notifications. Skips destroyed records and stops updates after interpreter deletion; it never resolves destination names again after a callback.</p>
+<p>Returns TCL_OK with the committed qualified name, or a two-name list, saved before callbacks. Callback mutations are not rolled back; a returned name can have been renamed or destroyed. Restores interpreter state around callbacks. There is no fallible numerical work after installation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FftStoreReal">
+<span class="target" id="group__fft__internals_1gac81230663515274c7d266f14243c6210"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FftStoreReal</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FftStoreReal" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transfer a completed real generator buffer to its vector. </p>
+<p>The caller has checked real type, writability, length and finite values. Consumes the Tcl-allocated data buffer through FftCommit, including old-storage release, cache flushing and notification. Returns TCL_OK with the qualified name recorded at commit time; callbacks can change or destroy the vector. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -124,6 +179,15 @@ Accepts rectangular, Hann, Hamming, Blackman and Bartlett windows of any positiv
 <li><a class="reference internal" href="#c.Rbc_VectorFftOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFftOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_VectorFftfreqOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFftfreqOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_VectorWindowOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorWindowOp()</span></code></a></li>
+<li><a class="reference internal" href="#implementation-helpers">Implementation helpers</a><ul>
+<li><a class="reference internal" href="#c.FftAllocate"><code class="docutils literal notranslate"><span class="pre">FftAllocate()</span></code></a></li>
+<li><a class="reference internal" href="#c.FftTransform"><code class="docutils literal notranslate"><span class="pre">FftTransform()</span></code></a></li>
+<li><a class="reference internal" href="#c.FftVector"><code class="docutils literal notranslate"><span class="pre">FftVector()</span></code></a></li>
+<li><a class="reference internal" href="#c.FftInstall"><code class="docutils literal notranslate"><span class="pre">FftInstall()</span></code></a></li>
+<li><a class="reference internal" href="#c.FftCommit"><code class="docutils literal notranslate"><span class="pre">FftCommit()</span></code></a></li>
+<li><a class="reference internal" href="#c.FftStoreReal"><code class="docutils literal notranslate"><span class="pre">FftStoreReal()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

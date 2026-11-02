@@ -147,6 +147,46 @@ into another vector by this operation.</p>
 type while replacing length, capacity and storage. Source expressions can
 apply windows or further scaling separately; see <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a>.</p>
 </section>
+<section id="internal-helper-boundaries">
+<h2>Internal helper boundaries<a class="headerlink" href="#internal-helper-boundaries" title="Link to this heading">¶</a></h2>
+<p>The generated <a class="reference internal" href="fft-reference.html"><span class="doc">FFT and generator C reference</span></a> includes the allocation, lookup, transform
+and commit helpers as well as the command handlers. They form three distinct
+layers:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Layer</p></th>
+<th class="head"><p>Preconditions supplied by caller</p></th>
+<th class="head"><p>Failure/ownership boundary</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FftAllocate</span></code> / <code class="docutils literal notranslate"><span class="pre">FftVector</span></code></p></td>
+<td><p>Nonzero element size; live interpreter data</p></td>
+<td><p>Allocation is owned by caller; lookup returns a borrowed record and may
+change its selected range</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FftTransform</span></code></p></td>
+<td><p>Positive power-of-two length, complete roots, pre-scaled inverse input</p></td>
+<td><p>Overwrites scratch data; caller checks all components for finiteness</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FftInstall</span></code> / <code class="docutils literal notranslate"><span class="pre">FftCommit</span></code></p></td>
+<td><p>One or two distinct, writable, correctly typed destinations; complete
+Tcl-allocated buffers</p></td>
+<td><p>Transfers ownership and commits before callbacks; no numerical rollback</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">FftCommit</span></code> has fixed storage for two destinations. It is not a general
+multi-vector transaction API. <code class="docutils literal notranslate"><span class="pre">FftStoreReal</span></code> is its single-real-output adapter,
+not an additional validation layer. New callers must establish the same
+preconditions as the current command handlers rather than relying on commit
+to discover invalid lengths, destination aliases or read-only vectors.</p>
+</section>
 </section>
 
 
@@ -165,6 +205,7 @@ apply windows or further scaling separately; see <a class="reference internal" h
 <li><a class="reference internal" href="#workspace-and-commit-sequence">Workspace and commit sequence</a></li>
 <li><a class="reference internal" href="#callback-lifetime-and-reentry">Callback lifetime and reentry</a></li>
 <li><a class="reference internal" href="#frequency-and-window-generators">Frequency and window generators</a></li>
+<li><a class="reference internal" href="#internal-helper-boundaries">Internal helper boundaries</a></li>
 </ul>
 </li>
 </ul>

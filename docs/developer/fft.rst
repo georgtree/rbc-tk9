@@ -122,3 +122,35 @@ Both generators stage complete real arrays, then transfer ownership through
 ``FftStoreReal`` and the same installation helper. They preserve identity and
 type while replacing length, capacity and storage. Source expressions can
 apply windows or further scaling separately; see :doc:`expressions`.
+
+Internal helper boundaries
+--------------------------
+
+The generated :doc:`fft-reference` includes the allocation, lookup, transform
+and commit helpers as well as the command handlers. They form three distinct
+layers:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Layer
+     - Preconditions supplied by caller
+     - Failure/ownership boundary
+   * - ``FftAllocate`` / ``FftVector``
+     - Nonzero element size; live interpreter data
+     - Allocation is owned by caller; lookup returns a borrowed record and may
+       change its selected range
+   * - ``FftTransform``
+     - Positive power-of-two length, complete roots, pre-scaled inverse input
+     - Overwrites scratch data; caller checks all components for finiteness
+   * - ``FftInstall`` / ``FftCommit``
+     - One or two distinct, writable, correctly typed destinations; complete
+       Tcl-allocated buffers
+     - Transfers ownership and commits before callbacks; no numerical rollback
+
+``FftCommit`` has fixed storage for two destinations. It is not a general
+multi-vector transaction API. ``FftStoreReal`` is its single-real-output adapter,
+not an additional validation layer. New callers must establish the same
+preconditions as the current command handlers rather than relying on commit
+to discover invalid lengths, destination aliases or read-only vectors.

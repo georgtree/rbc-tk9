@@ -15,3 +15,9 @@ See :doc:`splines` for parameter formats, failure behavior and graph integration
 .. doxygenfunction:: Rbc_NaturalParametricSpline
 
 .. doxygenfunction:: Rbc_CatromParametricSpline
+
+Implementation helpers
+----------------------
+
+.. doxygengroup:: spline_internals
+   :members:
