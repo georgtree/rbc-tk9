@@ -57,5 +57,142 @@ namespace eval stripchart.element {
 		destroy .stripchart1
 	} -result {0}
 	
+    test RBC.stripchart.element.activate.A.2.1 {
+        element activate: deletion cancels commit
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        set rc [catch {.w element activate a {[.w element delete a; expr 0]}} msg opts]
+        list $rc [dict get $opts -errorcode] [.w element exists a]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {1 {RBC ELEMENT CALLBACK} 0}
+
+    test RBC.stripchart.element.activate.A.2.2 {
+        element activate: same-name recreation is not activated
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        set rc [catch {.w element activate a {[.w element delete a; .w element create a -data {0 1 1 2}; expr 0]}} msg opts]
+        list $rc [dict get $opts -errorcode] [.w element activate]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {1 {RBC ELEMENT CALLBACK} {}}
+
+    test RBC.stripchart.element.activate.A.2.3 {
+        element activate: destroyed graph cancels commit
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        set rc [catch {.w element activate a {[destroy .w; expr 0]}} msg opts]
+        list $rc [dict get $opts -errorcode] [winfo exists .w]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {1 {RBC ELEMENT CALLBACK} 0}
+
+    test RBC.stripchart.element.activate.A.2.4 {
+        element activate: later expression invalidates an earlier index
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        set rc [catch {.w element activate a 2 {[.w element configure a -data {0 1}; expr 0]}} msg]
+        list $rc $msg [.w element activate]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {1 {element index "2" is out of range} {}}
+
+    test RBC.stripchart.element.activate.A.2.5 {
+        element activate: pending vector shrink revalidates all indices
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        set rc [catch {.w element activate a 2 {[activationY set {1}; expr 0]}} msg]
+        list $rc $msg [.w element activate]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {1 {element index "2" is out of range} {}}
+
+    test RBC.stripchart.element.activate.A.2.6 {
+        element activate: pending vector growth is visible to next end index
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        activationY set {1}
+        set rc [catch {.w element activate a {[activationY set {1 2 3}; expr 0]} end}]
+        list $rc [.w element activate]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {0 a}
+
+    test RBC.stripchart.element.activate.A.2.7 {
+        element activate: expression errors survive deletion
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        set rc [catch {.w element activate a {[.w element delete a; error callback-failed]}} msg]
+        list $rc $msg [.w element exists a]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {1 callback-failed 0}
+
+    test RBC.stripchart.element.activate.A.2.8 {
+        element activate: nested activation and event processing remain supported
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        set rc [catch {.w element activate a {[.w element activate a 1; update; expr 0]} end}]
+        list $rc [.w element activate]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {0 a}
+
+    test RBC.stripchart.element.activate.A.2.9 {
+        element activate: conversion failure retains previous activation
+    } -setup {
+        vector create activationY
+        activationY set {1 2 3}
+        stripchart .w
+        .w element create a -xdata {0 1 2} -ydata activationY
+    } -body {
+        .w element activate a 1
+        set rc [catch {.w element activate a 0 {not-a-number}}]
+        list $rc [.w element activate]
+    } -cleanup {
+        catch {destroy .w}
+        vector destroy activationY
+    } -result {1 a}
+
 	cleanupTests
 }

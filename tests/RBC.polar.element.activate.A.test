@@ -102,5 +102,20 @@ namespace eval polar.element {
         vector destroy z
     } -result {0}
 
+    test RBC.polar.element.activate.A.2.1 {
+        polar activation revalidates pending complex vector shrink
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create a -cdata z
+    } -body {
+        set rc [catch {.polar1 element activate a 2 {[z set {{1 0}}; expr 0]}} msg]
+        list $rc $msg [.polar1 element activate]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {1 {element index "2" is out of range} {}}
+
     cleanupTests
 }

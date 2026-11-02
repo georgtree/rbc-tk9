@@ -386,10 +386,10 @@ in place; this is a stable snapshot, not an atomic Tcl-array transaction. The
 snapshot is released on success and failure. Existing unrelated/stale fields
 other than the six optional error fields retain their previous behavior.
 
-GetIndex similarly captures the point count before evaluating non-``end`` input
+GetIndex receives a captured point count before evaluating non-``end`` input
 as a Tcl expression. It converts the result to Tcl_Size and checks against those
-captured bounds. A caller that permits data changes during evaluation needs its
-own lifetime and post-callback validity checks. Exact ``end`` avoids expression
+captured bounds. ActivateOp supplies lifetime protection and checks all staged indices against
+current lengths before commit. Exact ``end`` avoids expression
 evaluation; empty elements are rejected before either path.
 
 Registry and display-list ownership
@@ -436,7 +436,10 @@ Resource teardown and record teardown are separate. Rbc_ReleaseElementTkResource
 walks the registry while the Tk window remains usable, including elements omitted
 from the display list. Repeated resource release is guarded. Rbc_DestroyElements
 later destroys records without deleting hash entries during hash traversal, then
-deletes both hash tables and the display chain. That final container destruction
+deletes both hash tables and the display chain. DestroyElement releases resources
+and registry membership immediately, but uses Tcl_EventuallyFree for the record
+itself so an activation callback can retain its identity until validation ends.
+Preservation does not keep released resources usable. That final container destruction
 is not an idempotent operation.
 
 Normal, active and export passes
@@ -462,3 +465,113 @@ It neither processes notifications nor synchronizes arrays, and does not inspect
 weights, error inputs or concrete polar data slots. Callers needing current data
 must use the appropriate synchronization and layout path, not treat a false result
 as proof that every input is current.
+
+Command dispatch and query domains
+-----------------------------------
+
+Rbc_ElementOp validates the operation and argument count using the typed elemOps
+table before calling a handler. The supplied class UID selects creation behavior;
+most other handlers operate on the named record regardless of that UID. This
+entry point does not add record lifetime protection around Tcl evaluation.
+
+Queries do not all enumerate the same collection:
+
+.. list-table:: Element query domains
+   :header-rows: 1
+
+   * - Operation
+     - Source and order
+   * - names
+     - Registry hash order; optional glob patterns are combined with OR.
+   * - exists / type / cget
+     - Exact registry lookup, including hidden records.
+   * - activate without a name
+     - Registry hash order filtered by ELEM_ACTIVE, including hidden records.
+   * - show
+     - Display-chain order, including hideplot entries.
+   * - bind without a tag
+     - Interned tag-table keys, even without live elements or binding scripts.
+   * - get current
+     - Current binding item only when the context and concrete class are elements.
+
+GetOp currently treats an unsupported selector as a successful no-result operation,
+not an error. It does not perform picking. CgetOp delegates to Tk option-value
+retrieval; configure queries use Tk option-information retrieval instead.
+
+Binding tokens
+--------------
+
+Rbc_MakeElementTag interns a string in the graph's element tag table and returns
+the table-owned key as the binding token. Rbc_AppendElementBindingTags appends
+name, class and configured tags in that order. It neither clears the receiving
+list nor removes repeated tags. These helpers assemble lookup keys; they do not
+run binding scripts. Tokens remain valid until the tag table is destroyed.
+BindOp may intern a new tag even when subsequent binding configuration fails.
+
+Mutation boundaries
+-------------------
+
+ConfigureOp resolves the leading names before mutation, then configures them
+sequentially. Each element has its own Tk/derived-resource transaction; a failure
+on a later element does not roll back earlier ones. Queries with several names
+return information for the first one. Successful mutations synchronize hidden
+state with display membership and invalidate axes, mapping and layout. The final
+redraw scheduling is reached only after the loop completes successfully.
+
+DeleteOp and DeactivateOp instead resolve and act on each name in sequence.
+A later missing name leaves earlier changes in place. Repeated deletion names
+therefore produce an error after the first deletion. Deactivation clears the
+active flag and owned index array; if a later lookup fails, its final redraw
+request is not reached. These operations do not promise command-wide atomicity.
+
+ActivateOp stages explicit indices before replacing the old selection. Allocation
+or ordinary conversion failure frees the candidate without changing the old
+selection. No explicit indices means whole-element activation, represented by a
+count of -1. Explicit indices retain order and duplicates, and successful commit
+sets both ELEM_ACTIVE and ACTIVE_PENDING.
+
+Index expressions may invoke application code. ActivateOp preserves the element
+record during evaluation, while the widget dispatcher preserves the graph.
+After each successful evaluation it checks window existence and the element's
+resource-release flag before accessing data again. Deletion, same-name recreation,
+or widget destruction cancels the outer activation with error code
+``RBC ELEMENT CALLBACK``. Preserving storage prevents allocator address reuse from
+making a replacement look like the original element.
+
+Before commit, every staged index is checked against the current point count,
+including indices evaluated before a later expression changed the data. Real and
+complex named-vector lengths are read directly, without waiting for idle
+notifications or consuming them. Exact end is resolved using the current length
+at its own evaluation; its resulting numeric index is revalidated at commit.
+Pending growth is therefore visible to a subsequent index, and pending shrink
+cannot commit an out-of-range selection.
+
+Evaluation/conversion errors keep their original diagnostics. Candidate storage
+and preservation scopes are released on all exits. The outer command leaves
+activation unchanged on failure, apart from any deliberate callback side effects;
+these are not rolled back. Successful nested activation is permitted, and a
+successful outer command then replaces that selection with its own candidate.
+
+Closest-search phases
+---------------------
+
+ClosestOp synchronizes common data inputs and resets axes when requested before
+parsing coordinates and switches. It does not map dirty elements as part of the
+search: records marked MAP_ITEM or with pending X/Y notifications are skipped.
+Explicit hidden or unplotted names cause an error; an implicit search skips them
+and visits the display chain in reverse. Track eligibility additionally requires
+a noncollapsed viewport containing the query position.
+
+ParseClosestOptions starts at argument six and accepts unambiguous switch
+abbreviations. Direction values must be exactly x, y or both; halo values use
+nonnegative screen-distance conversion; interpolation uses Tcl boolean parsing.
+Parsing stops at the first non-option or after --. It updates a local search
+record incrementally, so parse failure need not roll back already parsed fields.
+The final hit comparison is strictly less than the halo, not less than or equal.
+
+Search and metadata collection finish before PublishClosestInfo runs any array
+traces. The caller retains the result dictionary while publication clears six
+optional error fields and writes the snapshot. A miss writes an empty name;
+other old metadata fields are not generally erased. A write error preserves
+preceding writes and returns its diagnostic. Concrete closest-info collectors
+must remain script-free for this separation to protect graph lifetime.

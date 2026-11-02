@@ -68,3 +68,17 @@ normal/active rendering. The namespace below is documentation-only.
    :members:
 
 .. c:namespace-pop::
+
+Commands and binding tags
+-------------------------
+
+These handlers share the typed element dispatch table. Their contracts distinguish
+query order, per-element transactions, sequential mutations and Tcl trace safety.
+The scope below separates generic handler names from other modules' private names.
+
+.. c:namespace-push:: rbcGrElemCommands
+
+.. doxygengroup:: element_command_internals
+   :members:
+
+.. c:namespace-pop::

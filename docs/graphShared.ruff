@@ -1040,6 +1040,9 @@ namespace eval ::rbc::ELEMENT {
         # Queries or changes the active state of graph elements. With no arguments, returns the names of all active
         # elements. With an element name and no indices, activates the complete element. With one or more indices,
         # activates only those data points and replaces the element's previous active-index selection.
+        # All indices must remain valid when evaluation finishes. If an index expression deletes the element or
+        # destroys its graph, activation fails with error code `RBC ELEMENT CALLBACK`; a replacement element is
+        # not activated. Expression errors retain their original diagnostics. Callback side effects are not undone.
         # elemName - name of the element to activate.
         # index - data index to activate; may be `end` or a Tcl integer expression.
         # Returns: List of active element names when querying; nothing when changing activation.

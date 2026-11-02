@@ -1672,14 +1672,16 @@ static int GetLineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byt
     return TCL_OK;
 }
 
+/* Query live vector lengths even before queued change notifications arrive. */
 static Tcl_Size LinePointCount(Element *elemPtr) {
     Line *linePtr;
 
     linePtr = LINE_FROM_CORE(elemPtr);
     if (linePtr->dataMode == LINE_DATA_COMPLEX) {
-        return linePtr->z.nValues;
+        return linePtr->z.clientId != NULL ? Rbc_VectorLength(linePtr->z.vecPtr) : linePtr->z.nValues;
     }
-    return NumberOfXYPoints(elemPtr);
+    return MIN(elemPtr->x.clientId != NULL ? Rbc_VectorLength(elemPtr->x.vecPtr) : elemPtr->x.nValues,
+               elemPtr->y.clientId != NULL ? Rbc_VectorLength(elemPtr->y.vecPtr) : elemPtr->y.nValues);
 }
 
 static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {

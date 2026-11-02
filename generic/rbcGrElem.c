@@ -32,6 +32,10 @@
  * Registry ownership, option rollback, teardown and viewport-scoped rendering.
  */
 
+/** @defgroup element_command_internals Element commands and binding tags
+ * Query results, mutation boundaries, search publication and dispatch.
+ */
+
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
 #include "rbcChain.h"
@@ -52,7 +56,7 @@ static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, Pe
 static void SyncElemVector(ElemVector *vPtr);
 static void FindRange(ElemVector *vPtr);
 static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, Tcl_Size *nElemPtr, double **arrayPtr);
-static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tcl_Size *indexPtr);
+static int GetIndex(Tcl_Interp *interp, Tcl_Size nPoints, const char *string, Tcl_Size *indexPtr);
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr);
 static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 static void DestroyElement(Graph *graphPtr, Element *elemPtr);
@@ -2241,6 +2245,13 @@ void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStyl
     DestroyPalette(graphPtr, oldPalette);
 }
 
+/**
+ * @ingroup element_command_internals
+ * @brief Parse the exact closest-search direction x, y or both.
+ *
+ * Writes alongPtr only on success. Returns TCL_ERROR with a diagnostic for
+ * other spellings, including abbreviations; does not evaluate Tcl expressions.
+ */
 static int GetAlongFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *alongPtr) {
     const char *string;
     int along;
@@ -2266,6 +2277,16 @@ typedef enum { CLOSEST_OPTION_ALONG, CLOSEST_OPTION_HALO, CLOSEST_OPTION_INTERPO
 
 static const char *const closestOptionNames[] = {"-along", "-halo", "-interpolate", NULL};
 
+/**
+ * @ingroup element_command_internals
+ * @brief Parse closest-search switches beginning at argument six.
+ *
+ * Mutates the caller-initialized search options as each pair succeeds; failure
+ * does not roll back earlier pairs. Accepts unambiguous switch abbreviations,
+ * nonnegative pixel halos and Tcl booleans for interpolation. Stops at the first
+ * non-option or after --, writing nextPtr only on success. Does not resolve
+ * trailing element names or execute a search.
+ */
 static int ParseClosestOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
                                ClosestSearch *searchPtr, Tcl_Size *nextPtr) {
     Tcl_Size i;
@@ -2990,7 +3011,7 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
  * @ingroup element_data_internals
  * @brief Resolve end or an integer expression against the element point count.
  * @param interp Interpreter for expression and range diagnostics.
- * @param elemPtr Live element supplying the initial polymorphic point count.
+ * @param nPoints Point count captured by the caller before expression evaluation.
  * @param string Borrowed NUL-terminated index text.
  * @param[out] indexPtr Receives the validated Tcl_Size index only on success.
  * @return TCL_OK on success, TCL_ERROR for empty data, evaluation/conversion
@@ -2999,12 +3020,10 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
  * Bounds are captured before evaluation; caller owns callback lifetime and any
  * needed revalidation if data changes during evaluation.
  */
-static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tcl_Size *indexPtr) {
-    Tcl_Size nPoints;
+static int GetIndex(Tcl_Interp *interp, Tcl_Size nPoints, const char *string, Tcl_Size *indexPtr) {
     Tcl_Size last;
     Tcl_Size ielem;
 
-    nPoints = NumberOfPoints(elemPtr);
     if (nPoints == 0) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("can't select an index from an empty element", -1));
         return TCL_ERROR;
@@ -3233,11 +3252,12 @@ void Rbc_ReleaseElementTkResources(Graph *graphPtr) {
 
 /**
  * @ingroup element_lifecycle_internals
- * @brief Remove one element and free its record immediately.
+ * @brief Remove one element and defer its record release while preserved.
  * Removes bindings and global-legend references, releases concrete and Tk
  * resources, then removes all matching display-list links and the optional
  * registry entry. A displayed non-hidden element requests RESET_WORLD/redraw.
- * Frees the owned name and record; borrowed element pointers become invalid.
+ * Frees the owned name; record storage survives only existing Tcl_Preserve scopes.
+ * Released resources and registry identity are no longer usable.
  * Callers destroying the whole registry clear hashPtr before this call.
  */
 static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
@@ -3266,7 +3286,7 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
     if (elemPtr->name != NULL) {
         ckfree((char *)elemPtr->name);
     }
-    ckfree((char *)elemPtr);
+    Tcl_EventuallyFree(elemPtr, TCL_DYNAMIC);
 }
 
 /**
@@ -3647,27 +3667,38 @@ int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
     return 0;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Read current activation bounds without consuming vector notifications.
+ * Requires a live element whose resources have not been released. Literal slots
+ * use cached lengths; named slots query their live vectors. Polar elements use
+ * their concrete point-count callback to include complex input.
+ */
+static Tcl_Size ActivationPointCount(Element *elemPtr) {
+    Tcl_Size nx, ny;
+
+    if (elemPtr->classUid == rbcPolarElementUid) {
+        return NumberOfPoints(elemPtr);
+    }
+    nx = elemPtr->x.clientId != NULL ? Rbc_VectorLength(elemPtr->x.vecPtr) : elemPtr->x.nValues;
+    ny = elemPtr->y.clientId != NULL ? Rbc_VectorLength(elemPtr->y.vecPtr) : elemPtr->y.nValues;
+    return MIN(nx, ny);
+}
+
+/**
+ * @ingroup element_command_internals
+ * @brief Query active registry names or replace one element's active indices.
  *
- * ActivateOp --
- *
- *      Marks data points of elements (given by their index) as active.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns TCL_OK if no errors occurred.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * No name returns all ELEM_ACTIVE registry entries in hash iteration order,
+ * including hidden elements. A name without indices activates the whole element
+ * using nActiveIndices = -1. Explicit indices are staged in owned storage and
+ * committed only after all conversions succeed; duplicates retain input order.
+ * Success replaces old indices, sets ELEM_ACTIVE and ACTIVE_PENDING and queues
+ * redraw. Ordinary conversion failure frees the candidate and retains old state.
+ * Preserves element storage across index expressions, rejects released records,
+ * and revalidates every staged index against current data before commit. The
+ * enclosing widget command preserves the graph. Script errors retain their
+ * original diagnostics; callback side effects are not rolled back.
  */
 static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -3715,13 +3746,39 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
         }
         activePtr = activeArr;
         nActiveIndices = count;
+        Tcl_Preserve(elemPtr);
         for (Tcl_Size i = 4; i < objc; i++) {
-            if (GetIndex(interp, elemPtr, Tcl_GetString(objv[i]), activePtr) != TCL_OK) {
+            int result = GetIndex(interp, ActivationPointCount(elemPtr), Tcl_GetString(objv[i]), activePtr);
+
+            if (result != TCL_OK) {
                 ckfree(activeArr);
+                Tcl_Release(elemPtr);
+                return TCL_ERROR;
+            }
+            if (graphPtr->tkwin == NULL || elemPtr->tkResourcesReleased) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("element deleted during activation index evaluation", -1));
+                Tcl_SetErrorCode(interp, "RBC", "ELEMENT", "CALLBACK", NULL);
+                ckfree(activeArr);
+                Tcl_Release(elemPtr);
                 return TCL_ERROR;
             }
             activePtr++;
         }
+        /* A later expression may shrink data used by an earlier index. */
+        {
+            Tcl_Size nPoints = ActivationPointCount(elemPtr);
+
+            for (Tcl_Size i = 0; i < count; i++) {
+                if (activeArr[i] >= nPoints) {
+                    Tcl_SetObjResult(interp, Tcl_ObjPrintf("element index \"%s\" is out of range",
+                                                          Tcl_GetString(objv[i + 4])));
+                    ckfree(activeArr);
+                    Tcl_Release(elemPtr);
+                    return TCL_ERROR;
+                }
+            }
+        }
+        Tcl_Release(elemPtr);
     }
     /*
      * Commit the replacement only after every supplied index has been
@@ -3736,24 +3793,13 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;
 }
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Intern a binding tag in the graph's element tag table.
  *
- * Rbc_MakeElementTag --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      char *tagName
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Copies a new string key into the table or reuses an existing entry. Returns
+ * the table-owned key as a stable binding token until tag-table destruction.
+ * Does not require an element with that name or create a binding script.
  */
 ClientData Rbc_MakeElementTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
@@ -3764,6 +3810,15 @@ ClientData Rbc_MakeElementTag(Graph *graphPtr, char *tagName) {
     return Tcl_GetHashKey(&graphPtr->elements.tagTable, hPtr);
 }
 
+/**
+ * @ingroup element_command_internals
+ * @brief Append an element's binding tags to a caller-owned list.
+ *
+ * Appends interned name and class tokens first, then configured tags in order.
+ * Does not clear the list or filter repeated tags. Token lifetime belongs to the
+ * graph's tag table; list-node lifetime belongs to the receiving list.
+ * Does not execute binding scripts.
+ */
 void Rbc_AppendElementBindingTags(Graph *graphPtr, Element *elemPtr, Rbc_List list) {
     char **p;
 
@@ -3777,27 +3832,14 @@ void Rbc_AppendElementBindingTags(Graph *graphPtr, Element *elemPtr, Rbc_List li
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Query interned element tags or delegate tag binding configuration.
  *
- * BindOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * With no tag returns every interned tag in hash order, not just tags with a
+ * binding or a live element. Otherwise interns the supplied tag and delegates
+ * remaining query/set arguments to Rbc_ConfigureBindingsFromObj.
+ * Returns the delegated Tcl status; interning can survive a failed binding call.
  */
 static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
@@ -3818,54 +3860,24 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
                                         Rbc_MakeElementTag(graphPtr, Tcl_GetString(objv[3])), objc - 4, objv + 4);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Delegate element creation using the dispatcher-supplied class UID.
  *
- * CreateOp --
- *
- *      Add a new element to the graph (using the default type of the
- *      graph).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Passes the complete validated command vector to CreateElement and returns
+ * its status and result. This wrapper adds no ownership or rollback layer.
  */
 static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return CreateElement(graphPtr, interp, objc, objv, type);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Return one named element's Tk option value.
  *
- * CgetOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Resolves the registry record, asks its option table for objv[4], and installs
+ * the returned object as the interpreter result. Returns TCL_ERROR for missing
+ * elements or invalid options. Does not configure or map the element.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -3952,8 +3964,17 @@ static int AppendClosestErrors(Tcl_Interp *interp, Element *elemPtr, Tcl_Size in
     return TCL_OK;
 }
 
-/* Publish only owned snapshot objects. Unset/write traces may delete the
- * selected element or graph, replace its vectors, or recursively query it. */
+/**
+ * @ingroup element_command_internals
+ * @brief Publish a retained closest-result snapshot without reading graph state.
+ *
+ * The caller owns resultObjPtr throughout publication. Attempts to unset the six
+ * optional error fields, ignoring unset status, then writes dictionary entries
+ * in collection order. Variable traces may mutate or destroy graph data.
+ * A failed write closes dictionary iteration and returns TCL_ERROR with its
+ * diagnostic; earlier writes remain. Success sets the integer found result.
+ * Unrelated old array fields are retained; publication is not atomic.
+ */
 static int PublishClosestInfo(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, Tcl_Obj *resultObjPtr, int found) {
     static const char *names[] = {"xerror", "xlow", "xhigh", "yerror", "ylow", "yhigh"};
     Tcl_DictSearch cursor;
@@ -3978,48 +3999,20 @@ static int PublishClosestInfo(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, Tcl_Ob
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Find eligible mapped geometry and publish a stable result snapshot.
  *
- * ClosestOp --
- *
- *      Find the element closest to the specified screen coordinates.
- *      Options:
- *      -halo        Consider points only with this maximum distance
- *              from the picked coordinate.
- *      -interpolate    Find closest point along element traces, not just
- *              data points.
- *      -along
- *
- * Return the common closest-element information.  Bar elements
- * additionally return the mapped screen rectangle of the selected
- * bar segment as left, top, right, and bottom.
- *
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result. If an element could be found within
- *      the halo distance, the interpreter result is "1", otherwise
- *      "0".  If a closest element exists, the designated Tcl array
- *      variable will be set with the following information:
- *
- *      1) the element name,
- *      2) the index of the closest point,
- *      3) the distance (in screen coordinates) from the picked X-Y
- *         coordinate and the closest point,
- *      4) the X coordinate (graph coordinate) of the closest point,
- *      5) and the Y-coordinate.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Synchronizes common vector inputs and resets axes if requested, then parses
+ * pixel coordinates and closest switches. Explicit hidden or unplotted names
+ * are errors; implicit search skips them and traverses the display list in
+ * reverse. Dirty geometry or pending X/Y notifications are skipped, not mapped.
+ * Track searches require a noncollapsed viewport containing the query point.
+ * A hit requires distance strictly less than the halo. Collects common fields,
+ * bar bounds, source errors and concrete metadata before any variable traces.
+ * Misses publish an empty name. Returns publication status and releases the
+ * retained dictionary on every collection/publication exit; no graph accesses
+ * occur after publication begins.
  */
 static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4187,33 +4180,17 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Query options or configure named elements sequentially.
  *
- * ConfigureOp --
- *
- *      Sets the element specifications by the given the command line
- *      arguments and calls the element specification configuration
- *      routine. If zero or one command line options are given, only
- *      information about the option(s) is returned in the interpreter
- *      result. If the element configuration has changed and the element
- *      is currently displayed, the axis limits are updated and
- *      recomputed.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      Graph will be redrawn to reflect the new display list.
- *
- *----------------------------------------------------------------------
+ * Resolves leading element names before the first hyphen-prefixed option.
+ * Zero or one option returns Tk option information for the first named element.
+ * Mutation uses ConfigureElementOptions for each element, synchronizes hidden
+ * state with display membership and marks axes, layout and mapping dirty.
+ * Failure stops processing; earlier successfully configured elements stay
+ * changed. The operation is not a transaction across all named elements.
+ * Normal completion schedules backing-store and margin redraw.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4299,27 +4276,14 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Si
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Clear activation and release indices for each named element.
  *
- * DeactivateOp --
- *
- *      Clears the active bit for the named elements.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns TCL_OK if no errors occurred.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Processes names sequentially, clearing ELEM_ACTIVE and setting the index
+ * pointer/count to NULL/zero. A later missing name returns TCL_ERROR without
+ * restoring earlier changes or reaching the final redraw request.
+ * No arguments change nothing but still schedule redraw on successful completion.
  */
 static int DeactivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4340,30 +4304,14 @@ static int DeactivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_S
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Destroy named elements in argument order.
  *
- * DeleteOp --
- *
- *      Delete the named elements from the graph.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TCL_ERROR is returned if any of the named elements can not be
- *      found.  Otherwise TCL_OK is returned;
- *
- * Side Effects:
- *      If the element is currently displayed, the plotting area of
- *      the graph is redrawn. Memory and resources allocated by the
- *      elements are released.
- *
- *----------------------------------------------------------------------
+ * Missing names return TCL_ERROR immediately; earlier deletions are not undone.
+ * Repeating a name therefore deletes it once and then fails lookup. Each
+ * destructor handles its own invalidation; successful completion additionally
+ * queues graph redraw, including for an empty name list.
  */
 static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4379,28 +4327,12 @@ static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Return whether an exact element name is in the registry.
  *
- * ExistsOp --
- *
- *      Indicates if the named element exists in the graph.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.  The interpreter
- *      result will contain "1" or "0".
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Sets a Tcl boolean result and returns TCL_OK. Includes hidden and unplotted
+ * elements and does not use NameToElement's missing-name diagnostic.
  */
 static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_HashEntry *hPtr;
@@ -4410,30 +4342,14 @@ static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Return the current binding element's name when available.
  *
- * GetOp --
- *
- *      Returns the name of the picked element (using the element
- *      bind operation).  Right now, the only name accepted is
- *      "current".
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.  The interpreter result will contain
- *      the name of the element.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Only exact current selects an item, and the binding context must be ELEMENT.
+ * Recognizes line, strip, bar and polar records. Other selectors or contexts
+ * return TCL_OK without assigning a result; the command caller supplies the
+ * ordinary empty initial result. Does not repick or execute bindings.
  */
 static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register Element *elemPtr;
@@ -4454,30 +4370,13 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size obj
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief List registered element names matching any optional glob pattern.
  *
- * NamesOp --
- *
- *      Returns the names of the elements is the graph matching
- *      one of more patterns provided.  If no pattern arguments
- *      are given, then all element names will be returned.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result. The interpreter
- *      result will contain a Tcl list of the element names.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Includes hidden elements. No patterns includes every registry entry; otherwise
+ * each name is appended once on its first matching pattern. Returns TCL_OK with
+ * a new Tcl list in hash iteration order, not drawing order.
  */
 static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4504,28 +4403,13 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size o
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Query display order or replace it before returning the resulting list.
  *
- * ShowOp --
- *
- *      Queries or resets the element display list.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result. The interpreter
- *      result will contain the new display list of element names.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * A supplied list is processed by RebuildDisplayList; parse failure returns
+ * immediately. Copies names from the display chain into a new Tcl result list.
+ * Does not filter hideplot entries or consult registry iteration order.
  */
 static int ShowOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4547,31 +4431,12 @@ static int ShowOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Return the registered element's concrete class UID as a Tcl string.
  *
- * TypeOp --
- *
- *      Returns the name of the type of the element given by some
- *      element name.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      Rbc_Uid type
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result. Returns the type of the element in
- *      the interpreter result.
- *      If the identifier given doesn't represent an element, then
- *      an error message is left in the interpreter result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns TCL_ERROR for an unknown name. The dispatcher type argument does not
+ * filter lookup; the result describes the actual element record.
  */
 static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4602,29 +4467,14 @@ static const ElementOpSpec elemOps[] = {
     {{"type", 4, 4, "elemName"}, TypeOp},
     {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- * ----------------------------------------------------------------
+/**
+ * @ingroup element_command_internals
+ * @brief Resolve and dispatch an element subcommand with arity validation.
  *
- * Rbc_ElementOp --
- *
- *      This procedure is invoked to process the Tcl command that
- *      corresponds to a widget managed by this module.  See the user
- *      documentation for details on what it does.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Tcl_Interp *interp
- *      int objc - # arguments
- *      Tcl_Obj *const objv[] - Argument list
- *      Rbc_Uid type
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- * ----------------------------------------------------------------
+ * Uses the typed elemOps table and argument-two operation lookup. Returns lookup
+ * errors without invoking a handler; otherwise forwards graph, interpreter,
+ * complete argument vector and creation class UID to that handler.
+ * Does not retain graph/element records or provide a transaction across commands.
  */
 int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid type) {
     int index;
