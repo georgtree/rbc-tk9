@@ -9,6 +9,10 @@
  * See "license.terms" for details.
  */
 
+/** @defgroup axis_registry Axis registry and lifetime */
+/** @defgroup axis_configuration Axis configuration entry points */
+/** @defgroup axis_commands Axis command dispatch and bindings */
+
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
 #include "rbcRender.h"
@@ -1194,26 +1198,13 @@ static void CommitAxisFormatTransaction(Axis *axisPtr, AxisFormatTransaction *tr
     FreeAxisFormats(oldFormats);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_configuration
+ * @brief Initialize Tk options through the named Axis component.
  *
- * InitAxisOptions --
- *
- *      Creates the axis option table and installs its default and
- *      option-database values.
- *
- *      This function does not construct derived axis resources.
- *      ConfigureAxisOptions performs that work through ConfigureAxis.
- *
- * Results:
- *      TCL_OK if the axis options were initialised successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Creates axisPtr->optionTable and stores Tk-managed option
- *      resources in the Axis record.
- *
- *----------------------------------------------------------------------
+ * Returns TCL_OK if already initialized or successfully initialized. On initialization failure, frees
+ * partially installed Tk resources and the option table. The component resource name is temporary; the
+ * Axis retains the option table.
  */
 static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
     char *componentName;
@@ -1252,33 +1243,26 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_configuration
+ * @brief Clear borrowed configuration arguments and the option mask.
+ *
+ * Does not free the caller-owned object vector or alter committed option values.
+ */
 static void ResetAxisOptionContext(Axis *axisPtr) {
     axisPtr->optionMask = 0;
     axisPtr->optionObjc = 0;
     axisPtr->optionObjv = NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_configuration
+ * @brief Apply one axis option transaction and construct derived state.
  *
- * ConfigureAxisOptions --
- *
- *      Applies axis option/value pairs transactionally and
- *      invokes ConfigureAxis to validate and construct derived state.
- *
- *      The original option vector and Tk type mask are temporarily
- *      retained in the Axis record so ConfigureAxis can process
- *      repeated options in caller order.
- *
- * Results:
- *      TCL_OK if all options and derived resources were configured.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      On success, updates the axis configuration.
- *      On failure, restores all Tk-managed option fields.
- *
- *----------------------------------------------------------------------
+ * Requires initialized options and an even object count. Borrows objv only during ConfigureAxis,
+ * clearing that context before rollback or return. On failure restores Tk-managed options; on success
+ * releases saved options, marks configuration notification pending, and optionally returns the changed
+ * mask. Returns a Tcl status.
  */
 static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
@@ -1320,6 +1304,14 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, T
     return TCL_OK;
 }
 
+/**
+ * @ingroup axis_configuration
+ * @brief Initialize options and derive a usable axis configuration.
+ *
+ * Runs configuration even for an empty option vector so database defaults reach derived fields.
+ * Returns a Tcl status; the caller owns failure cleanup. An already initialized revived axis retains
+ * its option table.
+ */
 static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (InitAxisOptions(graphPtr, axisPtr) != TCL_OK) {
         return TCL_ERROR;
@@ -1332,18 +1324,13 @@ static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_O
     return ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, NULL);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_configuration
+ * @brief Release Tk-owned option resources once.
  *
- * ReleaseAxisOptionResources --
- *
- *      Releases resources owned directly by the modern Tk option
- *      table.
- *
- *      Derived axis resources remain the responsibility of the
- *      existing concrete axis destructor.
- *
- *----------------------------------------------------------------------
+ * Clears borrowed transaction context and deletes the initialized option table. Does not release
+ * derived labels, geometry, shadow colours or text-style graphics contexts; DestroyAxis owns those
+ * resources.
  */
 static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->tkResourcesReleased) {
@@ -3467,28 +3454,12 @@ void Rbc_ResetAxes(Graph *graphPtr) {
     graphPtr->flags |= (GET_AXIS_GEOMETRY | LAYOUT_NEEDED | MAP_ALL | REDRAW_WORLD);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_configuration
+ * @brief Refresh text styles and replace the axis tick graphics context.
  *
- * ResetTextStyles --
- *
- *      Configures axis attributes (font, line width, label, etc) and
- *      allocates a new (possibly shared) graphics context.  Line cap
- *      style is projecting.  This is for the problem of when a tick
- *      sits directly at the end point of the axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      Axis resources are allocated (GC, font). Axis layout is
- *      deferred until the height and width of the window are known.
- *
- * ----------------------------------------------------------------------
+ * Borrows configured fonts and colours. Allocates the new tick GC before releasing the old one; uses
+ * the existing native line-width conversion and projecting caps.
  */
 static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
     GC newGC;
@@ -3509,25 +3480,13 @@ static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
     axisPtr->tickGC = newGC;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_registry
+ * @brief Destroy an axis and all resources it owns.
  *
- * DestroyAxis --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Resources (font, color, gc, labels, etc.) associated with the
- *      axis are deallocated.
- *
- * ----------------------------------------------------------------------
+ * Cancels pending scrollbar notification, releases options and bindings, removes the margin link and
+ * registry entry when present, and frees styles, shadows, tick arrays, labels, formats, segments, tags
+ * and the record. Does not consult refCount; callers must ensure no consumers retain the record.
  */
 static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->scrollNotifyPending) {
@@ -5048,25 +5007,14 @@ void Rbc_LayoutMargins(Graph *graphPtr) {
     graphPtr->titleX = Rbc_ClampToInt(value / 2);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_configuration
+ * @brief Validate staged options before committing derived axis resources.
  *
- * ConfigureAxis --
- *
- *      Configures axis attributes (font, line width, label, etc).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      Axis layout is deferred until the height and width of the
- *      window are known.
- *
- * ----------------------------------------------------------------------
+ * Prepares limit, tick, loose-range, pixel, shadow, tag and format transactions as needed. Validates
+ * command prefixes without evaluating them. Recoverable errors free prepared resources before any
+ * commit. Success normalizes rotation, refreshes styles and title extents, marks axis and graph
+ * mapping dirty, and schedules redraw. The caller restores Tk-managed fields on error.
  */
 static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     AxisLimitTransaction limitTransaction;
@@ -5276,26 +5224,14 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_registry
+ * @brief Allocate a registered axis or revive a pending deletion.
  *
- * CreateAxis --
- *
- *      Create and initialize a structure containing information to
- *      display a graph axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *      char *name - Identifier for axis.
- *      int margin
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Rejects names beginning with a dash and existing live names, returning NULL with an interpreter
+ * error. A new record owns a copied name and label chain but is not yet configured or linked to a
+ * margin. Revival returns the same record, clears deletePending and invalidates notified limits; it
+ * preserves references and existing resources.
  */
 static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     Axis *axisPtr;
@@ -5355,25 +5291,12 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     return axisPtr;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_registry
+ * @brief Look up a live named axis without retaining it.
  *
- * NameToAxis --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record.
- *      const char *name - Name of the axis to be searched for.
- *      Axis **axisPtrPtr - (out) Pointer to found axis structure.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns TCL_OK and a borrowed pointer. Missing and delete-pending axes return TCL_ERROR, set the
+ * interpreter result, and clear the output pointer.
  */
 static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr) {
     Tcl_HashEntry *hPtr;
@@ -5394,26 +5317,13 @@ static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr) {
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_registry
+ * @brief Look up an axis and optionally acquire a typed reference.
  *
- * GetAxis --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      const char *axisName
- *      Rbc_Uid classUid
- *      Axis **axisPtrPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * A NULL classUid performs a borrowed lookup. Otherwise establishes the logical X/Y class when unused
+ * or untyped, rejects a conflicting class, and increments refCount on success. Match each acquired
+ * reference with FreeAxis. The output pointer is assigned only on success.
  */
 static int GetAxis(Graph *graphPtr, const char *axisName, Rbc_Uid classUid, Axis **axisPtrPtr) {
     Axis *axisPtr;
@@ -5436,24 +5346,12 @@ static int GetAxis(Graph *graphPtr, const char *axisName, Rbc_Uid classUid, Axis
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_registry
+ * @brief Release one acquired axis reference.
  *
- * FreeAxis --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires a positive reference count. Destroys the record when the count reaches zero and deletion is
+ * pending; an unreferenced live axis remains registered.
  */
 static void FreeAxis(Graph *graphPtr, Axis *axisPtr) {
     axisPtr->refCount--;
@@ -5462,6 +5360,14 @@ static void FreeAxis(Graph *graphPtr, Axis *axisPtr) {
     }
 }
 
+/**
+ * @ingroup axis_registry
+ * @brief Resolve an optional Tcl axis name with the requested reference policy.
+ *
+ * A NULL or empty object returns a NULL axis only when allowEmpty is true; otherwise it reports
+ * TCL_ERROR. Nonempty names delegate to GetAxis, including its typed-reference ownership and output-
+ * on-success rules.
+ */
 int Rbc_GetAxisFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid classUid, int allowEmpty, Axis **axisPtrPtr) {
     if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
         if (!allowEmpty) {
@@ -5475,29 +5381,26 @@ int Rbc_GetAxisFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid classUid, int a
     return GetAxis(graphPtr, Tcl_GetString(objPtr), classUid, axisPtrPtr);
 }
 
+/**
+ * @ingroup axis_registry
+ * @brief Release an optional retained axis reference.
+ *
+ * Accepts NULL. A non-NULL argument must represent an acquired reference; release may destroy a
+ * delete-pending record.
+ */
 void Rbc_FreeAxisReference(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr != NULL) {
         FreeAxis(graphPtr, axisPtr);
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_registry
+ * @brief Tear down the complete graph axis registry.
  *
- * Rbc_DestroyAxes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Destroys records regardless of reference counts, then deletes registry and tag tables and axis
+ * chains. Clears each record hash pointer before destruction to keep hash iteration valid. Consumers
+ * must have been detached by graph teardown; this is not ordinary axis deletion.
  */
 void Rbc_DestroyAxes(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
@@ -5518,23 +5421,13 @@ void Rbc_DestroyAxes(Graph *graphPtr) {
     Rbc_ChainDestroy(graphPtr->axes.displayList);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_registry
+ * @brief Create and configure the four initial margin axes.
  *
- * Rbc_DefaultAxes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Creates x, y, x2 and y2 with one reference each and the appropriate logical class. Polar axes start
+ * hidden before database options are applied. Success links each configured record to its chain.
+ * Failure returns TCL_ERROR with partial initialization left for graph teardown.
  */
 int Rbc_DefaultAxes(Graph *graphPtr) {
     static char *axisNames[4] = {"x", "y", "x2", "y2"};
@@ -5585,26 +5478,12 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
     return TCL_OK;
 }
 
-/*----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Query or configure bindings for a selected margin axis.
  *
- * BindOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Interns the axis name as a binding tag and forwards the already sliced argument vector. Returns the
+ * binding subsystem Tcl status; does not evaluate an event binding here.
  */
 static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5612,28 +5491,12 @@ static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl
                                         objv);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Return one initialized axis option value.
  *
- * CgetOp --
- *
- *      Queries axis attributes (font, line width, label, etc).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Return value is a standard Tcl result.  If querying configuration
- *      values, the interpreter result will contain the results.
- *
- * Side Effects:
- *      TODO: SIde Effects
- *
- * ----------------------------------------------------------------------
+ * Requires a live axis and initialized Tk option table. Uses the first sliced argument as the option
+ * name and returns TCL_ERROR if Tk cannot resolve it.
  */
 static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *valueObjPtr;
@@ -5648,29 +5511,13 @@ static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Query or configure one resolved axis.
  *
- * ConfigureOp --
- *
- *      Queries or resets axis attributes (font, line width, label, etc).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Return value is a standard Tcl result.  If querying configuration
- *      values, the interppreter result will contain the results.
- *
- * Side Effects:
- *      Axis resources are possibly allocated (GC, font). Axis layout is
- *      deferred until the height and width of the window are known.
- *
- * ----------------------------------------------------------------------
+ * Zero or one sliced argument returns Tk option metadata. Option/value pairs use ConfigureAxisOptions.
+ * Success additionally invalidates backing and margins for an onscreen axis. This transaction covers
+ * one axis, not a multi-axis command.
  */
 static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *infoObjPtr;
@@ -5933,31 +5780,14 @@ static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Query or replace the axes displayed on a margin.
  *
- * UseOp --
- *
- *      Changes the virtual axis used by the logical axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      int margin
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.  If the named axis doesn't exist
- *      an error message is set in the interpreter result.
- *
- *      .g xaxis use "abc def gah"
- *      .g xaxis use [lappend abc [.g axis use]]
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Queries return chain order. Replacement chooses logical class using inversion and rejects trackgraph
+ * Y arrangement, which belongs to tracks. Validates every replacement name and type before changing
+ * any chain. Failure leaves all margins unchanged. Success moves existing links as needed and
+ * schedules full layout and redraw.
  */
 static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5989,6 +5819,23 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
     if (Tcl_ListObjGetElements(interp, objv[0], &nNames, &names) != TCL_OK) {
         return TCL_ERROR;
     }
+    /* Validate the complete replacement before changing any margin or type.
+     * An unused member of this chain will have its type cleared below.
+     * No callbacks run between validation and commit.
+     */
+    for (i = 0; i < nNames; i++) {
+        if (NameToAxis(graphPtr, Tcl_GetString(names[i]), &axisPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if ((axisPtr->classUid != NULL) && (axisPtr->classUid != classUid) &&
+            !((axisPtr->linkPtr != NULL) && (axisPtr->chainPtr == chainPtr) &&
+              (axisPtr->refCount == 0))) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("wrong type axis \"%s\": "
+                                                   "can't use %s type axis.",
+                                                   axisPtr->name, classUid));
+            return TCL_ERROR;
+        }
+    }
     for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         axisPtr = Rbc_ChainGetValue(linkPtr);
         axisPtr->linkPtr = NULL;
@@ -6000,17 +5847,8 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
     }
     Rbc_ChainReset(chainPtr);
     for (i = 0; i < nNames; i++) {
-        if (NameToAxis(graphPtr, Tcl_GetString(names[i]), &axisPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (axisPtr->classUid == NULL) {
-            axisPtr->classUid = classUid;
-        } else if (axisPtr->classUid != classUid) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("wrong type axis \"%s\": "
-                                                   "can't use %s type axis.",
-                                                   axisPtr->name, classUid));
-            return TCL_ERROR;
-        }
+        axisPtr = Tcl_GetHashValue(Tcl_FindHashEntry(&graphPtr->axes.table, Tcl_GetString(names[i])));
+        axisPtr->classUid = classUid;
         if (axisPtr->linkPtr != NULL) {
             /* Move the axis from the old margin's "use" list to the new. */
             Rbc_ChainUnlinkLink(axisPtr->chainPtr, axisPtr->linkPtr);
@@ -6028,25 +5866,12 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief List interned axis tags or access one tag binding.
  *
- * BindVirtualOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * With no tag argument returns the tag table in hash order. Otherwise interns the supplied tag and
+ * forwards remaining arguments; the tag need not name an existing axis.
  */
 static int BindVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -6068,28 +5893,26 @@ static int BindVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
                                         objc - 4, objv + 4);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Create or revive a named axis and apply its options.
  *
- * CreateVirtualOp --
- *
- *      Creates a new axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Returns the axis name on success. Configuration failure destroys only a newly allocated record.
+ * Failed revival restores pending deletion and the previous notification validity while preserving
+ * the record and its consumers; ConfigureNewAxis rolls back its option transaction.
  */
 static int CreateVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
+    Tcl_HashEntry *hPtr;
+    int revived = FALSE;
+    int notifiedLimitsValid = FALSE;
+
+    hPtr = Tcl_FindHashEntry(&graphPtr->axes.table, Tcl_GetString(objv[3]));
+    if (hPtr != NULL) {
+        axisPtr = Tcl_GetHashValue(hPtr);
+        revived = axisPtr->deletePending;
+        notifiedLimitsValid = axisPtr->notifiedLimitsValid;
+    }
 
     axisPtr = CreateAxis(graphPtr, Tcl_GetString(objv[3]), MARGIN_NONE);
     if (axisPtr == NULL) {
@@ -6102,30 +5925,22 @@ static int CreateVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
     return TCL_OK;
 
 error:
-    DestroyAxis(graphPtr, axisPtr);
+    if (revived) {
+        /* Configuration rolled back; preserve consumers of the old record. */
+        axisPtr->deletePending = TRUE;
+        axisPtr->notifiedLimitsValid = notifiedLimitsValid;
+    } else {
+        DestroyAxis(graphPtr, axisPtr);
+    }
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Resolve a named axis and delegate its option query.
  *
- * CgetVirtualOp --
- *
- *      Queries axis attributes (font, line width, label, etc).
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Return value is a standard Tcl result.  If querying configuration
- *      values, the interpreter result will contain the results.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Uses a borrowed live lookup and passes the option suffix to CgetOp. Returns the lookup or option-
+ * query Tcl status.
  */
 static int CgetVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6136,27 +5951,13 @@ static int CgetVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
     return CgetOp(graphPtr, axisPtr, /*dummy*/ 0, objc - 4, objv + 4);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Apply a shared option suffix to one or more named axes.
  *
- * ConfigureVirtualOp --
- *
- *      Queries or resets axis attributes (font, line width, label, etc).
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Return value is a standard Tcl result.  If querying configuration
- *      values, the interpreter result will contain the results.
- *
- * Side Effects:
- *      Axis resources are possibly allocated (GC, font). Axis layout is
- *      deferred until the height and width of the window are known.
- *
- * ----------------------------------------------------------------------
+ * Validates names before the first option beginning with a dash, then configures them sequentially.
+ * Earlier successful axes are not rolled back if a later configuration fails. Query results are
+ * replaced by each successive axis result.
  */
 static int ConfigureVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6194,28 +5995,13 @@ static int ConfigureVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const obj
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Mark named axes for deletion and destroy unreferenced records.
  *
- * DeleteVirtualOp --
- *
- *      Deletes one or more axes.  The actual removal may be deferred
- *      until the axis is no longer used by any element. The axis
- *      can't be referenced by its name any longer and it may be
- *      recreated.
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Rejects track-owned axes until detached. Marks an active formatter traversal invalid before
+ * deletion. Referenced records remain allocated but disappear from live name lookup. Processes names
+ * sequentially, so earlier deletions survive a later error.
  */
 static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -6241,28 +6027,13 @@ static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Report the current axis name or picked detail.
  *
- * GetOp --
- *
- *      Returns the name of the picked axis (using the axis
- *      bind operation).  Right now, the only name accepted is
- *      "current".
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.  The interpreter result will contain
- *      the name of the axis.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Checks the binding context before interpreting the picked object as an axis. Returns a value only
+ * for current or detail with an eligible picked axis; otherwise returns TCL_OK without setting a new
+ * result.
  */
 static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -6348,25 +6119,12 @@ static int LimitsVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
     return LimitsOp(graphPtr, axisPtr, /*dummy*/ 0, objc - 4, objv + 4);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief List live axis names matching any supplied glob pattern.
  *
- * NamesVirtualOp --
- *
- *      Return a list of the names of all the axes.
- *
- * Parameters:
- *      Graph *graphPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Skips delete-pending records, returns each matching name once and preserves hash traversal order,
+ * not display order. No patterns means all live names.
  */
 static int NamesVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -6617,26 +6375,12 @@ usage:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Dispatch the named-axis command family.
  *
- * Rbc_VirtualAxisOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Validates operation and argument counts with the shared operation table, then forwards the complete
+ * widget command vector. Handlers resolve names and apply their own lifetime and transaction rules.
  */
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const AxisVirtualOpSpec axisOps[] = {
@@ -6664,26 +6408,13 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     return axisOps[index].proc(graphPtr, objc, objv);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Dispatch a margin-axis operation.
  *
- * Rbc_AxisOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      int margin
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Validates operation and argument counts, selects the first eligible axis from the margin chain and
+ * passes the suffix after the operation. UseOp can query or replace the chain; other handlers require
+ * an appropriate selected axis.
  */
 int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const AxisOpSpec axisOps[] = {{{"bind", 2, 5, "sequence command"}, BindOp},
@@ -7214,24 +6945,12 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_commands
+ * @brief Intern a binding tag in the graph axis tag table.
  *
- * MakeAxisTag --
- *
- *      Interns a binding tag in the graph's axis tag table.
- *
- * Parameters:
- *      Graph *graphPtr - Owning graph.
- *      char *tagName   - Binding tag to intern.
- *
- * Results:
- *      A stable identifier owned by the graph's axis tag table.
- *
- * Side Effects:
- *      Creates a table entry if the tag has not been seen before.
- *
- *----------------------------------------------------------------------
+ * Returns a borrowed stable hash key. Its storage belongs to the graph and is released with the tag
+ * table, not by individual binding operations.
  */
 static ClientData MakeAxisTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
@@ -7242,6 +6961,13 @@ static ClientData MakeAxisTag(Graph *graphPtr, char *tagName) {
     return Tcl_GetHashKey(&graphPtr->axes.tagTable, hPtr);
 }
 
+/**
+ * @ingroup axis_commands
+ * @brief Append axis name, class and configured tags in binding order.
+ *
+ * Borrows the graph, axis and destination list. Interned keys remain owned by the graph tag table. The
+ * list is appended to rather than cleared; configured tags follow the name and class.
+ */
 void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list) {
     char **p;
 

@@ -2296,5 +2296,32 @@ namespace eval graph.axis {
         unset -nocomplain before code message options result
     } -result {1 1 {TK VALUE PIXELS} 1 changed}
 
+    set testCase(50) 0
+    foreach inverted {0 1} {
+        foreach invalid {missing y} {
+            test RBC.graph.axis.configure.A.50.[incr testCase(50)] {
+                failed margin replacement preserves both chains and axis types
+            } -setup {
+                graph .graph1 -invertxy $inverted
+                .graph1 axis create extra
+                .graph1 xaxis use {x extra}
+                .graph1 x2axis use x2
+                set before [list [.graph1 xaxis use] [.graph1 x2axis use]]
+            } -body {
+                set code [catch {.graph1 xaxis use [list x2 extra $invalid]}]
+                set result [list $code [expr {$before eq [list [.graph1 xaxis use] [.graph1 x2axis use]]}]]
+                # A failed replacement must not clear the old member's X type.
+                lappend result [catch {.graph1 yaxis use extra}]
+                .graph1 xaxis use {x2 extra x2}
+                lappend result [.graph1 xaxis use] [.graph1 x2axis use]
+                .graph1 xaxis use {}
+                lappend result [.graph1 xaxis use]
+                set result
+            } -cleanup {
+                destroy .graph1
+            } -result {1 1 1 {extra x2} {} {}}
+        }
+    }
+
 	cleanupTests
 }

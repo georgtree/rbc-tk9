@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Axis ownership and commands &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axis control C reference" href="axis-reference.html" />
+    <link rel="prev" title="Track ownership C reference" href="track-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="axis-reference.html" title="Axis control C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="track-reference.html" title="Track ownership C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Axis ownership and commands</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="axis-ownership-and-commands">
+<h1>Axis ownership and commands<a class="headerlink" href="#axis-ownership-and-commands" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code> owns the graph’s named axis registry, option transactions,
+margin membership and axis commands. This chapter covers that control layer;
+<a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> explains coordinate spaces and track viewports. The source
+contracts for this batch are in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>. Tick generation,
+label layout and drawing are separate stages and are not fully covered here.</p>
+<section id="names-references-and-margin-membership">
+<h2>Names, references and margin membership<a class="headerlink" href="#names-references-and-margin-membership" title="Link to this heading">¶</a></h2>
+<p>The graph owns <code class="docutils literal notranslate"><span class="pre">axes.table</span></code>. Each record owns its copied name and derived
+resources. Name lookup and reference acquisition are different operations:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Ownership effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NameToAxis</span></code></p></td>
+<td><p>Borrow a live record; reject pending deletion.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GetAxis</span></code> with no class</p></td>
+<td><p>Borrow a live record without increasing its count.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GetAxis</span></code> with an X/Y class</p></td>
+<td><p>Acquire a reference and enforce compatible logical axis type.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FreeAxis</span></code></p></td>
+<td><p>Release one reference; destroy only if deletion is pending and count becomes zero.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DestroyAxis</span></code></p></td>
+<td><p>Unconditionally release the record and resources.</p></td>
+</tr>
+</tbody>
+</table>
+<p>An unreferenced live axis stays registered. A delete-pending referenced axis
+stays allocated but is excluded from ordinary name lookup and <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">names</span></code>.
+Recreating its name revives the same record, retaining its references and
+resources. This is different from allocating a replacement record.</p>
+<p><code class="docutils literal notranslate"><span class="pre">classUid</span></code> represents logical X/Y identity, not the current screen direction.
+An untyped or unused record may acquire a class; a referenced record cannot be
+acquired with the opposite class. Inversion changes margin selection rather
+than exchanging logical data coordinates.</p>
+<p>The margin chain controls display order. <code class="docutils literal notranslate"><span class="pre">linkPtr</span></code>, <code class="docutils literal notranslate"><span class="pre">chainPtr</span></code> and
+<code class="docutils literal notranslate"><span class="pre">AXIS_ONSCREEN</span></code> describe membership independently of <code class="docutils literal notranslate"><span class="pre">refCount</span></code>. Do not
+use membership as proof of a retained reference. The four default axes receive
+one reference during initialization. Track-owned Y axes are arranged through
+track configuration; margin <code class="docutils literal notranslate"><span class="pre">use</span></code> rejects that arrangement in trackgraphs.</p>
+</section>
+<section id="configuration-boundary">
+<h2>Configuration boundary<a class="headerlink" href="#configuration-boundary" title="Link to this heading">¶</a></h2>
+<p>Initialization uses the named <code class="docutils literal notranslate"><span class="pre">Axis</span></code> option-database component, including
+component-name normalization. Initialization failure releases partially
+installed Tk resources. Even an empty explicit option vector must pass through
+configuration so database defaults become derived axis state.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureAxisOptions</span></code> holds a Tk saved-options transaction and temporarily
+exposes the original argument vector and change mask to <code class="docutils literal notranslate"><span class="pre">ConfigureAxis</span></code>.
+The vector is borrowed, never retained after the call. Derived limits, ticks,
+loose ranges, pixels, shadows, binding tags and limit formats are prepared
+before committing any of them. Command-prefix validation does not execute
+Tcl callbacks. On recoverable failure, prepared resources are released and
+Tk-managed options are restored. Success refreshes styles and title extents,
+marks mapping dirty, requests redraw and records a pending configure
+notification; it does not synchronously notify listeners here.</p>
+<p>The atomic boundary is one axis. Multi-axis <code class="docutils literal notranslate"><span class="pre">configure</span></code> validates names
+first but applies configuration sequentially. A later failure does not undo
+an earlier successful axis. Likewise, multi-name deletion can partially
+succeed before a later lookup or track-ownership error.</p>
+</section>
+<section id="dispatch-and-bindings">
+<h2>Dispatch and bindings<a class="headerlink" href="#dispatch-and-bindings" title="Link to this heading">¶</a></h2>
+<p>Named-axis dispatch receives the full widget command vector. Margin dispatch
+selects the first eligible axis and passes an argument suffix to its handler.
+Keep these conventions distinct when sharing command helpers.</p>
+<p>Bindings use graph-owned interned keys for the axis name, logical class and
+configured tags, in that order. <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">bind</span></code> can create bindings for a tag
+without an existing axis. Its tag listing is not a list of live axes.
+<code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">names</span></code> excludes pending deletion and follows hash order; margin
+<code class="docutils literal notranslate"><span class="pre">use</span></code> queries follow display-chain order. Picking queries check the binding
+context before interpreting the current item as an axis.</p>
+</section>
+<section id="cleanup-and-failure-recovery">
+<h2>Cleanup and failure recovery<a class="headerlink" href="#cleanup-and-failure-recovery" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DestroyAxis</span></code> cancels pending scrollbar notification and releases bindings,
+margin links, registry membership, Tk options and derived resources. Text
+styles own their GCs, while options own configured fonts and foreground
+colours; separately allocated shadow colours require separate release.
+Graph teardown destroys all axes regardless of reference counts, so consumers
+must already have been detached. Partial default-axis initialization is left
+for that teardown path.</p>
+<p>Margin <code class="docutils literal notranslate"><span class="pre">use</span></code> validates the complete replacement before changing chains or
+logical types. Invalid names or incompatible axes leave all margin lists
+unchanged, including axes that would have moved from another margin.</p>
+<p>Failed creation frees a new record. Failed revival instead restores pending
+deletion and the previous notification-validity flag after configuration
+rollback, preserving existing consumers. A later successful revival exposes
+the same record again; releasing its final reference while still deleted
+continues to destroy it normally.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Axis ownership and commands</a><ul>
+<li><a class="reference internal" href="#names-references-and-margin-membership">Names, references and margin membership</a></li>
+<li><a class="reference internal" href="#configuration-boundary">Configuration boundary</a></li>
+<li><a class="reference internal" href="#dispatch-and-bindings">Dispatch and bindings</a></li>
+<li><a class="reference internal" href="#cleanup-and-failure-recovery">Cleanup and failure recovery</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="track-reference.html"
+                          title="previous chapter">Track ownership C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="axis-reference.html"
+                          title="next chapter">Axis control C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="axis-reference.html" title="Axis control C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="track-reference.html" title="Track ownership C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Axis ownership and commands</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -7,6 +7,8 @@ or track ownership. The private interfaces described here are implemented in
 ``rbcGrAxis.c`` and ``rbcGrTrack.c``. See :doc:`mapping-reference` for their
 contracts and :doc:`rendering` for the later drawing boundary.
 
+Registry ownership and command dispatch are described in :doc:`axes`.
+
 Preparing geometry
 ------------------
 

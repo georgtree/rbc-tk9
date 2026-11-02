@@ -70,6 +70,8 @@ safe. Chapters identify current limitations separately from intended guarantees.
    polar-reference
    tracks
    track-reference
+   axes
+   axis-reference
    mapping
    mapping-reference
    configuration

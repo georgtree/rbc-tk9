@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Coordinate mapping C reference" href="mapping-reference.html" />
-    <link rel="prev" title="Track ownership C reference" href="track-reference.html" /> 
+    <link rel="prev" title="Axis control C reference" href="axis-reference.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
@@ -29,7 +29,7 @@
           <a href="mapping-reference.html" title="Coordinate mapping C reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="track-reference.html" title="Track ownership C reference"
+          <a href="axis-reference.html" title="Axis control C reference"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Axes, mapping and track viewports</a></li> 
@@ -48,6 +48,7 @@ coordinates. Renderers consume that geometry; they do not choose axis ranges
 or track ownership. The private interfaces described here are implemented in
 <code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>. See <a class="reference internal" href="mapping-reference.html"><span class="doc">Coordinate mapping C reference</span></a> for their
 contracts and <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the later drawing boundary.</p>
+<p>Registry ownership and command dispatch are described in <a class="reference internal" href="axes.html"><span class="doc">Axis ownership and commands</span></a>.</p>
 <section id="preparing-geometry">
 <h2>Preparing geometry<a class="headerlink" href="#preparing-geometry" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_LayoutGraph</span></code> performs pending work in dependency order:</p>
@@ -222,8 +223,8 @@ does not prove that picking, inverse transforms and cached layout agree.</p>
   </div>
   <div>
     <h4>Previous topic</h4>
-    <p class="topless"><a href="track-reference.html"
-                          title="previous chapter">Track ownership C reference</a></p>
+    <p class="topless"><a href="axis-reference.html"
+                          title="previous chapter">Axis control C reference</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -254,7 +255,7 @@ does not prove that picking, inverse transforms and cached layout agree.</p>
           <a href="mapping-reference.html" title="Coordinate mapping C reference"
              >next</a> |</li>
         <li class="right" >
-          <a href="track-reference.html" title="Track ownership C reference"
+          <a href="axis-reference.html" title="Axis control C reference"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Axes, mapping and track viewports</a></li> 

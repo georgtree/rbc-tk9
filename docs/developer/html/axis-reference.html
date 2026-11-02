@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Axis control C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axes, mapping and track viewports" href="mapping.html" />
+    <link rel="prev" title="Axis ownership and commands" href="axes.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="axes.html" title="Axis ownership and commands"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Axis control C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="axis-control-c-reference">
+<h1>Axis control C reference<a class="headerlink" href="#axis-control-c-reference" title="Link to this heading">¶</a></h1>
+<p>These implementation contracts cover registry lifetime, configuration entry
+points and command dispatch in <code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code>. See <a class="reference internal" href="axes.html"><span class="doc">Axis ownership and commands</span></a> for ownership
+and error boundaries and <a class="reference internal" href="mapping-reference.html"><span class="doc">Coordinate mapping C reference</span></a> for coordinate helpers.
+Namespaces below disambiguate private handler names without changing linkage.</p>
+<section id="registry-and-lifetime">
+<h2>Registry and lifetime<a class="headerlink" href="#registry-and-lifetime" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__axis__registry"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Axis</span> <span class="pre">registry</span> <span class="pre">and</span> <span class="pre">lifetime</span></span></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.DestroyAxis">
+<span class="target" id="group__axis__registry_1gaf6e2ed24854bd88d0e5d3f717e4564af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.DestroyAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy an axis and all resources it owns. </p>
+<p>Cancels pending scrollbar notification, releases options and bindings, removes the margin link and registry entry when present, and frees styles, shadows, tick arrays, labels, formats, segments, tags and the record. Does not consult refCount; callers must ensure no consumers retain the record. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.CreateAxis">
+<span class="target" id="group__axis__registry_1ga57a6b0c78cd816717827b0774ba65dad"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.CreateAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a registered axis or revive a pending deletion. </p>
+<p>Rejects names beginning with a dash and existing live names, returning NULL with an interpreter error. A new record owns a copied name and label chain but is not yet configured or linked to a margin. Revival returns the same record, clears deletePending and invalidates notified limits; it preserves references and existing resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.NameToAxis">
+<span class="target" id="group__axis__registry_1ga3e6220a013b3b4f9a4f8e408dc885f35"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NameToAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.NameToAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Look up a live named axis without retaining it. </p>
+<p>Returns TCL_OK and a borrowed pointer. Missing and delete-pending axes return TCL_ERROR, set the interpreter result, and clear the output pointer. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.GetAxis">
+<span class="target" id="group__axis__registry_1ga5b0f31350a4f4f70e99652a2e12fcd81"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisName</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.GetAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Look up an axis and optionally acquire a typed reference. </p>
+<p>A NULL classUid performs a borrowed lookup. Otherwise establishes the logical X/Y class when unused or untyped, rejects a conflicting class, and increments refCount on success. Match each acquired reference with FreeAxis. The output pointer is assigned only on success. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.FreeAxis">
+<span class="target" id="group__axis__registry_1ga9261329cf78a600be1372535d1175e6a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.FreeAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one acquired axis reference. </p>
+<p>Requires a positive reference count. Destroys the record when the count reaches zero and deletion is pending; an unreferenced live axis remains registered. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_GetAxisFromObj">
+<span class="target" id="group__axis__registry_1ga5d7e37fed8d6621b88f9aad6ab1cf379"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetAxisFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowEmpty</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve an optional Tcl axis name with the requested reference policy. </p>
+<p>A NULL or empty object returns a NULL axis only when allowEmpty is true; otherwise it reports TCL_ERROR. Nonempty names delegate to GetAxis, including its typed-reference ownership and output- on-success rules. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_FreeAxisReference">
+<span class="target" id="group__axis__registry_1ga0ddccc2cdf9e8589312fd0c980b7db7e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeAxisReference</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_FreeAxisReference" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release an optional retained axis reference. </p>
+<p>Accepts NULL. A non-NULL argument must represent an acquired reference; release may destroy a delete-pending record. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_DestroyAxes">
+<span class="target" id="group__axis__registry_1ga5ae3cd102d86bc0a6b6df3f27c185448"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_DestroyAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tear down the complete graph axis registry. </p>
+<p>Destroys records regardless of reference counts, then deletes registry and tag tables and axis chains. Clears each record hash pointer before destruction to keep hash iteration valid. Consumers must have been detached by graph teardown; this is not ordinary axis deletion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_DefaultAxes">
+<span class="target" id="group__axis__registry_1ga396cb9143460c431917c14b8e9085360"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DefaultAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_DefaultAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create and configure the four initial margin axes. </p>
+<p>Creates x, y, x2 and y2 with one reference each and the appropriate logical class. Polar axes start hidden before database options are applied. Success links each configured record to its chain. Failure returns TCL_ERROR with partial initialization left for graph teardown. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="configuration-entry-points">
+<h2>Configuration entry points<a class="headerlink" href="#configuration-entry-points" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__axis__configuration"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Axis</span> <span class="pre">configuration</span> <span class="pre">entry</span> <span class="pre">points</span></span></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.InitAxisOptions">
+<span class="target" id="group__axis__configuration_1ga70280b786f2061b250783350a337e3a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitAxisOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.InitAxisOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize Tk options through the named Axis component. </p>
+<p>Returns TCL_OK if already initialized or successfully initialized. On initialization failure, frees partially installed Tk resources and the option table. The component resource name is temporary; the Axis retains the option table. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ResetAxisOptionContext">
+<span class="target" id="group__axis__configuration_1ga0f4297452cda2882721e0a869a638b41"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetAxisOptionContext</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ResetAxisOptionContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clear borrowed configuration arguments and the option mask. </p>
+<p>Does not free the caller-owned object vector or alter committed option values. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ConfigureAxisOptions">
+<span class="target" id="group__axis__configuration_1gad4b0d3a3c00cda5eee3cac0c5c847976"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureAxisOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ConfigureAxisOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply one axis option transaction and construct derived state. </p>
+<p>Requires initialized options and an even object count. Borrows objv only during ConfigureAxis, clearing that context before rollback or return. On failure restores Tk-managed options; on success releases saved options, marks configuration notification pending, and optionally returns the changed mask. Returns a Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ConfigureNewAxis">
+<span class="target" id="group__axis__configuration_1ga3057ed042ba205cf8a756be74ec33327"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureNewAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ConfigureNewAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize options and derive a usable axis configuration. </p>
+<p>Runs configuration even for an empty option vector so database defaults reach derived fields. Returns a Tcl status; the caller owns failure cleanup. An already initialized revived axis retains its option table. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ReleaseAxisOptionResources">
+<span class="target" id="group__axis__configuration_1ga6787fd09abbfa5012ec9d24bae788958"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseAxisOptionResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ReleaseAxisOptionResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release Tk-owned option resources once. </p>
+<p>Clears borrowed transaction context and deletes the initialized option table. Does not release derived labels, geometry, shadow colours or text-style graphics contexts; DestroyAxis owns those resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ResetTextStyles">
+<span class="target" id="group__axis__configuration_1gae0cb6d5ab465c80dec3f867d761f0d72"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetTextStyles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ResetTextStyles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh text styles and replace the axis tick graphics context. </p>
+<p>Borrows configured fonts and colours. Allocates the new tick GC before releasing the old one; uses the existing native line-width conversion and projecting caps. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ConfigureAxis">
+<span class="target" id="group__axis__configuration_1gad047ae44659e6b91a124a4c24fd346e7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ConfigureAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate staged options before committing derived axis resources. </p>
+<p>Prepares limit, tick, loose-range, pixel, shadow, tag and format transactions as needed. Validates command prefixes without evaluating them. Recoverable errors free prepared resources before any commit. Success normalizes rotation, refreshes styles and title extents, marks axis and graph mapping dirty, and schedules redraw. The caller restores Tk-managed fields on error. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="commands-and-bindings">
+<h2>Commands and bindings<a class="headerlink" href="#commands-and-bindings" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__axis__commands"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Axis</span> <span class="pre">command</span> <span class="pre">dispatch</span> <span class="pre">and</span> <span class="pre">bindings</span></span></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.BindOp">
+<span class="target" id="group__axis__commands_1gadfc34d7f91814028433ea32dc8ba9e68"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.BindOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or configure bindings for a selected margin axis. </p>
+<p>Interns the axis name as a binding tag and forwards the already sliced argument vector. Returns the binding subsystem Tcl status; does not evaluate an event binding here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.CgetOp">
+<span class="target" id="group__axis__commands_1gaa42773a4db37df091f99319917d07126"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.CgetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return one initialized axis option value. </p>
+<p>Requires a live axis and initialized Tk option table. Uses the first sliced argument as the option name and returns TCL_ERROR if Tk cannot resolve it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.ConfigureOp">
+<span class="target" id="group__axis__commands_1ga0359fc17ba0a7731ad0ced2fd6b27803"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or configure one resolved axis. </p>
+<p>Zero or one sliced argument returns Tk option metadata. Option/value pairs use ConfigureAxisOptions. Success additionally invalidates backing and margins for an onscreen axis. This transaction covers one axis, not a multi-axis command. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.UseOp">
+<span class="target" id="group__axis__commands_1ga6c6f2bd537fe9834fcaa3e116d4c588d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UseOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.UseOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or replace the axes displayed on a margin. </p>
+<p>Queries return chain order. Replacement chooses logical class using inversion and rejects trackgraph Y arrangement, which belongs to tracks. Validates every replacement name and type before changing any chain. Failure leaves all margins unchanged. Success moves existing links as needed and schedules full layout and redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.BindVirtualOp">
+<span class="target" id="group__axis__commands_1ga0067906d1d8ae7a70e21c44a678603bf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.BindVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List interned axis tags or access one tag binding. </p>
+<p>With no tag argument returns the tag table in hash order. Otherwise interns the supplied tag and forwards remaining arguments; the tag need not name an existing axis. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.CreateVirtualOp">
+<span class="target" id="group__axis__commands_1ga2fef4322b74f567dd736e398b7cb6157"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.CreateVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create or revive a named axis and apply its options. </p>
+<p>Returns the axis name on success. Configuration failure destroys only a newly allocated record. Failed revival restores pending deletion and the previous notification validity while preserving the record and its consumers; ConfigureNewAxis rolls back its option transaction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.CgetVirtualOp">
+<span class="target" id="group__axis__commands_1ga46fbb222f1c45238ec0c25daf20d4ccd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.CgetVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a named axis and delegate its option query. </p>
+<p>Uses a borrowed live lookup and passes the option suffix to CgetOp. Returns the lookup or option- query Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.ConfigureVirtualOp">
+<span class="target" id="group__axis__commands_1ga0629ea7c1cace5ad8bd949369116a16d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.ConfigureVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply a shared option suffix to one or more named axes. </p>
+<p>Validates names before the first option beginning with a dash, then configures them sequentially. Earlier successful axes are not rolled back if a later configuration fails. Query results are replaced by each successive axis result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.DeleteVirtualOp">
+<span class="target" id="group__axis__commands_1ga7eb6b01d2148d81101528d6a586f7b35"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.DeleteVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mark named axes for deletion and destroy unreferenced records. </p>
+<p>Rejects track-owned axes until detached. Marks an active formatter traversal invalid before deletion. Referenced records remain allocated but disappear from live name lookup. Processes names sequentially, so earlier deletions survive a later error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.GetOp">
+<span class="target" id="group__axis__commands_1ga29fb2406fcd8e10f466fdd37440b1cee"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.GetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Report the current axis name or picked detail. </p>
+<p>Checks the binding context before interpreting the picked object as an axis. Returns a value only for current or detail with an eligible picked axis; otherwise returns TCL_OK without setting a new result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.NamesVirtualOp">
+<span class="target" id="group__axis__commands_1ga8a910658aba5b0cfab0748678a574e52"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NamesVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.NamesVirtualOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List live axis names matching any supplied glob pattern. </p>
+<p>Skips delete-pending records, returns each matching name once and preserves hash traversal order, not display order. No patterns means all live names. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.Rbc_VirtualAxisOp">
+<span class="target" id="group__axis__commands_1ga1c32052041bfdc4543baa90085cd0d30"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VirtualAxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.Rbc_VirtualAxisOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch the named-axis command family. </p>
+<p>Validates operation and argument counts with the shared operation table, then forwards the complete widget command vector. Handlers resolve names and apply their own lifetime and transaction rules. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.Rbc_AxisOp">
+<span class="target" id="group__axis__commands_1ga6508ebe315e11a9f4c99755deee762b7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.Rbc_AxisOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch a margin-axis operation. </p>
+<p>Validates operation and argument counts, selects the first eligible axis from the margin chain and passes the suffix after the operation. UseOp can query or replace the chain; other handlers require an appropriate selected axis. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.MakeAxisTag">
+<span class="target" id="group__axis__commands_1gad3bd787237803827eda72a28ced70c59"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeAxisTag</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.MakeAxisTag" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Intern a binding tag in the graph axis tag table. </p>
+<p>Returns a borrowed stable hash key. Its storage belongs to the graph and is released with the tag table, not by individual binding operations. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisCommands.Rbc_AppendAxisBindingTags">
+<span class="target" id="group__axis__commands_1ga63f6e2440b4912b8c764c385d6de0484"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendAxisBindingTags</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.Rbc_AppendAxisBindingTags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append axis name, class and configured tags in binding order. </p>
+<p>Borrows the graph, axis and destination list. Interned keys remain owned by the graph tag table. The list is appended to rather than cleared; configured tags follow the name and class. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Axis control C reference</a><ul>
+<li><a class="reference internal" href="#registry-and-lifetime">Registry and lifetime</a><ul>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.DestroyAxis"><code class="docutils literal notranslate"><span class="pre">DestroyAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.CreateAxis"><code class="docutils literal notranslate"><span class="pre">CreateAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.NameToAxis"><code class="docutils literal notranslate"><span class="pre">NameToAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.GetAxis"><code class="docutils literal notranslate"><span class="pre">GetAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.FreeAxis"><code class="docutils literal notranslate"><span class="pre">FreeAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetAxisFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.Rbc_FreeAxisReference"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeAxisReference()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.Rbc_DestroyAxes"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyAxes()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRegistry.Rbc_DefaultAxes"><code class="docutils literal notranslate"><span class="pre">Rbc_DefaultAxes()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuration-entry-points">Configuration entry points</a><ul>
+<li><a class="reference internal" href="#c.rbcGrAxisConfiguration.InitAxisOptions"><code class="docutils literal notranslate"><span class="pre">InitAxisOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisConfiguration.ResetAxisOptionContext"><code class="docutils literal notranslate"><span class="pre">ResetAxisOptionContext()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisConfiguration.ConfigureAxisOptions"><code class="docutils literal notranslate"><span class="pre">ConfigureAxisOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisConfiguration.ConfigureNewAxis"><code class="docutils literal notranslate"><span class="pre">ConfigureNewAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisConfiguration.ReleaseAxisOptionResources"><code class="docutils literal notranslate"><span class="pre">ReleaseAxisOptionResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisConfiguration.ResetTextStyles"><code class="docutils literal notranslate"><span class="pre">ResetTextStyles()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisConfiguration.ConfigureAxis"><code class="docutils literal notranslate"><span class="pre">ConfigureAxis()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#commands-and-bindings">Commands and bindings</a><ul>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.BindOp"><code class="docutils literal notranslate"><span class="pre">BindOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.CgetOp"><code class="docutils literal notranslate"><span class="pre">CgetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.ConfigureOp"><code class="docutils literal notranslate"><span class="pre">ConfigureOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.UseOp"><code class="docutils literal notranslate"><span class="pre">UseOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.BindVirtualOp"><code class="docutils literal notranslate"><span class="pre">BindVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.CreateVirtualOp"><code class="docutils literal notranslate"><span class="pre">CreateVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.CgetVirtualOp"><code class="docutils literal notranslate"><span class="pre">CgetVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.ConfigureVirtualOp"><code class="docutils literal notranslate"><span class="pre">ConfigureVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.DeleteVirtualOp"><code class="docutils literal notranslate"><span class="pre">DeleteVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.GetOp"><code class="docutils literal notranslate"><span class="pre">GetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.NamesVirtualOp"><code class="docutils literal notranslate"><span class="pre">NamesVirtualOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.Rbc_VirtualAxisOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VirtualAxisOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.Rbc_AxisOp"><code class="docutils literal notranslate"><span class="pre">Rbc_AxisOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.MakeAxisTag"><code class="docutils literal notranslate"><span class="pre">MakeAxisTag()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisCommands.Rbc_AppendAxisBindingTags"><code class="docutils literal notranslate"><span class="pre">Rbc_AppendAxisBindingTags()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="axes.html"
+                          title="previous chapter">Axis ownership and commands</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="next chapter">Axes, mapping and track viewports</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="axes.html" title="Axis ownership and commands"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Axis control C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
