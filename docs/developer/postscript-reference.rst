@@ -29,3 +29,17 @@ Legacy drawing primitives
    :members:
 
 .. c:namespace-pop::
+
+Raster payloads and capture
+---------------------------
+
+The bitmap entry below describes the X11 implementation. The Windows source
+has a separate contract for its DIB acquisition and failure path; see the
+platform comparison in :doc:`postscript-output`.
+
+.. c:namespace:: rbcPsRaster
+
+.. doxygengroup:: ps_raster_encoding
+   :members:
+
+.. c:namespace-pop::

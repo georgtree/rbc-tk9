@@ -162,6 +162,88 @@ operations. It does not apply the fill opacity used by other backends.
 Document these format differences rather than assuming that a shared renderer
 operation guarantees identical capabilities in every exporter.
 
+Raster ownership and encoding
+-----------------------------
+
+The legacy raster helpers do not use SVG/PDF font or image resources. They
+append inline hex data and depend on the current PostScript environment.
+Their inputs and temporary resources have distinct ownership:
+
+.. list-table:: Image conversion ownership
+   :header-rows: 1
+   :widths: 32 68
+
+   * - Entry point
+     - Input and temporary image lifetime
+   * - ColorImageToPsData
+     - Borrows the image unchanged; appends to an initialized DString.
+   * - ColorImageToPostScript
+     - Borrows the image, but modifies its RGB bytes in noncolor mode.
+   * - PhotoToPostScript
+     - Copies the photo into a temporary color image, then frees the copy.
+   * - WindowToPostScript
+     - Owns and frees a native capture, or draws a grey rectangle on failure.
+
+``Rbc_ColorImageToPsData`` traverses rows from bottom to top. RGB output emits
+red, green and blue bytes. Its one-component branch emits the bitwise complement
+of the red channel; it does not itself calculate luminance. The outer serializer
+first calls ``Rbc_ColorImageToGreyscale`` for noncolor output, modifying the
+borrowed image. Both monochrome and greyscale token modes use this same raster
+branch; they do not threshold each pixel into a one-bit mask. Alpha is ignored,
+so transparent samples are neither omitted nor composited with a background.
+
+Data lines hold at most sixty hex digits, prefixed by the supplied string and a
+space. Wrapping continues across image rows; the final partial line also gets a
+newline. The return value counts emitted data lines, not success/failure.
+Unsupported component counts append nothing and return zero. ``ByteToHex``
+writes exactly two uppercase digits without a NUL terminator.
+
+The image program defines ``tmpStr`` as a row-sized input buffer and places an
+eight-bit ``image`` or ``colorimage`` under a translated/scaled graphics state.
+The negative vertical image matrix and bottom-to-top sample traversal are
+existing encoding behavior. ``grestore`` restores transforms and drawing state,
+but does not undo the dictionary definition of ``tmpStr``.
+
+The row-buffer byte count is formatted as ``size_t``, preserving counts above
+``INT_MAX`` without a varargs type mismatch. This is serialization of the count,
+not a guarantee that a PostScript interpreter accepts arbitrarily large strings.
+
+Bitmap acquisition and payloads
+-------------------------------
+
+Bitmap payloads are angle-bracket hex strings. Each row is packed separately,
+with the first pixel in the high bit and unused tail bits zero. This differs
+from the continuous byte stream of a color image. ``ReverseBits`` implements
+the bit-order conversion; wrapping counts complete output bytes.
+
+.. list-table:: Native bitmap capture
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Platform
+     - Capture and cleanup
+     - Existing failure behavior
+   * - X11
+     - XGetImage plane-one capture; XDestroyImage after encoding.
+     - No payload if capture fails; no pixel access or Tcl status.
+   * - Windows
+     - Owned bottom-up DIB bytes, reverse row traversal, then ckfree.
+     - Debug message and no payload if acquisition fails; no Tcl status.
+
+Both paths require a live depth-one bitmap and positive matching dimensions.
+They do not acquire ownership of the bitmap. The void interface cannot tell an
+outer emitter to discard partially written operators when acquisition fails.
+These limitations are separate from the drawable capture fallback used for
+window export.
+
+``Rbc_BitmapToPostScript`` centers the scaled mask at the current origin and
+paints set bits in the current color inside a saved graphics state. It leaves
+unset bits unpainted. ``Rbc_StippleToPostScript`` instead clips to the current
+path and repeats the bitmap through the prolog's ``StippleFill`` procedure.
+Both require a registered Tk bitmap because they query its dimensions with
+``Tk_SizeOfBitmap``. Neither supplies an independent error channel or rolls
+back a partially emitted program.
+
 Maintenance checks
 ------------------
 

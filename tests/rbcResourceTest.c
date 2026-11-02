@@ -2,6 +2,23 @@
 #include "rbcInt.h"
 #include "rbcImage.h"
 
+/* Include the production serializer so capture failure can be injected. */
+#ifndef WIN32
+static int failPsCapture;
+static XImage *TestPsGetImage(Display *display, Drawable drawable, int x, int y,
+                             unsigned int width, unsigned int height, unsigned long mask, int format) {
+    if (failPsCapture) return NULL;
+    return XGetImage(display, drawable, x, y, width, height, mask, format);
+}
+#define XGetImage TestPsGetImage
+#endif
+#define ReverseBits PsTestReverseBits
+#include "../generic/rbcPs.c"
+#undef ReverseBits
+#ifndef WIN32
+#undef XGetImage
+#endif
+
 static int previewFrees;
 static void TestFreeImage(Tk_Image image) {
     previewFrees++;
@@ -152,11 +169,67 @@ static int PsLineTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
+static int PsRasterTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    PsToken token;
+    const char *op;
+    (void)data;
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "operation");
+        return TCL_ERROR;
+    }
+    op = Tcl_GetString(objv[1]);
+    token = Rbc_GetPsToken(interp, Tk_MainWindow(interp));
+    Rbc_AppendToPostScript(token, "% sentinel\n", (char *)NULL);
+    if (strcmp(op, "wide") == 0) {
+        /* Zero rows isolate row-size formatting without a huge allocation. */
+        struct ColorImage image;
+        image.width = 1073741824;
+        image.height = 0;
+        image.bits = NULL;
+        Rbc_ColorImageToPostScript(token, &image, 0, 0);
+    } else if (strcmp(op, "rgb") == 0 || strcmp(op, "grey") == 0) {
+        Rbc_ColorImage image = Rbc_CreateColorImage(2, 1);
+        Pix32 *pixels = Rbc_ColorImageBits(image);
+        pixels[0].rgba.red = 255;
+        pixels[0].rgba.green = pixels[0].rgba.blue = 0;
+        pixels[1].rgba.red = pixels[1].rgba.green = pixels[1].rgba.blue = 255;
+        token->colorMode = strcmp(op, "rgb") == 0 ? PS_MODE_COLOR : PS_MODE_GREYSCALE;
+        Rbc_ColorImageToPostScript(token, image, 0, 0);
+        Rbc_FreeColorImage(image);
+#ifndef WIN32
+    } else if (strcmp(op, "failure") == 0) {
+        failPsCapture = 1;
+        Rbc_BitmapDataToPostScript(token, Tk_Display(Tk_MainWindow(interp)), None, 9, 2);
+        failPsCapture = 0;
+#endif
+    } else if (strcmp(op, "bitmap") == 0) {
+        static const char bits[] = {0x01, 0x01, 0x02, 0x00};
+        Tk_Window window = Tk_MainWindow(interp);
+        Pixmap bitmap = XCreateBitmapFromData(Tk_Display(window),
+            RootWindowOfScreen(Tk_Screen(window)), bits, 9, 2);
+        if (bitmap == None) {
+            Rbc_ReleasePsToken(token);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("could not create test bitmap", -1));
+            return TCL_ERROR;
+        }
+        Rbc_BitmapDataToPostScript(token, Tk_Display(window), bitmap, 9, 2);
+        Tk_FreePixmap(Tk_Display(window), bitmap);
+    } else {
+        Rbc_ReleasePsToken(token);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("unknown raster test operation", -1));
+        return TCL_ERROR;
+    }
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Rbc_PostScriptFromToken(token), -1));
+    Rbc_ReleasePsToken(token);
+    return TCL_OK;
+}
+
 DLLEXPORT int Rbcresourcetest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL || Tk_InitStubs(interp, "9.0", 0) == NULL) {
         return TCL_ERROR;
     }
     Rbc_InitEpsCanvasItem(interp);
+    Tcl_CreateObjCommand2(interp, "::rbcpsrastertest", PsRasterTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcpslinetest", PsLineTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbccolorpairtest", ColorPairTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcresourcetest", ResourceTestCmd, NULL, NULL);

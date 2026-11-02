@@ -32,6 +32,30 @@ namespace eval postscript.primitives {
                 [regexp -all {lineto} $ps] \
                 [regexp { 1500 1501 lineto\nDashesProc stroke\n newpath  1500 1501 moveto\n 1501 1502 lineto\nDashesProc stroke\n$} $ps]
         } -result {2 1501 1}
+    test RBC.postscript.primitives.A.4.1 {RGB row size is not narrowed to signed int} \
+        -constraints psHarness -body {
+            regexp {/tmpStr 3221225472 string def} [::rbcpsrastertest wide]
+        } -result 1
+    test RBC.postscript.primitives.A.4.2 {ordinary RGB size and samples retain their encoding} \
+        -constraints psHarness -body {
+            set ps [::rbcpsrastertest rgb]
+            list [regexp {/tmpStr 6 string def} $ps] \
+                [regexp {false 3 colorimage\n  FF0000FFFFFF\n} $ps]
+        } -result {1 1}
+    test RBC.postscript.primitives.A.4.3 {greyscale row uses one byte per sample} \
+        -constraints psHarness -body {
+            set ps [::rbcpsrastertest grey]
+            list [regexp {/tmpStr 2 string def} $ps] \
+                [regexp {image\n  C900\n} $ps]
+        } -result {1 1}
+    test RBC.postscript.primitives.A.5.1 {failed X11 capture leaves token output untouched} \
+        -constraints {psHarness unix} -body {
+            ::rbcpsrastertest failure
+        } -result "% sentinel\n"
+    test RBC.postscript.primitives.A.5.2 {bitmap rows retain bit order and partial-byte padding} \
+        -constraints psHarness -body {
+            ::rbcpsrastertest bitmap
+        } -result "% sentinel\n\t<80804000>\n"
     ::tcltest::cleanupTests
 }
 if {$psAvailable} {destroy .}

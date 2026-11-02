@@ -197,6 +197,101 @@ operations. It does not apply the fill opacity used by other backends.
 Document these format differences rather than assuming that a shared renderer
 operation guarantees identical capabilities in every exporter.</p>
 </section>
+<section id="raster-ownership-and-encoding">
+<h2>Raster ownership and encoding<a class="headerlink" href="#raster-ownership-and-encoding" title="Link to this heading">¶</a></h2>
+<p>The legacy raster helpers do not use SVG/PDF font or image resources. They
+append inline hex data and depend on the current PostScript environment.
+Their inputs and temporary resources have distinct ownership:</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Image conversion ownership</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 68.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry point</p></th>
+<th class="head"><p>Input and temporary image lifetime</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ColorImageToPsData</p></td>
+<td><p>Borrows the image unchanged; appends to an initialized DString.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ColorImageToPostScript</p></td>
+<td><p>Borrows the image, but modifies its RGB bytes in noncolor mode.</p></td>
+</tr>
+<tr class="row-even"><td><p>PhotoToPostScript</p></td>
+<td><p>Copies the photo into a temporary color image, then frees the copy.</p></td>
+</tr>
+<tr class="row-odd"><td><p>WindowToPostScript</p></td>
+<td><p>Owns and frees a native capture, or draws a grey rectangle on failure.</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToPsData</span></code> traverses rows from bottom to top. RGB output emits
+red, green and blue bytes. Its one-component branch emits the bitwise complement
+of the red channel; it does not itself calculate luminance. The outer serializer
+first calls <code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToGreyscale</span></code> for noncolor output, modifying the
+borrowed image. Both monochrome and greyscale token modes use this same raster
+branch; they do not threshold each pixel into a one-bit mask. Alpha is ignored,
+so transparent samples are neither omitted nor composited with a background.</p>
+<p>Data lines hold at most sixty hex digits, prefixed by the supplied string and a
+space. Wrapping continues across image rows; the final partial line also gets a
+newline. The return value counts emitted data lines, not success/failure.
+Unsupported component counts append nothing and return zero. <code class="docutils literal notranslate"><span class="pre">ByteToHex</span></code>
+writes exactly two uppercase digits without a NUL terminator.</p>
+<p>The image program defines <code class="docutils literal notranslate"><span class="pre">tmpStr</span></code> as a row-sized input buffer and places an
+eight-bit <code class="docutils literal notranslate"><span class="pre">image</span></code> or <code class="docutils literal notranslate"><span class="pre">colorimage</span></code> under a translated/scaled graphics state.
+The negative vertical image matrix and bottom-to-top sample traversal are
+existing encoding behavior. <code class="docutils literal notranslate"><span class="pre">grestore</span></code> restores transforms and drawing state,
+but does not undo the dictionary definition of <code class="docutils literal notranslate"><span class="pre">tmpStr</span></code>.</p>
+<p>The row-buffer byte count is formatted as <code class="docutils literal notranslate"><span class="pre">size_t</span></code>, preserving counts above
+<code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code> without a varargs type mismatch. This is serialization of the count,
+not a guarantee that a PostScript interpreter accepts arbitrarily large strings.</p>
+</section>
+<section id="bitmap-acquisition-and-payloads">
+<h2>Bitmap acquisition and payloads<a class="headerlink" href="#bitmap-acquisition-and-payloads" title="Link to this heading">¶</a></h2>
+<p>Bitmap payloads are angle-bracket hex strings. Each row is packed separately,
+with the first pixel in the high bit and unused tail bits zero. This differs
+from the continuous byte stream of a color image. <code class="docutils literal notranslate"><span class="pre">ReverseBits</span></code> implements
+the bit-order conversion; wrapping counts complete output bytes.</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Native bitmap capture</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 40.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Platform</p></th>
+<th class="head"><p>Capture and cleanup</p></th>
+<th class="head"><p>Existing failure behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>X11</p></td>
+<td><p>XGetImage plane-one capture; XDestroyImage after encoding.</p></td>
+<td><p>No payload if capture fails; no pixel access or Tcl status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Windows</p></td>
+<td><p>Owned bottom-up DIB bytes, reverse row traversal, then ckfree.</p></td>
+<td><p>Debug message and no payload if acquisition fails; no Tcl status.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Both paths require a live depth-one bitmap and positive matching dimensions.
+They do not acquire ownership of the bitmap. The void interface cannot tell an
+outer emitter to discard partially written operators when acquisition fails.
+These limitations are separate from the drawable capture fallback used for
+window export.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_BitmapToPostScript</span></code> centers the scaled mask at the current origin and
+paints set bits in the current color inside a saved graphics state. It leaves
+unset bits unpainted. <code class="docutils literal notranslate"><span class="pre">Rbc_StippleToPostScript</span></code> instead clips to the current
+path and repeats the bitmap through the prolog’s <code class="docutils literal notranslate"><span class="pre">StippleFill</span></code> procedure.
+Both require a registered Tk bitmap because they query its dimensions with
+<code class="docutils literal notranslate"><span class="pre">Tk_SizeOfBitmap</span></code>. Neither supplies an independent error channel or rolls
+back a partially emitted program.</p>
+</section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
 <p>When changing this layer, check ordinary and track graphs, nested clipping,
@@ -225,6 +320,8 @@ PostScript document.</p>
 <li><a class="reference internal" href="#legacy-primitive-contracts">Legacy primitive contracts</a></li>
 <li><a class="reference internal" href="#relief-rectangles">Relief rectangles</a></li>
 <li><a class="reference internal" href="#text-and-fill-limitations">Text and fill limitations</a></li>
+<li><a class="reference internal" href="#raster-ownership-and-encoding">Raster ownership and encoding</a></li>
+<li><a class="reference internal" href="#bitmap-acquisition-and-payloads">Bitmap acquisition and payloads</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 </ul>
 </li>

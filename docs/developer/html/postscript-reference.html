@@ -106,8 +106,6 @@
 <dt class="sig sig-object cpp">
 <span class="target" id="group__ps__legacy__primitives"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Legacy</span> <span class="pre">PostScript</span> <span class="pre">drawing</span> <span class="pre">primitives</span></span></dt>
 <dd><p>Append drawing programs to a borrowed token; no page delivery. </p>
-<p>Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo All rights reserved.</p>
-<p>See “license.terms” for details. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
@@ -247,6 +245,86 @@
 </dd></dl>
 
 </section>
+<section id="raster-payloads-and-capture">
+<h2>Raster payloads and capture<a class="headerlink" href="#raster-payloads-and-capture" title="Link to this heading">¶</a></h2>
+<p>The bitmap entry below describes the X11 implementation. The Windows source
+has a separate contract for its DIB acquisition and failure path; see the
+platform comparison in <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a>.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__ps__raster__encoding"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PostScript</span> <span class="pre">raster</span> <span class="pre">and</span> <span class="pre">bitmap</span> <span class="pre">encoding</span></span></dt>
+<dd><p>Legacy image conversion, bitmap payloads and capture wrappers. </p>
+<p>Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo All rights reserved.</p>
+<p>See “license.terms” for details. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.ReverseBits">
+<span class="target" id="group__ps__raster__encoding_1ga697b80e079190b7c26e8f2169cf6995f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReverseBits</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">byte</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.ReverseBits" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a byte with its eight bit positions reversed. </p>
+<p>Swaps adjacent bits, pairs and nibbles. No allocation or output state is involved; bitmap serializers use it to place the first pixel in bit seven. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.ByteToHex">
+<span class="target" id="group__ps__raster__encoding_1ga4a76860f6196739e1928ae1df227d35a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ByteToHex</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">byte</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.ByteToHex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write two uppercase hexadecimal digits into caller-owned storage. </p>
+<p>string must have at least two writable bytes. No NUL terminator is written; callers add delimiters, line breaks or a terminator separately. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_BitmapDataToPostScript">
+<span class="target" id="group__ps__raster__encoding_1gae87bd79f6b3ee448ee52aa8ce7823c53"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BitmapDataToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_BitmapDataToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append an X11 depth-one bitmap as a PostScript hex string. </p>
+<p>Borrows a valid bitmap and token with positive matching dimensions. Captures plane one with XGetImage, reads rows top-to-bottom with XGetPixel, and packs the first pixel into the high bit of each output byte. Partial bytes are zero-padded per row. Emits angle-bracket delimiters, uppercase hex and wrapping after batches of thirty complete bytes, then destroys the XImage. A failed capture returns without appending a payload, matching the Windows failure policy. No Tcl status is returned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_ColorImageToPsData">
+<span class="target" id="group__ps__raster__encoding_1ga5d7a13c45008515f0be2baae267e07d6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToPsData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nComponents</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">prefix</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_ColorImageToPsData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append bottom-to-top raster samples as wrapped hexadecimal text. </p>
+<p>Borrows a valid image, initialized result DString and NUL-terminated prefix. Three components emit RGB bytes; one component emits the complement of each red byte, assuming greyscale conversion was already performed. Other component counts append nothing and return zero. Alpha is ignored. Each physical data line starts with prefix plus a space, holds up to sixty hex digits, and ends with a newline, including a partial final line. Row boundaries do not force line breaks. Returns the number of appended data lines, not a Tcl status; caller sizes must keep this int count valid. The image is unchanged. No image operator or surrounding hex delimiters are emitted; prefix must not alias storage invalidated by DString growth. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_StippleToPostScript">
+<span class="target" id="group__ps__raster__encoding_1ga6ac5fb34bf9586110751948097a3b2ae"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_StippleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_StippleToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill the current clipping shape with a borrowed Tk bitmap pattern. </p>
+<p>Queries bitmap dimensions, saves graphics state, intersects the clip with the current path, emits bitmap data and calls prolog StippleFill before restoring state. Requires a valid current path and registered Tk bitmap. Bitmap acquisition failure has no status return and is not rolled back. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_ColorImageToPostScript">
+<span class="target" id="group__ps__raster__encoding_1gac2e4f92c426779d2dec0614b6448e59d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_ColorImageToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a positioned RGB or greyscale raster image program. </p>
+<p>Borrows a valid image and token; does not release the image. Color mode selects three-component colorimage; other modes convert image RGB values to greyscale in place and emit complemented red samples through image. Alpha is not composited or encoded. Translation and scaling are enclosed in gsave/grestore, but tmpStr is a dictionary definition, not saved state. Uses an eight-bit image matrix with negative vertical scale. No Tcl error status is returned. The row-byte count is formatted as size_t without narrowing to int. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_WindowToPostScript">
+<span class="target" id="group__ps__raster__encoding_1ga1a02c0fef6de55fd33ec301342b12809"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WindowToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_WindowToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Capture a window into an owned temporary image and serialize it. </p>
+<p>Borrows a live window and token; captures its current dimensions at GAMMA. On success frees the temporary image after serialization. A failed capture instead emits a comment and a grey background rectangle of the same size. The fallback changes background color without restoring it and does not report a Tcl error. This is capture of native pixels, not widget commands. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_PhotoToPostScript">
+<span class="target" id="group__ps__raster__encoding_1ga0df8a05c300f8649b23b85171ffe3b3d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_PhotoToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a Tk photo into a temporary color image and serialize it. </p>
+<p>Borrows the photo and token. Releases the temporary image after output, so greyscale conversion does not modify the original photo. Requires a valid photo handle; no conversion failure status is propagated. Inherits the serializer alpha omission and positioning conventions. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_BitmapToPostScript">
+<span class="target" id="group__ps__raster__encoding_1gac3fca3262eed09fcbe43b81f48cfca26"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BitmapToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_BitmapToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Emit a scaled bitmap mask centered on the current origin. </p>
+<p>Borrows a registered Tk bitmap and token. Queries dimensions, translates by negative half scaled width and positive half scaled height, then scales by scaled width and negative scaled height. Emits a byte-packed one-bit imagemask with true polarity, restoring graphics state afterward. Paints set bits with the current color; unset bits remain unpainted. The caller supplies finite usable scale factors. Capture failures are not returned or rolled back, and no bitmap resource is transferred. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -288,6 +366,18 @@
 <li><a class="reference internal" href="#c.rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_Fill3DRectangleToPostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcPsPrimitives.Rbc_LineToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_LineToPostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcPsPrimitives.Rbc_2DSegmentsToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_2DSegmentsToPostScript()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#raster-payloads-and-capture">Raster payloads and capture</a><ul>
+<li><a class="reference internal" href="#c.rbcPsRaster.ReverseBits"><code class="docutils literal notranslate"><span class="pre">ReverseBits()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.ByteToHex"><code class="docutils literal notranslate"><span class="pre">ByteToHex()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.Rbc_BitmapDataToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_BitmapDataToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.Rbc_ColorImageToPsData"><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToPsData()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.Rbc_StippleToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_StippleToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.Rbc_ColorImageToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.Rbc_WindowToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_WindowToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.Rbc_PhotoToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_PhotoToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsRaster.Rbc_BitmapToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_BitmapToPostScript()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -3,6 +3,8 @@
  * @brief Private PostScript token, conversion and legacy drawing services.
  * @defgroup ps_legacy_primitives Legacy PostScript drawing primitives
  * @brief Append drawing programs to a borrowed token; no page delivery.
+ * @defgroup ps_raster_encoding PostScript raster and bitmap encoding
+ * @brief Legacy image conversion, bitmap payloads and capture wrappers.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -376,25 +378,12 @@ void Rbc_ForegroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr
     Rbc_AppendToPostScript(tokenPtr, " SetFgColor\n", (char *)NULL);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Return a byte with its eight bit positions reversed.
+ * @ingroup ps_raster_encoding
  *
- * ReverseBits --
- *
- *      Convert a byte from a X image into PostScript image order.
- *      This requires not only the nybbles to be reversed but also
- *      their bit values.
- *
- * Parameters:
- *      unsigned char byte
- *
- * Results:
- *      The converted byte is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Swaps adjacent bits, pairs and nibbles. No allocation or output state is
+ * involved; bitmap serializers use it to place the first pixel in bit seven.
  */
 INLINE static unsigned char ReverseBits(unsigned char byte) {
     byte = ((byte >> 1) & 0x55) | ((byte << 1) & 0xaa);
@@ -403,24 +392,12 @@ INLINE static unsigned char ReverseBits(unsigned char byte) {
     return byte;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Write two uppercase hexadecimal digits into caller-owned storage.
+ * @ingroup ps_raster_encoding
  *
- * ByteToHex --
- *
- *      Convert a byte to its ASCII hexidecimal equivalent.
- *
- * Parameters:
- *      unsigned char byte
- *      char *string
- *
- * Results:
- *      The converted 2 ASCII character string is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * string must have at least two writable bytes. No NUL terminator is written;
+ * callers add delimiters, line breaks or a terminator separately.
  */
 INLINE static void ByteToHex(unsigned char byte, char *string) {
     static char hexDigits[] = "0123456789ABCDEF";
@@ -429,30 +406,17 @@ INLINE static void ByteToHex(unsigned char byte, char *string) {
 }
 
 #ifdef WIN32
-/*
- * -------------------------------------------------------------------------
+/**
+ * @brief Append a Windows depth-one bitmap as a PostScript hex string.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_BitmapDataToPostScript --
- *
- *      Output a PostScript image string of the given bitmap image.
- *      It is assumed the image is one bit deep and a zero value
- *      indicates an off-pixel.  To convert to PostScript, the bits
- *      need to be reversed from the X11 image order.
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Display *display
- *      Pixmap bitmap
- *      int width
- *      int height
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The PostScript image string is appended.
- *
- * -------------------------------------------------------------------------
+ * Borrows a valid bitmap and token with positive matching dimensions.
+ * Rbc_GetBitmapData supplies owned bottom-up DIB bytes and padded row stride;
+ * rows are traversed in reverse order and each output row is independently
+ * packed most-significant pixel first, padding its last byte with zero bits.
+ * Releases the DIB bytes after emission. Acquisition failure writes a Windows
+ * debug message and returns without payload or Tcl error. A caller that has
+ * already emitted image operators must not assume output is complete.
  */
 void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap, int width,
                                 int height) {
@@ -510,30 +474,17 @@ void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display
 
 #else
 
-/*
- * -------------------------------------------------------------------------
+/**
+ * @brief Append an X11 depth-one bitmap as a PostScript hex string.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_BitmapDataToPostScript --
- *
- *      Output a PostScript image string of the given bitmap image.
- *      It is assumed the image is one bit deep and a zero value
- *      indicates an off-pixel.  To convert to PostScript, the bits
- *      need to be reversed from the X11 image order.
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Display *display
- *      Pixmap bitmap
- *      int width
- *      int height
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The PostScript image string is appended to the interpreter result.
- *
- * -------------------------------------------------------------------------
+ * Borrows a valid bitmap and token with positive matching dimensions.
+ * Captures plane one with XGetImage, reads rows top-to-bottom with XGetPixel,
+ * and packs the first pixel into the high bit of each output byte. Partial
+ * bytes are zero-padded per row. Emits angle-bracket delimiters, uppercase
+ * hex and wrapping after batches of thirty complete bytes, then destroys
+ * the XImage. A failed capture returns without appending a payload, matching
+ * the Windows failure policy. No Tcl status is returned.
  */
 void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap, int width,
                                 int height) {
@@ -545,6 +496,9 @@ void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display
     char string[10];
 
     imagePtr = XGetImage(display, bitmap, 0, 0, width, height, 1, ZPixmap);
+    if (imagePtr == NULL) {
+        return;
+    }
     Rbc_AppendToPostScript(tokenPtr, "\t<", (char *)NULL);
     byteCount = bitPos = 0; /* Suppress compiler warning */
     for (y = 0; y < height; y++) {
@@ -582,32 +536,20 @@ void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display
 
 #endif /* WIN32 */
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Append bottom-to-top raster samples as wrapped hexadecimal text.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_ColorImageToPsData --
- *
- *      Converts a color image to PostScript RGB (3 components)
- *      or Greyscale (1 component) output.  With 3 components, we
- *      assume the "colorimage" operator is available.
- *
- *      Note that the image converted from bottom to top, to conform
- *      to the PostScript coordinate system.
- *
- * Parameters:
- *      Rbc_ColorImage image
- *      int nComponents
- *      Tcl_DString *resultPtr
- *      char *prefix
- *
- * Results:
- *      The PostScript data comprising the color image is written
- *      into the dynamic string.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows a valid image, initialized result DString and NUL-terminated prefix.
+ * Three components emit RGB bytes; one component emits the complement of
+ * each red byte, assuming greyscale conversion was already performed.
+ * Other component counts append nothing and return zero. Alpha is ignored.
+ * Each physical data line starts with prefix plus a space, holds up to
+ * sixty hex digits, and ends with a newline, including a partial final line.
+ * Row boundaries do not force line breaks. Returns the number of appended
+ * data lines, not a Tcl status; caller sizes must keep this int count valid.
+ * The image is unchanged. No image operator or surrounding hex delimiters
+ * are emitted; prefix must not alias storage invalidated by DString growth.
  */
 int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *resultPtr, char *prefix) {
     char string[10];
@@ -1208,25 +1150,14 @@ void Rbc_Fill3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder
     Rbc_Draw3DRectangleToPostScript(tokenPtr, border, x, y, width, height, borderWidth, relief);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Fill the current clipping shape with a borrowed Tk bitmap pattern.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_StippleToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Display *display
- *      Pixmap bitmap
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Queries bitmap dimensions, saves graphics state, intersects the clip with
+ * the current path, emits bitmap data and calls prolog StippleFill before
+ * restoring state. Requires a valid current path and registered Tk bitmap.
+ * Bitmap acquisition failure has no status return and is not rolled back.
  */
 void Rbc_StippleToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap) {
     int width, height;
@@ -1237,27 +1168,18 @@ void Rbc_StippleToPostScript(struct PsTokenStruct *tokenPtr, Display *display, P
     Rbc_AppendToPostScript(tokenPtr, "  StippleFill\ngrestore\n", (char *)NULL);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Append a positioned RGB or greyscale raster image program.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_ColorImageToPostScript --
- *
- *      Translates a color image into 3 component RGB PostScript output.
- *      Uses PS Language Level 2 operator "colorimage".
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Rbc_ColorImage image
- *      double x
- *      double y
- *
- * Results:
- *      The dynamic string will contain the PostScript output.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows a valid image and token; does not release the image. Color mode
+ * selects three-component colorimage; other modes convert image RGB values
+ * to greyscale in place and emit complemented red samples through image.
+ * Alpha is not composited or encoded. Translation and scaling are enclosed
+ * in gsave/grestore, but tmpStr is a dictionary definition, not saved state.
+ * Uses an eight-bit image matrix with negative vertical scale. No Tcl error
+ * status is returned. The row-byte count is formatted as size_t without
+ * narrowing to int.
  */
 void Rbc_ColorImageToPostScript(struct PsTokenStruct *tokenPtr, Rbc_ColorImage image, double x, double y) {
     int width, height;
@@ -1272,7 +1194,7 @@ void Rbc_ColorImageToPostScript(struct PsTokenStruct *tokenPtr, Rbc_ColorImage i
         }
         tmpSize *= 3;
     }
-    Rbc_FormatToPostScript(tokenPtr, "\n/tmpStr %d string def\n", tmpSize);
+    Rbc_FormatToPostScript(tokenPtr, "\n/tmpStr %zu string def\n", tmpSize);
     Rbc_AppendToPostScript(tokenPtr, "gsave\n", (char *)NULL);
     Rbc_FormatToPostScript(tokenPtr, "  %g %g translate\n", x, y);
     Rbc_FormatToPostScript(tokenPtr, "  %d %d scale\n", width, height);
@@ -1290,27 +1212,15 @@ void Rbc_ColorImageToPostScript(struct PsTokenStruct *tokenPtr, Rbc_ColorImage i
     Rbc_AppendToPostScript(tokenPtr, "\ngrestore\n\n", (char *)NULL);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Capture a window into an owned temporary image and serialize it.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_WindowToPostScript --
- *
- *      Converts a Tk window to PostScript.  If the window could not
- *      be "snapped", then a grey rectangle is drawn in its place.
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Tk_Window tkwin
- *      double x
- *      double y
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows a live window and token; captures its current dimensions at GAMMA.
+ * On success frees the temporary image after serialization. A failed capture
+ * instead emits a comment and a grey background rectangle of the same size.
+ * The fallback changes background color without restoring it and does not
+ * report a Tcl error. This is capture of native pixels, not widget commands.
  */
 void Rbc_WindowToPostScript(struct PsTokenStruct *tokenPtr, Tk_Window tkwin, double x, double y) {
     Rbc_ColorImage image;
@@ -1330,29 +1240,14 @@ void Rbc_WindowToPostScript(struct PsTokenStruct *tokenPtr, Tk_Window tkwin, dou
     Rbc_FreeColorImage(image);
 }
 
-/*
- * -------------------------------------------------------------------------
+/**
+ * @brief Copy a Tk photo into a temporary color image and serialize it.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_PhotoToPostScript --
- *
- *      Output a PostScript image string of the given photo image.
- *      The photo is first converted into a color image and then
- *      translated into PostScript.
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Tk_PhotoHandle photo
- *      double x - -
- *      double y - Origin of photo image
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The PostScript output representing the photo is appended to
- *      the tokenPtr's dynamic string.
- *
- * -------------------------------------------------------------------------
+ * Borrows the photo and token. Releases the temporary image after output,
+ * so greyscale conversion does not modify the original photo. Requires a
+ * valid photo handle; no conversion failure status is propagated. Inherits
+ * the serializer alpha omission and positioning conventions.
  */
 void Rbc_PhotoToPostScript(struct PsTokenStruct *tokenPtr, Tk_PhotoHandle photo, double x, double y) {
     Rbc_ColorImage image;
@@ -1612,27 +1507,17 @@ void Rbc_LineToPostScript(struct PsTokenStruct *tokenPtr, register XPoint *point
     Rbc_AppendToPostScript(tokenPtr, "DashesProc stroke\n", (char *)NULL);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Emit a scaled bitmap mask centered on the current origin.
+ * @ingroup ps_raster_encoding
  *
- * Rbc_BitmapToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Display *display
- *      Pixmap bitmap - Bitmap to be converted to PostScript
- *      double scaleX
- *      double scaleY
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows a registered Tk bitmap and token. Queries dimensions, translates
+ * by negative half scaled width and positive half scaled height, then scales
+ * by scaled width and negative scaled height. Emits a byte-packed
+ * one-bit imagemask with true polarity, restoring graphics state afterward.
+ * Paints set bits with the current color; unset bits remain unpainted.
+ * The caller supplies finite usable scale factors. Capture failures are not
+ * returned or rolled back, and no bitmap resource is transferred.
  */
 void Rbc_BitmapToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap, double scaleX,
                             double scaleY) {
