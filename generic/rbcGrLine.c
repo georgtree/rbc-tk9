@@ -30,6 +30,10 @@
  * Source ownership, parallel parameters, notification policy and staged commit.
  */
 
+/** @defgroup line_option_transactions Line scalar and fill option transactions
+ * Parsing, temporary ownership, resource transfer and tile invalidation.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -2309,19 +2313,13 @@ static int ValidateLineParamLength(Graph *graphPtr, Line *linePtr, const ElemDat
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Identify a manually parsed scalar option by its canonical Tk name.
  *
- * GetLineScalarOption --
- *
- *      Determines whether an option represents one of the
- *      line-specific scalar options handled transactionally.
- *
- *      Tk_SetOptions has already rejected ambiguous or unknown option
- *      abbreviations. This function recovers the canonical identity
- *      from the original option/value vector.
- *
- *----------------------------------------------------------------------
+ * Recognizes maxsymbols, smooth and trace; returns NONE for other options or
+ * unresolved names. The enclosing Tk option pass has already validated names
+ * and abbreviations. Does not parse the option value or change live fields.
  */
 static LineScalarOption GetLineScalarOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -2342,19 +2340,13 @@ static LineScalarOption GetLineScalarOption(Element *elemPtr, Tcl_Obj *objPtr) {
     return LINE_SCALAR_OPTION_NONE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Identify pattern or tile options for an area or error-band transaction.
  *
- * GetLineAreaOption --
- *
- *      Determines whether an option represents a manually converted
- *      line-area option.
- *
- *      Tk_SetOptions has already rejected ambiguous and unknown option
- *      abbreviations. This helper recovers the canonical option
- *      identity from the original option/value vector.
- *
- *----------------------------------------------------------------------
+ * band selects errorbandpattern/errorbandtile instead of areapattern/areatile.
+ * Resolves canonical names through the element option table; returns NONE for
+ * other options. Tk has already checked ambiguous or unknown option names.
  */
 static LineAreaOption GetLineAreaOption(Element *elemPtr, Tcl_Obj *objPtr, int band) {
     const char *name;
@@ -2398,15 +2390,14 @@ INLINE static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 
  * ----------------------------------------------------------------------
  */
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Acquire a fill pattern without modifying live element resources.
  *
- * GetPatternFromString --
- *
- *      Parses an area-pattern name and acquires any required bitmap
- *      resource without modifying the live line element.
- *
- *----------------------------------------------------------------------
+ * NULL or empty text yields None; exact solid yields PATTERN_SOLID. Other text
+ * is a Tk bitmap name and acquires a bitmap reference. Assigns stipplePtr only
+ * on success. Returns TCL_ERROR with the bitmap diagnostic on lookup failure.
+ * Only a real bitmap result requires Tk_FreeBitmap; sentinels do not.
  */
 static int GetPatternFromString(Tcl_Interp *interp, Tk_Window tkwin, const char *string, Pixmap *stipplePtr) {
     Pixmap stipple;
@@ -2425,6 +2416,13 @@ static int GetPatternFromString(Tcl_Interp *interp, Tk_Window tkwin, const char 
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Parse a borrowed Tcl pattern object through GetPatternFromString.
+ *
+ * NULL is treated as empty. Does not retain the object; successful bitmap
+ * ownership belongs to the caller and must be released or transferred.
+ */
 static int GetPatternFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Pixmap *stipplePtr) {
     const char *string;
 
@@ -2432,12 +2430,27 @@ static int GetPatternFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPt
     return GetPatternFromString(interp, tkwin, string, stipplePtr);
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Release an owned bitmap pattern, excluding None and PATTERN_SOLID.
+ *
+ * Does not modify the caller's field. Requires the bitmap's display context;
+ * callers must clear or replace ownership to avoid a second release.
+ */
 static void FreeLinePattern(Display *display, Pixmap stipple) {
     if ((stipple != None) && (stipple != PATTERN_SOLID)) {
         Tk_FreeBitmap(display, stipple);
     }
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Acquire a replacement stipple before releasing an earlier candidate.
+ *
+ * Failure retains prior staged state. Success stores the pattern or sentinel
+ * and marks the pattern bit. The transaction owns real bitmap references until
+ * commit or FreeLineAreaTransaction; live line resources are unchanged.
+ */
 static int StageLineAreaPattern(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransaction *transactionPtr) {
     Pixmap newStipple;
     unsigned int mask;
@@ -2458,6 +2471,14 @@ static int StageLineAreaPattern(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransa
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Acquire a replacement tile client in temporary transaction storage.
+ *
+ * NULL or empty input stages a cleared tile. Nonempty input resolves an RBC
+ * tile before releasing any previous staged client. Failure leaves that earlier
+ * candidate intact. Does not install the line notification callback yet.
+ */
 static int StageLineAreaTile(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransaction *transactionPtr) {
     const char *name;
     Rbc_Tile newTile;
@@ -2484,6 +2505,16 @@ static int StageLineAreaTile(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransacti
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Acquire a Tk GC for effective fill colors and a pattern.
+ *
+ * Colors and stipple are borrowed. Non-NULL colors supply foreground/background
+ * pixels; a real bitmap selects FillStippled without a background and
+ * FillOpaqueStippled with one. None and PATTERN_SOLID do not install stippling.
+ * Returns a Tk-managed GC reference for later Tk_FreeGC; this helper does not
+ * decide whether geometry should be filled or implement opacity or tile drawing.
+ */
 static GC CreateLineFillGC(Graph *graphPtr, XColor *foreground, XColor *background, Pixmap stipple) {
     unsigned long gcMask;
     XGCValues gcValues;
@@ -2506,6 +2537,14 @@ static GC CreateLineFillGC(Graph *graphPtr, XColor *foreground, XColor *backgrou
     return Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Release all remaining owned area candidates and zero the transaction.
+ *
+ * Releases a staged real pattern, any tile client and any candidate GC. Does
+ * not free the live line resources or Tk-managed color options. Safe after
+ * commit because moved ownership is cleared. Requires the owning display.
+ */
 static void FreeLineAreaTransaction(Graph *graphPtr, LineAreaTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
         FreeLinePattern(graphPtr->display, transactionPtr->stipple);
@@ -2519,18 +2558,16 @@ static void FreeLineAreaTransaction(Graph *graphPtr, LineAreaTransaction *transa
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Prepare pattern, tile and replacement GC for area or band configuration.
  *
- * PrepareLineAreaTransaction --
- *
- *      Parses area-pattern and tile options and constructs a
- *      replacement fill GC without modifying the live line element.
- *
- *      Area foreground and background colors are already managed
- *      transactionally by Tk_SetOptions.
- *
- *----------------------------------------------------------------------
+ * Initializes fresh transaction storage. Initial defaults are parsed only for
+ * options not explicitly supplied. Every explicit occurrence is processed in
+ * caller order; an invalid earlier value cannot be hidden by a later one.
+ * Builds a GC using the staged or retained stipple and colors already installed
+ * by Tk_SetOptions. Failure frees staged resources and leaves live derived
+ * resources unchanged; the caller remains responsible for Tk option rollback.
  */
 static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                       LineAreaTransaction *transactionPtr, int band) {
@@ -2614,6 +2651,15 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Transfer prepared area or band resources to their live line fields.
+ *
+ * Replaces only staged pattern/tile fields and transfers the candidate GC when
+ * present, releasing displaced resources. Installs TileChangedProc on a new tile
+ * or ensures it is installed on the retained tile. Clears moved candidates and
+ * stagedMask for cleanup. No parsing, geometry mapping or redraw is performed.
+ */
 static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTransaction *transactionPtr, int band) {
     Pixmap *stipplePtr = band ? &linePtr->errorBand.stipple : &linePtr->fillStipple;
     Rbc_Tile *tilePtr = band ? &linePtr->errorBand.tile : &linePtr->fillTile;
@@ -2659,6 +2705,13 @@ static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTr
     transactionPtr->stagedMask = 0;
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Release bitmap and mask references owned by a parsed symbol.
+ *
+ * Clears each released handle to None; repeated cleanup is safe. Leaves the
+ * symbol type untouched. The caller supplies the bitmap display context.
+ */
 static void FreeParsedSymbol(Display *display, ParsedSymbol *symbolPtr) {
     if (symbolPtr->bitmap != None) {
         Tk_FreeBitmap(display, symbolPtr->bitmap);
@@ -2670,6 +2723,17 @@ static void FreeParsedSymbol(Display *display, ParsedSymbol *symbolPtr) {
     }
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Parse a geometric symbol name or acquire a bitmap and optional mask.
+ *
+ * Initializes fresh output storage to SYMBOL_NONE with empty handles; do not
+ * pass an already owning result. Empty input disables symbols. Built-in names
+ * use legacy prefix rules, with two-character minima for c/s names.
+ * Otherwise accepts a one- or two-item bitmap list. A missing mask releases the
+ * already acquired bitmap before returning TCL_ERROR. Success transfers owned
+ * bitmap/mask references to the caller; mask dimensions are not validated here.
+ */
 static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, ParsedSymbol *symbolPtr) {
     const char *string;
     Tcl_Size length;
@@ -2767,15 +2831,13 @@ static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Parse an exact entry in the smoothing table without modifying the line.
  *
- * GetSmoothFromString --
- *
- *      Parses a line smoothing name without modifying a widget
- *      record.
- *
- *----------------------------------------------------------------------
+ * Accepts linear, step, natural, cubic, quadratic and catrom; cubic aliases
+ * natural. No prefix matching is performed. Writes valuePtr only on success.
+ * Failure returns TCL_ERROR with a diagnostic listing all accepted names.
  */
 static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing *valuePtr) {
     SmoothingInfo *siPtr;
@@ -2786,24 +2848,29 @@ static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing
             return TCL_OK;
         }
     }
-    Rbc_AppendResultStrings(interp, "bad smooth value \"", string, "\": should be linear, step, natural, or quadratic",
+    Rbc_AppendResultStrings(interp, "bad smooth value \"", string, "\": should be linear, step, natural, cubic, quadratic, or catrom",
                      (char *)NULL);
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Parse the string of a borrowed Tcl object as a smoothing value.
+ *
+ * Delegates to GetSmoothFromString without retaining or evaluating the object.
+ * Leaves the output unchanged on parse failure.
+ */
 static int GetSmoothFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Smoothing *valuePtr) {
     return GetSmoothFromString(interp, Tcl_GetString(objPtr), valuePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Parse a nonempty prefix of increasing, decreasing or both.
  *
- * GetPenDirFromString --
- *
- *      Parses a trace-direction value without modifying a widget
- *      record.
- *
- *----------------------------------------------------------------------
+ * The leading i/d/b selects the candidate; longer-than-name strings are rejected.
+ * Writes penDirPtr only on success, otherwise returns TCL_ERROR with a diagnostic.
+ * Does not alter traces or mapped geometry.
  */
 static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penDirPtr) {
     size_t length;
@@ -2825,19 +2892,25 @@ static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penD
     return TCL_OK;
 }
 
+/**
+ * @ingroup line_option_transactions
+ * @brief Parse a borrowed Tcl object's string as a trace-direction prefix.
+ *
+ * Delegates to GetPenDirFromString without retaining the object or evaluating
+ * an expression. Returns the delegated Tcl status.
+ */
 static int GetPenDirFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *penDirPtr) {
     return GetPenDirFromString(interp, Tcl_GetString(objPtr), penDirPtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Convert one recognized scalar into candidate storage and mark its bit.
  *
- * StageLineScalarOption --
- *
- *      Parses one line-specific scalar option into temporary
- *      transaction storage without modifying the live line element.
- *
- *----------------------------------------------------------------------
+ * maxsymbols uses the existing nonnegative pixel parser; smooth and trace use
+ * their dedicated name parsers. Conversion failure leaves that candidate field
+ * and mask unchanged. An invalid option enum is an internal programming error
+ * and calls Tcl_Panic. Does not modify the live line or schedule redraw.
  */
 static int StageLineScalarOption(Graph *graphPtr, Tcl_Obj *objPtr, LineScalarOption option,
                                  LineScalarTransaction *transactionPtr) {
@@ -2872,19 +2945,15 @@ static int StageLineScalarOption(Graph *graphPtr, Tcl_Obj *objPtr, LineScalarOpt
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Parse ordered scalar defaults and explicit values into a fresh transaction.
  *
- * PrepareLineScalarTransaction --
- *
- *      Parses the line-specific scalar options involved in the current
- *      modern configuration without modifying the live element.
- *
- *      Explicit repeated occurrences are processed in caller order, so
- *      an invalid earlier occurrence is not hidden by a valid final
- *      retained object value.
- *
- *----------------------------------------------------------------------
+ * Processes initial defaults only when not explicitly overridden, then each
+ * explicit occurrence in caller order. Strip elements have no trace option and
+ * their traceObjPtr remains NULL. Failure may leave earlier staged scalar values
+ * in the transaction, but owns no resources to release and changes no live field.
+ * The caller must not commit a failed transaction.
  */
 static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                         LineScalarTransaction *transactionPtr) {
@@ -2951,14 +3020,14 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Copy successfully staged scalar values into live line configuration.
  *
- * CommitLineScalarTransaction --
- *
- *      Commits successfully parsed line-specific scalar values.
- *
- *----------------------------------------------------------------------
+ * Copies maxsymbols to reqMaxSymbols, smoothing to reqSmooth, and trace direction
+ * to penDir only when their bits are present. Clears stagedMask afterward.
+ * Values are already validated; mapping, redraw and effective smoothing selection
+ * belong to later stages, not this commit helper.
  */
 static void CommitLineScalarTransaction(Line *linePtr, LineScalarTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_MAX_SYMBOLS)) {
@@ -8550,24 +8619,14 @@ static void GetLineExtents(Element *elemPtr, Extents2D *extsPtr) {
     Rbc_ExpandErrorBarExtents(elemPtr, extsPtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_option_transactions
+ * @brief Schedule line redisplay when a retained area or band tile changes.
  *
- * TileChangedProc
- *
- *      Rebuilds the designated GC with the new tile pixmap.
- *
- * Parameters:
- *      ClientData clientData
- *      Rbc_Tile tile - Not used.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * clientData is the stable owning Line; tile is unused. If the graph window
+ * exists, sets REDRAW_WORLD and REDRAW_BACKING_STORE and queues redraw. Does not
+ * filter hidden elements, remap source data or synchronously draw. Resource
+ * teardown must detach tile clients before their owner storage is released.
  */
 static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     Line *linePtr = clientData;

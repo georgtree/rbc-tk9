@@ -3669,5 +3669,22 @@ namespace eval stripchart.element {
         destroy .stripchart1
     } -result {1}
 
+    test RBC.stripchart.element.configure.A.64.1 {
+        smooth diagnostic lists all accepted names and retains the previous value
+    } -setup {
+        stripchart .w
+        .w element create a
+    } -body {
+        set accepted {}
+        foreach mode {linear step natural cubic quadratic catrom} {
+            .w element configure a -smooth $mode
+            lappend accepted [.w element cget a -smooth]
+        }
+        set code [catch {.w element configure a -smooth invalid} message]
+        list $accepted $code $message [.w element cget a -smooth]
+    } -cleanup {
+        destroy .w
+    } -result {{linear step natural cubic quadratic catrom} 1 {bad smooth value "invalid": should be linear, step, natural, cubic, quadratic, or catrom} catrom}
+
 	cleanupTests
 }

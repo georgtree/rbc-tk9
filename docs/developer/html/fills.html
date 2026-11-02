@@ -168,6 +168,78 @@ ordinary fill. It runs before mapping can return early, so shortened or empty
 data cannot leave a stale polygon on screen. Mapping helpers assume this reset
 has happened; they are not replacement APIs for an already populated list.</p>
 </section>
+<section id="pattern-and-tile-transaction-details">
+<h2>Pattern and tile transaction details<a class="headerlink" href="#pattern-and-tile-transaction-details" title="Link to this heading">¶</a></h2>
+<p>GetLineAreaOption resolves canonical names using the concrete element option
+table. The same transaction code handles ordinary area and error-band resources,
+selected by its band argument. This shares ownership machinery, not option
+availability or geometry rules.</p>
+<p>Pattern parsing has three results: empty/NULL means None, exact solid means
+PATTERN_SOLID, and other strings acquire a Tk bitmap. GetPatternFromString writes
+its output only after successful lookup. FreeLinePattern releases only actual
+bitmap references. Tile parsing similarly treats empty/NULL as a staged clear;
+nonempty input acquires a client through Rbc_GetTile. Both staging helpers acquire
+the new resource before releasing an earlier candidate, preserving that candidate
+if the replacement fails.</p>
+<p>PrepareLineAreaTransaction initializes fresh candidate storage. Initial defaults
+are considered only for fields not explicitly supplied; explicit repetitions
+are processed in caller order. A bad early pattern or tile still fails even if
+a later occurrence would replace it. The fill colors are already managed by Tk’s
+saved-option transaction and are borrowed by this preparation step.</p>
+<p>CreateLineFillGC sets foreground/background pixels only for non-NULL colors. A
+real bitmap selects transparent stippling without a background or opaque
+stippling with one. None and PATTERN_SOLID leave stippling disabled. The GC’s
+existence does not itself mean an area will be drawn: geometry and draw dispatch
+still determine that. Opacity and tile rendering are not implemented by this GC
+constructor.</p>
+<p>Commit transfers staged resources, installs tile notifications on the stable
+line record, and releases the displaced resources. An unchanged retained tile
+also receives the callback if needed. Moved candidate fields and the staged mask
+are cleared so subsequent transaction cleanup is safe. Cleanup frees only the
+resources it still owns; it never destroys the application’s image command or
+frees the Tk-owned fill colors. A tile change requests redisplay while the graph
+window exists, even if the element is hidden. It does not draw synchronously.</p>
+</section>
+<section id="adjacent-scalar-and-symbol-parsing">
+<h2>Adjacent scalar and symbol parsing<a class="headerlink" href="#adjacent-scalar-and-symbol-parsing" title="Link to this heading">¶</a></h2>
+<p>Line scalar configuration separately stages maxsymbols, smooth and trace values.
+GetLineScalarOption recognizes canonical option identities after Tk has validated
+the names. PrepareLineScalarTransaction follows the same default-versus-explicit
+ordering as resource transactions. Failed preparation can retain earlier staged
+numbers, but owns no resources requiring cleanup; those numbers must not be
+committed. Commit copies only marked fields and clears the mask, leaving mapping
+and redraw to the enclosing configuration operation.</p>
+<p>The parsers deliberately preserve their existing differences:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Scalar parsing rules</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Accepted form</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>maxsymbols</p></td>
+<td><p>The existing nonnegative pixel conversion, rather than a separate count parser.</p></td>
+</tr>
+<tr class="row-odd"><td><p>smooth</p></td>
+<td><p>Exact linear, step, natural, cubic, quadratic or catrom; cubic aliases natural.</p></td>
+</tr>
+<tr class="row-even"><td><p>trace</p></td>
+<td><p>Nonempty prefixes of increasing, decreasing or both.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The smoothing failure diagnostic lists all accepted names, including the cubic
+alias and catrom. Matching remains exact; the diagnostic does not change parsing.</p>
+<p>GetSymbolFromObj initializes a fresh ParsedSymbol rather than releasing an old
+one. Empty input disables symbols. Geometric names use legacy prefix rules:
+none, diamond, plus, triangle and arrow accept one-character prefixes; circle,
+cross, square, splus and scross require at least two characters. Matching is
+case-sensitive. Other input is parsed as a one- or two-item bitmap/mask list.
+The bitmap is released if mask lookup fails, and success transfers both acquired
+references to the result. This parser does not validate bitmap/mask dimensions.
+FreeParsedSymbol clears released handles but leaves the type field unchanged.</p>
+</section>
 </section>
 
 
@@ -185,6 +257,8 @@ has happened; they are not replacement APIs for an already populated list.</p>
 <li><a class="reference internal" href="#ordinary-area-geometry">Ordinary area geometry</a></li>
 <li><a class="reference internal" href="#error-band-geometry">Error-band geometry</a></li>
 <li><a class="reference internal" href="#drawing-export-and-cleanup">Drawing, export and cleanup</a></li>
+<li><a class="reference internal" href="#pattern-and-tile-transaction-details">Pattern and tile transaction details</a></li>
+<li><a class="reference internal" href="#adjacent-scalar-and-symbol-parsing">Adjacent scalar and symbol parsing</a></li>
 </ul>
 </li>
 </ul>

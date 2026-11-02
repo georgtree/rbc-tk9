@@ -600,5 +600,22 @@ namespace eval polar.element {
         vector destroy lengthX lengthY lengthP lengthZ
     } -result {1 {parameter vector has 2 values, but element has 3 data points} 1 blue}
 
+    test RBC.polar.element.configure.A.26.1 {
+        smooth diagnostic lists all accepted names and retains the previous value
+    } -setup {
+        polar .w
+        .w element create a
+    } -body {
+        set accepted {}
+        foreach mode {linear step natural cubic quadratic catrom} {
+            .w element configure a -smooth $mode
+            lappend accepted [.w element cget a -smooth]
+        }
+        set code [catch {.w element configure a -smooth invalid} message]
+        list $accepted $code $message [.w element cget a -smooth]
+    } -cleanup {
+        destroy .w
+    } -result {{linear step natural cubic quadratic catrom} 1 {bad smooth value "invalid": should be linear, step, natural, cubic, quadratic, or catrom} catrom}
+
 	cleanupTests
 }
