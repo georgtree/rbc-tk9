@@ -49,7 +49,7 @@ in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span
 <dt class="sig sig-object c" id="c.Rbc_RotateColorImage">
 <span class="target" id="rbc_image_8h_1a290a146372dcfeaf421afd0e5c80f9c3"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RotateColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RotateColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a newly owned color image rotated counterclockwise in display space. </p>
-<p>Borrow image and accept a finite angle in degrees, normalized modulo 360. Non-finite angles panic. Empty input is copied without swapping dimensions. Right angles copy pixels exactly; other angles use three filtered shears after a quadrant rotation, with transparent white background. The result never aliases image, even at zero degrees; free with <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. </p>
+<p>Borrow image and accept a finite angle in degrees, normalized modulo 360. Non-finite angles panic. Empty input is copied without swapping dimensions. Right angles copy pixels exactly; other angles use three filtered shears after a quadrant rotation, with transparent white background. The result never aliases image, even at zero degrees; free with Rbc_FreeColorImage(). </p>
 </dd></dl>
 
 <dl class="c function">
@@ -73,6 +73,88 @@ in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span
 <p>Borrow window and source bitmap. The region coordinates refer to the virtual rotated destination, whose dimensions are virtWidth and virtHeight. Require positive dimensions, a finite degree angle and a region contained in that virtual image, with representable coordinate sums. Right-angle paths assume these bounds rather than checking each source sample. Return an owned pixmap of regionWidth by regionHeight, or None for a detected failure. Free with Tk_FreePixmap(); no source or window ownership is transferred. </p>
 </dd></dl>
 
+<section id="color-rotation-implementation">
+<h2>Color rotation implementation<a class="headerlink" href="#color-rotation-implementation" title="Link to this heading">¶</a></h2>
+<p>These CPU-side helpers implement exact quadrant copies and the residual
+three-shear path. Native bitmap transforms use separate implementations.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__image__rotation__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Color-image</span> <span class="pre">rotation</span> <span class="pre">internals</span></span></dt>
+<dd><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="n">This</span><span class="w"> </span><span class="n">module</span><span class="w"> </span><span class="n">implements</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="n">processing</span><span class="w"> </span><span class="n">procedures</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">rbc</span>
+<span class="w"> </span><span class="n">toolkit</span><span class="p">.</span>
+</pre></div>
+</div>
+<p>Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo All rights reserved.</p>
+<p>See “license.terms” for details. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.ShearY">
+<span class="target" id="group__image__rotation__internals_1ga59b157d5aeda4add1a89a504ba5ae4d3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShearY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">frac</span></span>, <span class="n"><span class="pre">Pix32</span></span><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.ShearY" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shift and filter one source row into a destination row. </p>
+<p>Despite its name, this helper moves pixels horizontally at fixed row y. Borrows distinct images; y must exist in both. Initializes the entire destination row to bgColor, then processes all source pixels, including clipped ones, to retain the preceding fractional contribution. offset supplies the integer displacement and frac must lie in [0,1). Writes only in-range destination pixels and a final residual pixel when visible. Uses 14-bit fixed-point straight RGBA arithmetic with byte clamping. Caller ensures offset plus source width remains representable as int. Does not allocate, resize, or validate the row index or fraction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.ShearX">
+<span class="target" id="group__image__rotation__internals_1ga4cc9f19b4e45f6cad61904c1e7df3a78"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShearX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">frac</span></span>, <span class="n"><span class="pre">Pix32</span></span><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.ShearX" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shift and filter one source column into a destination column. </p>
+<p>Despite its name, this helper moves pixels vertically at fixed column x. Borrows distinct images; x must exist in both. Initializes the complete destination column to bgColor. offset is the integer displacement and frac must lie in [0,1). Accumulates the preceding fractional contribution even while destination coordinates are clipped, and emits the final residual pixel if visible. Filters straight RGBA with 14-bit fixed-point weights and clamps channels. Requires representable offset plus source height. Does not allocate or validate the column index or fraction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.GetRotationDimension">
+<span class="target" id="group__image__rotation__internals_1gab9416be0f88fb13f8695c7d74cd6a8c5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRotationDimension</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.GetRotationDimension" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate and truncate a nonnegative rotation extent. </p>
+<p>Returns int truncation of a finite value in [0, INT_MAX]. Invalid or unrepresentable values panic. Does not round upward or add padding; callers include any extra space in their dimension formula. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.GetShearOffset">
+<span class="target" id="group__image__rotation__internals_1ga92ba84fca0e13c63a26df7d979276938"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetShearOffset</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.GetShearOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Floor a fractional displacement before checked integer conversion. </p>
+<p>Returns floor(value) as an int, including for negative displacements. Non-finite or out-of-range results panic. The caller derives the fractional remainder by subtracting this result from the original value. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.Rotate45">
+<span class="target" id="group__image__rotation__internals_1gae54d2335d64c26352994ca8e966d61fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rotate45</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Pix32</span></span><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.Rotate45" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rotate a borrowed image by a residual angle using three filtered shears. </p>
+<p>theta is in radians and must lie in [-pi/4, pi/4]; this helper does not normalize or validate that interval. Uses horizontal, vertical, horizontal passes based on tan(theta/2) and sin(theta). Allocates two intermediates and the final image, releasing each intermediate after its last use. bgColor supplies padding and boundary contributions for every pass. Returns independent owned storage released with Rbc_FreeColorImage. Dimension/offset conversion panics on unrepresentable geometry. The construction follows Alan W. Paeth, A Fast Algorithm for General Raster Rotation, Graphics Gems, pp. 179-195. It is not a single-pass inverse-mapped rotation; intermediate clamping affects pixel results. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.CopyColorImage">
+<span class="target" id="group__image__rotation__internals_1ga5a248b0b4138d2c19a7cffc3dd65e4dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.CopyColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Duplicate an entire RGBA image into independent storage. </p>
+<p>Borrows a valid source, checks its pixel count, allocates an equal-size image and copies complete Pix32 values including alpha. Empty dimensions are retained. Returns ownership to the caller, which frees the result with Rbc_FreeColorImage. Does not modify or share source pixel storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.Rotate90">
+<span class="target" id="group__image__rotation__internals_1ga00910564940fb3d78601226219734098"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rotate90</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.Rotate90" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy pixels into a counterclockwise quarter-turn image. </p>
+<p>Borrows source storage and allocates a destination with exchanged width and height. Maps (x,y) to (y,sourceWidth-x-1), copying all RGBA bytes exactly. No interpolation or background blending occurs. Caller owns the result and releases it with Rbc_FreeColorImage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.Rotate180">
+<span class="target" id="group__image__rotation__internals_1gaf3c43c6c0732c1b68fe0d4d417e8d533"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rotate180</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.Rotate180" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy pixels into a half-turn image with unchanged dimensions. </p>
+<p>Borrows source storage and maps (x,y) to (width-x-1,height-y-1) in a newly allocated image. Copies complete RGBA values with no interpolation. Caller owns the independent result and frees it with Rbc_FreeColorImage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageRotation.Rotate270">
+<span class="target" id="group__image__rotation__internals_1ga4c2f14211cbc466e8c1afa21c4c44ac2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rotate270</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.Rotate270" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy pixels into a clockwise quarter-turn image. </p>
+<p>Borrows source storage and allocates a destination with exchanged width and height. Maps (x,y) to (sourceHeight-y-1,x), copying complete pixels. No interpolation occurs. Caller owns the independent result and frees it with Rbc_FreeColorImage. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -90,6 +172,18 @@ in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span
 <li><a class="reference internal" href="#c.Rbc_RotateBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_RotateBitmap()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ScaleBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ScaleRotateBitmapRegion"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion()</span></code></a></li>
+<li><a class="reference internal" href="#color-rotation-implementation">Color rotation implementation</a><ul>
+<li><a class="reference internal" href="#c.rbcImageRotation.ShearY"><code class="docutils literal notranslate"><span class="pre">ShearY()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.ShearX"><code class="docutils literal notranslate"><span class="pre">ShearX()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.GetRotationDimension"><code class="docutils literal notranslate"><span class="pre">GetRotationDimension()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.GetShearOffset"><code class="docutils literal notranslate"><span class="pre">GetShearOffset()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.Rotate45"><code class="docutils literal notranslate"><span class="pre">Rotate45()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.CopyColorImage"><code class="docutils literal notranslate"><span class="pre">CopyColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.Rotate90"><code class="docutils literal notranslate"><span class="pre">Rotate90()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.Rotate180"><code class="docutils literal notranslate"><span class="pre">Rotate180()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageRotation.Rotate270"><code class="docutils literal notranslate"><span class="pre">Rotate270()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

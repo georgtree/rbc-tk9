@@ -216,15 +216,6 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width,
  */
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                        int destHeight);
-/**
- * @brief Return a newly owned color image rotated counterclockwise in display space.
- *
- * Borrow image and accept a finite angle in degrees, normalized modulo 360.
- * Non-finite angles panic. Empty input is copied without swapping dimensions.
- * Right angles copy pixels exactly; other angles use three filtered shears
- * after a quadrant rotation, with transparent white background. The result
- * never aliases image, even at zero degrees; free with Rbc_FreeColorImage().
- */
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage image, double theta);
 /**
  * @brief Resize a source photo region to the destination's existing size without filtering.

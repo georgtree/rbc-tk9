@@ -76,6 +76,115 @@ rotated bounding-box formula and assume identical dimensions or pixels.
 Non-finite angles and unrepresentable rotation dimensions panic; command-level
 validation remains the caller’s responsibility.</p>
 </section>
+<section id="quadrant-selection-and-intermediate-geometry">
+<h2>Quadrant selection and intermediate geometry<a class="headerlink" href="#quadrant-selection-and-intermediate-geometry" title="Link to this heading">¶</a></h2>
+<p>After normalization into [0, 360), the dispatcher selects these paths:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Normalized angle</p></th>
+<th class="head"><p>Initial exact rotation</p></th>
+<th class="head"><p>Residual angle</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>[0, 45]</p></td>
+<td><p>None (copy if zero)</p></td>
+<td><p>angle</p></td>
+</tr>
+<tr class="row-odd"><td><p>(45, 135]</p></td>
+<td><p>90 degrees</p></td>
+<td><p>angle - 90</p></td>
+</tr>
+<tr class="row-even"><td><p>(135, 225]</p></td>
+<td><p>180 degrees</p></td>
+<td><p>angle - 180</p></td>
+</tr>
+<tr class="row-odd"><td><p>(225, 315]</p></td>
+<td><p>270 degrees</p></td>
+<td><p>angle - 270</p></td>
+</tr>
+<tr class="row-even"><td><p>(315, 360)</p></td>
+<td><p>None</p></td>
+<td><p>angle - 360</p></td>
+</tr>
+</tbody>
+</table>
+<p>The endpoint choices are intentional: 45 degrees uses no quadrant copy,
+while 135 degrees uses a 90-degree copy followed by a positive 45-degree
+residual. Changing which exact rotation precedes a shear can change intermediate
+rounding even when the final mathematical angle is equivalent.</p>
+<p>For source width W and height H <em>after</em> any quadrant copy, Rotate45 uses
+s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Stage</p></th>
+<th class="head"><p>Width</p></th>
+<th class="head"><p>Height</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>First row shear</p></td>
+<td><p>truncate(W + H*abs(t))</p></td>
+<td><p>H</p></td>
+</tr>
+<tr class="row-odd"><td><p>Column shear</p></td>
+<td><p>First-stage width</p></td>
+<td><p>truncate(W*abs(s) + H*c + 1)</p></td>
+</tr>
+<tr class="row-even"><td><p>Final row shear</p></td>
+<td><p>truncate(H*abs(s) + W*c + 1)</p></td>
+<td><p>Second-stage height</p></td>
+</tr>
+</tbody>
+</table>
+<p>GetRotationDimension checks finiteness and the nonnegative int range before
+truncation. It does not ceil the result. GetShearOffset floors the displacement,
+including negative values, and checks the int range. The fractional argument
+is the original displacement minus that integer offset, so it lies in [0, 1)
+for valid geometry. The caller’s residual-angle restriction keeps the
+construction within the intended two-neighbor filtering regime.</p>
+</section>
+<section id="shear-traversal-and-boundary-pixels">
+<h2>Shear traversal and boundary pixels<a class="headerlink" href="#shear-traversal-and-boundary-pixels" title="Link to this heading">¶</a></h2>
+<p>The historical helper names describe the fixed coordinate: ShearY processes
+a row at fixed y and moves pixels horizontally; ShearX processes a column at
+fixed x and moves pixels vertically. Each initializes its complete destination
+row or column to the background before sampling. The source and destination
+must be distinct, since that initialization would overwrite an aliased source.</p>
+<p>Each source channel contributes a fraction computed with the same 14-bit
+fixed-point macros used by resampling. The output combines the current pixel
+with the carried fraction from its predecessor and clamps to a byte. The carry
+starts from the background channel value; after the last source pixel, an
+additional residual pixel is emitted if it falls within the destination.
+The routines still advance carry state for clipped source contributions.
+Clipping therefore limits writes without restarting the filter at the first
+visible pixel.</p>
+<p>These are private kernels with caller-established invariants: the fixed row
+or column exists in both images, the fraction is in range, and advancing the
+integer displacement across the source remains representable. They validate
+individual destination writes, not arbitrary source indices or caller-provided
+fractions. The public rotation path supplies matching intermediate dimensions.
+Each pass clamps independently, and transparent white participates in straight
+RGBA filtering. It must not be silently replaced with premultiplied or
+transparent-black interpolation during refactoring.</p>
+<p>The first intermediate is freed after the column shear; the second is freed
+after the final row shear. A quadrant-rotated temporary belongs to the outer
+dispatcher and is freed only when a further residual rotation replaces it.
+With an exact quadrant angle, that temporary itself becomes the returned image.
+Zero rotation returns a full copy. Empty input bypasses all shears and retains
+its original dimensions, even when the requested angle would normally exchange
+them.</p>
+</section>
 <section id="one-bit-bitmap-ownership">
 <h2>One-bit bitmap ownership<a class="headerlink" href="#one-bit-bitmap-ownership" title="Link to this heading">¶</a></h2>
 <p>Bitmap transforms borrow a valid Tk window and a source pixmap whose actual
@@ -147,6 +256,8 @@ and matching resource cleanup independently of the rendered result.</p>
     <ul>
 <li><a class="reference internal" href="#">Color-image rotation and bitmap transforms</a><ul>
 <li><a class="reference internal" href="#color-image-rotation">Color-image rotation</a></li>
+<li><a class="reference internal" href="#quadrant-selection-and-intermediate-geometry">Quadrant selection and intermediate geometry</a></li>
+<li><a class="reference internal" href="#shear-traversal-and-boundary-pixels">Shear traversal and boundary pixels</a></li>
 <li><a class="reference internal" href="#one-bit-bitmap-ownership">One-bit bitmap ownership</a></li>
 <li><a class="reference internal" href="#scaling-and-virtual-regions">Scaling and virtual regions</a></li>
 <li><a class="reference internal" href="#failure-and-platform-differences">Failure and platform differences</a></li>

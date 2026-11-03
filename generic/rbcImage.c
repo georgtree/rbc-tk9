@@ -3,6 +3,7 @@
  * @brief CPU image processing and Tk photo conversion.
  * @defgroup image_resample_internals Image resampling kernels and contributions
  * @defgroup image_quantize_internals RGB quantization internals
+ * @defgroup image_rotation_internals Color-image rotation internals
  *
  *      This module implements image processing procedures for the rbc
  *      toolkit.
@@ -1570,30 +1571,19 @@ int Rbc_JPEGToPhoto(Tcl_Interp *interp, const char *fileName, Tk_PhotoHandle pho
 }
 #endif /* HAVE_JPEG */
 
-/*
- * --------------------------------------------------------------------------
+/**
+ * @brief Shift and filter one source row into a destination row.
+ * @ingroup image_rotation_internals
  *
- * ShearY --
- *
- *      Shears a row horizontally. Antialiasing limited to filtering
- *      two adjacent pixels.  So the shear angle must be between +-45
- *      degrees.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      Rbc_ColorImage dest
- *      int y - Designates the row to be sheared
- *      int offset - Difference between  of
- *      double frac
- *      Pix32 bgColor
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The sheared image is drawn into the destination color image.
- *
- * --------------------------------------------------------------------------
+ * Despite its name, this helper moves pixels horizontally at fixed row y.
+ * Borrows distinct images; y must exist in both. Initializes the entire
+ * destination row to bgColor, then processes all source pixels, including
+ * clipped ones, to retain the preceding fractional contribution. offset
+ * supplies the integer displacement and frac must lie in [0,1). Writes
+ * only in-range destination pixels and a final residual pixel when visible.
+ * Uses 14-bit fixed-point straight RGBA arithmetic with byte clamping.
+ * Caller ensures offset plus source width remains representable as int.
+ * Does not allocate, resize, or validate the row index or fraction.
  */
 static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, double frac, Pix32 bgColor) {
     Pix32 *srcPtr;
@@ -1669,30 +1659,18 @@ static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, d
     }
 }
 
-/*
- * --------------------------------------------------------------------------
+/**
+ * @brief Shift and filter one source column into a destination column.
+ * @ingroup image_rotation_internals
  *
- * ShearX --
- *
- *      Shears a column. Antialiasing is limited to filtering two
- *      adjacent pixels.  So the shear angle must be between +-45
- *      degrees.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      Rbc_ColorImage dest
- *      int x - Column in source image to be sheared.
- *      int offset - Offset of
- *      double frac - Fraction of subpixel.
- *      Pix32 bgColor
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The sheared image is drawn into the destination color image.
- *
- * --------------------------------------------------------------------------
+ * Despite its name, this helper moves pixels vertically at fixed column x.
+ * Borrows distinct images; x must exist in both. Initializes the complete
+ * destination column to bgColor. offset is the integer displacement and
+ * frac must lie in [0,1). Accumulates the preceding fractional contribution
+ * even while destination coordinates are clipped, and emits the final
+ * residual pixel if visible. Filters straight RGBA with 14-bit fixed-point
+ * weights and clamps channels. Requires representable offset plus source
+ * height. Does not allocate or validate the column index or fraction.
  */
 static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, double frac, Pix32 bgColor) {
     Pix32 *srcPtr;
@@ -1762,6 +1740,14 @@ static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, d
     }
 }
 
+/**
+ * @brief Validate and truncate a nonnegative rotation extent.
+ * @ingroup image_rotation_internals
+ *
+ * Returns int truncation of a finite value in [0, INT_MAX]. Invalid or
+ * unrepresentable values panic. Does not round upward or add padding;
+ * callers include any extra space in their dimension formula.
+ */
 static int GetRotationDimension(double value) {
     if ((!FINITE(value)) || (value < 0.0) || (value > (double)INT_MAX)) {
         Tcl_Panic("image rotation dimension overflow");
@@ -1769,6 +1755,14 @@ static int GetRotationDimension(double value) {
     return (int)value;
 }
 
+/**
+ * @brief Floor a fractional displacement before checked integer conversion.
+ * @ingroup image_rotation_internals
+ *
+ * Returns floor(value) as an int, including for negative displacements.
+ * Non-finite or out-of-range results panic. The caller derives the
+ * fractional remainder by subtracting this result from the original value.
+ */
 static int GetShearOffset(double value) {
     double result;
 
@@ -1779,32 +1773,20 @@ static int GetShearOffset(double value) {
     return (int)result;
 }
 
-/*
- * ---------------------------------------------------------------------------
+/**
+ * @brief Rotate a borrowed image by a residual angle using three filtered shears.
+ * @ingroup image_rotation_internals
  *
- * Rotate45 --
- *
- *      Rotates an image by a given angle.  The angle must be in the
- *      range -45.0 to 45.0 inclusive.  Anti-aliasing filtering is
- *      performed on two adjacent pixels, so the angle can't be so
- *      great as to force a sheared pixel to occupy 3 destination
- *      pixels.  Performs a three shear rotation described below.
- *
- *      Reference: Alan W. Paeth, "A Fast Algorithm for General Raster
- *               Rotation", Graphics Gems, pp 179-195.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      double theta
- *      Pix32 bgColor
- *
- * Results:
- *      Returns a newly allocated rotated image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ---------------------------------------------------------------------------
+ * theta is in radians and must lie in [-pi/4, pi/4]; this helper does not
+ * normalize or validate that interval. Uses horizontal, vertical, horizontal
+ * passes based on tan(theta/2) and sin(theta). Allocates two intermediates
+ * and the final image, releasing each intermediate after its last use.
+ * bgColor supplies padding and boundary contributions for every pass.
+ * Returns independent owned storage released with Rbc_FreeColorImage.
+ * Dimension/offset conversion panics on unrepresentable geometry.
+ * The construction follows Alan W. Paeth, A Fast Algorithm for General
+ * Raster Rotation, Graphics Gems, pp. 179-195. It is not a single-pass
+ * inverse-mapped rotation; intermediate clamping affects pixel results.
  */
 static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) {
     int tmpWidth, tmpHeight;
@@ -1868,23 +1850,14 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
     return dest;
 }
 
-/*
- * ---------------------------------------------------------------------------
+/**
+ * @brief Duplicate an entire RGBA image into independent storage.
+ * @ingroup image_rotation_internals
  *
- * CopyColorImage --
- *
- *      Creates a copy of the given color image.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *
- * Results:
- *      Returns the new copy.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ---------------------------------------------------------------------------
+ * Borrows a valid source, checks its pixel count, allocates an equal-size
+ * image and copies complete Pix32 values including alpha. Empty dimensions
+ * are retained. Returns ownership to the caller, which frees the result
+ * with Rbc_FreeColorImage. Does not modify or share source pixel storage.
  */
 static Rbc_ColorImage CopyColorImage(Rbc_ColorImage src) {
     int width, height;
@@ -1903,25 +1876,14 @@ static Rbc_ColorImage CopyColorImage(Rbc_ColorImage src) {
     return dest;
 }
 
-/*
- * ---------------------------------------------------------------------------
+/**
+ * @brief Copy pixels into a counterclockwise quarter-turn image.
+ * @ingroup image_rotation_internals
  *
- * Rotate90 --
- *
- *      Rotates the given color image by 90 degrees.  This is part
- *      of the special case right-angle rotations that do not create
- *      subpixel aliasing.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *
- * Results:
- *      Returns a newly allocated, rotated color image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ---------------------------------------------------------------------------
+ * Borrows source storage and allocates a destination with exchanged width
+ * and height. Maps (x,y) to (y,sourceWidth-x-1), copying all RGBA bytes
+ * exactly. No interpolation or background blending occurs. Caller owns
+ * the result and releases it with Rbc_FreeColorImage.
  */
 static Rbc_ColorImage Rotate90(Rbc_ColorImage src) {
     Rbc_ColorImage dest;
@@ -1940,25 +1902,13 @@ static Rbc_ColorImage Rotate90(Rbc_ColorImage src) {
     return dest;
 }
 
-/*
- * ---------------------------------------------------------------------------
+/**
+ * @brief Copy pixels into a half-turn image with unchanged dimensions.
+ * @ingroup image_rotation_internals
  *
- * Rotate180 --
- *
- *      Rotates the given color image by 180 degrees.  This is one of
- *      the special case orthogonal rotations that do not create
- *      subpixel aliasing.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *
- * Results:
- *      Returns a newly allocated, rotated color image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ---------------------------------------------------------------------------
+ * Borrows source storage and maps (x,y) to (width-x-1,height-y-1) in a
+ * newly allocated image. Copies complete RGBA values with no interpolation.
+ * Caller owns the independent result and frees it with Rbc_FreeColorImage.
  */
 static Rbc_ColorImage Rotate180(Rbc_ColorImage src) {
     Rbc_ColorImage dest;
@@ -1977,25 +1927,14 @@ static Rbc_ColorImage Rotate180(Rbc_ColorImage src) {
     return dest;
 }
 
-/*
- * ---------------------------------------------------------------------------
+/**
+ * @brief Copy pixels into a clockwise quarter-turn image.
+ * @ingroup image_rotation_internals
  *
- * Rotate270 --
- *
- *      Rotates the given color image by 270 degrees.  This is part
- *      of the special case right-angle rotations that do not create
- *      subpixel aliasing.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *
- * Results:
- *      Returns a newly allocated, rotated color image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ---------------------------------------------------------------------------
+ * Borrows source storage and allocates a destination with exchanged width
+ * and height. Maps (x,y) to (sourceHeight-y-1,x), copying complete pixels.
+ * No interpolation occurs. Caller owns the independent result and frees
+ * it with Rbc_FreeColorImage.
  */
 static Rbc_ColorImage Rotate270(Rbc_ColorImage src) {
     Rbc_ColorImage dest;
@@ -2014,24 +1953,14 @@ static Rbc_ColorImage Rotate270(Rbc_ColorImage src) {
     return dest;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Return a newly owned color image rotated counterclockwise in display space.
  *
- * Rbc_RotateColorImage --
- *
- *      Rotates a color image by a given # of degrees.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      double angle
- *
- * Results:
- *      Returns a newly allocated, rotated color image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrow image and accept a finite angle in degrees, normalized modulo 360.
+ * Non-finite angles panic. Empty input is copied without swapping dimensions.
+ * Right angles copy pixels exactly; other angles use three filtered shears
+ * after a quadrant rotation, with transparent white background. The result
+ * never aliases image, even at zero degrees; free with Rbc_FreeColorImage().
  */
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
     Rbc_ColorImage dest, tmp;
