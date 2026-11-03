@@ -101,8 +101,63 @@ boundaries and is not a populated palette cell. Preserve this offset in every
 stage: omitting it during mapping selects the preceding bin or a zero-filled
 boundary cell, turning colors with low-valued channels black.
 
-The splitter also prints an early-stop message to stderr, and empty palette
-boxes have a stderr diagnostic. These are not Tcl interpreter results.
+An empty palette box has a defensive stderr diagnostic and receives black;
+ordinary splitting rejects empty halves. Early termination below the requested
+palette size is normal and no longer emits a message. Neither case produces
+a Tcl interpreter diagnostic.
+
+Quantizer stage contracts
+-------------------------
+
+The implementation follows the Wu-style greedy orthogonal partitioner credited
+in the source. Its statistics record has five signed 64-bit arrays: population,
+three channel sums and squared-color sums. The squared sums use original
+8-bit RGB values even though bin addresses use five bits. GetColorImageStatistics
+owns the initial allocation; M3d transforms it in place into prefix sums once.
+Reapplying M3d would accumulate already cumulative data and corrupt queries.
+
+Each Cube describes a lower-exclusive, upper-inclusive interval on each axis.
+The initial cube is (0, 32] on all three axes. Its geometric volume counts
+histogram cells, not pixels. Volume uses eight-corner inclusion-exclusion to
+query any one cumulative array. Bottom and Top split that expression into a
+cut-independent term and a term containing the proposed upper boundary.
+
+Variance is the squared-color sum minus the sum of squared channel totals
+divided by population. It represents total squared error, or variance times
+population. Maximize omits the squared-color term because it is constant across
+a partition, and maximizes the combined mean-color scores of the two halves.
+Candidate cuts with an empty half are skipped. Strict score comparison keeps
+the earliest winning cut; Cut resolves equal axis scores in red, green, blue
+order. These rules can affect reproducibility even when several partitions
+have the same mathematical quality.
+
+SplitColorSpace owns a temporary variance array and writes into the caller's
+cube array. It splits the selected box, updates the two variances and chooses
+the first box with the largest positive variance. A failed cut disables that
+box and retries the unused output slot. Geometric one-cell boxes are not split
+again. Their pixels can still differ within the same five-bit bin, so asking
+for more colors does not guarantee recovery of all distinct 8-bit RGB values.
+The requested color count is a cap, not an exact palette-size promise.
+
+CreateColorLookupTable computes each populated box's channel means using
+integer division. The legacy multiply-by-257 and right-shift-by-eight sequence
+preserves those byte means; it does not introduce fractional rounding. Mark
+fills every cell in the box with the packed representative pixel. Mapping uses
+the partition cell directly rather than choosing the nearest palette color.
+This table is private native Pix32 storage, not a portable serialized palette.
+
+All histogram and palette construction finishes before destination pixels are
+written. Statistics and cubes are freed before MapColors, and the lookup table
+is freed afterward. MapColors saves source alpha before overwriting a pixel,
+which permits exact in-place operation. It relies on the entry point's equal-size
+validation; it is not independently safe for arbitrary destination dimensions
+or partially overlapping storage.
+
+The fixed histogram grid bounds indexing and geometric-volume arithmetic, but
+moment accumulation still requires representable signed 64-bit sums. Floating
+variance and score calculations use double and do not implement exact rational
+comparison or clamp cancellation artifacts. These helpers are private stages,
+not individually validating APIs for external callers.
 
 Maintenance checks
 ------------------

@@ -187,17 +187,6 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
  * not NULL. The result owns its pixels and must be freed with Rbc_FreeColorImage.
  */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height);
-/**
- * @brief Map source RGB into an existing, equal-size destination while preserving alpha.
- *
- * Borrow both images; identical source and destination are supported. Require
- * 1..256 requested colors and matching dimensions, otherwise return TCL_ERROR
- * without a Tcl diagnostic or pixel changes. Empty images return TCL_OK.
- * Temporary histogram, boxes and lookup table are released internally.
- *
- * Mapping uses the same one-based channel bins as histogram construction and
- * lookup-table population. Some split diagnostics use stderr.
- */
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage image, int destWidth, int destHeight,
                                       ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);

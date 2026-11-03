@@ -2,6 +2,7 @@
  * @file rbcImage.c
  * @brief CPU image processing and Tk photo conversion.
  * @defgroup image_resample_internals Image resampling kernels and contributions
+ * @defgroup image_quantize_internals RGB quantization internals
  *
  *      This module implements image processing procedures for the rbc
  *      toolkit.
@@ -33,6 +34,12 @@ enum ColorIndices { RED, GREEN, BLUE };
 #define B0 (cubePtr->b0)
 #define B1 (cubePtr->b1)
 
+/**
+ * @brief Lower-exclusive, upper-inclusive box in the five-bit RGB grid.
+ * @ingroup image_quantize_internals
+ * Bounds lie in 0..32. vol is geometric cell count, not pixel population;
+ * Cut updates it for the two resulting boxes. The owner allocates the array.
+ */
 typedef struct {
     int r0, r1; /* min, max values:
                  * min exclusive max inclusive */
@@ -50,13 +57,21 @@ typedef struct {
  *----------------------------------------------------------------------
  */
 
+/** Signed cumulative count or color sum; arithmetic must remain representable. */
 typedef int64_t Moment;
+/**
+ * @brief Owned raw RGB histograms, transformed in place into cumulative moments.
+ * @ingroup image_quantize_internals
+ * Arrays use bins 1..32 with zero boundary planes. gm2 stores squared-color
+ * sums, not a precomputed variance. Alpha is absent. GetColorImageStatistics
+ * allocates the record; M3d changes its representation; the owner frees it.
+ */
 typedef struct {
     Moment wt[33][33][33];  /* # pixels in voxel */
     Moment mR[33][33][33];  /* Sum over voxel of red pixel values */
     Moment mG[33][33][33];  /* Sum over voxel of green pixel values */
     Moment mB[33][33][33];  /* Sum over voxel of blue pixel values */
-    Moment gm2[33][33][33]; /* Variance */
+    Moment gm2[33][33][33]; /* Sum of squared RGB channel values */
 } ColorImageStatistics;
 
 static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr);
@@ -2092,23 +2107,15 @@ Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
     return dest;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Build an owned five-bit RGB histogram from a borrowed image.
+ * @ingroup image_quantize_internals
  *
- * GetColorImageStatistics --
- *
- *      Build 3-D color histogram of counts, R/G/B, c^2
- *
- * Parameters:
- *      Rbc_ColorImage image
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Allocates zeroed 33-cubed arrays of signed 64-bit moments. For each pixel,
+ * bins each channel as (value >> 3) + 1 and accumulates count, original
+ * eight-bit channel values and their squared sum. Index-zero planes stay
+ * zero for cumulative queries. Alpha does not affect inclusion or weight.
+ * Returns an allocation freed with ckfree; does not modify the source.
  */
 static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
     register int r, g, b;
@@ -2154,27 +2161,15 @@ static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
  *----------------------------------------------------------------------
  */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Convert raw color histograms into three-dimensional prefix sums.
+ * @ingroup image_quantize_internals
  *
- * M3d --
- *
- *      We now convert histogram into moments so that we
- *      can rapidly calculate the sums of the above
- *      quantities over any desired box.
- *
- *      compute cumulative moments
- *
- * Parameters:
- *      ColorImageStatistics *s
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Mutates all five arrays in the borrowed statistics record. Requires the
+ * raw histogram and zero boundary planes produced by GetColorImageStatistics.
+ * Uses stack row/area accumulators, with no new owned allocation. This is
+ * a one-time transformation, not an idempotent query. Subsequent box helpers
+ * require the cumulative representation, not raw bins.
  */
 static void M3d(ColorImageStatistics *s) {
     register unsigned char i, r, g, b, r0;
@@ -2210,24 +2205,14 @@ static void M3d(ColorImageStatistics *s) {
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Query a cumulative statistic over one half-open RGB box.
+ * @ingroup image_quantize_internals
  *
- * Volume --
- *
- *      Compute sum over a box of any given statistic
- *
- * Parameters:
- *      Cube *cubePtr
- *      Moment m[33][33][33]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows the cube and prefix-sum array. Bounds are lower-exclusive and
+ * upper-inclusive, within 0..32. Returns the eight-corner inclusion-exclusion
+ * sum without modifying either argument. Requires valid ordered bounds;
+ * performs no bounds checks or allocation.
  */
 static INLINE Moment Volume(Cube *cubePtr, Moment m[33][33][33]) {
     return (m[R1][G1][B1] - m[R1][G1][B0] - m[R1][G0][B1] + m[R1][G0][B0] - m[R0][G1][B1] + m[R0][G1][B0] +
@@ -2246,26 +2231,14 @@ static INLINE Moment Volume(Cube *cubePtr, Moment m[33][33][33]) {
  *----------------------------------------------------------------------
  */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute the cut-independent part of a lower subbox sum.
+ * @ingroup image_quantize_internals
  *
- * Bottom --
- *
- *      Compute part of Volume(cubePtr, mmt) that doesn't
- *      depend on r1, g1, or b1 (depending on dir)
- *
- * Parameters:
- *      Cube *cubePtr
- *      unsigned char dir
- *      Moment m[33][33][33] - Moment
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows the cube and cumulative array. RED, GREEN or BLUE selects the
+ * coordinate whose upper bound will be replaced. Add Top at a candidate
+ * position to obtain the lower subbox volume. Unknown directions return
+ * zero; callers must still supply valid bounds and a supported direction.
  */
 static Moment Bottom(Cube *cubePtr, unsigned char dir, Moment m[33][33][33]) {
     switch (dir) {
@@ -2279,27 +2252,14 @@ static Moment Bottom(Cube *cubePtr, unsigned char dir, Moment m[33][33][33]) {
     return 0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute the cut-dependent part of a lower subbox sum.
+ * @ingroup image_quantize_internals
  *
- * Top --
- *
- *      Compute remainder of Volume(cubePtr, mmt),
- *      substituting pos for r1, g1, or b1 (depending on dir)
- *
- * Parameters:
- *      Cube *cubePtr
- *      unsigned char dir
- *      int pos
- *      Moment m[33][33][33] - Moment
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows the cube and cumulative array. Replaces the selected upper bound
+ * with pos; Bottom plus this result is the proposed lower subbox volume.
+ * Requires pos in the valid grid range and a RED, GREEN or BLUE direction.
+ * Unknown directions return zero; no bounds checking or mutation occurs.
  */
 static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33]) {
     switch (dir) {
@@ -2313,25 +2273,15 @@ static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33
     return 0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return the population-weighted squared RGB error of a box.
+ * @ingroup image_quantize_internals
  *
- * Variance --
- *
- *      Compute the weighted variance of a box NB: as with
- *      the raw statistics, this is really the (variance * size)
- *
- * Parameters:
- *      Cube *cubePtr
- *      ColorImageStatistics *s
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses cumulative sums from a borrowed statistics record and cube. Returns
+ * zero for nonpositive population, otherwise the squared-color sum minus
+ * the sum of squared channel totals divided by population. Converts totals
+ * to double before squaring. This is variance times population, not mean
+ * variance; floating-point cancellation is not explicitly clamped.
  */
 static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
     Moment weight;
@@ -2350,38 +2300,16 @@ static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
     return xx - ((dR * dR) + (dG * dG) + (dB * dB)) / (double)weight;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Choose a nonempty split maximizing the two mean-color scores.
+ * @ingroup image_quantize_internals
  *
- * Maximize --
- *
- *      We want to minimize the sum of the variances of two
- *      subboxes. The sum(c^2) terms can be ignored since
- *      their sum over both subboxes is the same (the sum
- *      for the whole box) no matter where we split.  The
- *      remaining terms have a minus sign in the variance
- *      formula, so we drop the minus sign and MAXIMIZE the
- *      sum of the two terms.
- *
- * Parameters:
- *      Cube *cubePtr
- *      unsigned char dir
- *      int first
- *      int last
- *      int *cut
- *      Moment rWhole
- *      Moment gWhole
- *      Moment bWhole
- *      Moment wWhole
- *      ColorImageStatistics *s
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows the cube, cumulative statistics and whole-box channel/count sums.
+ * Examines candidate cuts in [first, last) along dir, skipping a cut when
+ * either population is zero. Writes -1 initially to cut, replacing it only
+ * on a strictly greater score; ties retain the earliest winning position.
+ * Returns the best score, or zero if none exceeds zero. Does not mutate
+ * boxes or statistics. Inputs must describe the same valid whole box.
  */
 static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole, Moment gWhole,
                        Moment bWhole, Moment wWhole, ColorImageStatistics *s) {
@@ -2428,25 +2356,16 @@ static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, in
     return max;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Split one populated color box along the best RGB direction.
+ * @ingroup image_quantize_internals
  *
- * Cut --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Cube *set1
- *      Cube *set2
- *      ColorImageStatistics *s
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows cumulative statistics; set1 and set2 must be distinct writable
+ * cube records. Evaluates candidate cuts on all axes. Ties favor red, then
+ * green, then blue. Returns zero without modifying cubes when no red cut
+ * is available in the winning red case. On success, narrows set1 to the
+ * lower box, writes set2 as the upper box, recomputes geometric volumes
+ * and returns one. Does not allocate or update the statistical arrays.
  */
 static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s) {
     unsigned char dir;
@@ -2494,25 +2413,17 @@ static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s) {
     return 1;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Greedily partition RGB space into at most nColors boxes.
+ * @ingroup image_quantize_internals
  *
- * SplitColorSpace --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ColorImageStatistics *s
- *      Cube *cubes
- *      int nColors
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires nColors at least one and a writable cube array with that capacity;
+ * statistics must already contain prefix sums. Starts with the full 0..32
+ * box, repeatedly splits the selected box and selects the largest remaining
+ * positive variance. Failed cuts disable that box and retry the slot.
+ * One-cell boxes are assigned zero variance; selection ties favor the first
+ * box. Returns the number of initialized boxes, possibly below nColors.
+ * Owns and frees a temporary variance array. Emits no early-stop message.
  */
 static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
     double *vv, temp;
@@ -2556,25 +2467,14 @@ static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
     return i;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Fill the lookup-table cells covered by one color box.
+ * @ingroup image_quantize_internals
  *
- * Mark --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Cube *cubePtr
- *      int label
- *      unsigned int tag[33][33][33]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows a valid cube and writable 33-cubed tag table. Writes label to
+ * lower-exclusive, upper-inclusive cells on each axis; boundary index zero
+ * is untouched for ordinary boxes. Does not allocate or inspect image data.
+ * The integer label carries a packed pixel value supplied by the caller.
  */
 static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]) {
     int r, g, b;
@@ -2588,25 +2488,16 @@ static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]) {
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Allocate packed representative RGB values for the partition boxes.
+ * @ingroup image_quantize_internals
  *
- * CreateColorLookupTable --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ColorImageStatistics *s
- *      Cube *cubes
- *      int nColors
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows cumulative statistics and nColors initialized cubes. Returns an
+ * owned zeroed 33-cubed unsigned-int table, freed with ckfree. Computes
+ * integer channel means, scales by 257 then shifts by eight, and marks each
+ * cube with an opaque Pix32 value. Empty boxes print a stderr diagnostic
+ * and use black; ordinary nonempty splits avoid that path. The mapping
+ * pass restores source alpha separately. Does not change source statistics.
  */
 static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes, int nColors) {
     unsigned int *lut;
@@ -2636,25 +2527,15 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
     return lut;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Replace RGB using one-based histogram bins while retaining source alpha.
+ * @ingroup image_quantize_internals
  *
- * MapColors --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      Rbc_ColorImage dest
- *      unsigned int lut[33][33][33]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows a source image, matching destination storage and packed lookup
+ * table. Visits the source pixel count without checking destination shape.
+ * Saves each alpha byte before writing, so exact source/destination aliasing
+ * is supported. Uses (channel >> 3) + 1 for every table coordinate. Does
+ * not allocate, dither or search for the nearest representative color.
  */
 static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[33][33][33]) {
     /* Apply the color lookup table against the original image */
@@ -2700,18 +2581,18 @@ static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[
  *
  *      Free to distribute, comments and suggestions are appreciated.
  *
- * Parameters:
- *      Rbc_ColorImage src - Source image.
- *      Rbc_ColorImage dest - Destination image.
- *      int reduceColors - Reduced number of colors.
+ */
+
+/**
+ * @brief Map source RGB into an existing, equal-size destination while preserving alpha.
  *
- * Results:
- *      TODO: Results
+ * Borrow both images; identical source and destination are supported. Require
+ * 1..256 requested colors and matching dimensions, otherwise return TCL_ERROR
+ * without a Tcl diagnostic or pixel changes. Empty images return TCL_OK.
+ * Temporary histogram, boxes and lookup table are released internally.
  *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Mapping uses the same one-based channel bins as histogram construction and
+ * lookup-table population. Some split diagnostics use stderr.
  */
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceColors) {
     Cube *cubes;
