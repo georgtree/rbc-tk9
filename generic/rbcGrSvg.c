@@ -1,4 +1,8 @@
-/* SVG command and document lifecycle. See license.terms for details. */
+/**
+ * @file rbcGrSvg.c
+ * @brief SVG graph command policy and document framing.
+ * See license.terms for details.
+ */
 #include "rbcRender.h"
 
 /* SVG options intentionally exclude printer/page-specific PostScript settings. */
@@ -11,8 +15,18 @@ static const Tk_OptionSpec svgOptionSpecs[] = {
      0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-/* Build only the format-specific document; the shared command owns layout,
- * delivery and cleanup, including failures caused by user callbacks. */
+/**
+ * @brief Frame SVG, traverse components and finalize font definitions.
+ * @ingroup graph_export_commands
+ *
+ * Requires mapped export geometry and an initialized SVG token. Borrows graph
+ * and token; documentPtr is written only on TCL_OK with a new string object
+ * at reference count zero. Emits pixel dimensions and matching viewBox.
+ * Finalizes fonts only after successful traversal; appends the closing tag
+ * even on failure, but publishes no partial document. Reports font errors
+ * through the token interpreter. The shared caller owns geometry restoration,
+ * document reference management and context cleanup.
+ */
 static int SvgDocument(Graph *graphPtr, Rbc_ExportContext *token, Tcl_Obj **documentPtr) {
     int result;
 
@@ -38,10 +52,28 @@ static const Rbc_GraphExportFormat svgFormat = {
     offsetof(Graph, svgEmbedFonts), "utf-8", "lf", SvgDocument, NULL
 };
 
+/**
+ * @brief Initialize the graph's named SVG option component.
+ * @ingroup graph_export_commands
+ *
+ * Borrows the graph and delegates to Rbc_InitGraphExportOptions using the
+ * static format policy. Returns TCL_OK or TCL_ERROR. Intended for graph
+ * initialization; failure is not a rollback transaction on an existing
+ * configuration. No Tk option-table resources remain retained afterward.
+ */
 int Rbc_InitSvgOptions(Graph *graphPtr) {
     return Rbc_InitGraphExportOptions(graphPtr, &svgFormat);
 }
 
+/**
+ * @brief Dispatch the graph svg command through shared export services.
+ * @ingroup graph_export_commands
+ *
+ * Requires objv[2] to name the operation and a live graph protected by the
+ * enclosing widget command. Borrows all arguments and delegates cget,
+ * configure and output to Rbc_GraphExportOp. Returns its Tcl status and
+ * result; this adapter neither retains the graph nor owns backend cleanup.
+ */
 int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_GraphExportOp(graphPtr, interp, objc, objv, &svgFormat);
 }

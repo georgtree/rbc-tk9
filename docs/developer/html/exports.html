@@ -125,6 +125,74 @@ backend is initialized. SVG finishes embedded font definitions before creating
 its string object. PDF initializes its resource writer, traverses the graph,
 then serializes the complete PDF object. Neither exporter requires Cairo.</p>
 </section>
+<section id="format-policies-and-extension-constraints">
+<h2>Format policies and extension constraints<a class="headerlink" href="#format-policies-and-extension-constraints" title="Link to this heading">¶</a></h2>
+<p>The built-in policies deliberately share a small configuration model:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Property</p></th>
+<th class="head"><p>SVG</p></th>
+<th class="head"><p>PDF</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Resource name/class</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">svg</span></code> / <code class="docutils literal notranslate"><span class="pre">Svg</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pdf</span></code> / <code class="docutils literal notranslate"><span class="pre">Pdf</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Width and height defaults</p></td>
+<td><p>Zero: use current graph dimensions</p></td>
+<td><p>Zero: use current graph dimensions</p></td>
+</tr>
+<tr class="row-even"><td><p>Decorations default</p></td>
+<td><p>Enabled</p></td>
+<td><p>Enabled</p></td>
+</tr>
+<tr class="row-odd"><td><p>Font embedding default</p></td>
+<td><p>Disabled</p></td>
+<td><p>Enabled</p></td>
+</tr>
+<tr class="row-even"><td><p>Document object</p></td>
+<td><p>Tcl string containing UTF-8-declared XML</p></td>
+<td><p>Tcl byte array containing serialized PDF</p></td>
+</tr>
+<tr class="row-odd"><td><p>File channel policy</p></td>
+<td><p>UTF-8 encoding, LF translation</p></td>
+<td><p>ISO-8859-1 encoding, binary translation</p></td>
+</tr>
+<tr class="row-even"><td><p>Backend cleanup callback</p></td>
+<td><p>None; shared font/storage cleanup suffices</p></td>
+<td><p>Rbc_PdfFree before shared cleanup</p></td>
+</tr>
+</tbody>
+</table>
+<p>The policy’s field offsets address native <code class="docutils literal notranslate"><span class="pre">int</span></code> members in Graph. They are
+trusted private metadata, not checked offsets supplied by a script. The shared
+parser supports concrete pixel and boolean specifications only; adding a
+string, synonym or resource-owning option requires extending that parser and
+its ownership model. An unsupported specification type reaches Tcl_Panic.
+Integer query objects report normalized values rather than the original input
+spelling. Initialization may write fields before failing; it belongs to graph
+construction, unlike the rollback guarantee of runtime configuration.</p>
+<p>SvgDocument frames an XML document with pixel dimensions and an equal viewBox.
+After shared traversal succeeds, it finalizes font definitions, closes the SVG
+and copies the buffer into a new Tcl string. The closing tag is appended even
+on failure, but no partial document is returned. PdfDocument initializes the
+PDF builder using horizontal screen pixels/millimeters to obtain points per
+pixel, traverses the graph and invokes the binary serializer only on success.
+Neither adapter opens files or restores screen geometry.</p>
+<p>OutputGraphExport acquires a reference to a document returned by the callback
+and releases it after delivery or failure. A callback must return a non-NULL
+new object on success; cleanup accepts NULL on failure. Backend cleanup still
+runs when initial layout fails before the document callback is entered. A new
+format must therefore separate backend teardown from shared font and buffer
+cleanup, and must tolerate that partially initialized state.</p>
+</section>
 <section id="graph-traversal-and-geometry">
 <h2>Graph traversal and geometry<a class="headerlink" href="#graph-traversal-and-geometry" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportGraph</span></code> assumes export geometry is already mapped. It opens the
@@ -185,6 +253,7 @@ resource ownership and serialization, and <a class="reference internal" href="te
 <li><a class="reference internal" href="#">Export orchestration and document ownership</a><ul>
 <li><a class="reference internal" href="#document-state">Document state</a></li>
 <li><a class="reference internal" href="#svg-pdf-command-transaction">SVG/PDF command transaction</a></li>
+<li><a class="reference internal" href="#format-policies-and-extension-constraints">Format policies and extension constraints</a></li>
 <li><a class="reference internal" href="#graph-traversal-and-geometry">Graph traversal and geometry</a></li>
 <li><a class="reference internal" href="#postscript-policy-and-delivery">PostScript policy and delivery</a></li>
 </ul>

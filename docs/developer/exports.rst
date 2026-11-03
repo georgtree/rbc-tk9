@@ -79,6 +79,64 @@ backend is initialized. SVG finishes embedded font definitions before creating
 its string object. PDF initializes its resource writer, traverses the graph,
 then serializes the complete PDF object. Neither exporter requires Cairo.
 
+Format policies and extension constraints
+-----------------------------------------
+
+The built-in policies deliberately share a small configuration model:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - Property
+     - SVG
+     - PDF
+   * - Resource name/class
+     - ``svg`` / ``Svg``
+     - ``pdf`` / ``Pdf``
+   * - Width and height defaults
+     - Zero: use current graph dimensions
+     - Zero: use current graph dimensions
+   * - Decorations default
+     - Enabled
+     - Enabled
+   * - Font embedding default
+     - Disabled
+     - Enabled
+   * - Document object
+     - Tcl string containing UTF-8-declared XML
+     - Tcl byte array containing serialized PDF
+   * - File channel policy
+     - UTF-8 encoding, LF translation
+     - ISO-8859-1 encoding, binary translation
+   * - Backend cleanup callback
+     - None; shared font/storage cleanup suffices
+     - Rbc_PdfFree before shared cleanup
+
+The policy's field offsets address native ``int`` members in Graph. They are
+trusted private metadata, not checked offsets supplied by a script. The shared
+parser supports concrete pixel and boolean specifications only; adding a
+string, synonym or resource-owning option requires extending that parser and
+its ownership model. An unsupported specification type reaches Tcl_Panic.
+Integer query objects report normalized values rather than the original input
+spelling. Initialization may write fields before failing; it belongs to graph
+construction, unlike the rollback guarantee of runtime configuration.
+
+SvgDocument frames an XML document with pixel dimensions and an equal viewBox.
+After shared traversal succeeds, it finalizes font definitions, closes the SVG
+and copies the buffer into a new Tcl string. The closing tag is appended even
+on failure, but no partial document is returned. PdfDocument initializes the
+PDF builder using horizontal screen pixels/millimeters to obtain points per
+pixel, traverses the graph and invokes the binary serializer only on success.
+Neither adapter opens files or restores screen geometry.
+
+OutputGraphExport acquires a reference to a document returned by the callback
+and releases it after delivery or failure. A callback must return a non-NULL
+new object on success; cleanup accepts NULL on failure. Backend cleanup still
+runs when initial layout fails before the document callback is entered. A new
+format must therefore separate backend teardown from shared font and buffer
+cleanup, and must tolerate that partially initialized state.
+
 Graph traversal and geometry
 ----------------------------
 

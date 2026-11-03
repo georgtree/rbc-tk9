@@ -145,6 +145,122 @@ and the distinction between ending export mode and restoring screen layout.</p>
 </dd></dl>
 
 </section>
+<section id="svg-and-pdf-command-helpers-and-format-adapters">
+<h2>SVG and PDF command helpers and format adapters<a class="headerlink" href="#svg-and-pdf-command-helpers-and-format-adapters" title="Link to this heading">¶</a></h2>
+<p>The policy record and internal helpers below implement the transaction described
+in <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>. The concrete adapters own document framing, while shared
+services own configuration, geometry restoration and delivery.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__graph__export__commands"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">SVG/PDF</span> <span class="pre">graph</span> <span class="pre">command</span> <span class="pre">internals</span></span></dt>
+<dd><p>Shared export commands, document context and graph traversal. </p>
+<p>See license.terms for details. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.ExportOptionField">
+<span class="target" id="group__graph__export__commands_1gaef006a5b3b1dd95506ef615081ad839e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ExportOptionField</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.ExportOptionField" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Address one native integer option field within a borrowed graph. </p>
+<p>Requires an offset for a correctly aligned int member of Graph. Returns a borrowed pointer valid only while the graph is alive. Does not validate the offset or allocate storage; format policies are trusted private data. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.ExportOptionValue">
+<span class="target" id="group__graph__export__commands_1ga94ce14799f69f37e2c356bf7f2e5c811"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ExportOptionValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">spec</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.ExportOptionValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy an integer-backed export option into a new Tcl object. </p>
+<p>Borrows the graph and concrete option specification. Returns a new object at reference count zero, using internalOffset to locate the int field. Boolean options are reported as integer zero or one, not original spelling. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.ExportOptionInfo">
+<span class="target" id="group__graph__export__commands_1ga075f173f4a650a3d128c9c1806025145"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ExportOptionInfo</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">spec</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.ExportOptionInfo" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build the standard option-description list for one export field. </p>
+<p>Borrows graph and spec, reads the current integer value, and passes its new object to Rbc_GetComponentOptionInfo. Returns a new, unreferenced description object. Does not retain the graph, specification or Tk table. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.SetExportOptions">
+<span class="target" id="group__graph__export__commands_1ga08f8762fe591320381bb86991208a30e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetExportOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_GraphExportFormat" title="Rbc_GraphExportFormat"><span class="n"><span class="pre">Rbc_GraphExportFormat</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.SetExportOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage all SVG/PDF option values before committing the configuration. </p>
+<p>Requires concrete pixel/boolean options backed by native Graph ints. Allocates and frees a temporary settings array; arguments and format are borrowed. Rejects odd argument counts, unknown or ambiguous options, invalid values and negative dimensions with TCL_ERROR. No field changes before all conversions succeed. Repeated valid options use the last value, but an invalid earlier occurrence still fails. Unsupported specification types are programming errors and panic. Returns TCL_OK after committing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.WriteExportDocument">
+<span class="target" id="group__graph__export__commands_1ga26028488d83d011d230c01169cf3fb5e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WriteExportDocument</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_GraphExportFormat" title="Rbc_GraphExportFormat"><span class="n"><span class="pre">Rbc_GraphExportFormat</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">document</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.WriteExportDocument" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write an already-built document through the Tcl filesystem API. </p>
+<p>Borrows the format, filename and document objects. Opens with mode w, applies the format encoding and translation, then writes the object. Owns and closes the channel on every path after open. Preserves an earlier channel/write error across cleanup; otherwise propagates close failure. TCL_OK clears the interpreter result. This is not atomic replacement: an open or delivery failure may leave an empty or partial destination. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.OutputGraphExport">
+<span class="target" id="group__graph__export__commands_1ga3c91ec70eee3dbea148cc1e3c54c4078"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OutputGraphExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_GraphExportFormat" title="Rbc_GraphExportFormat"><span class="n"><span class="pre">Rbc_GraphExportFormat</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.OutputGraphExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build SVG/PDF, restore screen layout and deliver only on success. </p>
+<p>Borrows the graph and format; NULL fileName requests a Tcl result. Owns a stack export context and takes a reference to any document returned by documentProc. Saves screen dimensions, applies positive configured sizes and invokes the builder only after successful layout. Ends export mode, restores saved dimensions and remaps if the window and formatting state permit. Preserves an earlier error across restoration; a restoration error replaces success. Releases the document, backend state and shared storage on every path. freeProc must accept an uninitialized backend. The enclosing widget command protects graph lifetime across callbacks. Returns TCL_OK or TCL_ERROR; persistent export options are not restored. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.MarginsExport">
+<span class="target" id="group__graph__export__commands_1gaa66bdceb43bb6d77d276222ca15600d7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MarginsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.MarginsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Emit graph margins, optional border, margin legend, title and axes. </p>
+<p>Borrows a graph with mapped export geometry and an initialized context. Creates and ends a temporary renderer context. Decorations control margin background and plot border, not legend/title/axis inclusion. Components supply their own visibility rules. Does not return status; the enclosing traversal inspects the accumulated export error after rendering. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.SvgDocument">
+<span class="target" id="group__graph__export__commands_1gad8a80fddcaf3afb160d98748dcf0b7d6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SvgDocument</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">documentPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.SvgDocument" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Frame SVG, traverse components and finalize font definitions. </p>
+<p>Requires mapped export geometry and an initialized SVG token. Borrows graph and token; documentPtr is written only on TCL_OK with a new string object at reference count zero. Emits pixel dimensions and matching viewBox. Finalizes fonts only after successful traversal; appends the closing tag even on failure, but publishes no partial document. Reports font errors through the token interpreter. The shared caller owns geometry restoration, document reference management and context cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.Rbc_InitSvgOptions">
+<span class="target" id="group__graph__export__commands_1ga823b840a65e053e381242b136ffca098"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitSvgOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.Rbc_InitSvgOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize the graph’s named SVG option component. </p>
+<p>Borrows the graph and delegates to Rbc_InitGraphExportOptions using the static format policy. Returns TCL_OK or TCL_ERROR. Intended for graph initialization; failure is not a rollback transaction on an existing configuration. No Tk option-table resources remain retained afterward. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.Rbc_SvgOp">
+<span class="target" id="group__graph__export__commands_1gacf117f34185be7efeda7da9a51487015"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SvgOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.Rbc_SvgOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch the graph svg command through shared export services. </p>
+<p>Requires objv[2] to name the operation and a live graph protected by the enclosing widget command. Borrows all arguments and delegates cget, configure and output to Rbc_GraphExportOp. Returns its Tcl status and result; this adapter neither retains the graph nor owns backend cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.PdfDocument">
+<span class="target" id="group__graph__export__commands_1ga3a29405c8da045adaf86e0266ca147d6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfDocument</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">documentPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.PdfDocument" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize the PDF builder, traverse components and serialize bytes. </p>
+<p>Requires mapped export geometry and an initialized PDF token. Computes points per pixel from horizontal screen pixel/mm dimensions, and supplies the graph height to the builder. Borrows graph and token; on TCL_OK stores a new byte-array object at reference count zero in documentPtr. Traversal failure skips serialization; serializer failure stores NULL and reports the recorded token error. The shared caller releases backend resources even after failure, restores geometry and owns result delivery. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.Rbc_InitPdfOptions">
+<span class="target" id="group__graph__export__commands_1ga76a9881d3cd671bfaff195cc1db2a148"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitPdfOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.Rbc_InitPdfOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize the graph’s named PDF option component. </p>
+<p>Borrows the graph and delegates to Rbc_InitGraphExportOptions using the static format policy. Returns TCL_OK or TCL_ERROR. Intended for graph initialization; failure is not a rollback transaction on an existing configuration. No Tk option-table resources remain retained afterward. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.Rbc_PdfOp">
+<span class="target" id="group__graph__export__commands_1ga4f1f41e58fcbfb488b357391b3b10289"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphExportCommands.Rbc_PdfOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch the graph pdf command through shared export services. </p>
+<p>Requires objv[2] to name the operation and a live graph protected by the enclosing widget command. Borrows all arguments and delegates cget, configure and output to Rbc_GraphExportOp. Returns its Tcl status and result; this adapter neither retains the graph nor owns backend cleanup. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGraphExportCommands.Rbc_GraphExportFormat">
+<span class="target" id="struct_rbc___graph_export_format"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphExportFormat</span></span></span><a class="headerlink" href="#c.rbcGraphExportCommands.Rbc_GraphExportFormat" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcGraph.h&gt;</em></div>
+<p>Static private policy for a named SVG/PDF graph export component. </p>
+<p>Strings and option specifications are borrowed for the command lifetime. All option entries must be concrete TK_OPTION_PIXELS or TK_OPTION_BOOLEAN values stored as native Graph ints; offsets are trusted, not range checked. documentProc returns a new object at reference count zero on success and leaves delivery, geometry restoration and context cleanup to the caller. freeProc releases backend-owned state only, may be NULL, and must accept a context with no backend allocation. Shared cleanup releases fonts/storage. Encoding and translation select Tcl channel policy for file delivery. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -172,6 +288,23 @@ and the distinction between ending export mode and restoring screen layout.</p>
 <li><a class="reference internal" href="#c.Rbc_ExportBeginGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ExportEndGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ExportGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportGraph()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svg-and-pdf-command-helpers-and-format-adapters">SVG and PDF command helpers and format adapters</a><ul>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.ExportOptionField"><code class="docutils literal notranslate"><span class="pre">ExportOptionField()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.ExportOptionValue"><code class="docutils literal notranslate"><span class="pre">ExportOptionValue()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.ExportOptionInfo"><code class="docutils literal notranslate"><span class="pre">ExportOptionInfo()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.SetExportOptions"><code class="docutils literal notranslate"><span class="pre">SetExportOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.WriteExportDocument"><code class="docutils literal notranslate"><span class="pre">WriteExportDocument()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.OutputGraphExport"><code class="docutils literal notranslate"><span class="pre">OutputGraphExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.MarginsExport"><code class="docutils literal notranslate"><span class="pre">MarginsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.SvgDocument"><code class="docutils literal notranslate"><span class="pre">SvgDocument()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_InitSvgOptions"><code class="docutils literal notranslate"><span class="pre">Rbc_InitSvgOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_SvgOp"><code class="docutils literal notranslate"><span class="pre">Rbc_SvgOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.PdfDocument"><code class="docutils literal notranslate"><span class="pre">PdfDocument()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_InitPdfOptions"><code class="docutils literal notranslate"><span class="pre">Rbc_InitPdfOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_PdfOp"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphExportCommands.Rbc_GraphExportFormat"><code class="docutils literal notranslate"><span class="pre">Rbc_GraphExportFormat</span></code></a></li>
 </ul>
 </li>
 </ul>

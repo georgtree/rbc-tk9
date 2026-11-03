@@ -29,3 +29,17 @@ Graph command and traversal
 .. doxygenfunction:: Rbc_ExportEndGraph
 
 .. doxygenfunction:: Rbc_ExportGraph
+
+SVG and PDF command helpers and format adapters
+-----------------------------------------------
+
+The policy record and internal helpers below implement the transaction described
+in :doc:`exports`. The concrete adapters own document framing, while shared
+services own configuration, geometry restoration and delivery.
+
+.. c:namespace:: rbcGraphExportCommands
+
+.. doxygengroup:: graph_export_commands
+   :members:
+
+.. c:namespace-pop::

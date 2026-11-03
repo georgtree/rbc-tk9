@@ -994,10 +994,19 @@ int Rbc_InitPdfOptions(Graph *graphPtr);
 int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
-/* Private SVG/PDF command policy. Option specifications contain concrete
- * TK_OPTION_PIXELS or TK_OPTION_BOOLEAN values stored as native Graph integers.
- * documentProc returns an unreferenced object on success; freeProc releases only
- * backend-owned state and must accept a context with no backend allocation. */
+/**
+ * @brief Static private policy for a named SVG/PDF graph export component.
+ * @ingroup graph_export_commands
+ *
+ * Strings and option specifications are borrowed for the command lifetime.
+ * All option entries must be concrete TK_OPTION_PIXELS or TK_OPTION_BOOLEAN
+ * values stored as native Graph ints; offsets are trusted, not range checked.
+ * documentProc returns a new object at reference count zero on success and
+ * leaves delivery, geometry restoration and context cleanup to the caller.
+ * freeProc releases backend-owned state only, may be NULL, and must accept a
+ * context with no backend allocation. Shared cleanup releases fonts/storage.
+ * Encoding and translation select Tcl channel policy for file delivery.
+ */
 typedef struct {
     const char *name, *className, *label, *optionLabel, *operationLabel;
     const Tk_OptionSpec *options;
@@ -1008,50 +1017,12 @@ typedef struct {
     void (*freeProc)(Rbc_ExportContext *);
 } Rbc_GraphExportFormat;
 
-/**
- * @brief Initialize the named SVG/PDF option-database component.
- * Borrow the graph and format policy. Specifications must store concrete pixel
- * or boolean values in native Graph integer fields, without retained Tk
- * resources. The temporary option table is freed on success and failure.
- * @return TCL_OK, or TCL_ERROR for invalid options or negative dimensions.
- * Failure is graph-initialization failure, not a rollback transaction.
- */
 int Rbc_InitGraphExportOptions(Graph *graphPtr, const Rbc_GraphExportFormat *format);
-/**
- * @brief Dispatch SVG/PDF cget, configure and output operations.
- * The enclosing widget command must preserve graph lifetime across callbacks.
- * Requires objv[2] to exist and contain the operation. Option parsing stages
- * all values before committing; successful output options stay configured even
- * if rendering or file delivery later fails. Output remaps at export size,
- * restores screen layout when callback state permits, and then delivers the
- * complete document. Backend and shared context cleanup run on every path.
- * @return TCL_OK or TCL_ERROR with an interpreter diagnostic.
- */
 int Rbc_GraphExportOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
                       const Rbc_GraphExportFormat *format);
 
-/**
- * @brief Mark a graph as exporting, using requested size for unset dimensions.
- * Requires a live Tk window. Does not perform layout or preserve old dimensions.
- * Pair with Rbc_ExportEndGraph on all paths; this flag is not a nesting counter.
- */
 void Rbc_ExportBeginGraph(Graph *graphPtr);
-/**
- * @brief Clear export mode and schedule screen remapping if the window survives.
- * With a live window, replace graph dimensions by actual Tk dimensions, replace
- * flags with MAP_WORLD and schedule redraw. Does not remap immediately or
- * restore a saved flag set. With a destroyed window, only clear GRAPH_EXPORT.
- */
 void Rbc_ExportEndGraph(Graph *graphPtr);
-/**
- * @brief Traverse mapped graph components into an initialized document context.
- * Borrow both arguments; the caller owns layout, GRAPH_EXPORT state, graph
- * lifetime, document framing and final delivery. Each temporary renderer
- * context is ended here. Track components retain their own scope and clipping.
- * Crosshairs are not exported. No screen geometry restoration is performed.
- * @return TCL_OK, or TCL_ERROR on invalid callback state or a recorded export
- * error. Successful traversal does not imply successful format finalization.
- */
 int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 /**
  * @brief Export eligible markers from one layer in display-list order.
