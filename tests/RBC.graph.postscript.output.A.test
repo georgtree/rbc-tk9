@@ -463,5 +463,23 @@ namespace eval graph.postscript {
         destroy .graph1
     } -result {{} c5d0d3c6 1 1 1 1 1 1}
 
+    test RBC.graph.postscript.output.A.15.1 {unsupported TIFF output preserves destination and options} -setup {
+        graph .graph1
+        set FileName [makeFile sentinel unsupported-preview.eps]
+        set before [.graph1 postscript configure]
+    } -body {
+        set code [catch {.graph1 postscript output $FileName -preview yes -previewformat tiff} message]
+        set channel [open $FileName r]
+        set contents [string trimright [read $channel] "\n"]
+        close $channel
+        list $code [string match {bad preview format *} $message] \
+                [expr {[.graph1 postscript configure] eq $before}] $contents
+    } -cleanup {
+        catch {close $channel}
+        removeFile $FileName
+        destroy .graph1
+        unset -nocomplain FileName before code message channel contents
+    } -result {1 1 1 sentinel}
+
 	cleanupTests
 }

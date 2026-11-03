@@ -324,6 +324,77 @@ positive rotations use the same anchor position. BeginText still receives the
 original angle and the style is unchanged. Callers must keep input angles and
 rounded dimensions within the conversion helpers' ranges.
 
+Graph options and export lifetime
+---------------------------------
+
+``rbcGrPs.c`` owns the graph-facing ``postscript`` component, whose option
+resource name is ``postscript`` and class is ``Postscript``. Creation uses the
+shared option proxy, validates derived values and destroys the partial record
+on failure. Destruction detaches the record first, releases Tk options and
+the option table, then frees the allocation. It must run while the graph's
+Tk configuration context is still usable.
+
+Configuration has two layers: Tk option objects and derived numeric fields.
+Dimensions, padding, color mode and preview format are converted into locals
+before committing any derived field. If conversion fails after Tk_SetOptions,
+SetPostScriptOptions restores the saved options and error state. Successful
+callers release the saved options. Queries use Tk_GetOptionValue and
+Tk_GetOptionInfo without rendering.
+
+Options supplied to ``postscript output`` are persistent settings. They remain
+installed even if a later prolog, rendering or file operation fails. This is
+separate from restoration of screen geometry. GraphToPostScript pairs
+Rbc_ExportBeginGraph with Rbc_ExportEndGraph on both success and failure. For a
+surviving window, EndGraph resets dimensions to the live window, marks mapping
+work and schedules redraw. It does not immediately restore all mapped arrays
+or revert requested PostScript dimensions. The enclosing widget command owns
+callback lifetime protection; these helpers do not acquire it independently.
+
+Page layout and preview paths
+-----------------------------
+
+ComputeBoundingBox applies positive requested plot dimensions, exchanges the
+oriented extents for landscape, and computes a common scale from the available
+paper area after padding. Maxpect permits enlargement as well as reduction.
+Centered placement replaces the padding origin when the page is larger than
+the scaled plot. Wide arithmetic and positive-int clamping precede storage of
+the inclusive bounds. Layout failure propagates before document traversal.
+
+PostScriptPreamble converts pixels to points using screen pixel and millimeter
+dimensions, emits escaped metadata and optional preview, loads ``rbcGraph.pro``,
+and emits footer and coordinate transforms. Metadata includes the current time;
+byte-for-byte output comparisons must account for that field. Reading
+``rbc_version`` can execute variable traces. Font/color mapping during traversal
+can also execute traces; the graph must remain protected throughout export.
+
+EPSI uses a native graph snapshot, converts it to grayscale, rotates it for
+landscape and encodes eight-bit preview rows. Resizing to a thumbnail is enabled
+only by THUMBNAIL_PREVIEW; the ordinary path uses the current export layout
+size. Failure to capture an image omits the preview without a separate error.
+Drawing invalidation is checked before capture and again by the preamble.
+This snapshot path is distinct from the vector document traversal.
+
+The preview parser accepts nonempty prefixes, with EPSI on all platforms and
+WMF on Windows. TIFF and its prefixes are rejected on every build, including
+those defining HAVE_TIFF_H, because no TIFF preview encoder exists. Windows
+binary packaging is selected explicitly for WMF. String output returns the
+PostScript payload without that binary wrapper.
+
+Delivery and ownership
+----------------------
+
+OutputOp owns the PostScript token and staging DString, while the token borrows
+the component's font/color mapping names. Rendering and any binary preview
+assembly finish before opening the destination through Tcl's filesystem API.
+Binary channel translation preserves document bytes. Short writes and close
+failures propagate, and cleanup preserves an earlier error instead of replacing
+it with a close diagnostic. Successful file output has an empty Tcl result.
+
+This ordering avoids truncating a destination on a rendering failure, but is
+not an atomic replacement protocol: an open, write or close failure can leave
+an empty or partial destination. The temporary token and DString are released
+on every OutputOp exit after their creation. Component options outlive them.
+
 Maintenance checks
 ------------------
 

@@ -56,3 +56,16 @@ Windows goes directly to the final fallback when family recognition fails.
    :members:
 
 .. c:namespace-pop::
+
+Graph options and document assembly
+-----------------------------------
+
+These contracts describe the shared graph-facing command layer in
+``rbcGrPs.c``. Windows binary preview packaging is separate from this group.
+
+.. c:namespace:: rbcGraphPostscript
+
+.. doxygengroup:: graph_postscript
+   :members:
+
+.. c:namespace-pop::

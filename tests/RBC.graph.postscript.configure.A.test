@@ -1571,5 +1571,26 @@ namespace eval graph.postscript {
         unset -nocomplain before code message options result
     } -result {1 1 {TK VALUE PIXELS} 1 0}
 
+
+    test RBC.graph.postscript.configure.A.20.1 {unsupported TIFF preview leaves configuration unchanged} -setup {
+        graph .graph1
+        .graph1 postscript configure -previewformat epsi -preview no -center yes
+        set before [.graph1 postscript configure]
+    } -body {
+        set result {}
+        foreach format {t ti tif tiff} {
+            set code [catch {.graph1 postscript configure -center no -preview yes -previewformat $format} message]
+            lappend result $code [expr {[.graph1 postscript configure] eq $before}] \
+                    [string match {bad preview format *} $message] \
+                    [expr {[string first tiff [lindex [split $message :] end]] < 0}]
+        }
+        .graph1 postscript configure -previewformat e
+        lappend result [.graph1 postscript cget -previewformat]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before result format code message
+    } -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 e}
+
 	cleanupTests
 }

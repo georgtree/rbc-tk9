@@ -1555,5 +1555,26 @@ namespace eval barchart.postscript {
         catch {destroy .barchart1}
     } -result ok
 	
+
+    test RBC.barchart.postscript.configure.A.20.1 {unsupported TIFF preview leaves configuration unchanged} -setup {
+        barchart .barchart1
+        .barchart1 postscript configure -previewformat epsi -preview no -center yes
+        set before [.barchart1 postscript configure]
+    } -body {
+        set result {}
+        foreach format {t ti tif tiff} {
+            set code [catch {.barchart1 postscript configure -center no -preview yes -previewformat $format} message]
+            lappend result $code [expr {[.barchart1 postscript configure] eq $before}] \
+                    [string match {bad preview format *} $message] \
+                    [expr {[string first tiff [lindex [split $message :] end]] < 0}]
+        }
+        .barchart1 postscript configure -previewformat e
+        lappend result [.barchart1 postscript cget -previewformat]
+        set result
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain before result format code message
+    } -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 e}
+
 	cleanupTests
 }

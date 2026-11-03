@@ -107,6 +107,7 @@ proc ::rbcDocBuild::main {arguments} {
         @FONT_HEADER@ [doxyQuote [file join $root generic rbcFont.h]] \
         @PS_HEADER@ [doxyQuote [file join $root generic rbcPs.h]] \
         @PS_SOURCE@ [doxyQuote [file join $root generic rbcPs.c]] \
+        @GRAPH_PS_SOURCE@ [doxyQuote [file join $root generic rbcGrPs.c]] \
         @EXPORT_HEADER@ [doxyQuote [file join $root generic rbcExport.h]] \
         @GRAPH_HEADER@ [doxyQuote [file join $root generic rbcGraph.h]] \
         @PDF_RENDER_SOURCE@ [doxyQuote [file join $root generic rbcRenderPdf.c]] \
