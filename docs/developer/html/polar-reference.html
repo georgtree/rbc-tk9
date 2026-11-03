@@ -104,6 +104,7 @@ The candidate owns its client ID and borrows the vector record and numeric stora
 <dt class="sig sig-object cpp">
 <span class="target" id="group__polar__geometry"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Polar</span> <span class="pre">grid</span> <span class="pre">geometry</span> <span class="pre">internals</span></span></dt>
 <dd><p>Private data-plane helpers; axes and grid records are borrowed. </p>
+<p>Mapping requires cleared destination caches and does not draw labels. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
@@ -126,6 +127,90 @@ A viewport spanning the origin has minimum radius zero. The maximum is the farth
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.PolarCompleteCircleRadius">
+<span class="target" id="group__polar__geometry_1ga519ea598ee09368cde4dbd37c8258abe"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarCompleteCircleRadius</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PolarCompleteCircleRadius" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find the largest origin-centered circle contained in the axis rectangle. </p>
+<p>Returns zero for missing/logarithmic axes or an origin not strictly inside both ranges. Borrows prepared axes; unlike GetPolarRadiusRange, this helper does not independently validate finite bounds. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ClipPolarRay">
+<span class="target" id="group__polar__geometry_1ga8a595c27ec39df63581941cc716ffc8b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipPolarRay</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">degrees</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">qPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClipPolarRay" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Intersect a forward ray at a degree angle with the data viewport. </p>
+<p>Requires prepared finite linear axis bounds and a finite angle. Uses slab parameters starting at zero; directions within DBL_EPSILON of zero are parallel. Returns FALSE for missing axes or no forward intersection. On success writes data-space endpoints in increasing ray distance, not pixels. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapCircle">
+<span class="target" id="group__polar__geometry_1ga42b9d5b067e59697f2239ca2b3628f3b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapCircle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapCircle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write one sampled polar circle into caller-owned segment storage. </p>
+<p>Requires room for POLAR_CIRCLE_SEGMENTS entries and current mapped axes. Maps consecutive angular samples through Rbc_Map2D; neither allocates nor clips complete strokes. The caller owns the buffer and its eventual clipping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapPolarSpoke">
+<span class="target" id="group__polar__geometry_1ga8a04259b6c6ef0a6b71d458699c1e6c0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapPolarSpoke</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">degrees</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segmentPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapPolarSpoke" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clip a degree-angle ray and map its endpoints to screen coordinates. </p>
+<p>Returns FALSE if the ray misses the viewport; output is valid only on success. Borrows graph/grid state, allocates nothing and does not separately check mapped endpoints for finiteness. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PolarGridSegmentValue">
+<span class="target" id="group__polar__geometry_1ga9f34f07f0d5b34d53fad935b72a590ea"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarGridSegmentValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segmentPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PolarGridSegmentValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Recover the data-X tick represented by an axis grid segment. </p>
+<p>Uses the mapped origin for the other coordinate and selects screen X or Y according to graph inversion. Requires a segment from the selected X axis; it is not a general segment-to-radius conversion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapPolarCircles">
+<span class="target" id="group__polar__geometry_1gabda70e24b34154cedcceb433bc82161a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapPolarCircles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">PolarRadiusRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapPolarCircles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build the radial segment cache from positive visible X-axis ticks. </p>
+<p>Borrows a validated radial range. Frees temporary axis segments on every allocation/count exit. Transfers the new array to gridPtr-&gt;x only on success; callers must already have released old caches. Count overflow or attempted allocation failure silently leaves the destination unchanged. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapPolarSpokes">
+<span class="target" id="group__polar__geometry_1ga69a255be0559b9dceae9f5b019b03678"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapPolarSpokes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapPolarSpokes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build the angular segment cache from global major and optional minor ticks. </p>
+<p>Uses gridPtr axes/minor policy and graphPtr-&gt;gridPtr angular arrays. Transfers visible segments to gridPtr-&gt;y; frees an allocation with no visible rays. Old caches must be cleared by the caller. Overflow/allocation failure returns without a diagnostic or a destination update. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapPolarGrid">
+<span class="target" id="group__polar__geometry_1ga0fc7521efdd052b69a3057ef2b5538d8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapPolarGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapPolarGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Populate polar circle and spoke caches using prepared linear axes. </p>
+<p>Requires empty destination caches and a live global grid for angular ticks. An invalid radial viewport returns without mapping. The two allocations are independent, so partial geometry is possible on allocation failure. Does not draw, notify, schedule layout or free old caches. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SmithImpedanceToGamma">
+<span class="target" id="group__polar__geometry_1ga53e4bd01dd9ae8c428196b3cee220816"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithImpedanceToGamma</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">resistance</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">reactance</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">realPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imagPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithImpedanceToGamma" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert normalized grid impedance to Cartesian reflection coordinates. </p>
+<p>Writes both output scalars using direct squared terms. Intended for validated grid values, not arbitrary external complex data: no denominator, overflow or finite-result check is provided. Owns no storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SmithGridValueToGamma">
+<span class="target" id="group__polar__geometry_1ga2672eb24639eed20778036d87624551b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithGridValueToGamma</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">realValue</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">imagValue</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">realPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imagPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithGridValueToGamma" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert normalized impedance or admittance grid coordinates. </p>
+<p>Delegates to SmithImpedanceToGamma, then negates both outputs for admittance. No reference-impedance scaling is applied; inputs are already normalized. Inherits the unchecked arithmetic domain of the underlying grid helper. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SmithUnitCircleVisible">
+<span class="target" id="group__polar__geometry_1ga17f1779face868ed985d43f5deb6c058"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithUnitCircleVisible</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithUnitCircleVisible" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test whether linear axis bounds contain the entire Smith unit circle. </p>
+<p>Returns FALSE for missing/logarithmic axes; otherwise requires both ranges to contain [-1,1], inclusively. Does not test graph visibility or text bounds. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapSmithResistanceCircle">
+<span class="target" id="group__polar__geometry_1ga696942f6844388d3c83f969b42efe63a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapSmithResistanceCircle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">resistance</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapSmithResistanceCircle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write a sampled normalized resistance or conductance circle. </p>
+<p>Requires SMITH_CIRCLE_SEGMENTS writable entries and validated nonnegative resistance. Center is r/(r+1), radius 1/(r+1); admittance negates both coordinates before mapping. Allocates nothing and leaves clipping to drawing. </p>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.SmithReactanceGamma">
 <span class="target" id="group__polar__geometry_1gad80409ed65285fe2721d7d9ea22f6ee4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithReactanceGamma</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">reactance</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">t</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithReactanceGamma" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parameterize a constant-reactance or constant-susceptance grid arc. </p>
@@ -143,6 +228,55 @@ For t below one, the real component of normalized impedance or admittance is t/(
 <dd class="field-even"><p>A point in the Cartesian Gamma plane, before screen mapping.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SmithReactancePoint">
+<span class="target" id="group__polar__geometry_1ga38244be31f944d83e402073b2035613d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithReactancePoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">reactance</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">t</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithReactancePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Screen-map one point of a normalized reactive contour. </p>
+<p>Borrows prepared axes and delegates parameter handling to SmithReactanceGamma. Returns mapped coordinates without an additional finite-result check. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ClipSegmentParameter">
+<span class="target" id="group__polar__geometry_1ga8a31700f68d7caa067b7d3a389d8d069"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipSegmentParameter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">p</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">q</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">enterPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exitPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClipSegmentParameter" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tighten a segment parameter interval against one half-plane. </p>
+<p>Updates caller-owned enter/exit bounds, conventionally initialized to [0,1]. A parallel segment is accepted iff q is nonnegative. Returns FALSE on rejection; callers must discard the accumulated interval on failure. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ClipSegmentToGridViewport">
+<span class="target" id="group__polar__geometry_1ga1beb31d12ea1a502244ed77ac405f270"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipSegmentToGridViewport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">enterPointPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exitPointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClipSegmentToGridViewport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clip data-space segment endpoints against the selected axis rectangle. </p>
+<p>Requires prepared bounds and finite input points. Preserves segment order and writes entry/exit points on success. Missing axes, rejection or nonfinite computed outputs return FALSE; output values are only valid on TRUE. Does not map to screen coordinates or clip stroke thickness. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapSmithReactanceArc">
+<span class="target" id="group__polar__geometry_1ga25ecbf8ea7ff52da78344e0df9ab63ef"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapSmithReactanceArc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">reactance</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapSmithReactanceArc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write a sampled constant-reactance or constant-susceptance contour. </p>
+<p>Requires SMITH_ARC_SEGMENTS writable entries and prepared axes. Samples t from zero to one, including the explicit infinite-real endpoint. Allocates nothing; mapping and clipping responsibilities remain separate. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapSmithResistanceGrid">
+<span class="target" id="group__polar__geometry_1ga7426ac3a1a985eb54eeab5ac10fd1813"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapSmithResistanceGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapSmithResistanceGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate and publish Smith real-component circle segments. </p>
+<p>Uses global major/minor lists and domain selection with the supplied grid axes/minor policy. In both-domain mode omits admittance zero circles already represented by impedance. Requires cleared destination caches. Checked count overflow or attempted-allocation failure returns silently; successful storage is owned by gridPtr-&gt;x. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapSmithReactanceGrid">
+<span class="target" id="group__polar__geometry_1gae339df9ff28b000177790e27c301ee7b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapSmithReactanceGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapSmithReactanceGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate Smith reactive arcs and the shared real diameter. </p>
+<p>Each configured magnitude supplies positive and negative arcs in each selected domain. The zero-reactive diameter is emitted once, even when no nonzero magnitudes exist. Requires cleared caches; overflow/allocation failure leaves them unchanged. Successful storage transfers to gridPtr-&gt;y. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapSmithGrid">
+<span class="target" id="group__polar__geometry_1ga16caa55b23e7612736d358a8f4ea504b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapSmithGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapSmithGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Populate Smith grid caches for the selected global domain. </p>
+<p>Returns for missing/logarithmic axes. Requires prepared bounds, validated tick arrays and empty caches. Circle and reactive allocations are independent and can produce partial geometry on failure. Does not draw or free old data. </p>
 </dd></dl>
 
 </div>
@@ -318,6 +452,182 @@ from similarly named helpers in other modules.</p>
 </dd></dl>
 
 </section>
+<section id="label-placement-and-presentation-rbcgrpolar-c">
+<h2>Label placement and presentation (rbcGrPolar.c)<a class="headerlink" href="#label-placement-and-presentation-rbcgrpolar-c" title="Link to this heading">¶</a></h2>
+<p>The formatting helpers may execute Tcl. Their contracts describe cancellation of the current
+drawing pass when callbacks mutate or destroy its graph.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__polar__labels"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Polar</span> <span class="pre">and</span> <span class="pre">Smith</span> <span class="pre">label</span> <span class="pre">internals</span></span></dt>
+<dd><p>Positioning, formatting and screen/export presentation. </p>
+<p>Geometry helpers borrow prepared graph state; formatting paths may evaluate Tcl callbacks. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPolarRadialLabelAnchor">
+<span class="target" id="group__polar__labels_1gad6dc9c2baddc749e4c30f6c5ebcb6ba9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarRadialLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPolarRadialLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve the radial anchor from the global grid. </p>
+<p>Automatic selection is TK_ANCHOR_SE; otherwise returns the configured anchor. Requires a live global grid and does not modify it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetInwardLabelAnchor">
+<span class="target" id="group__polar__labels_1ga51f03bca53634aff505c905e560adb91"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetInwardLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">degrees</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetInwardLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Choose one of eight inward text anchors from a degree direction. </p>
+<p>Callers provide a normalized angle in [0,360). Sector boundaries lie at 22.5 degrees plus multiples of 45. This is a direction lookup only; it does not inspect text extents or guarantee the label fits inside a viewport. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPolarAngleLabelAnchor">
+<span class="target" id="group__polar__labels_1gae6b123905abad5b7c8abe1e153f5c837"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarAngleLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">degrees</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPolarAngleLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a circular angular label anchor. </p>
+<p>An explicit global-grid anchor wins; automatic mode uses the supplied data angle directly. No screen-axis inversion or descending-axis adjustment is performed by this helper. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPolarSpokeLabelAnchor">
+<span class="target" id="group__polar__labels_1ga8cb3b529432e42979eca89d4d7420755"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarSpokeLabelAnchor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segmentPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPolarSpokeLabelAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Anchor a label inward from the far end of a mapped spoke. </p>
+<p>An explicit anchor wins. Otherwise derives direction from screen endpoints, negating screen Y; a degenerate segment selects CENTER. Borrows the segment and does not alter its geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPolarAngularLabelPosition">
+<span class="target" id="group__polar__labels_1ga3519cde8a4fd3f1f04be02c999e0d50b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarAngularLabelPosition</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">completeRadius</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">degrees</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">anchorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPolarAngularLabelPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Choose a circular or clipped-spoke angular label position. </p>
+<p>A positive completeRadius selects 90 percent of that radius and the data-angle anchor. Otherwise selects the far visible mapped ray endpoint and a screen-direction anchor. Returns FALSE for a missing ray or nonfinite position; outputs must only be consumed on success. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPolarRadialLabelPosition">
+<span class="target" id="group__polar__labels_1ga094ae25b5c563a4b056d399522e9cf16"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarRadialLabelPosition</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPolarRadialLabelPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a positive radial tick on the zero-degree ray when visible. </p>
+<p>Requires linear axes and a finite positive radius whose point (radius,0) lies inside both data ranges. The origin itself need not be visible. Returns TRUE only for finite mapped coordinates; output is success-only. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DrawPolarRadialLabels">
+<span class="target" id="group__polar__labels_1gaeaf035f212dc0fd19c222d82249fcfb4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawPolarRadialLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DrawPolarRadialLabels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw radial labels through a temporary screen text renderer. </p>
+<p>Allocates an X-axis major-tick snapshot and formatted tick labels, freeing each after use. A NULL formatted label terminates the loop. Borrows graph/grid/drawable and copies the relevant axis text style with rotation zero. Requires showTicks on that axis. Screen positions are rounded; the renderer is ended before returning. Formatting can evaluate Tcl; callers must retain graph lifetime. A cancelled formatter stops the loop before copied style or component resources are used again. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FormatGridLabel">
+<span class="target" id="group__polar__labels_1gadab7518fac9570475878d8ab5db5b22c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FormatGridLabel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">prefixObjPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">domain</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FormatGridLabel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate a grid label prefix while guarding the current drawing pass. </p>
+<p>Borrows an initialized default-label DString, prefix and numeric text. Appends widget path, optional domain and value to an owned prefix copy. Preserves interpreter state; errors report a background exception and keep default text. Uses the existing axis-format guard to reject recursive rendering and detect mutation. Returns NULL on invalidation, scheduling a fresh redraw; callers must free the DString and stop before accessing cached grid/style resources. The enclosing widget command or display wrapper must preserve graph lifetime. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FormatPolarAngleLabel">
+<span class="target" id="group__polar__labels_1ga34840f29db7134a9d466ea2fc9c749ec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FormatPolarAngleLabel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">degrees</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FormatPolarAngleLabel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format a degree label into a caller-released DString. </p>
+<p>Initializes dsPtr and returns its borrowed buffer. Default text is g plus a degree sign. A nonempty command prefix receives widget path and numeric degrees in the current evaluation context. Success replaces all text, including an empty result; failure reports a background exception and retains default text. Preserves interpreter state and returns NULL if formatting invalidates the graph. Caller must still free dsPtr on NULL and abandon cached drawing state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DrawPolarAngularLabels">
+<span class="target" id="group__polar__labels_1ga686e6d11b0b415ac63676793f5e21b70"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawPolarAngularLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">completeRadius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DrawPolarAngularLabels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw angular labels through a temporary screen text renderer. </p>
+<p>Reads global major angle ticks and invokes FormatPolarAngleLabel. Empty formatted strings suppress drawing. Borrows graph/grid/drawable and copies the relevant axis text style with rotation zero. Requires showTicks on that axis. Screen positions are rounded; the renderer is ended before returning. Formatting can evaluate Tcl; callers must retain graph lifetime. A cancelled formatter stops the loop before copied style or component resources are used again. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DrawPolarLabels">
+<span class="target" id="group__polar__labels_1ga80b9eb50fb3078775fbcec430a9f2f3c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawPolarLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawPolarLabels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw the visible global polar grid labels. </p>
+<p>Returns when the global grid is missing or hidden. Borrows current mapped graph resources and the destination drawable. Does not map segments. Runs radial labels, checks Rbc_GraphCallbackValid, then chooses the circular or clipped-spoke angular layout. Inner loops stop immediately when their formatter reports invalidation; the caller retains graph record lifetime. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FormatSmithLabel">
+<span class="target" id="group__polar__labels_1ga41504fa7e21fff6e7660f69438ef28cf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FormatSmithLabel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">commandObjPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="kt"><span class="pre">imaginary</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FormatSmithLabel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format a normalized Smith value into a caller-released DString. </p>
+<p>Initializes dsPtr and returns its borrowed buffer. Real defaults use g; reactive defaults add signed j notation. A nonempty prefix receives widget path, impedance/admittance domain and original signed numeric value. Empty success suppresses text; errors report a background exception and keep the default. Preserves interpreter state; returns NULL on graph invalidation. The caller frees dsPtr even on NULL and stops using cached drawing state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DrawSmithRealLabels">
+<span class="target" id="group__polar__labels_1gaf4cd734d5ac60241b54dca31e13a7c27"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawSmithRealLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DrawSmithRealLabels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw Smith real labels through a temporary screen text renderer. </p>
+<p>Reads global real major ticks for one normalized domain and invokes FormatSmithLabel; empty strings suppress drawing. Zero values use inward horizontal anchors, other values are above/below the real axis by domain. Borrows graph/grid/drawable and copies the relevant axis text style with rotation zero. Requires showTicks on that axis. Screen positions are rounded; the renderer is ended before returning. Formatting can evaluate Tcl; callers must retain graph lifetime. A cancelled formatter stops the loop before copied style or component resources are used again. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PolarRadialLabelsExport">
+<span class="target" id="group__polar__labels_1gaebc8e39849d128e7a5951abcf56d9992"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarRadialLabelsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PolarRadialLabelsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export radial labels through a temporary output renderer. </p>
+<p>Allocates/frees X-axis ticks and each formatted tick label; NULL formatting stops the loop. Applies the same two-pixel offset as screen drawing. Borrows the export context; ends the renderer on every return. Requires showTicks on the relevant axis and copies its style with rotation zero. Retains fractional coordinates rather than rounding as on screen. May evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PolarAngularLabelsExport">
+<span class="target" id="group__polar__labels_1gabe98944e3b60774d36344ba7ca9ca863"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarAngularLabelsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">completeRadius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PolarAngularLabelsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export angular labels through a temporary output renderer. </p>
+<p>Uses global major angle ticks, the shared position/anchor helpers and FormatPolarAngleLabel; empty formatted text is omitted. Borrows the export context; ends the renderer on every return. Requires showTicks on the relevant axis and copies its style with rotation zero. Retains fractional coordinates rather than rounding as on screen. May evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PolarLabelsExport">
+<span class="target" id="group__polar__labels_1gac9540103e549878cb3339e4f9ad41808"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PolarLabelsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PolarLabelsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export the visible global polar grid labels. </p>
+<p>Returns when the global grid is missing or hidden. Borrows current mapped graph resources and the export context. Does not map segments. Runs radial labels, checks Rbc_GraphCallbackValid, then chooses the circular or clipped-spoke angular layout. Inner loops stop immediately when their formatter reports invalidation; the caller retains graph record lifetime. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetSmithReactiveEdgeAnchor">
+<span class="target" id="group__polar__labels_1gaa22090961e1a14bf0555902e471f7e1e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSmithReactiveEdgeAnchor</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">enterPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exitPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetSmithReactiveEdgeAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Choose an inward anchor at a clipped contour entry point. </p>
+<p>Uses reversed local screen direction from exit to entry, compensating for downward screen Y. Degenerate segments select CENTER. No text measurement or viewport containment guarantee is made. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetSmithReactiveLabelPosition">
+<span class="target" id="group__polar__labels_1ga5fb4fb0ab43b7179da1562b119710d2d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSmithReactiveLabelPosition</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">reactive</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">anchorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetSmithReactiveLabelPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Locate a reactive label at the unit circle or first visible contour entry. </p>
+<p>When the complete unit circle is visible, scales its r=0/g=0 point by 0.94 and uses its data-angle anchor. Otherwise scans the same 90-segment contour used for drawing, clips each chord in data space, and takes the first visible entry with a screen-direction anchor. FALSE means no usable finite position; outputs are success-only. No Tcl callback or allocation occurs. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DrawSmithReactiveLabels">
+<span class="target" id="group__polar__labels_1ga632d290332ad45be5255347d74dd8186"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawSmithReactiveLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DrawSmithReactiveLabels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw Smith reactive labels through a temporary screen text renderer. </p>
+<p>Formats both signs of each global major reactive magnitude for one domain. Uses GetSmithReactiveLabelPosition and skips invisible contours. Borrows graph/grid/drawable and copies the relevant axis text style with rotation zero. Requires showTicks on that axis. Screen positions are rounded; the renderer is ended before returning. Formatting can evaluate Tcl; callers must retain graph lifetime. A cancelled formatter stops the loop before copied style or component resources are used again. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DrawSmithLabels">
+<span class="target" id="group__polar__labels_1ga98c6db3be49aff14c1a324d52177e637"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawSmithLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawSmithLabels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw the visible global Smith grid labels. </p>
+<p>Returns when the global grid is missing or hidden. Borrows current mapped graph resources and the destination drawable. Does not map segments. Dispatches real then reactive labels for each selected Smith domain. Checks callback validity between phases and domains; inner loops stop on cancellation. The enclosing caller retains graph record lifetime. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SmithRealLabelsExport">
+<span class="target" id="group__polar__labels_1gaa451fac4fe41a10cf04af0fa927931c9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithRealLabelsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithRealLabelsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export Smith real labels through a temporary output renderer. </p>
+<p>Uses the selected domain and global real major ticks. Shares normalized conversion, formatting and domain-dependent offsets with screen drawing. Borrows the export context; ends the renderer on every return. Requires showTicks on the relevant axis and copies its style with rotation zero. Retains fractional coordinates rather than rounding as on screen. May evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SmithReactiveLabelsExport">
+<span class="target" id="group__polar__labels_1ga9cc3734bd2fecea6eb3a1955d386511a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithReactiveLabelsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithReactiveLabelsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export Smith reactive labels through a temporary output renderer. </p>
+<p>Formats both signs of global major reactive magnitudes and uses the same visible contour placement as screen drawing. Borrows the export context; ends the renderer on every return. Requires showTicks on the relevant axis and copies its style with rotation zero. Retains fractional coordinates rather than rounding as on screen. May evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SmithLabelsExport">
+<span class="target" id="group__polar__labels_1ga120023e6ad41c91dc38e0dd6555c37b0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SmithLabelsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SmithLabelsExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export the visible global Smith grid labels. </p>
+<p>Returns when the global grid is missing or hidden. Borrows current mapped graph resources and the export context. Does not map segments. Dispatches real then reactive labels for each selected Smith domain. Checks callback validity between phases and domains; inner loops stop on cancellation. The enclosing caller retains graph record lifetime. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -338,7 +648,26 @@ from similarly named helpers in other modules.</p>
 </li>
 <li><a class="reference internal" href="#grid-geometry-rbcgrpolar-c">Grid geometry (rbcGrPolar.c)</a><ul>
 <li><a class="reference internal" href="#c.GetPolarRadiusRange"><code class="docutils literal notranslate"><span class="pre">GetPolarRadiusRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.PolarCompleteCircleRadius"><code class="docutils literal notranslate"><span class="pre">PolarCompleteCircleRadius()</span></code></a></li>
+<li><a class="reference internal" href="#c.ClipPolarRay"><code class="docutils literal notranslate"><span class="pre">ClipPolarRay()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapCircle"><code class="docutils literal notranslate"><span class="pre">MapCircle()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapPolarSpoke"><code class="docutils literal notranslate"><span class="pre">MapPolarSpoke()</span></code></a></li>
+<li><a class="reference internal" href="#c.PolarGridSegmentValue"><code class="docutils literal notranslate"><span class="pre">PolarGridSegmentValue()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapPolarCircles"><code class="docutils literal notranslate"><span class="pre">MapPolarCircles()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapPolarSpokes"><code class="docutils literal notranslate"><span class="pre">MapPolarSpokes()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MapPolarGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.SmithImpedanceToGamma"><code class="docutils literal notranslate"><span class="pre">SmithImpedanceToGamma()</span></code></a></li>
+<li><a class="reference internal" href="#c.SmithGridValueToGamma"><code class="docutils literal notranslate"><span class="pre">SmithGridValueToGamma()</span></code></a></li>
+<li><a class="reference internal" href="#c.SmithUnitCircleVisible"><code class="docutils literal notranslate"><span class="pre">SmithUnitCircleVisible()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapSmithResistanceCircle"><code class="docutils literal notranslate"><span class="pre">MapSmithResistanceCircle()</span></code></a></li>
 <li><a class="reference internal" href="#c.SmithReactanceGamma"><code class="docutils literal notranslate"><span class="pre">SmithReactanceGamma()</span></code></a></li>
+<li><a class="reference internal" href="#c.SmithReactancePoint"><code class="docutils literal notranslate"><span class="pre">SmithReactancePoint()</span></code></a></li>
+<li><a class="reference internal" href="#c.ClipSegmentParameter"><code class="docutils literal notranslate"><span class="pre">ClipSegmentParameter()</span></code></a></li>
+<li><a class="reference internal" href="#c.ClipSegmentToGridViewport"><code class="docutils literal notranslate"><span class="pre">ClipSegmentToGridViewport()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapSmithReactanceArc"><code class="docutils literal notranslate"><span class="pre">MapSmithReactanceArc()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapSmithResistanceGrid"><code class="docutils literal notranslate"><span class="pre">MapSmithResistanceGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapSmithReactanceGrid"><code class="docutils literal notranslate"><span class="pre">MapSmithReactanceGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MapSmithGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#line-and-polar-data-transactions-rbcgrline-c">Line and polar data transactions (rbcGrLine.c)</a><ul>
@@ -364,6 +693,32 @@ from similarly named helpers in other modules.</p>
 <li><a class="reference internal" href="#c.rbcGrLineData.LineParamLengthValidationNeeded"><code class="docutils literal notranslate"><span class="pre">LineParamLengthValidationNeeded()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineData.ProspectiveLinePointCount"><code class="docutils literal notranslate"><span class="pre">ProspectiveLinePointCount()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineData.ValidateLineParamLength"><code class="docutils literal notranslate"><span class="pre">ValidateLineParamLength()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#label-placement-and-presentation-rbcgrpolar-c">Label placement and presentation (rbcGrPolar.c)</a><ul>
+<li><a class="reference internal" href="#c.GetPolarRadialLabelAnchor"><code class="docutils literal notranslate"><span class="pre">GetPolarRadialLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetInwardLabelAnchor"><code class="docutils literal notranslate"><span class="pre">GetInwardLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetPolarAngleLabelAnchor"><code class="docutils literal notranslate"><span class="pre">GetPolarAngleLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetPolarSpokeLabelAnchor"><code class="docutils literal notranslate"><span class="pre">GetPolarSpokeLabelAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetPolarAngularLabelPosition"><code class="docutils literal notranslate"><span class="pre">GetPolarAngularLabelPosition()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetPolarRadialLabelPosition"><code class="docutils literal notranslate"><span class="pre">GetPolarRadialLabelPosition()</span></code></a></li>
+<li><a class="reference internal" href="#c.DrawPolarRadialLabels"><code class="docutils literal notranslate"><span class="pre">DrawPolarRadialLabels()</span></code></a></li>
+<li><a class="reference internal" href="#c.FormatGridLabel"><code class="docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a></li>
+<li><a class="reference internal" href="#c.FormatPolarAngleLabel"><code class="docutils literal notranslate"><span class="pre">FormatPolarAngleLabel()</span></code></a></li>
+<li><a class="reference internal" href="#c.DrawPolarAngularLabels"><code class="docutils literal notranslate"><span class="pre">DrawPolarAngularLabels()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DrawPolarLabels"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawPolarLabels()</span></code></a></li>
+<li><a class="reference internal" href="#c.FormatSmithLabel"><code class="docutils literal notranslate"><span class="pre">FormatSmithLabel()</span></code></a></li>
+<li><a class="reference internal" href="#c.DrawSmithRealLabels"><code class="docutils literal notranslate"><span class="pre">DrawSmithRealLabels()</span></code></a></li>
+<li><a class="reference internal" href="#c.PolarRadialLabelsExport"><code class="docutils literal notranslate"><span class="pre">PolarRadialLabelsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.PolarAngularLabelsExport"><code class="docutils literal notranslate"><span class="pre">PolarAngularLabelsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PolarLabelsExport"><code class="docutils literal notranslate"><span class="pre">Rbc_PolarLabelsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetSmithReactiveEdgeAnchor"><code class="docutils literal notranslate"><span class="pre">GetSmithReactiveEdgeAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetSmithReactiveLabelPosition"><code class="docutils literal notranslate"><span class="pre">GetSmithReactiveLabelPosition()</span></code></a></li>
+<li><a class="reference internal" href="#c.DrawSmithReactiveLabels"><code class="docutils literal notranslate"><span class="pre">DrawSmithReactiveLabels()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DrawSmithLabels"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawSmithLabels()</span></code></a></li>
+<li><a class="reference internal" href="#c.SmithRealLabelsExport"><code class="docutils literal notranslate"><span class="pre">SmithRealLabelsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.SmithReactiveLabelsExport"><code class="docutils literal notranslate"><span class="pre">SmithReactiveLabelsExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SmithLabelsExport"><code class="docutils literal notranslate"><span class="pre">Rbc_SmithLabelsExport()</span></code></a></li>
 </ul>
 </li>
 </ul>

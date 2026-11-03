@@ -206,3 +206,122 @@ Complex notifications invalidate axes and mapping and schedule redraw for visibl
 plotted elements. Parameter notifications deliberately do none of those things.
 The difference reflects the role of the data, rather than an interchangeable
 implementation of the common X/Y notification policy.
+
+Segment cache construction and failure policy
+---------------------------------------------
+
+The mapping entry points consume prepared axes and require old X/Y grid caches
+to have been released by the shared grid lifecycle. They do not replace and free
+an existing cache themselves. Circle and spoke/arc allocations are independent:
+a failed allocation can leave one family present and the other absent. Overflow
+checks and Tcl_AttemptAlloc failures return silently, without a Tcl diagnostic.
+The next normal remapping starts from cleared caches again.
+
+Polar radial candidates are reconstructed from X-axis grid segments using
+PolarGridSegmentValue. Inverted graphs recover the tick from screen Y instead
+of screen X. Only finite positive radii within the viewport's minimum/maximum
+radial distances are retained. Circles are complete sampled polylines; rendering
+clips their strokes. Spokes instead intersect their forward data-space ray with
+the axis rectangle before mapping. A tangential intersection can produce a
+zero-length segment; the clipping helpers do not impose a minimum pixel length.
+
+Smith real circles use center r/(r+1) and radius 1/(r+1), with both coordinates
+negated for admittance. In both-domain mode the zero-conductance circle is omitted
+when the impedance unit circle already represents it. Each nonzero reactive
+magnitude produces positive and negative arcs per selected domain; the shared
+zero-reactive real diameter is emitted once. Global grid settings supply tick
+arrays and domain selection, while the supplied grid supplies axes and minor-grid
+policy. These helpers do not implement independently configured polar track grids.
+
+These normalized grid formulas use direct floating-point squared terms. They
+are not overflow-resistant replacements for the complex-vector data adapter.
+Count checks protect allocation sizes, not arbitrary numeric input to the private
+geometry helpers. A successful mapping operation alone is not proof that every
+resulting coordinate is finite for extreme values.
+
+Label placement in full and cropped views
+-----------------------------------------
+
+.. list-table:: Position and anchor policy
+   :header-rows: 1
+   :widths: 23 77
+
+   * - Label family
+     - Placement
+   * - Polar radial
+     - The point (radius,0), only when visible. Uses the X-axis style, a
+       two-pixel upper-left offset and the configured anchor (automatic is SE).
+   * - Polar angular, centered view
+     - At 90 percent of the largest fully contained origin-centered circle.
+       Automatic anchor derives from the data angle.
+   * - Polar angular, cropped view
+     - At the far visible endpoint of the clipped forward spoke. Automatic
+       anchor derives from the mapped screen direction; invisible rays are skipped.
+   * - Smith real
+     - At the zero-reactive Gamma coordinate. Zero values extend inward from
+       the unit-circle endpoints; other impedance/admittance labels sit two
+       pixels above/below the real axis respectively.
+   * - Smith reactive, complete unit circle
+     - At 94 percent of the r=0/g=0 Gamma point, with a data-angle anchor.
+   * - Smith reactive, cropped unit circle
+     - At the first visible entry into the sampled reactive contour, walking
+       from its unit-circle endpoint. The anchor follows the reversed local
+       screen direction to extend inward.
+
+The full-circle test is inclusive for the Smith unit circle but requires the
+origin strictly inside both axis ranges for a positive polar complete radius.
+Reactive cropped placement clips the same sampled chords used by rendering,
+rather than solving an analytic circle/rectangle intersection. Its accuracy
+therefore follows the current 90-segment approximation.
+
+Automatic inward anchors use eight direction sectors separated by 22.5 degrees
+plus multiples of 45 degrees. Degenerate screen segments select CENTER. Explicit
+polar anchors override automatic selection. Centered-view anchor selection uses
+data angles; cropped-view selection uses screen directions. These are current
+policies, not a promise that label orientation is invariant under axis inversion
+or reversal. Anchors alone do not guarantee the complete text fits in the plot.
+
+All label paths copy the axis text style and force zero text rotation. Radial and
+Smith real labels use X-axis showTicks/style; angular and Smith reactive labels
+use Y-axis showTicks/style. Only major ticks are labelled. Screen drawing rounds
+positions before applying fixed offsets; export retains fractional positions.
+Both paths release their temporary renderer, labels and tick snapshots.
+
+Formatter callbacks and cancellation
+------------------------------------
+
+Angular prefixes receive widget path and numeric degrees, without the default
+degree suffix. Smith prefixes receive widget path, impedance/admittance domain
+and the original signed normalized value, without the default j decoration.
+A prefix is duplicated before arguments are appended, and evaluation uses the
+current Tcl context, matching axis formatters. A NULL or empty prefix retains
+normal formatting. A successful empty result suppresses that label; an ordinary
+callback error is reported as a background exception and retains default text.
+The prior interpreter state is restored after callback evaluation.
+
+FormatGridLabel shares the existing axisFormatActive/axisFormatInvalid mechanism.
+While it evaluates Tcl, recursive snapshot and export requests are rejected before
+they change dimensions or renderer state. Layout recursion is likewise rejected;
+read-only operations that need no layout may still succeed. Redraw requests or
+relevant window events during the callback mark the current pass invalid.
+
+After formatting, validity is checked before any cached grid, axis or copied
+text-style resource is reused. Invalidation returns NULL while leaving the
+caller's DString initialized for cleanup. Each label loop stops and releases its
+owned temporary resources; Smith phase/domain dispatch and polar radial/angular
+dispatch also stop before moving to another phase. A surviving graph is queued
+for a fresh redraw. Snapshot/export callers receive the existing
+RBC GRAPH CALLBACK error rather than a completed image/document from stale state.
+Drawing already performed into an intermediate target is not rolled back.
+
+This guard does not undo application changes or prevent users from destroying
+the graph. The enclosing widget command or display wrapper retains the graph
+record across Tcl evaluation. Nor does the guard promise forward progress for a
+formatter that changes graph options on every call: applications should make
+such changes outside formatting or only once, so a later pass can complete.
+
+The existing polar.grid.options tests exercise all three formatter options with
+graph destruction, replacement tick arrays and axis font changes through screen
+snapshots and all three document exporters. They also check recursive rendering
+rejection and successful rendering after a cancelled pass. These tests belong to
+the normal suite; no private C harness or installed API extension is required.

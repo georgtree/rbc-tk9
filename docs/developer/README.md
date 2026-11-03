@@ -7,7 +7,7 @@ widget lifecycle and redisplay, vector ownership and notifications, expression e
 callback boundaries, recursive expression parsing, temporary-type adapters, reduction formulas and complex scalar kernels, FFT workspace and output ownership, private FFT commit helpers, spline interpolation and smoothing,
 quadratic interval selection and parametric cubic factorization, line
 decimation and cache maintenance, bar grouping and error positioning, area fills and uncertainty
-bands, polar data adapters and grid geometry, binding dispatch and picking, component option
+bands, polar data adapters, sampled polar/Smith grid geometry, viewport-aware labels and formatter cancellation, binding dispatch and picking, component option
 transactions and resource ownership, scrolling and viewport contracts, geometry and clipping
 contracts and private subdivision helpers, chain/list ownership, insertion and keyed lookup, image and tile ownership, text layout and document font ownership,
 export orchestration, SVG definitions and image encoding, PDF resource serialization and document

@@ -16,6 +16,12 @@
  */
 /** @defgroup polar_geometry Polar grid geometry internals
  * Private data-plane helpers; axes and grid records are borrowed.
+ * Mapping requires cleared destination caches and does not draw labels.
+ */
+
+/** @defgroup polar_labels Polar and Smith label internals
+ * Positioning, formatting and screen/export presentation. Geometry helpers
+ * borrow prepared graph state; formatting paths may evaluate Tcl callbacks.
  */
 
 #include "rbcGraph.h"
@@ -112,6 +118,13 @@ static int GetPolarRadiusRange(Grid *gridPtr, PolarRadiusRange *rangePtr) {
     return FINITE(rangePtr->min) && FINITE(rangePtr->max) && (rangePtr->max > 0.0);
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Find the largest origin-centered circle contained in the axis rectangle.
+ * Returns zero for missing/logarithmic axes or an origin not strictly inside
+ * both ranges. Borrows prepared axes; unlike GetPolarRadiusRange, this helper
+ * does not independently validate finite bounds.
+ */
 static double PolarCompleteCircleRadius(Grid *gridPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -145,6 +158,14 @@ static double PolarCompleteCircleRadius(Grid *gridPtr) {
     return radius;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Intersect a forward ray at a degree angle with the data viewport.
+ * Requires prepared finite linear axis bounds and a finite angle. Uses slab
+ * parameters starting at zero; directions within DBL_EPSILON of zero are
+ * parallel. Returns FALSE for missing axes or no forward intersection. On
+ * success writes data-space endpoints in increasing ray distance, not pixels.
+ */
 static int ClipPolarRay(Grid *gridPtr, double degrees, Point2D *pPtr, Point2D *qPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -230,6 +251,13 @@ static int ClipPolarRay(Grid *gridPtr, double degrees, Point2D *pPtr, Point2D *q
     return TRUE;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Write one sampled polar circle into caller-owned segment storage.
+ * Requires room for POLAR_CIRCLE_SEGMENTS entries and current mapped axes.
+ * Maps consecutive angular samples through Rbc_Map2D; neither allocates nor
+ * clips complete strokes. The caller owns the buffer and its eventual clipping.
+ */
 static void MapCircle(Graph *graphPtr, Grid *gridPtr, double radius, Segment2D *segments) {
     Point2D first;
     Point2D previous;
@@ -249,6 +277,13 @@ static void MapCircle(Graph *graphPtr, Grid *gridPtr, double radius, Segment2D *
     }
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Clip a degree-angle ray and map its endpoints to screen coordinates.
+ * Returns FALSE if the ray misses the viewport; output is valid only on
+ * success. Borrows graph/grid state, allocates nothing and does not separately
+ * check mapped endpoints for finiteness.
+ */
 static int MapPolarSpoke(Graph *graphPtr, Grid *gridPtr, double degrees, Segment2D *segmentPtr) {
     Point2D p;
     Point2D q;
@@ -261,6 +296,13 @@ static int MapPolarSpoke(Graph *graphPtr, Grid *gridPtr, double degrees, Segment
     return TRUE;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Recover the data-X tick represented by an axis grid segment.
+ * Uses the mapped origin for the other coordinate and selects screen X or Y
+ * according to graph inversion. Requires a segment from the selected X axis;
+ * it is not a general segment-to-radius conversion.
+ */
 static double PolarGridSegmentValue(Graph *graphPtr, Grid *gridPtr, const Segment2D *segmentPtr) {
     Point2D origin;
     Point2D point;
@@ -280,6 +322,14 @@ static double PolarGridSegmentValue(Graph *graphPtr, Grid *gridPtr, const Segmen
     return point.x;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Build the radial segment cache from positive visible X-axis ticks.
+ * Borrows a validated radial range. Frees temporary axis segments on every
+ * allocation/count exit. Transfers the new array to gridPtr->x only on success;
+ * callers must already have released old caches. Count overflow or attempted
+ * allocation failure silently leaves the destination unchanged.
+ */
 static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, const PolarRadiusRange *rangePtr) {
     Segment2D *axisSegments;
     Segment2D *circleSegments;
@@ -344,6 +394,14 @@ static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, const PolarRadiusRan
     gridPtr->x.nSegments = nCircles * POLAR_CIRCLE_SEGMENTS;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Build the angular segment cache from global major and optional minor ticks.
+ * Uses gridPtr axes/minor policy and graphPtr->gridPtr angular arrays.
+ * Transfers visible segments to gridPtr->y; frees an allocation with no visible
+ * rays. Old caches must be cleared by the caller. Overflow/allocation failure
+ * returns without a diagnostic or a destination update.
+ */
 static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr) {
     Segment2D *segments;
     Tcl_Size nMajor;
@@ -393,6 +451,14 @@ static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr) {
     gridPtr->y.nSegments = index;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Populate polar circle and spoke caches using prepared linear axes.
+ * Requires empty destination caches and a live global grid for angular ticks.
+ * An invalid radial viewport returns without mapping. The two allocations are
+ * independent, so partial geometry is possible on allocation failure. Does not
+ * draw, notify, schedule layout or free old caches.
+ */
 void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr) {
     PolarRadiusRange range;
 
@@ -403,6 +469,12 @@ void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr) {
     MapPolarSpokes(graphPtr, gridPtr);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Resolve the radial anchor from the global grid.
+ * Automatic selection is TK_ANCHOR_SE; otherwise returns the configured anchor.
+ * Requires a live global grid and does not modify it.
+ */
 static Tk_Anchor GetPolarRadialLabelAnchor(Graph *graphPtr) {
     if (graphPtr->gridPtr->radialLabelAnchor.isAuto) {
         return TK_ANCHOR_SE;
@@ -410,6 +482,13 @@ static Tk_Anchor GetPolarRadialLabelAnchor(Graph *graphPtr) {
     return graphPtr->gridPtr->radialLabelAnchor.anchor;
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Choose one of eight inward text anchors from a degree direction.
+ * Callers provide a normalized angle in [0,360). Sector boundaries lie at
+ * 22.5 degrees plus multiples of 45. This is a direction lookup only; it does
+ * not inspect text extents or guarantee the label fits inside a viewport.
+ */
 static Tk_Anchor GetInwardLabelAnchor(double degrees) {
     if ((degrees < 22.5) || (degrees >= 337.5)) {
         return TK_ANCHOR_E;
@@ -435,6 +514,13 @@ static Tk_Anchor GetInwardLabelAnchor(double degrees) {
     return TK_ANCHOR_SE;
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Resolve a circular angular label anchor.
+ * An explicit global-grid anchor wins; automatic mode uses the supplied data
+ * angle directly. No screen-axis inversion or descending-axis adjustment is
+ * performed by this helper.
+ */
 static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
     if (!graphPtr->gridPtr->angleLabelAnchor.isAuto) {
         return graphPtr->gridPtr->angleLabelAnchor.anchor;
@@ -442,6 +528,13 @@ static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
     return GetInwardLabelAnchor(degrees);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Anchor a label inward from the far end of a mapped spoke.
+ * An explicit anchor wins. Otherwise derives direction from screen endpoints,
+ * negating screen Y; a degenerate segment selects CENTER. Borrows the segment
+ * and does not alter its geometry.
+ */
 static Tk_Anchor GetPolarSpokeLabelAnchor(Graph *graphPtr, const Segment2D *segmentPtr) {
     double dx;
     double dy;
@@ -471,6 +564,14 @@ static Tk_Anchor GetPolarSpokeLabelAnchor(Graph *graphPtr, const Segment2D *segm
     return GetInwardLabelAnchor(degrees);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Choose a circular or clipped-spoke angular label position.
+ * A positive completeRadius selects 90 percent of that radius and the
+ * data-angle anchor. Otherwise selects the far visible mapped ray endpoint
+ * and a screen-direction anchor. Returns FALSE for a missing ray or nonfinite
+ * position; outputs must only be consumed on success.
+ */
 static int GetPolarAngularLabelPosition(Graph *graphPtr, Grid *gridPtr, double completeRadius, double degrees,
                                         Point2D *pointPtr, Tk_Anchor *anchorPtr) {
     if (completeRadius > 0.0) {
@@ -505,6 +606,13 @@ static int GetPolarAngularLabelPosition(Graph *graphPtr, Grid *gridPtr, double c
     }
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Map a positive radial tick on the zero-degree ray when visible.
+ * Requires linear axes and a finite positive radius whose point (radius,0)
+ * lies inside both data ranges. The origin itself need not be visible.
+ * Returns TRUE only for finite mapped coordinates; output is success-only.
+ */
 static int GetPolarRadialLabelPosition(Graph *graphPtr, Grid *gridPtr, double radius, Point2D *pointPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -534,6 +642,17 @@ static int GetPolarRadialLabelPosition(Graph *graphPtr, Grid *gridPtr, double ra
     return FINITE(pointPtr->x) && FINITE(pointPtr->y);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Draw radial labels through a temporary screen text renderer.
+ * Allocates an X-axis major-tick snapshot and formatted tick labels, freeing
+ * each after use. A NULL formatted label terminates the loop.
+ * Borrows graph/grid/drawable and copies the relevant axis text style with
+ * rotation zero. Requires showTicks on that axis. Screen positions are rounded;
+ * the renderer is ended before returning. Formatting can evaluate Tcl; callers
+ * must retain graph lifetime. A cancelled formatter stops the loop before
+ * copied style or component resources are used again.
+ */
 static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr) {
     Axis *axisPtr;
     TextStyle style;
@@ -583,98 +702,105 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
     Rbc_RenderEnd(text);
 }
 
-static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString *dsPtr) {
+/**
+ * @ingroup polar_labels
+ * @brief Evaluate a grid label prefix while guarding the current drawing pass.
+ * Borrows an initialized default-label DString, prefix and numeric text. Appends
+ * widget path, optional domain and value to an owned prefix copy. Preserves
+ * interpreter state; errors report a background exception and keep default text.
+ * Uses the existing axis-format guard to reject recursive rendering and detect
+ * mutation. Returns NULL on invalidation, scheduling a fresh redraw; callers
+ * must free the DString and stop before accessing cached grid/style resources.
+ * The enclosing widget command or display wrapper must preserve graph lifetime.
+ */
+static char *FormatGridLabel(Graph *graphPtr, Tcl_Obj *prefixObjPtr, const char *domain,
+                            const char *value, Tcl_DString *dsPtr) {
     Tcl_Interp *interp;
-    char valueString[64];
+    Tcl_InterpState state;
+    Tcl_Obj *cmdObjPtr;
+    Tcl_Obj **objv;
+    Tcl_Size prefixObjc, objc;
     int result;
 
-    Tcl_DStringInit(dsPtr);
-    /*
-     * Keep the default representation consistent with the existing
-     * Polar labels.
-     *
-     * The callback receives this numeric part without the degree
-     * suffix so that it can easily interpret it as a number.
-     */
-    snprintf(valueString, sizeof(valueString), "%g", degrees);
-    /*
-     * Default label.
-     */
-    Tcl_DStringAppend(dsPtr, valueString, -1);
-    Tcl_DStringAppend(dsPtr, "\xC2\xB0", 2);
-    if (graphPtr->gridPtr->angleCommandObjPtr == NULL) {
+    if (prefixObjPtr == NULL) {
         return Tcl_DStringValue(dsPtr);
     }
     interp = graphPtr->interp;
-    {
-        Tcl_Size prefixObjc;
-
-        result = Tcl_ListObjLength(interp, graphPtr->gridPtr->angleCommandObjPtr, &prefixObjc);
-        /*
-         * ConfigureGraph() normally guarantees that this object has
-         * a valid list representation.  Preserve drawing if that
-         * invariant is somehow violated.
-         */
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    result = Tcl_ListObjLength(interp, prefixObjPtr, &prefixObjc);
+    if (result != TCL_OK || prefixObjc == 0) {
         if (result != TCL_OK) {
             Tcl_BackgroundException(interp, result);
-            Tcl_ResetResult(interp);
-            return Tcl_DStringValue(dsPtr);
         }
-        /*
-         * An empty command prefix selects normal formatting.
-         */
-        if (prefixObjc == 0) {
-            return Tcl_DStringValue(dsPtr);
-        }
+        Tcl_RestoreInterpState(interp, state);
+        return Tcl_DStringValue(dsPtr);
     }
-    {
-        Tcl_Obj *cmdObjPtr;
-        Tcl_Obj **objv;
-        Tcl_Size objc;
-
-        /*
-         * Never modify the Tk-managed option object itself.
-         */
-        cmdObjPtr = Tcl_DuplicateObj(graphPtr->gridPtr->angleCommandObjPtr);
-        Tcl_IncrRefCount(cmdObjPtr);
-        result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(Tk_PathName(graphPtr->tkwin), -1));
-        if (result == TCL_OK) {
-            result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(valueString, -1));
-        }
-        if (result == TCL_OK) {
-            result = Tcl_ListObjGetElements(interp, cmdObjPtr, &objc, &objv);
-        }
-        if (result == TCL_OK) {
-            Tcl_ResetResult(interp);
-            /*
-             * Match axis -command evaluation semantics.
-             */
-            result = Tcl_EvalObjv(interp, objc, objv, 0);
-        }
-        Tcl_DecrRefCount(cmdObjPtr);
-        if (result != TCL_OK) {
-            /*
-             * Formatting happens during redraw, so there is no
-             * synchronous widget command through which to return
-             * this error.
-             *
-             * Report it asynchronously and retain the default label.
-             */
-            Tcl_BackgroundException(interp, result);
-            Tcl_ResetResult(interp);
-            return Tcl_DStringValue(dsPtr);
-        }
+    cmdObjPtr = Tcl_DuplicateObj(prefixObjPtr);
+    Tcl_IncrRefCount(cmdObjPtr);
+    result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(Tk_PathName(graphPtr->tkwin), -1));
+    if (result == TCL_OK && domain != NULL) {
+        result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(domain, -1));
     }
-    /*
-     * The command result is the complete replacement label.
-     * An empty result deliberately suppresses the label.
-     */
-    Tcl_DStringSetLength(dsPtr, 0);
-    Tcl_DStringAppend(dsPtr, Tcl_GetString(Tcl_GetObjResult(interp)), -1);
-    Tcl_ResetResult(interp);
+    if (result == TCL_OK) {
+        result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(value, -1));
+    }
+    if (result == TCL_OK) {
+        result = Tcl_ListObjGetElements(interp, cmdObjPtr, &objc, &objv);
+    }
+    if (result == TCL_OK) {
+        Tcl_ResetResult(interp);
+        graphPtr->axisFormatActive = TRUE;
+        result = Tcl_EvalObjv(interp, objc, objv, 0);
+        graphPtr->axisFormatActive = FALSE;
+    }
+    Tcl_DecrRefCount(cmdObjPtr);
+    if (result != TCL_OK) {
+        Tcl_BackgroundException(interp, result);
+    } else {
+        Tcl_DStringSetLength(dsPtr, 0);
+        Tcl_DStringAppend(dsPtr, Tcl_GetString(Tcl_GetObjResult(interp)), -1);
+    }
+    Tcl_RestoreInterpState(interp, state);
+    /* No prefix, axis, grid or copied text-style resource is safe to use after
+     * a formatter invalidates the graph, even when its result was TCL_OK. */
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        Rbc_EventuallyRedrawGraph(graphPtr);
+        return NULL;
+    }
     return Tcl_DStringValue(dsPtr);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Format a degree label into a caller-released DString.
+ * Initializes dsPtr and returns its borrowed buffer. Default text is %g plus
+ * a degree sign. A nonempty command prefix receives widget path and numeric
+ * degrees in the current evaluation context. Success replaces all text, including
+ * an empty result; failure reports a background exception and retains default
+ * text. Preserves interpreter state and returns NULL if formatting invalidates the
+ * graph. Caller must still free dsPtr on NULL and abandon cached drawing state.
+ */
+static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString *dsPtr) {
+    char valueString[64];
+
+    Tcl_DStringInit(dsPtr);
+    snprintf(valueString, sizeof(valueString), "%g", degrees);
+    Tcl_DStringAppend(dsPtr, valueString, -1);
+    Tcl_DStringAppend(dsPtr, "\xC2\xB0", 2);
+    return FormatGridLabel(graphPtr, graphPtr->gridPtr->angleCommandObjPtr, NULL, valueString, dsPtr);
+}
+
+/**
+ * @ingroup polar_labels
+ * @brief Draw angular labels through a temporary screen text renderer.
+ * Reads global major angle ticks and invokes FormatPolarAngleLabel.
+ * Empty formatted strings suppress drawing.
+ * Borrows graph/grid/drawable and copies the relevant axis text style with
+ * rotation zero. Requires showTicks on that axis. Screen positions are rounded;
+ * the renderer is ended before returning. Formatting can evaluate Tcl; callers
+ * must retain graph lifetime. A cancelled formatter stops the loop before
+ * copied style or component resources are used again.
+ */
 static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double completeRadius) {
     Axis *axisPtr;
     TextStyle style;
@@ -700,6 +826,10 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
         }
         style.anchor = anchor;
         string = FormatPolarAngleLabel(graphPtr, degrees, &label);
+        if (string == NULL) {
+            Tcl_DStringFree(&label);
+            break;
+        }
         if (string[0] != '\0') {
             Rbc_RenderText(text, string, &style, ROUND(point.x), ROUND(point.y));
         }
@@ -708,6 +838,15 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
     Rbc_RenderEnd(text);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Draw the visible global polar grid labels.
+ * Returns when the global grid is missing or hidden. Borrows current mapped
+ * graph resources and the destination drawable. Does not map segments.
+ * Runs radial labels, checks Rbc_GraphCallbackValid, then chooses the circular
+ * or clipped-spoke angular layout. Inner loops stop immediately when their formatter
+ * reports invalidation; the caller retains graph record lifetime.
+ */
 void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr;
     double completeRadius;
@@ -733,6 +872,13 @@ void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
     DrawPolarAngularLabels(graphPtr, drawable, gridPtr, completeRadius);
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Convert normalized grid impedance to Cartesian reflection coordinates.
+ * Writes both output scalars using direct squared terms. Intended for validated
+ * grid values, not arbitrary external complex data: no denominator, overflow
+ * or finite-result check is provided. Owns no storage.
+ */
 static void SmithImpedanceToGamma(double resistance, double reactance, double *realPtr, double *imagPtr) {
     double denominator;
 
@@ -741,6 +887,13 @@ static void SmithImpedanceToGamma(double resistance, double reactance, double *r
     *imagPtr = (2.0 * reactance) / denominator;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Convert normalized impedance or admittance grid coordinates.
+ * Delegates to SmithImpedanceToGamma, then negates both outputs for admittance.
+ * No reference-impedance scaling is applied; inputs are already normalized.
+ * Inherits the unchecked arithmetic domain of the underlying grid helper.
+ */
 static void SmithGridValueToGamma(int admittance, double realValue, double imagValue, double *realPtr,
                                   double *imagPtr) {
     SmithImpedanceToGamma(realValue, imagValue, realPtr, imagPtr);
@@ -758,6 +911,12 @@ static void SmithGridValueToGamma(int admittance, double realValue, double imagV
     }
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Test whether linear axis bounds contain the entire Smith unit circle.
+ * Returns FALSE for missing/logarithmic axes; otherwise requires both ranges
+ * to contain [-1,1], inclusively. Does not test graph visibility or text bounds.
+ */
 static int SmithUnitCircleVisible(Grid *gridPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -777,27 +936,22 @@ static int SmithUnitCircleVisible(Grid *gridPtr) {
     return (xAxisPtr->min <= -1.0) && (xAxisPtr->max >= 1.0) && (yAxisPtr->min <= -1.0) && (yAxisPtr->max >= 1.0);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Format a normalized Smith value into a caller-released DString.
+ * Initializes dsPtr and returns its borrowed buffer. Real defaults use %g;
+ * reactive defaults add signed j notation. A nonempty prefix receives widget
+ * path, impedance/admittance domain and original signed numeric value. Empty
+ * success suppresses text; errors report a background exception and keep the
+ * default. Preserves interpreter state; returns NULL on graph invalidation. The caller
+ * frees dsPtr even on NULL and stops using cached drawing state.
+ */
 static char *FormatSmithLabel(Graph *graphPtr, Tcl_Obj *commandObjPtr, int admittance, int imaginary, double value,
                               Tcl_DString *dsPtr) {
-    Tcl_Interp *interp;
-    const char *domain;
     char valueString[64];
-    int result;
 
     Tcl_DStringInit(dsPtr);
-    /*
-     * The callback always receives the original numeric quantity.
-     * For imaginary labels this is signed:
-     *
-     *     +x / -x for impedance
-     *     +b / -b for admittance
-     *
-     * The built-in textual representation adds the "j" notation.
-     */
     snprintf(valueString, sizeof(valueString), "%g", value);
-    /*
-     * Default label.
-     */
     if (imaginary) {
         char labelString[64];
 
@@ -806,84 +960,21 @@ static char *FormatSmithLabel(Graph *graphPtr, Tcl_Obj *commandObjPtr, int admit
     } else {
         Tcl_DStringAppend(dsPtr, valueString, -1);
     }
-    if (commandObjPtr == NULL) {
-        return Tcl_DStringValue(dsPtr);
-    }
-    interp = graphPtr->interp;
-    {
-        Tcl_Size prefixObjc;
-
-        result = Tcl_ListObjLength(interp, commandObjPtr, &prefixObjc);
-        /*
-         * ConfigureGraph() normally guarantees that this object has
-         * a valid list representation.  Preserve drawing if that
-         * invariant is somehow violated.
-         */
-        if (result != TCL_OK) {
-            Tcl_BackgroundException(interp, result);
-            Tcl_ResetResult(interp);
-            return Tcl_DStringValue(dsPtr);
-        }
-        /*
-         * An empty command prefix selects normal formatting.
-         */
-        if (prefixObjc == 0) {
-            return Tcl_DStringValue(dsPtr);
-        }
-    }
-    domain = admittance ? "admittance" : "impedance";
-    {
-        Tcl_Obj *cmdObjPtr;
-        Tcl_Obj **objv;
-        Tcl_Size objc;
-
-        /*
-         * Never modify the Tk-managed option object itself.
-         */
-        cmdObjPtr = Tcl_DuplicateObj(commandObjPtr);
-        Tcl_IncrRefCount(cmdObjPtr);
-        result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(Tk_PathName(graphPtr->tkwin), -1));
-        if (result == TCL_OK) {
-            result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(domain, -1));
-        }
-        if (result == TCL_OK) {
-            result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(valueString, -1));
-        }
-        if (result == TCL_OK) {
-            result = Tcl_ListObjGetElements(interp, cmdObjPtr, &objc, &objv);
-        }
-        if (result == TCL_OK) {
-            Tcl_ResetResult(interp);
-            /*
-             * Match axis -command and Polar -anglecommand
-             * evaluation semantics.
-             */
-            result = Tcl_EvalObjv(interp, objc, objv, 0);
-        }
-        Tcl_DecrRefCount(cmdObjPtr);
-        if (result != TCL_OK) {
-            /*
-             * Formatting happens during redraw, so there is no
-             * synchronous widget command through which to return
-             * this error.
-             *
-             * Report it asynchronously and retain the default label.
-             */
-            Tcl_BackgroundException(interp, result);
-            Tcl_ResetResult(interp);
-            return Tcl_DStringValue(dsPtr);
-        }
-    }
-    /*
-     * The command result is the complete replacement label.
-     * An empty result deliberately suppresses the label.
-     */
-    Tcl_DStringSetLength(dsPtr, 0);
-    Tcl_DStringAppend(dsPtr, Tcl_GetString(Tcl_GetObjResult(interp)), -1);
-    Tcl_ResetResult(interp);
-    return Tcl_DStringValue(dsPtr);
+    return FormatGridLabel(graphPtr, commandObjPtr, admittance ? "admittance" : "impedance", valueString, dsPtr);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Draw Smith real labels through a temporary screen text renderer.
+ * Reads global real major ticks for one normalized domain and invokes
+ * FormatSmithLabel; empty strings suppress drawing. Zero values use inward
+ * horizontal anchors, other values are above/below the real axis by domain.
+ * Borrows graph/grid/drawable and copies the relevant axis text style with
+ * rotation zero. Requires showTicks on that axis. Screen positions are rounded;
+ * the renderer is ended before returning. Formatting can evaluate Tcl; callers
+ * must retain graph lifetime. A cancelled formatter stops the loop before
+ * copied style or component resources are used again.
+ */
 static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, int admittance) {
     Axis *axisPtr;
     TextStyle style;
@@ -911,6 +1002,10 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
             continue;
         }
         string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
+        if (string == NULL) {
+            Tcl_DStringFree(&label);
+            break;
+        }
         if (string[0] == '\0') {
             Tcl_DStringFree(&label);
             continue;
@@ -945,6 +1040,16 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     Rbc_RenderEnd(text);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Export radial labels through a temporary output renderer.
+ * Allocates/frees X-axis ticks and each formatted tick label; NULL formatting
+ * stops the loop. Applies the same two-pixel offset as screen drawing.
+ * Borrows the export context; ends the renderer on every return. Requires
+ * showTicks on the relevant axis and copies its style with rotation zero.
+ * Retains fractional coordinates rather than rounding as on screen. May
+ * evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context.
+ */
 static void PolarRadialLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
@@ -989,6 +1094,16 @@ static void PolarRadialLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPt
     Rbc_RenderEnd(output);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Export angular labels through a temporary output renderer.
+ * Uses global major angle ticks, the shared position/anchor helpers and
+ * FormatPolarAngleLabel; empty formatted text is omitted.
+ * Borrows the export context; ends the renderer on every return. Requires
+ * showTicks on the relevant axis and copies its style with rotation zero.
+ * Retains fractional coordinates rather than rounding as on screen. May
+ * evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context.
+ */
 static void PolarAngularLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr, double completeRadius) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
@@ -1015,6 +1130,10 @@ static void PolarAngularLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportP
         }
         style.anchor = anchor;
         string = FormatPolarAngleLabel(graphPtr, degrees, &label);
+        if (string == NULL) {
+            Tcl_DStringFree(&label);
+            break;
+        }
         if (string[0] != '\0') {
             Rbc_RenderText(output, string, &style, point.x, point.y);
         }
@@ -1023,6 +1142,15 @@ static void PolarAngularLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportP
     Rbc_RenderEnd(output);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Export the visible global polar grid labels.
+ * Returns when the global grid is missing or hidden. Borrows current mapped
+ * graph resources and the export context. Does not map segments.
+ * Runs radial labels, checks Rbc_GraphCallbackValid, then chooses the circular
+ * or clipped-spoke angular layout. Inner loops stop immediately when their formatter
+ * reports invalidation; the caller retains graph record lifetime.
+ */
 void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr;
     double completeRadius;
@@ -1039,6 +1167,13 @@ void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     PolarAngularLabelsExport(graphPtr, exportPtr, gridPtr, completeRadius);
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Write a sampled normalized resistance or conductance circle.
+ * Requires SMITH_CIRCLE_SEGMENTS writable entries and validated nonnegative
+ * resistance. Center is r/(r+1), radius 1/(r+1); admittance negates both
+ * coordinates before mapping. Allocates nothing and leaves clipping to drawing.
+ */
 static void MapSmithResistanceCircle(Graph *graphPtr, Grid *gridPtr, double resistance, int admittance,
                                      Segment2D *segments) {
     double center;
@@ -1093,6 +1228,12 @@ static Point2D SmithReactanceGamma(double reactance, double t, int admittance) {
     return point;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Screen-map one point of a normalized reactive contour.
+ * Borrows prepared axes and delegates parameter handling to SmithReactanceGamma.
+ * Returns mapped coordinates without an additional finite-result check.
+ */
 static Point2D SmithReactancePoint(Graph *graphPtr, Grid *gridPtr, double reactance, double t, int admittance) {
     Point2D point;
 
@@ -1100,6 +1241,13 @@ static Point2D SmithReactancePoint(Graph *graphPtr, Grid *gridPtr, double reacta
     return Rbc_Map2D(graphPtr, point.x, point.y, &gridPtr->axes);
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Tighten a segment parameter interval against one half-plane.
+ * Updates caller-owned enter/exit bounds, conventionally initialized to [0,1].
+ * A parallel segment is accepted iff q is nonnegative. Returns FALSE on
+ * rejection; callers must discard the accumulated interval on failure.
+ */
 static int ClipSegmentParameter(double p, double q, double *enterPtr, double *exitPtr) {
     double r;
 
@@ -1125,6 +1273,14 @@ static int ClipSegmentParameter(double p, double q, double *enterPtr, double *ex
     return TRUE;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Clip data-space segment endpoints against the selected axis rectangle.
+ * Requires prepared bounds and finite input points. Preserves segment order
+ * and writes entry/exit points on success. Missing axes, rejection or nonfinite
+ * computed outputs return FALSE; output values are only valid on TRUE.
+ * Does not map to screen coordinates or clip stroke thickness.
+ */
 static int ClipSegmentToGridViewport(Grid *gridPtr, Point2D p, Point2D q, Point2D *enterPointPtr,
                                      Point2D *exitPointPtr) {
     Axis *xAxisPtr;
@@ -1159,6 +1315,13 @@ static int ClipSegmentToGridViewport(Grid *gridPtr, Point2D p, Point2D q, Point2
     return FINITE(enterPointPtr->x) && FINITE(enterPointPtr->y) && FINITE(exitPointPtr->x) && FINITE(exitPointPtr->y);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Choose an inward anchor at a clipped contour entry point.
+ * Uses reversed local screen direction from exit to entry, compensating for
+ * downward screen Y. Degenerate segments select CENTER. No text measurement
+ * or viewport containment guarantee is made.
+ */
 static Tk_Anchor GetSmithReactiveEdgeAnchor(const Point2D *enterPtr, const Point2D *exitPtr) {
     double dx;
     double dy;
@@ -1184,6 +1347,15 @@ static Tk_Anchor GetSmithReactiveEdgeAnchor(const Point2D *enterPtr, const Point
     return GetInwardLabelAnchor(degrees);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Locate a reactive label at the unit circle or first visible contour entry.
+ * When the complete unit circle is visible, scales its r=0/g=0 point by 0.94
+ * and uses its data-angle anchor. Otherwise scans the same 90-segment contour
+ * used for drawing, clips each chord in data space, and takes the first visible
+ * entry with a screen-direction anchor. FALSE means no usable finite position;
+ * outputs are success-only. No Tcl callback or allocation occurs.
+ */
 static int GetSmithReactiveLabelPosition(Graph *graphPtr, Grid *gridPtr, double reactive, int admittance,
                                          Point2D *pointPtr, Tk_Anchor *anchorPtr) {
     if (SmithUnitCircleVisible(gridPtr)) {
@@ -1253,6 +1425,17 @@ static int GetSmithReactiveLabelPosition(Graph *graphPtr, Grid *gridPtr, double 
     return FALSE;
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Draw Smith reactive labels through a temporary screen text renderer.
+ * Formats both signs of each global major reactive magnitude for one domain.
+ * Uses GetSmithReactiveLabelPosition and skips invisible contours.
+ * Borrows graph/grid/drawable and copies the relevant axis text style with
+ * rotation zero. Requires showTicks on that axis. Screen positions are rounded;
+ * the renderer is ended before returning. Formatting can evaluate Tcl; callers
+ * must retain graph lifetime. A cancelled formatter stops the loop before
+ * copied style or component resources are used again.
+ */
 static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, int admittance) {
     Axis *axisPtr;
     TextStyle style;
@@ -1283,15 +1466,31 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
             }
             style.anchor = anchor;
             string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
+            if (string == NULL) {
+                Tcl_DStringFree(&label);
+                break;
+            }
             if (string[0] != '\0') {
                 Rbc_RenderText(text, string, &style, ROUND(point.x), ROUND(point.y));
             }
             Tcl_DStringFree(&label);
         }
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            break;
+        }
     }
     Rbc_RenderEnd(text);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Draw the visible global Smith grid labels.
+ * Returns when the global grid is missing or hidden. Borrows current mapped
+ * graph resources and the destination drawable. Does not map segments.
+ * Dispatches real then reactive labels for each selected Smith domain.
+ * Checks callback validity between phases and domains; inner loops stop on
+ * cancellation. The enclosing caller retains graph record lifetime.
+ */
 void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr;
 
@@ -1301,14 +1500,33 @@ void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {
     }
     if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         DrawSmithRealLabels(graphPtr, drawable, gridPtr, FALSE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
         DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, FALSE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
     }
     if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         DrawSmithRealLabels(graphPtr, drawable, gridPtr, TRUE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
         DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, TRUE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
     }
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Write a sampled constant-reactance or constant-susceptance contour.
+ * Requires SMITH_ARC_SEGMENTS writable entries and prepared axes. Samples
+ * t from zero to one, including the explicit infinite-real endpoint.
+ * Allocates nothing; mapping and clipping responsibilities remain separate.
+ */
 static void MapSmithReactanceArc(Graph *graphPtr, Grid *gridPtr, double reactance, int admittance,
                                  Segment2D *segments) {
     Point2D previous;
@@ -1327,6 +1545,15 @@ static void MapSmithReactanceArc(Graph *graphPtr, Grid *gridPtr, double reactanc
     }
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Allocate and publish Smith real-component circle segments.
+ * Uses global major/minor lists and domain selection with the supplied grid
+ * axes/minor policy. In both-domain mode omits admittance zero circles already
+ * represented by impedance. Requires cleared destination caches. Checked count
+ * overflow or attempted-allocation failure returns silently; successful storage
+ * is owned by gridPtr->x.
+ */
 static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
     Tcl_Size nMajor;
     Tcl_Size nMinor;
@@ -1441,6 +1668,14 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
     gridPtr->x.nSegments = index;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Allocate Smith reactive arcs and the shared real diameter.
+ * Each configured magnitude supplies positive and negative arcs in each
+ * selected domain. The zero-reactive diameter is emitted once, even when no
+ * nonzero magnitudes exist. Requires cleared caches; overflow/allocation failure
+ * leaves them unchanged. Successful storage transfers to gridPtr->y.
+ */
 static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
     Tcl_Size nMajor;
     Tcl_Size nMinor;
@@ -1526,6 +1761,13 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
     gridPtr->y.nSegments = index;
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Populate Smith grid caches for the selected global domain.
+ * Returns for missing/logarithmic axes. Requires prepared bounds, validated
+ * tick arrays and empty caches. Circle and reactive allocations are independent
+ * and can produce partial geometry on failure. Does not draw or free old data.
+ */
 void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -1539,6 +1781,16 @@ void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr) {
     MapSmithReactanceGrid(graphPtr, gridPtr);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Export Smith real labels through a temporary output renderer.
+ * Uses the selected domain and global real major ticks. Shares normalized
+ * conversion, formatting and domain-dependent offsets with screen drawing.
+ * Borrows the export context; ends the renderer on every return. Requires
+ * showTicks on the relevant axis and copies its style with rotation zero.
+ * Retains fractional coordinates rather than rounding as on screen. May
+ * evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context.
+ */
 static void SmithRealLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr, int admittance) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
@@ -1567,6 +1819,10 @@ static void SmithRealLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr,
             continue;
         }
         string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
+        if (string == NULL) {
+            Tcl_DStringFree(&label);
+            break;
+        }
         if (string[0] == '\0') {
             Tcl_DStringFree(&label);
             continue;
@@ -1597,6 +1853,16 @@ static void SmithRealLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr,
     Rbc_RenderEnd(output);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Export Smith reactive labels through a temporary output renderer.
+ * Formats both signs of global major reactive magnitudes and uses the same
+ * visible contour placement as screen drawing.
+ * Borrows the export context; ends the renderer on every return. Requires
+ * showTicks on the relevant axis and copies its style with rotation zero.
+ * Retains fractional coordinates rather than rounding as on screen. May
+ * evaluate Tcl; formatter invalidation stops traversal before cached resources are reused. Export errors remain owned by the export context.
+ */
 static void SmithReactiveLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr, int admittance) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
@@ -1628,15 +1894,31 @@ static void SmithReactiveLabelsExport(Graph *graphPtr, Rbc_ExportContext *export
             }
             style.anchor = anchor;
             string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
+            if (string == NULL) {
+                Tcl_DStringFree(&label);
+                break;
+            }
             if (string[0] != '\0') {
                 Rbc_RenderText(output, string, &style, point.x, point.y);
             }
             Tcl_DStringFree(&label);
         }
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            break;
+        }
     }
     Rbc_RenderEnd(output);
 }
 
+/**
+ * @ingroup polar_labels
+ * @brief Export the visible global Smith grid labels.
+ * Returns when the global grid is missing or hidden. Borrows current mapped
+ * graph resources and the export context. Does not map segments.
+ * Dispatches real then reactive labels for each selected Smith domain.
+ * Checks callback validity between phases and domains; inner loops stop on
+ * cancellation. The enclosing caller retains graph record lifetime.
+ */
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr;
 
@@ -1646,10 +1928,22 @@ void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     }
     if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         SmithRealLabelsExport(graphPtr, exportPtr, gridPtr, FALSE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
         SmithReactiveLabelsExport(graphPtr, exportPtr, gridPtr, FALSE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
     }
     if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         SmithRealLabelsExport(graphPtr, exportPtr, gridPtr, TRUE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
         SmithReactiveLabelsExport(graphPtr, exportPtr, gridPtr, TRUE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
     }
 }

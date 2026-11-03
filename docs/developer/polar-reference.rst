@@ -29,3 +29,12 @@ from similarly named helpers in other modules.
    :members:
 
 .. c:namespace-pop::
+
+Label placement and presentation (rbcGrPolar.c)
+------------------------------------------------
+
+The formatting helpers may execute Tcl. Their contracts describe cancellation of the current
+drawing pass when callbacks mutate or destroy its graph.
+
+.. doxygengroup:: polar_labels
+   :members:
