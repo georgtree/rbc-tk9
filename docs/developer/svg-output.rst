@@ -48,6 +48,51 @@ emit an optional background rectangle and foreground runs, and release the
 readback image. Pattern dimensions and contents use userSpaceOnUse coordinates.
 Definitions are emitted inline as needed, rather than collected in one header.
 
+Primitive geometry and paint
+----------------------------
+
+Polylines with fewer than two points and polygons with fewer than three points
+emit nothing. Independent segments are emitted as individual two-point
+polylines. A dashed stroke with an off-color emits a solid underlay first, then
+the dashed foreground. For segments, both passes finish for each segment before
+the next segment begins. Caps and joins come from retained export state; native
+GC objects are not consulted during SVG emission.
+
+Solid polygons use the even-odd fill rule and explicit fill opacity. Patterned
+polygons and arcs instead use the pattern's paint; solid-fill opacity is not
+applied to these patterns. Rectangle fills use their own optional opacity group
+around each rectangle, including patterned rectangles. These paths are not
+interchangeable opacity implementations. Keep the component's style semantics
+when reusing a primitive. A failed rectangle pattern balances the current group
+before returning, but does not roll back earlier rectangles.
+
+Arc geometry arrives normalized by the common dispatcher. Positive mathematical
+angles map upward in SVG screen coordinates. A full ellipse is represented by
+two arc commands with a close, avoiding a radial seam; a partial pieslice adds
+the center, while a chord closes directly between endpoints. ``SvgArcPath``
+leaves the path element open for its caller to append fill or stroke attributes.
+
+Background clearing paints white rather than removing alpha. Relief borders
+force Tk's lazy shadow-color allocation before reading colors, then approximate
+edges with filled geometry. Groove and ridge are composed from nested reliefs;
+flat or undersized borders retain only the requested background fill.
+
+Symbol definitions and placement
+--------------------------------
+
+Geometric symbols use their shape-specific size factors and rounding rules.
+Skinny plus/cross symbols are unfilled strokes; ordinary symbols combine fill
+and outline. Bar legend samples use translated rectangle fills with the current
+bar style. These are component conventions, not an SVG-wide rounding policy.
+
+Bitmap symbols are read back once per context and stored in a document resource.
+An explicit mask is used when a fill color is present and must match the bitmap's
+dimensions. Transparent symbols do not acquire that separate mask. Set pixels
+are encoded as unit-height horizontal vector runs, with optional mask
+intersection. Repeated symbols use translated/scaled references with a uniform
+scale that preserves aspect ratio. Readback images are temporary; the SVG
+resource and its dimensions remain cached until context destruction.
+
 Strings and error propagation
 -----------------------------
 
@@ -106,3 +151,28 @@ Validation should parse the emitted XML and exercise escaped labels, transparent
 images, repeated patterns, nested track clips, font modes and export followed by
 screen-geometry restoration. A visually correct image alone does not validate
 XML quoting, resource references or encoded binary payloads.
+
+Text placement and font finalization
+------------------------------------
+
+Embedded text first resolves characters to export faces and measures the layout.
+When Tk reports a zero-width character but the selected fallback face has a
+positive advance, the layout gains the rounded-up fallback advance; genuine
+zero-width glyphs retain their positions. Justification and rotated anchor
+placement are then recalculated. Shadow and foreground passes emit per-character
+spans, keeping Unicode text editable and registering faces on the export token.
+
+Nonembedded text obtains attributes through the global Tcl ``font actual``
+command and uses SVG ``textLength`` to preserve Tk's measured line widths. Its
+attribute result is retained while interpreter state is restored. That restores
+the Tcl result, not widget lifetime: replacing the global font command with a
+mutating script is outside this helper's resource-lifetime guarantee.
+
+``Rbc_SvgFontsFinish`` runs after drawing has registered all used faces. It hashes
+the current document and original font bytes into a deterministic family prefix,
+replaces temporary family attributes, and emits base64 Unicode font programs in
+CSS font-face definitions. This reduces family collisions between inline SVG
+documents with different character maps; it is not a security hash or a general
+namespace for clip/pattern identifiers. The operation mutates the document buffer
+and belongs to one finalization pass. Font-program failure can leave partial
+output, which the outer export command must reject.

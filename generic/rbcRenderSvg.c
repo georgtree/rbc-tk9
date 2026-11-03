@@ -36,6 +36,12 @@ static void SvgClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int he
                      id, x, y, width, height, id);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Close one rectangular clip group.
+ * Common renderer clip-depth tracking owns pairing. This appends a closing tag only; it neither
+ * updates depth nor closes the separate plot scope.
+ */
 static void SvgClipEnd(Rbc_RenderContext *ctx) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "</g>\n", (char *)NULL);
 }
@@ -93,6 +99,12 @@ static void SvgString(Rbc_ExportContext *token, const char *string, Tcl_Size len
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Append an SVG paint value.
+ * A NULL borrowed color emits none. Otherwise the high eight bits of each Tk 16-bit RGB channel form a
+ * hexadecimal color; no alpha or allocation is involved.
+ */
 static void SvgColor(Rbc_ExportContext *token, const XColor *color) {
     if (color == NULL) {
         Rbc_ExportAppend(token, "none", (char *)NULL);
@@ -101,6 +113,12 @@ static void SvgColor(Rbc_ExportContext *token, const XColor *color) {
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Append stroke attributes from retained export state.
+ * The underlay uses the off-color and omits dashes. The foreground uses the configured color, width,
+ * cap, join and bounded zero-terminated dash array. Both explicitly disable fill.
+ */
 static void SvgStrokeAttributes(Rbc_RenderContext *ctx, int underlay) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     int i;
@@ -125,6 +143,12 @@ static void SvgStrokeAttributes(Rbc_RenderContext *ctx, int underlay) {
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit a connected stroke, optionally over a solid dash background.
+ * Counts below two emit nothing. Each pass repeats the borrowed mapped points without rounding. The
+ * solid underlay precedes the dashed foreground; geometry is not retained.
+ */
 static void SvgPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     int pass, first = RENDER_EXPORT(ctx)->vectorHasOffColor && RENDER_EXPORT(ctx)->vectorDashes.values[0] ? 0 : 1;
     Tcl_Size i;
@@ -143,6 +167,12 @@ static void SvgPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit independent segments through the polyline adapter.
+ * Each borrowed segment becomes a two-point polyline, with its own underlay/foreground passes. This
+ * preserves per-segment painter order rather than batching all underlays first.
+ */
 static void SvgSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Tcl_Size i;
 
@@ -153,6 +183,12 @@ static void SvgSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit a solid even-odd polygon.
+ * Fewer than three points emit nothing. Coordinates and opacity are supplied by the caller; NULL color
+ * means no paint. This does not add an outline, clamp opacity or retain geometry.
+ */
 static void SvgPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size count, const XColor *color,
                        double opacity) {
     Tcl_Size i;
@@ -169,6 +205,12 @@ static void SvgPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size
     Rbc_ExportFormat(token, "\" fill-opacity=\"%g\" fill-rule=\"evenodd\"/>\n", opacity);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Fill a polygon with the configured solid or pattern style.
+ * Uses black when no foreground is supplied. Stipples and tiles use the context-local pattern
+ * definition without applying solid-fill opacity. A zero pattern identifier skips emission.
+ */
 static void SvgFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     XColor black;
     const XColor *foreground;
@@ -194,6 +236,14 @@ static void SvgFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Append the opening path element and ellipse arc geometry.
+ * Requires normalized mapped geometry from common arc dispatch. Screen Y is inverted relative to
+ * mathematical angles. Full revolutions use two arcs and close without a radial seam; partial chord
+ * and sector paths close according to style. The caller appends paint attributes and the element
+ * terminator.
+ */
 static void SvgArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *arc) {
     double start = arc->start * M_PI / 180.0;
     double end = (arc->start + arc->extent) * M_PI / 180.0;
@@ -218,6 +268,12 @@ static void SvgArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *ar
     Rbc_ExportAppend(token, "\"", (char *)NULL);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Stroke normalized arc geometry with optional dash underlay.
+ * Repeats the path for the solid off-color and dashed foreground when needed. Geometry remains
+ * borrowed; common dispatch validates and normalizes the arc before this callback.
+ */
 static void SvgArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     int pass, first = RENDER_EXPORT(ctx)->vectorHasOffColor && RENDER_EXPORT(ctx)->vectorDashes.values[0] ? 0 : 1;
 
@@ -228,6 +284,12 @@ static void SvgArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Fill a closed normalized arc using solid paint or a pattern.
+ * Common dispatch excludes open arcs. Pattern definitions own their paint and do not receive solid-
+ * fill opacity. A missing pattern skips the path; solid paint uses the configured foreground directly.
+ */
 static void SvgFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     unsigned int id = 0;
     const Rbc_RenderFillStyle *style = &RENDER_EXPORT(ctx)->fillStyle;
@@ -249,6 +311,12 @@ static void SvgFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc)
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Append an unoutlined solid rectangle.
+ * Nonpositive dimensions emit nothing. Double origins are preserved, dimensions are integers and NULL
+ * color emits none. No clipping or opacity is added here.
+ */
 static void SvgRectangle(Rbc_ExportContext *token, double x, double y, int width, int height, const XColor *color) {
     if (width <= 0 || height <= 0) {
         return;
@@ -258,6 +326,13 @@ static void SvgRectangle(Rbc_ExportContext *token, double x, double y, int width
     Rbc_ExportAppend(token, "\"/>\n", (char *)NULL);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit configured rectangle fills in input order.
+ * Skips nonpositive dimensions. Each rectangle may be wrapped in an opacity group and may reuse the
+ * context pattern. Pattern failure balances the current group before stopping the batch; previous
+ * output is retained.
+ */
 static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     Tcl_Size i;
 
@@ -297,6 +372,13 @@ static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
 }
 
 /* Store bitmap rows as vector runs, preserving mapped masks without screenshots. */
+/**
+ * @ingroup svg_backend
+ * @brief Encode set bitmap pixels as horizontal vector runs.
+ * Borrows readable XImages; a supplied mask must cover the same dimensions. NULL color emits nothing.
+ * Each row is scanned into unit-height closed subpaths, intersecting bits with the optional mask.
+ * Images remain owned by the caller.
+ */
 static void SvgBitmapRuns(Rbc_ExportContext *token, XImage *bits, XImage *mask, const XColor *color) {
     int x, y;
 
@@ -326,6 +408,13 @@ static void SvgBitmapRuns(Rbc_ExportContext *token, XImage *bits, XImage *mask, 
     Rbc_ExportAppend(token, "\"/>\n", (char *)NULL);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Read and define one reusable bitmap symbol.
+ * Borrows Tk bitmap handles and owns temporary XImage readbacks. An explicit mask is read only with a
+ * fill color and must match bitmap dimensions. Records readback errors, releases images on all
+ * acquired paths and caches the document ID and dimensions on success.
+ */
 static int SvgDefineBitmapSymbol(Rbc_RenderContext *ctx) {
     const Rbc_RenderSymbolStyle *style = &RENDER_EXPORT(ctx)->vectorSymbol;
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
@@ -378,6 +467,12 @@ static int SvgDefineBitmapSymbol(Rbc_RenderContext *ctx) {
 }
 
 /* PNG uses Tcl's built-in zlib; no Cairo or additional image library is needed. */
+/**
+ * @ingroup svg_backend
+ * @brief Write one unsigned word in PNG network byte order.
+ * The caller supplies four writable bytes. This only encodes the low 32 bits; it allocates nothing and
+ * performs no length validation.
+ */
 static void SvgPngWord(unsigned char *bytes, unsigned int value) {
     bytes[0] = (unsigned char)(value >> 24);
     bytes[1] = (unsigned char)(value >> 16);
@@ -385,6 +480,13 @@ static void SvgPngWord(unsigned char *bytes, unsigned int value) {
     bytes[3] = (unsigned char)value;
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Append one PNG chunk including its CRC.
+ * The caller supplies a four-byte chunk type, nonnegative 32-bit-representable length and readable
+ * data for nonempty payloads. The checksum covers type and data. The destination DString remains
+ * caller-owned.
+ */
 static void SvgPngChunk(Tcl_DString *png, const char *type, const unsigned char *data, Tcl_Size length) {
     unsigned char word[4];
     unsigned int crc;
@@ -403,6 +505,12 @@ static void SvgPngChunk(Tcl_DString *png, const char *type, const unsigned char 
     Tcl_DStringAppend(png, (const char *)word, 4);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Append padded base64 without line breaks.
+ * Borrows length readable bytes and writes directly to the export buffer in four-character groups.
+ * Empty input appends nothing; it neither retains data nor adds a URI prefix.
+ */
 static void SvgBase64(Rbc_ExportContext *token, const unsigned char *bytes, Tcl_Size length) {
     static const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     Tcl_Size i;
@@ -514,6 +622,12 @@ static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *bl
 /* Tk image types expose drawing rather than a common pixel buffer. Render
  * conventional source-over images on two mattes to recover RGB and alpha. */
 
+/**
+ * @ingroup svg_backend
+ * @brief Adapt borrowed Pix32 storage to the PNG encoder.
+ * Checks that the packed row pitch fits int, then describes actual channel offsets in a temporary Tk
+ * photo block. Encoding is synchronous; the caller retains ownership of the color image.
+ */
 static void SvgColorImage(Rbc_ExportContext *token, Rbc_ColorImage image, double x, double y) {
     Tk_PhotoImageBlock block;
 
@@ -533,6 +647,12 @@ static void SvgColorImage(Rbc_ExportContext *token, Rbc_ColorImage image, double
     SvgPhotoBlock(token, &block, x, y);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Capture a generic Tk image and encode it as PNG.
+ * Uses the shared export raster service, which records capture failures. A successful temporary color
+ * image is freed after synchronous encoding, including when encoding records an error.
+ */
 static void SvgTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
     Rbc_ColorImage captured = Rbc_RenderExportRasterImage(RENDER_EXPORT(ctx)->exportPtr, image);
 
@@ -624,6 +744,13 @@ static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foregro
     return RENDER_EXPORT(ctx)->vectorPatternId;
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit bar, bitmap or geometric symbols at borrowed centers.
+ * Bar samples use translated rectangle fills. Bitmap samples lazily define one resource and preserve
+ * aspect ratio. Geometric symbols retain shape-specific sizing and rounding; skinny plus/cross symbols
+ * have no fill. Caller-provided symbol state remains unchanged.
+ */
 static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     const Rbc_RenderSymbolStyle *style = &RENDER_EXPORT(ctx)->vectorSymbol;
     Tcl_Size i;
@@ -774,6 +901,14 @@ int Rbc_SvgFontsFinish(Rbc_ExportContext *token) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit positioned Unicode spans using embedded fallback faces.
+ * Owns a temporary Tk-derived layout. Resolves glyphs before placement, extends zero-width Tk advances
+ * when a real fallback glyph has positive advance, and recomputes justification. Shadow precedes
+ * foreground. Registers faces on the shared token and frees layout on early failure or completion;
+ * font definitions are finalized separately.
+ */
 static void SvgEmbeddedText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     TextLayout *layout;
@@ -873,6 +1008,14 @@ static void SvgEmbeddedText(Rbc_RenderContext *ctx, char *string, TextStyle *sty
     ckfree(layout);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Select embedded or system-font SVG text output.
+ * Nonembedded output evaluates the global Tcl font command, retains its attribute result across
+ * interpreter-state restoration, and owns a temporary layout. Escapes family and text, preserving Tk
+ * line widths through textLength. State restoration is not a guard against arbitrary mutations by a
+ * replaced font command; supplied widget and style resources must remain live.
+ */
 static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     Tcl_InterpState saved;
@@ -976,6 +1119,12 @@ static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
     Tcl_DecrRefCount(attributes);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Read a borrowed Tk photo and encode its current pixels.
+ * Missing handles or failed block acquisition record export errors. The block is consumed
+ * synchronously by SvgPhotoBlock; no photo reference or pixel storage is retained.
+ */
 static void SvgPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
     Tk_PhotoImageBlock block;
 
@@ -990,6 +1139,13 @@ static void SvgPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, dou
     SvgPhotoBlock(RENDER_EXPORT(ctx)->exportPtr, &block, x, y);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Capture a mapped window drawable for SVG output.
+ * Unmapped or empty windows emit nothing. A successful native color-image capture is owned temporarily
+ * and freed after encoding. The caller owns window lifetime and placement; this does not create or
+ * resize widgets.
+ */
 static void SvgWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double y) {
     Rbc_ColorImage captured;
 
@@ -1005,6 +1161,13 @@ static void SvgWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double
     Rbc_FreeColorImage(captured);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit a mapped monochrome marker mask as vector runs.
+ * Missing bitmap/color or nonpositive dimensions emit nothing. Owns and releases the XImage readback,
+ * records failure, and translates the run group to the supplied origin. The background flag is
+ * intentionally unused; the caller selects the color for each pass.
+ */
 static void SvgBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                           int height, const XColor *color, int background) {
     XImage *bits;
@@ -1024,10 +1187,23 @@ static void SvgBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
     XDestroyImage(bits);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit an opaque even-odd background polygon.
+ * Delegates borrowed geometry and color to SvgPolygon. This supplies opacity one and no outline; NULL
+ * paint remains none.
+ */
 static void SvgBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count) {
     SvgPolygon(RENDER_EXPORT(ctx)->exportPtr, points, count, color, 1.0);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Approximate a Tk 3D border with SVG rectangles and polygons.
+ * Borrows the border and forces lazy shadow-color initialization. Optional background fill precedes
+ * relief. Flat or too-small borders stop after filling; groove/ridge recurse as two half-width
+ * reliefs. Solid relief uses black edges. Dimensions must satisfy caller integer-arithmetic limits.
+ */
 static void SvgBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                       int borderWidth, int relief, int fill) {
     XColor bg, dark, light;
@@ -1068,6 +1244,12 @@ static void SvgBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, doub
     SvgPolygon(RENDER_EXPORT(ctx)->exportPtr, points, 6, top, 1.0);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Paint an opaque white rectangle.
+ * This is SVG background painting, not alpha erasure. Nonpositive dimensions are ignored by
+ * SvgRectangle and the temporary white color is consumed synchronously.
+ */
 static void SvgClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
     XColor white;
     memset(&white, 0, sizeof(white));
@@ -1075,6 +1257,12 @@ static void SvgClearRectangle(Rbc_RenderContext *ctx, double x, double y, int wi
     SvgRectangle(RENDER_EXPORT(ctx)->exportPtr, x, y, width, height, &white);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Paint background rectangles in input order.
+ * A NULL color selects opaque white clearing; otherwise the supplied color is used. Borrowed
+ * rectangles are not retained and nonpositive sizes are skipped by the rectangle helper.
+ */
 static void SvgBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color, const Rbc_RenderRectangle *rectangles,
                                     Tcl_Size count) {
     Tcl_Size i;
@@ -1088,6 +1276,13 @@ static void SvgBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Paint the plot background and open its plot clip group.
+ * NULL background means white. Emits the document-local fixed rbcPlot identifier and ignores the font
+ * argument. This scope is paired by SvgPlotEnd, independently of common rectangular clip-depth
+ * tracking.
+ */
 static void SvgPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                          const XColor *background) {
     (void)font;
@@ -1102,6 +1297,12 @@ static void SvgPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
                      x, y, width, height);
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Close the plot group opened by SvgPlotBegin.
+ * Appends one group close without changing common clip depth or finalizing the SVG document. The
+ * caller must balance plot and nested clip scopes.
+ */
 static void SvgPlotEnd(Rbc_RenderContext *ctx) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "</g>\n", (char *)NULL);
 }

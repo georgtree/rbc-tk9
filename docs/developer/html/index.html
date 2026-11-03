@@ -914,16 +914,50 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l1"><a class="reference internal" href="svg-output.html">SVG definitions and image encoding</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="svg-output.html#document-and-context-lifetime">Document and context lifetime</a></li>
 <li class="toctree-l2"><a class="reference internal" href="svg-output.html#definitions-and-scopes">Definitions and scopes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-output.html#primitive-geometry-and-paint">Primitive geometry and paint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-output.html#symbol-definitions-and-placement">Symbol definitions and placement</a></li>
 <li class="toctree-l2"><a class="reference internal" href="svg-output.html#strings-and-error-propagation">Strings and error propagation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="svg-output.html#raster-encoding">Raster encoding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="svg-output.html#text-and-integration-boundaries">Text and integration boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-output.html#text-placement-and-font-finalization">Text placement and font finalization</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="svg-reference.html">SVG backend C reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgClipBegin"><code class="docutils literal notranslate"><span class="pre">SvgClipBegin()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgClipEnd"><code class="docutils literal notranslate"><span class="pre">SvgClipEnd()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgString"><code class="docutils literal notranslate"><span class="pre">SvgString()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgColor"><code class="docutils literal notranslate"><span class="pre">SvgColor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgStrokeAttributes"><code class="docutils literal notranslate"><span class="pre">SvgStrokeAttributes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPolyline"><code class="docutils literal notranslate"><span class="pre">SvgPolyline()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgSegments"><code class="docutils literal notranslate"><span class="pre">SvgSegments()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPolygon"><code class="docutils literal notranslate"><span class="pre">SvgPolygon()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgFillPolygon"><code class="docutils literal notranslate"><span class="pre">SvgFillPolygon()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgArcPath"><code class="docutils literal notranslate"><span class="pre">SvgArcPath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgArc"><code class="docutils literal notranslate"><span class="pre">SvgArc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgFillArc"><code class="docutils literal notranslate"><span class="pre">SvgFillArc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgRectangle"><code class="docutils literal notranslate"><span class="pre">SvgRectangle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgFillRectangles"><code class="docutils literal notranslate"><span class="pre">SvgFillRectangles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgBitmapRuns"><code class="docutils literal notranslate"><span class="pre">SvgBitmapRuns()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgDefineBitmapSymbol"><code class="docutils literal notranslate"><span class="pre">SvgDefineBitmapSymbol()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPngWord"><code class="docutils literal notranslate"><span class="pre">SvgPngWord()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPngChunk"><code class="docutils literal notranslate"><span class="pre">SvgPngChunk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgBase64"><code class="docutils literal notranslate"><span class="pre">SvgBase64()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPhotoBlock"><code class="docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgColorImage"><code class="docutils literal notranslate"><span class="pre">SvgColorImage()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgTkImage"><code class="docutils literal notranslate"><span class="pre">SvgTkImage()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgFillPattern"><code class="docutils literal notranslate"><span class="pre">SvgFillPattern()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgSymbolPoints"><code class="docutils literal notranslate"><span class="pre">SvgSymbolPoints()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgEmbeddedText"><code class="docutils literal notranslate"><span class="pre">SvgEmbeddedText()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgText"><code class="docutils literal notranslate"><span class="pre">SvgText()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPhoto"><code class="docutils literal notranslate"><span class="pre">SvgPhoto()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgWindow"><code class="docutils literal notranslate"><span class="pre">SvgWindow()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgBitmapMask"><code class="docutils literal notranslate"><span class="pre">SvgBitmapMask()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgBackgroundPolygon"><code class="docutils literal notranslate"><span class="pre">SvgBackgroundPolygon()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgBorder"><code class="docutils literal notranslate"><span class="pre">SvgBorder()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgClearRectangle"><code class="docutils literal notranslate"><span class="pre">SvgClearRectangle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgBackgroundRectangles"><code class="docutils literal notranslate"><span class="pre">SvgBackgroundRectangles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPlotBegin"><code class="docutils literal notranslate"><span class="pre">SvgPlotBegin()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="svg-reference.html#c.SvgPlotEnd"><code class="docutils literal notranslate"><span class="pre">SvgPlotEnd()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="postscript-output.html">PostScript output and drawing state</a><ul>

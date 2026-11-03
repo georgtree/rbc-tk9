@@ -82,6 +82,45 @@ emit an optional background rectangle and foreground runs, and release the
 readback image. Pattern dimensions and contents use userSpaceOnUse coordinates.
 Definitions are emitted inline as needed, rather than collected in one header.</p>
 </section>
+<section id="primitive-geometry-and-paint">
+<h2>Primitive geometry and paint<a class="headerlink" href="#primitive-geometry-and-paint" title="Link to this heading">¶</a></h2>
+<p>Polylines with fewer than two points and polygons with fewer than three points
+emit nothing. Independent segments are emitted as individual two-point
+polylines. A dashed stroke with an off-color emits a solid underlay first, then
+the dashed foreground. For segments, both passes finish for each segment before
+the next segment begins. Caps and joins come from retained export state; native
+GC objects are not consulted during SVG emission.</p>
+<p>Solid polygons use the even-odd fill rule and explicit fill opacity. Patterned
+polygons and arcs instead use the pattern’s paint; solid-fill opacity is not
+applied to these patterns. Rectangle fills use their own optional opacity group
+around each rectangle, including patterned rectangles. These paths are not
+interchangeable opacity implementations. Keep the component’s style semantics
+when reusing a primitive. A failed rectangle pattern balances the current group
+before returning, but does not roll back earlier rectangles.</p>
+<p>Arc geometry arrives normalized by the common dispatcher. Positive mathematical
+angles map upward in SVG screen coordinates. A full ellipse is represented by
+two arc commands with a close, avoiding a radial seam; a partial pieslice adds
+the center, while a chord closes directly between endpoints. <code class="docutils literal notranslate"><span class="pre">SvgArcPath</span></code>
+leaves the path element open for its caller to append fill or stroke attributes.</p>
+<p>Background clearing paints white rather than removing alpha. Relief borders
+force Tk’s lazy shadow-color allocation before reading colors, then approximate
+edges with filled geometry. Groove and ridge are composed from nested reliefs;
+flat or undersized borders retain only the requested background fill.</p>
+</section>
+<section id="symbol-definitions-and-placement">
+<h2>Symbol definitions and placement<a class="headerlink" href="#symbol-definitions-and-placement" title="Link to this heading">¶</a></h2>
+<p>Geometric symbols use their shape-specific size factors and rounding rules.
+Skinny plus/cross symbols are unfilled strokes; ordinary symbols combine fill
+and outline. Bar legend samples use translated rectangle fills with the current
+bar style. These are component conventions, not an SVG-wide rounding policy.</p>
+<p>Bitmap symbols are read back once per context and stored in a document resource.
+An explicit mask is used when a fill color is present and must match the bitmap’s
+dimensions. Transparent symbols do not acquire that separate mask. Set pixels
+are encoded as unit-height horizontal vector runs, with optional mask
+intersection. Repeated symbols use translated/scaled references with a uniform
+scale that preserves aspect ratio. Readback images are temporary; the SVG
+resource and its dimensions remain cached until context destruction.</p>
+</section>
 <section id="strings-and-error-propagation">
 <h2>Strings and error propagation<a class="headerlink" href="#strings-and-error-propagation" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">SvgString</span></code> escapes ampersands, angle brackets and both quote characters.
@@ -133,6 +172,28 @@ images, repeated patterns, nested track clips, font modes and export followed by
 screen-geometry restoration. A visually correct image alone does not validate
 XML quoting, resource references or encoded binary payloads.</p>
 </section>
+<section id="text-placement-and-font-finalization">
+<h2>Text placement and font finalization<a class="headerlink" href="#text-placement-and-font-finalization" title="Link to this heading">¶</a></h2>
+<p>Embedded text first resolves characters to export faces and measures the layout.
+When Tk reports a zero-width character but the selected fallback face has a
+positive advance, the layout gains the rounded-up fallback advance; genuine
+zero-width glyphs retain their positions. Justification and rotated anchor
+placement are then recalculated. Shadow and foreground passes emit per-character
+spans, keeping Unicode text editable and registering faces on the export token.</p>
+<p>Nonembedded text obtains attributes through the global Tcl <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">actual</span></code>
+command and uses SVG <code class="docutils literal notranslate"><span class="pre">textLength</span></code> to preserve Tk’s measured line widths. Its
+attribute result is retained while interpreter state is restored. That restores
+the Tcl result, not widget lifetime: replacing the global font command with a
+mutating script is outside this helper’s resource-lifetime guarantee.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish</span></code> runs after drawing has registered all used faces. It hashes
+the current document and original font bytes into a deterministic family prefix,
+replaces temporary family attributes, and emits base64 Unicode font programs in
+CSS font-face definitions. This reduces family collisions between inline SVG
+documents with different character maps; it is not a security hash or a general
+namespace for clip/pattern identifiers. The operation mutates the document buffer
+and belongs to one finalization pass. Font-program failure can leave partial
+output, which the outer export command must reject.</p>
+</section>
 </section>
 
 
@@ -148,9 +209,12 @@ XML quoting, resource references or encoded binary payloads.</p>
 <li><a class="reference internal" href="#">SVG definitions and image encoding</a><ul>
 <li><a class="reference internal" href="#document-and-context-lifetime">Document and context lifetime</a></li>
 <li><a class="reference internal" href="#definitions-and-scopes">Definitions and scopes</a></li>
+<li><a class="reference internal" href="#primitive-geometry-and-paint">Primitive geometry and paint</a></li>
+<li><a class="reference internal" href="#symbol-definitions-and-placement">Symbol definitions and placement</a></li>
 <li><a class="reference internal" href="#strings-and-error-propagation">Strings and error propagation</a></li>
 <li><a class="reference internal" href="#raster-encoding">Raster encoding</a></li>
 <li><a class="reference internal" href="#text-and-integration-boundaries">Text and integration boundaries</a></li>
+<li><a class="reference internal" href="#text-placement-and-font-finalization">Text placement and font finalization</a></li>
 </ul>
 </li>
 </ul>
