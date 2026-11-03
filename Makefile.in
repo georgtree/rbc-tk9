@@ -391,6 +391,8 @@ $(TEST_TILE_LIB): $(PKG_OBJECTS) rbcTileTest.$(OBJEXT)
 test-image: $(TEST_IMAGE_LIB)
 	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.image.temporary.A.test` $(TESTFLAGS)
+	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.image.photo.A.test` $(TESTFLAGS)
 
 rbcImageTest.$(OBJEXT): $(srcdir)/tests/rbcImageTest.c $(srcdir)/generic/rbcImage.c $(PKG_HEADERS)
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcImageTest.c` -o $@

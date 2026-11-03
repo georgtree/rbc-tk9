@@ -198,6 +198,30 @@ matching destination sizes through a direct copy, and selects nearest-neighbour
 resizing for ``none``. Do not infer those restrictions from the lower-level C
 interfaces, which can process single-pixel dimensions.
 
+Nearest-neighbour implementation
+---------------------------------
+
+Rbc_ResizeColorImage allocates its requested result before checking whether the
+effective source region is empty. A nonempty resize precomputes separate int
+maps for output columns and rows, copies full Pix32 values, then frees both
+maps. MapNearestCoordinate truncates position*span/destinationSpan and adds the
+clamped source origin, with a final upper-edge cap. Source-region clipping uses
+subtraction from a clamped origin rather than potentially overflowing endpoint
+addition.
+
+Rbc_ResizeColorSubimage allocates only the requested region. Its maps add the
+region origin and output position in double before virtual scaling, avoiding
+signed-int coordinate addition. MapVirtualCoordinate clamps values beyond the
+virtual extent to source edges before integer conversion. Empty output returns
+before virtual-size validation; nonempty output requires positive virtual sizes.
+An empty source leaves the allocated result transparent and zeroed.
+
+The photo resize wrapper takes the destination's existing dimensions, copies
+the source region, resizes that owned snapshot, and only then writes the photo.
+It frees both temporaries even when source and destination handles are equal.
+This snapshot ordering is what permits same-photo operation; the raw mapping
+loops themselves write into independently allocated images.
+
 Maintenance checks
 ------------------
 

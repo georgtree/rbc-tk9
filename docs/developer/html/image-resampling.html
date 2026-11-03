@@ -241,6 +241,27 @@ matching destination sizes through a direct copy, and selects nearest-neighbour
 resizing for <code class="docutils literal notranslate"><span class="pre">none</span></code>. Do not infer those restrictions from the lower-level C
 interfaces, which can process single-pixel dimensions.</p>
 </section>
+<section id="nearest-neighbour-implementation">
+<h2>Nearest-neighbour implementation<a class="headerlink" href="#nearest-neighbour-implementation" title="Link to this heading">¶</a></h2>
+<p>Rbc_ResizeColorImage allocates its requested result before checking whether the
+effective source region is empty. A nonempty resize precomputes separate int
+maps for output columns and rows, copies full Pix32 values, then frees both
+maps. MapNearestCoordinate truncates position*span/destinationSpan and adds the
+clamped source origin, with a final upper-edge cap. Source-region clipping uses
+subtraction from a clamped origin rather than potentially overflowing endpoint
+addition.</p>
+<p>Rbc_ResizeColorSubimage allocates only the requested region. Its maps add the
+region origin and output position in double before virtual scaling, avoiding
+signed-int coordinate addition. MapVirtualCoordinate clamps values beyond the
+virtual extent to source edges before integer conversion. Empty output returns
+before virtual-size validation; nonempty output requires positive virtual sizes.
+An empty source leaves the allocated result transparent and zeroed.</p>
+<p>The photo resize wrapper takes the destination’s existing dimensions, copies
+the source region, resizes that owned snapshot, and only then writes the photo.
+It frees both temporaries even when source and destination handles are equal.
+This snapshot ordering is what permits same-photo operation; the raw mapping
+loops themselves write into independently allocated images.</p>
+</section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
 <p>Check rectangular and single-pixel images, zero-sized results, source-region
@@ -270,6 +291,7 @@ independent images. Verify ownership and dimensions as well as appearance.</p>
 <li><a class="reference internal" href="#alpha-and-color-space">Alpha and color space</a></li>
 <li><a class="reference internal" href="#dimensions-and-failure-policy">Dimensions and failure policy</a></li>
 <li><a class="reference internal" href="#photo-wrappers-and-command-policy">Photo wrappers and command policy</a></li>
+<li><a class="reference internal" href="#nearest-neighbour-implementation">Nearest-neighbour implementation</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 </ul>
 </li>

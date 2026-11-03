@@ -79,3 +79,18 @@ Native tiled shapes
 The mask helper reference above describes X11. Windows TileRegion and DC
 batching are described in :doc:`images-tiles` and beside their definitions;
 the default Doxygen preprocessing selects the non-Windows implementation.
+
+Storage and coordinate implementation
+--------------------------------------
+
+.. c:namespace:: rbcImageStorage
+
+.. doxygengroup:: image_storage_internals
+   :members:
+
+.. c:namespace-pop::
+
+Drawable snapshot to photo
+--------------------------
+
+.. doxygenfunction:: Rbc_SnapPhoto

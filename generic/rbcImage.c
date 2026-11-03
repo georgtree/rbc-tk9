@@ -4,6 +4,7 @@
  * @defgroup image_resample_internals Image resampling kernels and contributions
  * @defgroup image_quantize_internals RGB quantization internals
  * @defgroup image_rotation_internals Color-image rotation internals
+ * @defgroup image_storage_internals Image storage and coordinate helpers
  *
  *      This module implements image processing procedures for the rbc
  *      toolkit.
@@ -98,8 +99,14 @@ static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]);
 static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes, int nColors);
 static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[33][33][33]);
 
-ResampleFilter *rbcBoxFilterPtr; /* The ubiquitous box filter */
-
+ResampleFilter *rbcBoxFilterPtr; /**
+ * @brief Validate dimensions and calculate their size_t pixel product.
+ * @ingroup image_storage_internals
+ *
+ * Requires nonnegative dimensions; zero is valid. Panics for negative input
+ * or multiplication overflow. Returns a pixel count, not a byte count.
+ * Does not allocate storage; the allocator separately checks element size.
+ */
 static size_t GetColorImagePixelCount(int width, int height) {
     if ((width < 0) || (height < 0)) {
         Tcl_Panic("GetColorImagePixelCount: negative image dimension");
@@ -110,6 +117,15 @@ static size_t GetColorImagePixelCount(int width, int height) {
     return (size_t)width * (size_t)height;
 }
 
+/**
+ * @brief Calculate a photo-block byte displacement with wide arithmetic.
+ * @ingroup image_storage_internals
+ *
+ * Borrows a valid Tk block. Computes y*pitch + x*pixelSize in Tcl_WideInt
+ * and checks the ptrdiff_t range before conversion. Does not validate x/y
+ * against image bounds, channel offsets, or accessible storage; callers
+ * establish those conditions before adding the result to pixelPtr.
+ */
 static ptrdiff_t GetPhotoByteOffset(const Tk_PhotoImageBlock *blockPtr, int x, int y) {
     Tcl_WideInt offset;
 
@@ -120,6 +136,17 @@ static ptrdiff_t GetPhotoByteOffset(const Tk_PhotoImageBlock *blockPtr, int x, i
     return (ptrdiff_t)offset;
 }
 
+/**
+ * @brief Clamp a source origin and limit its spans to the remaining image.
+ * @ingroup image_storage_internals
+ *
+ * Reads and rewrites all four coordinate outputs. Negative image dimensions
+ * panic. Origins clamp to inclusive bounds [0,imageSize]; negative or
+ * excessive spans become the remaining distance to the edge. A negative
+ * origin does not subtract from a positive span: this is not geometric
+ * rectangle intersection. Returns true only when both resulting spans are
+ * positive. Performs no allocation or image access.
+ */
 static int ClipImageRegion(int imageWidth, int imageHeight, int *xPtr, int *yPtr, int *widthPtr, int *heightPtr) {
     int x, y;
     int width, height;
@@ -154,6 +181,15 @@ static int ClipImageRegion(int imageWidth, int imageHeight, int *xPtr, int *yPtr
     return ((width > 0) && (height > 0));
 }
 
+/**
+ * @brief Map an in-range destination position into a source interval.
+ * @ingroup image_storage_internals
+ *
+ * Requires positive span/destSpan and position in [0,destSpan). Computes
+ * position*span/destSpan in double, truncates, caps at span-1 and adds
+ * origin. Caller ensures that sum lies within the source and int range.
+ * Has no half-pixel offset, interpolation or allocation.
+ */
 static int MapNearestCoordinate(int origin, int span, int position, int destSpan) {
     int offset;
     double value;
@@ -170,6 +206,15 @@ static int MapNearestCoordinate(int origin, int span, int position, int destSpan
     return origin + offset;
 }
 
+/**
+ * @brief Map a virtual destination position to a clamped source index.
+ * @ingroup image_storage_internals
+ *
+ * Requires positive source and virtual sizes and a finite virtualPosition.
+ * Scales in double, clamps at either source edge, and truncates interior
+ * values. Allows positions outside the virtual image; those repeat edge
+ * pixels rather than producing transparent padding. Does not allocate.
+ */
 static int MapVirtualCoordinate(int srcSize, double virtualPosition, int virtualSize) {
     double value;
 
@@ -185,6 +230,12 @@ static int MapVirtualCoordinate(int srcSize, double virtualPosition, int virtual
     return (int)value;
 }
 
+/**
+ * @brief Allocate an owned row-major RGBA pixel buffer and image record.
+ * Dimensions must be nonnegative; invalid or overflowing sizes panic. Pixels
+ * start zeroed, including alpha. Release with Rbc_FreeColorImage. The returned
+ * image has no Tk image identity, reference count or change notification.
+ */
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
     struct ColorImage *imagePtr;
     size_t nPixels;
@@ -197,29 +248,25 @@ Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
     return imagePtr;
 }
 
+/**
+ * @brief Release both the pixel array and its owning image record.
+ * Requires a valid non-NULL owned image. All borrowed pixel pointers become
+ * invalid. This does not delete or modify any Tk photo used to create it.
+ */
 void Rbc_FreeColorImage(struct ColorImage *imagePtr) {
     ckfree((char *)imagePtr->bits);
     ckfree((char *)imagePtr);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Apply a gamma lookup table to RGB bytes in place, preserving alpha.
+ * @ingroup image_storage_internals
  *
- * Rbc_GetPlatformId --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      double newGamma
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows a writable valid image. newGamma must be finite and positive;
+ * invalid gamma panics. Builds a stack table with 255*pow(i/255,1/gamma),
+ * clamping and truncating each entry to a byte. Replaces RGB independently
+ * for every pixel without changing alpha, dimensions or ownership. No Tk
+ * change notification is issued for this CPU-side mutation.
  */
 void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
     size_t nPixels;
@@ -246,32 +293,12 @@ void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Replace RGB channels in place with their weighted greyscale value.
  *
- * Rbc_ColorImageToGreyscale --
- *
- *      Converts a color image to PostScript grey scale (1 component)
- *      output.  Luminosity isn't computed using the old NTSC formula,
- *
- *        Y = 0.299 * Red + 0.587 * Green + 0.114 * Blue
- *
- *      but the following
- *
- *        Y = 0.212671 * Red + 0.715160 * Green + 0.072169 * Blue
- *
- *      which better represents contemporary monitors.
- *
- * Parameters:
- *      Rbc_ColorImage image
- *
- * Results:
- *      The color image is converted to greyscale.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrow image and retain its dimensions, storage and alpha values. Apply
+ * coefficients 0.212671, 0.715160 and 0.072169 to stored RGB bytes, clamp and
+ * truncate to a byte. No gamma conversion or temporary image is involved.
  */
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image) {
     Pix32 *srcPtr;
@@ -288,6 +315,13 @@ void Rbc_ColorImageToGreyscale(Rbc_ColorImage image) {
     }
 }
 
+/**
+ * @brief Replace a borrowed Tk photo's size and pixels from an RBC image.
+ * Source ownership stays with the caller; Tk copies the block synchronously.
+ * Uses TK_PHOTO_COMPOSITE_SET, including alpha. This legacy void helper ignores
+ * return codes from Tk_PhotoSetSize and Tk_PhotoPutBlock; it does not provide a
+ * reliable success/failure status to its caller.
+ */
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandle photo) {
     Tk_PhotoImageBlock dest;
     int width, height;
@@ -312,6 +346,14 @@ void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandl
     Tk_PhotoPutBlock(interp, photo, &dest, 0, 0, width, height, TK_PHOTO_COMPOSITE_SET);
 }
 
+/**
+ * @brief Copy a clamped photo origin and limited spans into an owned image.
+ * Requires a valid photo handle. An empty effective region returns an empty image,
+ * not NULL. Negative origins clamp without reducing positive spans.
+ * Non-RGB/RGBA layouts replicate offset[0] into RGB and supply opaque alpha,
+ * matching whole-photo conversion.
+ * The result owns its pixels and must be freed with Rbc_FreeColorImage.
+ */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height) {
     Tk_PhotoImageBlock src;
     Rbc_ColorImage image;
@@ -363,7 +405,7 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
         for (row = 0; row < height; row++) {
             srcData = srcRowPtr;
             for (column = 0; column < width; column++) {
-                destPtr->rgba.red = destPtr->rgba.green = destPtr->rgba.blue = srcData[offA];
+                destPtr->rgba.red = destPtr->rgba.green = destPtr->rgba.blue = srcData[offR];
                 destPtr->rgba.alpha = (unsigned char)-1;
                 srcData += src.pixelSize;
                 destPtr++;
@@ -374,6 +416,11 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
     return image;
 }
 
+/**
+ * @brief Copy a valid Tk photo into a newly owned RBC color image.
+ * Copies pixels using the photo block's pitch and channel offsets. The result
+ * is independent of later photo changes; release it with Rbc_FreeColorImage.
+ */
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
     Rbc_ColorImage image;
     Tk_PhotoImageBlock src;
@@ -1177,35 +1224,12 @@ void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y
     Rbc_FreeColorImage(destImage);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Resize a source photo region to the destination's existing size without filtering.
  *
- * Rbc_ResizePhoto --
- *
- *      Scales the region of the source image to the size of the
- *      destination image.  This routine performs raw scaling of
- *      the image and unlike Rbc_ResamplePhoto does not handle
- *      aliasing effects from subpixel sampling. It is possible
- *      for the source and destination to be the same photo.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_PhotoHandle srcPhoto - Source photo image to scale
- *      register int x - -
- *      register int y - Region of source photo to be scaled.
- *      int width
- *      int height
- *      Tk_PhotoHandle destPhoto - Resulting scaled photo image. Scaling factors are derived from the destination
- * photo's dimensions.
- *
- * Results:
- *      The designated destination photo will contain the resampled
- *      color image. The original photo is left intact.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrow both handles. Snapshot before writing so source and destination may
+ * be the same photo. Release temporary RBC images internally. As with
+ * Rbc_ResamplePhoto(), this void wrapper does not return the Tk write status.
  */
 void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                      Tk_PhotoHandle destPhoto) {
@@ -1221,33 +1245,14 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, 
     Rbc_FreeColorImage(destImage);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Copy a source region into a newly owned image using nearest-neighbour mapping.
  *
- * Rbc_ResizeColorImage --
- *
- *      Scales the region of the source image to the size of the
- *      destination image.  This routine performs raw scaling of
- *      the image and unlike Rbc_ResamplePhoto does not perform
- *      any antialiasing.
- *
- * Parameters:
- *      Rbc_ColorImage src - Source color image to be scaled.
- *      register int x - -
- *      register int y - Region of source image to scaled.
- *      int width
- *      int height
- *      int destWidth - -
- *      int destHeight - Requested dimensions of the scaled image.
- *
- * Results:
- *      Returns the new resized color image.  The original image
- *      is left intact.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrow src. Clamp the origin to source bounds; negative or excessive spans
+ * extend to the remaining edge. Scale that effective region to destWidth by
+ * destHeight. Empty regions leave zero-initialized output. Negative destination
+ * dimensions panic; zero dimensions are allowed. Free the independent result
+ * with Rbc_FreeColorImage(). All four channels are copied unchanged.
  */
 Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                     int destHeight) {
@@ -1296,33 +1301,16 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width,
     return dest;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Sample a region of a virtually resized source without allocating the full resize.
  *
- * Rbc_ResizeColorSubimage --
- *
- *      Scales the region of the source image to the size of the
- *      destination image.  This routine performs raw scaling of
- *      the image and unlike Rbc_ResamplePhoto does not perform
- *      any antialiasing.
- *
- * Parameters:
- *      Rbc_ColorImage src - Source color image to be scaled.
- *      int regionX - -
- *      int regionY - Offset of subimage in destination.
- *      int regionWidth - -
- *      int regionHeight - Dimension of subimage.
- *      int destWidth - -
- *      int destHeight - Dimensions of the entire scaled image.
- *
- * Results:
- *      Returns the new resized color image.  The original image
- *      is left intact.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Here x and y are virtual destination coordinates, width and height are the
+ * returned region size, and destWidth/destHeight are the virtual full size.
+ * Nearest-neighbour coordinates clamp to source edges, including regions beyond
+ * the virtual image. Borrow src and free the result with Rbc_FreeColorImage().
+ * Negative region dimensions panic; empty regions return immediately. A
+ * nonempty region requires positive virtual dimensions. Empty source images
+ * leave zero-initialized output.
  */
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regionY, int regionWidth, int regionHeight,
                                        int destWidth, int destHeight) {
@@ -1373,26 +1361,15 @@ Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regi
     return dest;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return a newly owned, same-size image filtered over RGB with opaque alpha.
  *
- * Rbc_ConvolveColorImage --
- *
- *      FIXME: Boundary handling could be better (pixels
- *             are replicated). It's slow. Take boundary
- *             tests out of inner loop.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      Filter2D *filterPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow source and filter. The effective radius is max(1, (int)support).
+ * The caller supplies a row-major square kernel of (2 * radius + 1)^2 finite
+ * coefficients and a finite nonzero divisor in sum. scale is unused. Samples
+ * beyond the image repeat its edge pixels. The kernel is traversed as stored,
+ * without reversal. Release the result with Rbc_FreeColorImage(). Invalid
+ * filter metadata panics; kernel length and coefficients are not validated.
  */
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
     Rbc_ColorImage dest;
@@ -1467,34 +1444,18 @@ Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
     return dest;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Capture a drawable and optionally box-resample it into an existing photo.
  *
- * Rbc_SnapPhoto --
- *
- *      Takes a snapshot of an X drawable (pixmap or window) and
- *      writes it to an existing Tk photo image.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter to report errors back to
- *      Tk_Window tkwin
- *      Drawable drawable - Window or pixmap to be snapped
- *      int x - -
- *      int y - Offset of image from drawable origin.
- *      int width - -
- *      int height - Dimension of the drawable
- *      int destWidth - -
- *      int destHeight -Desired size of the Tk photo
- *      char *photoName - Name of an existing Tk photo image.
- *      double inputGamma
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      The named Tk photo is updated with the snapshot.
- *
- *----------------------------------------------------------------------
+ * Borrows window, drawable, interpreter and photo name. Requires positive
+ * capture dimensions, nonnegative destination dimensions and finite positive
+ * gamma; reports TCL_ERROR for invalid arguments, missing photo or failed
+ * native capture. Owns and releases captured/resampled RBC images. If sizes
+ * differ, uses the box filter on both axes. Zero destination sizes are not
+ * a request to retain the source size. Replaces the photo through the legacy
+ * void writer, whose Tk errors are not propagated; TCL_OK therefore covers
+ * capture/processing, not a checked photo-write result. Native capture and
+ * Tk photo operations must run with valid objects on their owning thread.
  */
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                   int destWidth, int destHeight, const char *photoName, double inputGamma) {

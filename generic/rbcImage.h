@@ -129,101 +129,29 @@ typedef struct {
 
 /* Prototypes of image routines */
 
-/**
- * @brief Replace RGB channels in place with their weighted greyscale value.
- *
- * Borrow image and retain its dimensions, storage and alpha values. Apply
- * coefficients 0.212671, 0.715160 and 0.072169 to stored RGB bytes, clamp and
- * truncate to a byte. No gamma conversion or temporary image is involved.
- */
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image);
-/**
- * @brief Replace a borrowed Tk photo's size and pixels from an RBC image.
- * Source ownership stays with the caller; Tk copies the block synchronously.
- * Uses TK_PHOTO_COMPOSITE_SET, including alpha. This legacy void helper ignores
- * return codes from Tk_PhotoSetSize and Tk_PhotoPutBlock; it does not provide a
- * reliable success/failure status to its caller.
- */
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage image, Tk_PhotoHandle photo);
-/**
- * @brief Return a newly owned, same-size image filtered over RGB with opaque alpha.
- *
- * Borrow source and filter. The effective radius is max(1, (int)support).
- * The caller supplies a row-major square kernel of (2 * radius + 1)^2 finite
- * coefficients and a finite nonzero divisor in sum. scale is unused. Samples
- * beyond the image repeat its edge pixels. The kernel is traversed as stored,
- * without reversal. Release the result with Rbc_FreeColorImage(). Invalid
- * filter metadata panics; kernel length and coefficients are not validated.
- */
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter);
-/**
- * @brief Allocate an owned row-major RGBA pixel buffer and image record.
- * Dimensions must be nonnegative; invalid or overflowing sizes panic. Pixels
- * start zeroed, including alpha. Release with Rbc_FreeColorImage. The returned
- * image has no Tk image identity, reference count or change notification.
- */
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height);
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma);
 int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, ResampleFilter **filterPtrPtr);
-/**
- * @brief Release both the pixel array and its owning image record.
- * Requires a valid non-NULL owned image. All borrowed pixel pointers become
- * invalid. This does not delete or modify any Tk photo used to create it.
- */
 void Rbc_FreeColorImage(Rbc_ColorImage image);
 #if HAVE_JPEG
 Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName);
 #endif
-/**
- * @brief Copy a valid Tk photo into a newly owned RBC color image.
- * Copies pixels using the photo block's pitch and channel offsets. The result
- * is independent of later photo changes; release it with Rbc_FreeColorImage.
- */
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
-/**
- * @brief Copy the clipped intersection of a photo region into an owned image.
- * Requires a valid photo handle. An empty intersection returns an empty image,
- * not NULL. The result owns its pixels and must be freed with Rbc_FreeColorImage.
- */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height);
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage image, int destWidth, int destHeight,
                                       ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
 void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                        Tk_PhotoHandle destPhoto, ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
-/**
- * @brief Copy a source region into a newly owned image using nearest-neighbour mapping.
- *
- * Borrow src. Clamp the origin to source bounds; negative or excessive spans
- * extend to the remaining edge. Scale that effective region to destWidth by
- * destHeight. Empty regions leave zero-initialized output. Negative destination
- * dimensions panic; zero dimensions are allowed. Free the independent result
- * with Rbc_FreeColorImage(). All four channels are copied unchanged.
- */
 Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                     int destHeight);
-/**
- * @brief Sample a region of a virtually resized source without allocating the full resize.
- *
- * Here x and y are virtual destination coordinates, width and height are the
- * returned region size, and destWidth/destHeight are the virtual full size.
- * Nearest-neighbour coordinates clamp to source edges, including regions beyond
- * the virtual image. Borrow src and free the result with Rbc_FreeColorImage().
- * Negative region dimensions panic; empty regions return immediately. A
- * nonempty region requires positive virtual dimensions. Empty source images
- * leave zero-initialized output.
- */
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                        int destHeight);
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage image, double theta);
-/**
- * @brief Resize a source photo region to the destination's existing size without filtering.
- *
- * Borrow both handles. Snapshot before writing so source and destination may
- * be the same photo. Release temporary RBC images internally. As with
- * Rbc_ResamplePhoto(), this void wrapper does not return the Tk write status.
- */
 void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                      Tk_PhotoHandle destPhoto);
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
