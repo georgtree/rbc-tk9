@@ -149,6 +149,84 @@ The Cairo-attempt helpers can return NULL or false. Their callers select the
 native fallback. This is distinct from invoking an unsupported operation on an
 already-created context, which is a caller error.
 
+Common dispatch and constructor state
+-------------------------------------
+
+``rbcRender.c`` supplies capability-specific screen adapters and the common
+operation wrappers. Its native context embeds ``Rbc_RenderContext`` first so
+backend callbacks can recover the enclosing record. Trace, clip and polygon
+batch records are owned; windows, drawables, GCs, tiles, styles and mapped arc
+arrays are borrowed. A bar style is copied by value, but its Tk resources are
+still borrowed.
+
+Select operations from the constructor's contract, not merely from non-NULL
+entries in its operation table. Several constructors share a table while
+initializing different state. For example, a native trace context owns trace
+scratch storage, whereas a segment-only context does not. Likewise, native
+symbol, fill, bar and arc constructors populate different fields of the shared
+geometry record. Calling a sibling operation can therefore be invalid even
+when the table contains that callback.
+
+Allocated contexts must end exactly once. ``Rbc_RenderEnd`` first unwinds
+outstanding clips, then invokes the family destructor. One-shot decoration and
+marker-detail adapters instead place a context on the stack and invoke their
+callback directly; their tables have no destructor. They must never escape the
+call or be passed to ``Rbc_RenderEnd``.
+
+Screen fallback order
+~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table:: Adapter decisions
+   :header-rows: 1
+   :widths: 24 76
+
+   * - Operation
+     - Selection and fallback
+   * - Traces and segments
+     - Try the Cairo constructor first. On failure, use a native context with
+       the caller's configured GC. Only trace construction acquires trace state.
+   * - Mapped bitmap
+     - Resolve an explicit or GC foreground and try the renderer bitmap helper.
+       If it cannot handle the bitmap, retain the native bitmap path and style.
+   * - Tk image
+     - On Cairo graphs, try a Tk photo block. Unsupported images or unsuccessful
+       rendering fall back to native image drawing.
+   * - Bar rectangles
+     - Try the renderer fill. If handled, suppress only the native fill in a
+       local style copy and retain native border drawing. Otherwise draw both
+       fill and border natively.
+   * - Polygon batch
+     - Use the platform batch when available. A missing batch, including the
+       X11 implementation, falls back to ordinary native polygon filling.
+   * - Text and narrow screen details
+     - Preserve native text, decoration, focus, copy, legend sample and marker
+       run behavior, including on Cairo graphs.
+
+A successful fallback decision is local to that operation; it does not change
+the graph's selected renderer. The adapter does not retain a Tk photo block
+beyond its synchronous call. Native marker runs similarly borrow callback data
+only for the duration of the call; this is not a general Tcl callback lifetime
+guard.
+
+Validation at dispatch boundaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The common layer is not a general argument validator. Most wrappers require a
+live context with the requested capability. Symbol and rectangle batches skip
+nonpositive counts, and polygons require at least three points, while polyline
+and segment dispatch leave count handling to their backend. Callers must retain
+the corresponding arrays and satisfy each operation's coordinate contract.
+Native text adapters truncate double coordinates to integers; they do not add
+rounding or range checks.
+
+Arc dispatch is an explicit exception: it rejects nonfinite geometry,
+nonpositive radii, zero extent and invalid styles; it reduces the start angle
+with ``fmod`` and clamps the extent to one revolution in either direction.
+A negative start angle may remain negative. Open arcs do not fill. Native arc
+contexts draw the component's borrowed, already-mapped segment and fill arrays,
+so these arrays must describe the same arc as the analytic arguments. Common
+normalization does not remap them or validate later integer conversion ranges.
+
 Document ownership
 ------------------
 

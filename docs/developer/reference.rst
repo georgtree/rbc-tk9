@@ -42,3 +42,17 @@ place function-pointer member names after the pointer declarator.
    :language: c
    :start-at: typedef struct {
    :end-at: } Rbc_RenderOps;
+
+Common screen adapters
+-----------------------
+
+These private callbacks implement the constructor families described in
+:doc:`rendering`. A populated operation table alone does not establish that a
+particular constructor initialized every callback's required state.
+
+.. c:namespace-push:: rbcRenderDispatch
+
+.. doxygengroup:: render_dispatch_internals
+   :members:
+
+.. c:namespace-pop::

@@ -95,6 +95,7 @@ proc ::rbcDocBuild::main {arguments} {
         @NATIVE_X11_SOURCE@ [doxyQuote [file join $root generic rbcRenderNativeX11.c]] \
         @NATIVE_SOURCE@ [doxyQuote [file join $root generic rbcRenderNative.c]] \
         @NATIVE_HEADER@ [doxyQuote [file join $root generic rbcRenderNative.h]] \
+        @RENDER_SOURCE@ [doxyQuote [file join $root generic rbcRender.c]] \
         @RENDER_HEADER@ [doxyQuote [file join $root generic rbcRender.h]] \
         @DISPATCH_HEADER@ [doxyQuote [file join $root generic rbcRenderInt.h]] \
         @CHAIN_HEADER@ [doxyQuote [file join $root generic rbcChain.h]] \
