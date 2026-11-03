@@ -108,3 +108,65 @@ delete requests, dependency rejection, and graph teardown. Layout changes need
 normal and inverted orientations, undersized fitted regions, scrolling,
 resizing and resized export. Reordering must also repick a stationary pointer
 after layout, without requiring a new motion event.
+
+Axis-chain synchronization and option queries
+---------------------------------------------
+
+Committing a track change and updating the displayed axis chain are separate
+steps. ``SyncTrackAxes`` removes old chain links and clears their on-screen flags,
+then rebuilds the Y-axis chain from track order and each track's configured axis
+order. Axis objects and retained references survive this relinking. The helper
+requests a world reset and deferred redraw; it does not perform layout itself.
+
+Track option metadata shares the creation specifications, but current values
+are constructed from live track fields. Consequently sash-adjusted heights and
+weights appear in later queries rather than stale creation-time Tcl objects.
+Axis queries construct names in configured order, and a negative bar mode is
+reported as inherit. These result objects do not own the referenced axes.
+
+``FreeTrack`` is a resource destructor, not a list operation. Its caller must
+first validate dependencies and detach the record. It removes bindings and local
+grid/legend resources, clears axis-to-track ownership, releases axis references,
+and frees the axis array, name and record. Reordering instead relinks existing
+records and does not use this destructor.
+
+Sash geometry and scroll fractions
+----------------------------------
+
+Sash calculations use unclipped world bounds along the physical stacking
+dimension: top/bottom normally and left/right when inverted. Visible clipped
+bounds would produce incorrect sizes for tracks partially outside the viewport.
+The helper parameter named y therefore represents the stacking coordinate, not
+necessarily a vertical screen position.
+
+In fitted mode, dragging redistributes the adjacent tracks' weight sum after
+subtracting their minimum sizes. When no space above those minima remains, the
+operation is a no-op. The computed weights must stay positive and within the
+configuration limits before either is stored. In scrolling mode, dragging
+changes only the preceding track's requested height; it does not preserve the
+pair's combined physical size. Both paths schedule remapping rather than drawing
+immediately, and pixel rounding can shift the resulting boundary by one pixel.
+
+Track-list scrolling is separate from every data-axis viewport. Fractions use
+the visible physical range and an extent no smaller than that range. A query
+ensures layout is current. Moveto addresses the total extent; a page advances
+90 percent of the visible range and a unit advances 20 pixels. Nonfinite
+requests or computed offsets are rejected before updating the stored offset.
+Fitted layout always stores a zero offset for successful scrolling requests.
+
+Notification lifetime boundary
+-------------------------------
+
+The scrollbar notifier runs after drawing and suppresses exports. It caches
+changed fractions before evaluating a duplicated command prefix, so a callback
+that triggers another draw without changing fractions does not notify forever.
+An empty prefix is a no-op after caching. Prefix syntax has already been
+validated by configuration; command existence is checked only by evaluation.
+
+The command receives first/last fractions and runs globally with the graph and
+interpreter preserved. Errors are reported as background exceptions and the
+previous interpreter state is restored. Preservation protects storage lifetime,
+not continued widget validity: the callback may destroy the graph. No graph
+fields are read after callback evaluation in this helper. The surrounding
+notification service similarly repicks stationary pointers, checks that the
+widget survived binding callbacks, then invokes scrollbar notification.

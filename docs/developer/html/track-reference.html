@@ -81,6 +81,41 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
+<dt class="sig sig-object c" id="c.SyncTrackAxes">
+<span class="target" id="group__track__ownership_1gac14bde783750e7937c790fd7f9cf70b0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SyncTrackAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SyncTrackAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild the displayed Y-axis chain in track order. </p>
+<p>Clears old chain links and on-screen flags without destroying axes, then appends each track axis in its configured order. Borrows tracks and their retained axis references. Requests a world reset and deferred redraw; caller must have committed valid ownership first. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FreeTrack">
+<span class="target" id="group__track__ownership_1ga51d1de224742cfd3c527b538c47a345e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeTrack" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one detached track and its owned resources. </p>
+<p>Removes bindings, destroys local grid and legend state, clears axis ownership and releases retained axis references. Frees the axis array, name and record. Does not unlink the track from the graph list or validate element/marker dependencies; callers perform those steps before destruction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TrackOptionIndex">
+<span class="target" id="group__track__ownership_1ga4114d6c265cfae32347dc30731e87637"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackOptionIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">obj</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackOptionIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a track option using shared component metadata. </p>
+<p>Borrows the Tcl object and option specification. Returns a standard Tcl result and writes the index on success; the shared resolver owns diagnostics and accepted option-name syntax. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TrackOption">
+<span class="target" id="group__track__ownership_1ga852a4238d2b5c356b71dfc5b92d2f0cd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TrackOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Construct the current value of a canonical track option. </p>
+<p>Returns a new unretained Tcl object, or NULL for an unknown option. Uses live weights/heights, including sash changes, and builds the axis-name list in configured order. Requires valid bar-mode state; neither caches values nor transfers axis ownership. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TrackOptionInfo">
+<span class="target" id="group__track__ownership_1gacb3763328b97a42600ad83c06fb80029"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TrackOptionInfo</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackOptionInfo" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Construct a standard five-field option description. </p>
+<p>Requires a validated specification index. Supplies TrackOption current state to the shared metadata helper, so values changed by dragging remain visible. Returns a new Tcl object; the track and static specification remain borrowed. </p>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.ConfigureTrack">
 <span class="target" id="group__track__ownership_1ga81eeb54175b4fc2a8f67425a955698dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConfigureTrack" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate option pairs and axis dependencies before committing track settings. </p>
@@ -99,6 +134,48 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 <span class="target" id="group__track__ownership_1ga9a860e7985a89b5ee1169b5023bb56f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OrderTracks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">namesObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.OrderTracks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a complete permutation, then relink existing track objects. </p>
 <p>Reject unknown, missing or duplicate names without changing the list. On success, preserve object identity and rebuild the track Y-axis display chain, marking the graph for remapping and eventual redraw. Borrow namesObj. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TrackStart">
+<span class="target" id="group__track__ownership_1gaaf55a494c6f134ff2ea69cf9c6141467"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackStart</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackStart" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read the unclipped start along the track stacking dimension. </p>
+<p>Selects worldLeft for inverted layouts and worldTop otherwise. This is physical layout geometry, not a data-axis minimum or a clipped visible boundary. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TrackEnd">
+<span class="target" id="group__track__ownership_1gabb21a4b16c4c371ac0bdbbea1373a79d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackEnd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackEnd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read the unclipped end along the track stacking dimension. </p>
+<p>Selects worldRight for inverted layouts and worldBottom otherwise. Pair with TrackStart when calculating sash gaps or full track sizes, including partly offscreen tracks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SetTrackSash">
+<span class="target" id="group__track__ownership_1gabe96e899b4ddad05c13fac7151323c84"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTrackSash</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetTrackSash" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resize at a boundary using fitted weights or scroll height. </p>
+<p>Requires a live track with a following neighbor and current layout. An unchanged coordinate is a no- op. Scroll mode changes only the first track requested height, clamped to its minimum and the height limit. Fit mode redistributes the adjacent weight sum above their minima; compressed minima cannot resize. Validates positive weights before commit, then requests remapping and redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TrackViewFractions">
+<span class="target" id="group__track__ownership_1ga3570f7cf676331c9e44d3f30a092c269"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackViewFractions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">first</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackViewFractions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute viewport fractions for the track list. </p>
+<p>Uses the physical stacking range, bounded below by one, and an extent at least that range. Clamps a local offset without changing graph state; fitted mode uses zero. Writes both output doubles and does not query or change data-axis limits. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TrackViewOp">
+<span class="target" id="group__track__ownership_1gadaf759864fe9e538f76653d620e3cb4f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackViewOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackViewOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or change the track-list scroll offset. </p>
+<p>Parses modifying requests before layout, then ensures geometry is current. Queries return two fractions. Moveto uses total extent, pages use 90 percent of the visible range and units use 20 pixels. Rejects nonfinite requested/computed offsets before commit. Fitted mode stores zero; successful mutations request a world reset and deferred redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.NotifyTrackScrollbar">
+<span class="target" id="group__track__ownership_1ga050b8b13b7bee3e81886a21bac6886ca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NotifyTrackScrollbar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.NotifyTrackScrollbar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Notify a changed track-list viewport after drawing. </p>
+<p>Skips ordinary graphs, exports, absent prefixes and unchanged fractions. Caches fractions before evaluation to suppress recursive unchanged notifications. Duplicates the validated prefix, appends fractions, preserves graph/interpreter and restores interpreter state after global evaluation. Reports failures in the background. The callback may delete the widget; no graph fields are accessed after evaluation. </p>
 </dd></dl>
 
 <dl class="c function">
@@ -128,9 +205,20 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 <li><a class="reference internal" href="#c.Rbc_DestroyTracks"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_CreateTrackComponentArgs"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateTrackComponentArgs()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_FreeTrackComponentArgs"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeTrackComponentArgs()</span></code></a></li>
+<li><a class="reference internal" href="#c.SyncTrackAxes"><code class="docutils literal notranslate"><span class="pre">SyncTrackAxes()</span></code></a></li>
+<li><a class="reference internal" href="#c.FreeTrack"><code class="docutils literal notranslate"><span class="pre">FreeTrack()</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackOptionIndex"><code class="docutils literal notranslate"><span class="pre">TrackOptionIndex()</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackOption"><code class="docutils literal notranslate"><span class="pre">TrackOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackOptionInfo"><code class="docutils literal notranslate"><span class="pre">TrackOptionInfo()</span></code></a></li>
 <li><a class="reference internal" href="#c.ConfigureTrack"><code class="docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a></li>
 <li><a class="reference internal" href="#c.InitTrackOptions"><code class="docutils literal notranslate"><span class="pre">InitTrackOptions()</span></code></a></li>
 <li><a class="reference internal" href="#c.OrderTracks"><code class="docutils literal notranslate"><span class="pre">OrderTracks()</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackStart"><code class="docutils literal notranslate"><span class="pre">TrackStart()</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackEnd"><code class="docutils literal notranslate"><span class="pre">TrackEnd()</span></code></a></li>
+<li><a class="reference internal" href="#c.SetTrackSash"><code class="docutils literal notranslate"><span class="pre">SetTrackSash()</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackViewFractions"><code class="docutils literal notranslate"><span class="pre">TrackViewFractions()</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackViewOp"><code class="docutils literal notranslate"><span class="pre">TrackViewOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.NotifyTrackScrollbar"><code class="docutils literal notranslate"><span class="pre">NotifyTrackScrollbar()</span></code></a></li>
 <li><a class="reference internal" href="#c.DeleteTracks"><code class="docutils literal notranslate"><span class="pre">DeleteTracks()</span></code></a></li>
 </ul>
 </li>

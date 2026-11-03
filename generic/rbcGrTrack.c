@@ -182,6 +182,13 @@ void Rbc_LayoutTracks(Graph *graphPtr) {
 }
 
 /* Keep track-owned Y axes in layout order, independent of orientation. */
+/**
+ * @ingroup track_ownership
+ * @brief Rebuild the displayed Y-axis chain in track order.
+ * Clears old chain links and on-screen flags without destroying axes, then appends each track axis in
+ * its configured order. Borrows tracks and their retained axis references. Requests a world reset and
+ * deferred redraw; caller must have committed valid ownership first.
+ */
 static void SyncTrackAxes(Graph *graphPtr) {
     Rbc_Chain *chain = graphPtr->axisChain[1];
     Rbc_ChainLink *link;
@@ -206,6 +213,13 @@ static void SyncTrackAxes(Graph *graphPtr) {
     Rbc_EventuallyRedrawGraph(graphPtr);
 }
 
+/**
+ * @ingroup track_ownership
+ * @brief Release one detached track and its owned resources.
+ * Removes bindings, destroys local grid and legend state, clears axis ownership and releases retained
+ * axis references. Frees the axis array, name and record. Does not unlink the track from the graph
+ * list or validate element/marker dependencies; callers perform those steps before destruction.
+ */
 static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
     Tcl_Size i;
     if (graphPtr->bindTable != NULL) {
@@ -225,10 +239,23 @@ static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
 }
 
 /* Share option names and metadata with creation defaults. */
+/**
+ * @ingroup track_ownership
+ * @brief Resolve a track option using shared component metadata.
+ * Borrows the Tcl object and option specification. Returns a standard Tcl result and writes the index
+ * on success; the shared resolver owns diagnostics and accepted option-name syntax.
+ */
 static int TrackOptionIndex(Tcl_Interp *interp, Tcl_Obj *obj, int *indexPtr) {
     return Rbc_GetComponentOptionIndex(interp, obj, trackOptionSpecs, "track option", indexPtr);
 }
 
+/**
+ * @ingroup track_ownership
+ * @brief Construct the current value of a canonical track option.
+ * Returns a new unretained Tcl object, or NULL for an unknown option. Uses live weights/heights,
+ * including sash changes, and builds the axis-name list in configured order. Requires valid bar-mode
+ * state; neither caches values nor transfers axis ownership.
+ */
 static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
     Tcl_Obj *result;
     Tcl_Size i;
@@ -257,6 +284,13 @@ static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
 
 /* Standard Tk five-field descriptions; current values come from live track
  * state, including heights/weights changed by separator dragging. */
+/**
+ * @ingroup track_ownership
+ * @brief Construct a standard five-field option description.
+ * Requires a validated specification index. Supplies TrackOption current state to the shared metadata
+ * helper, so values changed by dragging remain visible. Returns a new Tcl object; the track and static
+ * specification remain borrowed.
+ */
 static Tcl_Obj *TrackOptionInfo(RbcTrack *track, int index) {
     const Tk_OptionSpec *spec = trackOptionSpecs + index;
     return Rbc_GetComponentOptionInfo(spec, TrackOption(track, spec->optionName));
@@ -545,10 +579,22 @@ static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
 }
 
 /* Physical limits along the dimension divided between tracks. */
+/**
+ * @ingroup track_ownership
+ * @brief Read the unclipped start along the track stacking dimension.
+ * Selects worldLeft for inverted layouts and worldTop otherwise. This is physical layout geometry, not
+ * a data-axis minimum or a clipped visible boundary.
+ */
 static int TrackStart(Graph *graphPtr, RbcTrack *track) {
     return graphPtr->inverted ? track->worldLeft : track->worldTop;
 }
 
+/**
+ * @ingroup track_ownership
+ * @brief Read the unclipped end along the track stacking dimension.
+ * Selects worldRight for inverted layouts and worldBottom otherwise. Pair with TrackStart when
+ * calculating sash gaps or full track sizes, including partly offscreen tracks.
+ */
 static int TrackEnd(Graph *graphPtr, RbcTrack *track) {
     return graphPtr->inverted ? track->worldRight : track->worldBottom;
 }
@@ -607,6 +653,14 @@ void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportConte
 
 /* Move a separator by changing only adjacent weights, preserving their sum.
  * Integer rounding may move a boundary by one pixel. Compressed minima cannot resize. */
+/**
+ * @ingroup track_ownership
+ * @brief Resize at a boundary using fitted weights or scroll height.
+ * Requires a live track with a following neighbor and current layout. An unchanged coordinate is a no-
+ * op. Scroll mode changes only the first track requested height, clamped to its minimum and the height
+ * limit. Fit mode redistributes the adjacent weight sum above their minima; compressed minima cannot
+ * resize. Validates positive weights before commit, then requests remapping and redraw.
+ */
 static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
     RbcTrack *next = track->next;
     double pairHeight, extra, height, ratio, sum, first, second;
@@ -646,6 +700,13 @@ static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
 }
 
 /* Fractions describe the list viewport, independently of all data-axis limits. */
+/**
+ * @ingroup track_ownership
+ * @brief Compute viewport fractions for the track list.
+ * Uses the physical stacking range, bounded below by one, and an extent at least that range. Clamps a
+ * local offset without changing graph state; fitted mode uses zero. Writes both output doubles and
+ * does not query or change data-axis limits.
+ */
 static void TrackViewFractions(Graph *graphPtr, double *first, double *last) {
     double range = MAX(1, graphPtr->inverted ? graphPtr->hRange : graphPtr->vRange);
     double total = MAX(range, graphPtr->trackExtent);
@@ -654,6 +715,14 @@ static void TrackViewFractions(Graph *graphPtr, double *first, double *last) {
     *last = (offset + range) / total;
 }
 
+/**
+ * @ingroup track_ownership
+ * @brief Query or change the track-list scroll offset.
+ * Parses modifying requests before layout, then ensures geometry is current. Queries return two
+ * fractions. Moveto uses total extent, pages use 90 percent of the visible range and units use 20
+ * pixels. Rejects nonfinite requested/computed offsets before commit. Fitted mode stores zero;
+ * successful mutations request a world reset and deferred redraw.
+ */
 static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double first, last, value, offset;
     double range;
@@ -692,6 +761,15 @@ static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /* Run the scrollbar prefix only after drawing, with no subsequent graph access.
  * Cache before evaluation so a callback-triggered redraw does not notify forever. */
+/**
+ * @ingroup track_ownership
+ * @brief Notify a changed track-list viewport after drawing.
+ * Skips ordinary graphs, exports, absent prefixes and unchanged fractions. Caches fractions before
+ * evaluation to suppress recursive unchanged notifications. Duplicates the validated prefix, appends
+ * fractions, preserves graph/interpreter and restores interpreter state after global evaluation.
+ * Reports failures in the background. The callback may delete the widget; no graph fields are accessed
+ * after evaluation.
+ */
 static void NotifyTrackScrollbar(Graph *graphPtr) {
     Tcl_Obj *command;
     Tcl_Interp *interp = graphPtr->interp;
