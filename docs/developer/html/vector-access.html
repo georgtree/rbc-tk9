@@ -98,6 +98,70 @@ values: doubles for real storage and two-double lists for complex storage.
 They do not validate storage bounds. <code class="docutils literal notranslate"><span class="pre">Rbc_GetValues</span></code> uses an inclusive interval
 and returns an empty list for a reversed interval.</p>
 </section>
+<section id="index-parsing-branches-and-caller-obligations">
+<h2>Index parsing branches and caller obligations<a class="headerlink" href="#index-parsing-branches-and-caller-obligations" title="Link to this heading">¶</a></h2>
+<p>The index parser distinguishes several forms before applying ordinary numeric
+bounds checks:</p>
+<ul class="simple">
+<li><p>Empty strings are rejected.</p></li>
+<li><p>Strings beginning with <code class="docutils literal notranslate"><span class="pre">e</span></code> go through Tcl’s end-index parser. These forms
+require a nonempty vector and a result within its current storage bounds,
+regardless of <code class="docutils literal notranslate"><span class="pre">INDEX_CHECK</span></code>. They do not subtract the external offset.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">++end</span></code> returns the storage length, including zero for an empty vector.
+It is an append position, not a readable element.</p></li>
+<li><p>Registered special names are recognized only when a procedure-output pointer
+is supplied. The parser returns <code class="docutils literal notranslate"><span class="pre">SPECIAL_INDEX</span></code> and the procedure pointer;
+it does not call the procedure.</p></li>
+<li><p>Other strings first try integer conversion, then Tcl expression evaluation.
+The resulting external integer is converted to storage coordinates by
+subtracting the current offset, with checks against negative results and
+signed overflow. <code class="docutils literal notranslate"><span class="pre">INDEX_CHECK</span></code> adds the upper-bound check.</p></li>
+</ul>
+<p>For example, a length-three vector with offset 10 maps numeric index <code class="docutils literal notranslate"><span class="pre">11</span></code>
+to storage index 1, <code class="docutils literal notranslate"><span class="pre">end</span></code> to storage index 2, and <code class="docutils literal notranslate"><span class="pre">++end</span></code> to storage index
+3. A numeric index above the end can be accepted without <code class="docutils literal notranslate"><span class="pre">INDEX_CHECK</span></code>;
+that does not authorize the caller to read it. Failed conversion leaves the
+index output unchanged, while the optional procedure output is cleared on entry.</p>
+<p>The colon-range parser splits at the first colon when <code class="docutils literal notranslate"><span class="pre">INDEX_COLON</span></code> is set.
+It does not parse a Tcl expression grammar to locate that separator. An omitted
+lower endpoint is storage zero. An omitted upper endpoint is length minus one,
+or zero for an empty vector. Thus <code class="docutils literal notranslate"><span class="pre">:</span></code> on an empty vector is not a valid
+one-element storage interval: consumers must handle emptiness explicitly.
+Registered special procedures apply only to single-index parsing, not range
+endpoints.</p>
+<p>Endpoints are staged locally before selection is committed. This prevents a
+partial parser commit, but does not undo effects of Tcl index expressions.
+The vector’s selection is shared mutable state, not part of a separately owned
+view. Retaining the object protects its record across callbacks; it does not
+freeze its length, offset, selection or values. Consumers must validate the
+state they require after callback-capable parsing.</p>
+</section>
+<section id="finite-extrema-and-low-level-writes">
+<h2>Finite extrema and low-level writes<a class="headerlink" href="#finite-extrema-and-low-level-writes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateRange</span></code> scans the whole real vector, independently of its
+selection or external offset. It ignores both infinities and NaNs, keeps the
+first storage index for tied minima/maxima, and clears <code class="docutils literal notranslate"><span class="pre">UPDATE_RANGE</span></code> after
+installing the cache. Empty and entirely nonfinite vectors use NaN bounds and
+indices of -1. Complex vectors use that same cache representation rather than
+ordering complex values.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetRange</span></code> rejects complex vectors without writing its outputs.
+For real vectors it recomputes only an invalid cache and returns the bounds;
+NaN bounds for an empty/nonfinite vector are a successful result. Both output
+pointers are required. Neither helper publishes an update.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ReplicateValue</span></code> is deliberately a low-level real-storage loop. Its caller
+must validate type, writability and bounds, then invalidate or maintain extrema
+and publish the change. It does not perform these steps itself. Likewise,
+<code class="docutils literal notranslate"><span class="pre">Rbc_GetValues</span></code> copies a validated inclusive storage interval into independent
+Tcl values; it neither applies the external offset nor alters selection.</p>
+<p>A full <code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClients</span></code> invalidates extrema before scheduling a
+notification. <code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClientsRange</span></code> instead attempts to maintain
+real extrema from the changed interval. It can do this when the previous
+extrema were not overwritten and the old cache is valid; otherwise the next
+range query must scan the whole vector. Invalid notification bounds become a
+full update. Neither publication helper flushes mapped arrays or enforces
+read-only state. Immediate observers can destroy the vector, so a caller that
+continues accessing it must preserve and revalidate the object.</p>
+</section>
 </section>
 
 
@@ -114,6 +178,8 @@ and returns an empty list for a reversed interval.</p>
 <li><a class="reference internal" href="#names-and-selections">Names and selections</a></li>
 <li><a class="reference internal" href="#mapped-arrays">Mapped arrays</a></li>
 <li><a class="reference internal" href="#value-objects">Value objects</a></li>
+<li><a class="reference internal" href="#index-parsing-branches-and-caller-obligations">Index parsing branches and caller obligations</a></li>
+<li><a class="reference internal" href="#finite-extrema-and-low-level-writes">Finite extrema and low-level writes</a></li>
 </ul>
 </li>
 </ul>

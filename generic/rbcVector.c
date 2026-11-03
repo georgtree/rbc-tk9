@@ -239,6 +239,13 @@ static char *VectorTraceError(Tcl_Obj *objPtr) {
     return (char *)objPtr;
 }
 
+/**
+ * @brief Read cached finite extrema of a real vector.
+ * Requires a live vector and two non-NULL output pointers. Returns TCL_ERROR for complex vectors
+ * without changing outputs. Recomputes whole-vector extrema only when UPDATE_RANGE is set, otherwise
+ * uses the cache. Empty or entirely nonfinite real vectors return TCL_OK with NaN bounds. Does not use
+ * the current selection, flush mapped arrays or notify observers.
+ */
 int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr) {
     VectorObject *vPtr;
 
@@ -2257,23 +2264,12 @@ int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorO
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VectorUpdateRange --
- *
- *      TODO: Description
- *
- * Parameters:
- *      VectorObject *vPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @brief Recompute whole-vector finite extrema and their first indices.
+ * Scans real storage in ascending index order, ignores NaNs and infinities, and keeps the earliest
+ * index on equal extrema. Empty or entirely nonfinite real vectors, and all complex vectors, receive
+ * NaN bounds and indices -1. Clears UPDATE_RANGE after installing the cache. Requires live valid
+ * storage; does not change values, selection, dirty count or notifications.
  */
 void Rbc_VectorUpdateRange(VectorObject *vPtr) {
     double min;
@@ -2327,32 +2323,17 @@ void Rbc_VectorUpdateRange(VectorObject *vPtr) {
     vPtr->notifyFlags &= ~UPDATE_RANGE;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VectorGetIndex --
- *
- *      Converts the string representing an index in the vector to
- *      its numeric value.  A valid index may be an numeric string or
- *      the string "end" (indicating the last element in the string).
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      VectorObject *vPtr
- *      const char *string
- *      int *indexPtr - index to convert
- *      int flags
- *      Rbc_VectorIndexProc **procPtrPtr
- *
- * Results:
- *      A standard Tcl result.  If the string is a valid index, TCL_OK
- *      is returned.  Otherwise TCL_ERROR is returned and
- *      the interpreter result will contain an error message.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @brief Translate an external index with optional Tcl expression evaluation.
+ * Requires a live vector, NUL-terminated string and output index. Clears an optional special-procedure
+ * output initially. Empty input fails; end-prefixed forms use Tcl_GetIntForIndex and always check
+ * bounds; ++end returns length. Registered special names are recognized only with a procedure output
+ * and return SPECIAL_INDEX without calling the procedure. Other input is parsed as Tcl_Size or
+ * evaluated in the owning interpreter, then subtracts the current external offset with overflow
+ * checks. INDEX_CHECK enforces the upper bound for ordinary numeric indices. Retains
+ * vector/interpreter during evaluation and rejects deletion; a NULL diagnostic interpreter does not
+ * disable evaluation. Writes indexPtr only on success. Callers must distinguish append/special indices
+ * from dereferenceable storage indices.
  */
 int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *indexPtr, int flags,
                        Rbc_VectorIndexProc **procPtrPtr) {
@@ -2515,31 +2496,15 @@ static int GetVectorIndexFromSpan(Tcl_Interp *interp, VectorObject *vPtr, const 
     return result;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VectorGetIndexRange --
- *
- *      Converts the string representing of an index in the vector to
- *      its numeric value.  A valid index may be an numeric string or
- *      the string "end" (indicating the last element in the string).
- *
- * Parameters:
- *      Tcl_Interp *interp - The interpreter to return results to
- *      VectorObject *vPtr - The vector object to get the range from
- *      const char *string - The index in the vector to convert
- *      int flags - The flags for special cases
- *      Rbc_VectorIndexProc **procPtrPtr - The index procedure
- *
- * Results:
- *      A standard Tcl result.  If the string is a valid index, TCL_OK
- *      is returned.  Otherwise TCL_ERROR is returned and
- *      the interpreter result will contain an error message.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @brief Parse and commit an inclusive shared selection.
+ * With INDEX_COLON uses the first colon as the separator; omitted endpoints mean storage zero and the
+ * current final index, with zero used for an empty upper endpoint. Otherwise parses one index and sets
+ * both endpoints. Range endpoints do not accept registered special procedures. Does not modify the
+ * input buffer. Parses endpoints into locals, validates ordering and, for a nonempty checked vector,
+ * current bounds before committing first/last. Expression callbacks may themselves change selection,
+ * values or length and are not rolled back. Returns a Tcl status. This helper does not turn empty,
+ * append or special selections into valid storage intervals; callers validate before accessing data.
  */
 int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int flags,
                             Rbc_VectorIndexProc **procPtrPtr) {
@@ -2605,30 +2570,15 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VectorParseElement --
- *
- *      Resolves the longest existing vector name at a balanced boundary,
- *      then parses an optional index/range suffix. Literal parentheses are
- *      part of the name; exact names take precedence over range syntax.
- *
- * Parameters:
- *      Tcl_Interp *interp - Optional interpreter for error reporting.
- *      VectorInterpData *dataPtr - Interpreter-specific vector registry.
- *      const char *start - Vector reference, possibly followed by expression text.
- *      const char **endPtr - Optional address receiving the first unconsumed character.
- *      int flags - Namespace search flags.
- *
- * Results:
- *      The vector object, or NULL on lookup/range failure.
- *
- * Side effects:
- *      Sets first/last to the selected range on success; a failed range
- *      restores the previous selection. The input string is never modified.
- *
- * ----------------------------------------------------------------------
+/**
+ * @brief Resolve the longest registered name and optional balanced selection.
+ * Searches balanced name boundaries using the requested namespace flags, so exact literal
+ * parenthesized names take precedence over range suffixes. Defaults to the whole-vector selection,
+ * then parses any following parenthesized range from a retained copy while preserving the vector
+ * record. Restores the previous selection on range failure if the vector survives. With endPtr returns
+ * a borrowed pointer into the original string for expression parsing; without it rejects trailing text
+ * and restores selection. Returns a borrowed vector or NULL. Does not modify the input, create a slice
+ * object or retain the result for later callbacks.
  */
 VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start,
                                      const char **endPtr, int flags) {
@@ -2816,6 +2766,13 @@ static void InvalidateVectorRange(VectorObject *vPtr) {
     vPtr->notifyFlags |= UPDATE_RANGE;
 }
 
+/**
+ * @brief Invalidate global extrema and schedule a full update.
+ * Requires a live vector record. Invalidates cached bounds and their indices before delegating to the
+ * notification scheduler. Does not alter storage, check writability or flush mapped arrays. Immediate
+ * notification may execute callbacks and destroy the vector before return; callers needing further
+ * access must preserve and revalidate it.
+ */
 void Rbc_VectorUpdateClients(VectorObject *vPtr) {
     InvalidateVectorRange(vPtr);
     ScheduleVectorUpdate(vPtr, TRUE, 0, 0);
@@ -2900,6 +2857,15 @@ static int UpdateVectorRangeForChangedRange(VectorObject *vPtr, Tcl_Size first, 
     return TRUE;
 }
 
+/**
+ * @brief Publish an inclusive changed interval with incremental extrema maintenance.
+ * Requires a live vector whose caller has already changed only the stated storage interval. Invalid or
+ * reversed bounds delegate to a full update. Valid real intervals update cached extrema when untouched
+ * old extrema suffice, otherwise invalidate the cache for a later full scan. Schedules a ranged
+ * notification for valid intervals, including complex vectors. Does not enforce writability, change
+ * storage or flush arrays. Immediate callbacks may destroy the vector; no vector access follows
+ * scheduling.
+ */
 void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
     if ((first < 0) || (last < first) || (last >= vPtr->length)) {
         Rbc_VectorUpdateClients(vPtr);
@@ -3285,26 +3251,12 @@ static VectorObject *FindVectorInNamespace(VectorInterpData *dataPtr, Tcl_Namesp
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetValues --
- *
- *      Return a list containing the values of the vector
- *
- * Parameters:
- *      VectorObject *vPtr
- *      int first
- *      int last
- *
- * Results:
- *      Returns a Tcl_Obj pointer to a list of doubles
- *      representing the values of the vector.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+/**
+ * @brief Copy an inclusive storage interval into a Tcl list.
+ * Requires live storage and caller-validated bounds. Appends a newly copied scalar or complex pair for
+ * each zero-based index, without consulting the external offset or changing selection. Returns a new
+ * reference-count-zero list, empty for a reversed interval. No storage is shared with the returned
+ * values and no observers are notified.
  */
 Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
     Tcl_Size i;
@@ -3317,26 +3269,12 @@ Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
     return listObjPtr;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_ReplicateValue --
- *
- *      Sets the value into the array from the first to last index.
- *
- * Parameters:
- *      VectorObject *vPtr - The vector to replicate values on
- *      int first - The start index to replicate into
- *      int last - The end index to replicate into
- *      double value - The value to replicate
- *
- * Results:
- *      None.
- *
- * Side effects:
- *       Sets new value for vector from first to last.
- *
- * ----------------------------------------------------------------------
+/**
+ * @brief Overwrite an inclusive interval of real storage.
+ * Requires a live real vector, writable destination and valid zero-based bounds, all checked by the
+ * caller. Reversed intervals do no work. Performs only direct assignments: does not enforce read-only
+ * state, resize, invalidate extrema, flush mapped arrays, increment dirty or notify clients. Callers
+ * must publish the change separately.
  */
 void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value) {
     Tcl_Size i;

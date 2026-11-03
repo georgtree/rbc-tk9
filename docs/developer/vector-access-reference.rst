@@ -24,3 +24,7 @@ These declarations are private to RBC. See :doc:`vector-access`.
 .. doxygenfunction:: Rbc_GetValues
 
 .. doxygenfunction:: Rbc_VectorSortIndex
+
+.. doxygenfunction:: Rbc_ReplicateValue
+
+.. doxygenfunction:: Rbc_VectorUpdateRange

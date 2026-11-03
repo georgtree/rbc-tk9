@@ -244,8 +244,11 @@ The nonzero result is a flag mask, not necessarily 1. It is not a test for all p
 <dt class="sig sig-object c" id="c.Rbc_VectorGetRange">
 <span class="target" id="rbc_vector_8h_1ab8492906ecb646ae4db48e4081ed3854"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetRange</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Get cached finite extrema of a real vector, recomputing if necessary. </p>
+<p>Read cached finite extrema of a real vector.</p>
 <p>
-Empty vectors and vectors without finite values return NaN extrema. </p>
+Empty vectors and vectors without finite values return NaN extrema.</p>
+<p>Get cached finite extrema of a real vector, recomputing if necessary.</p>
+<p>Requires a live vector and two non-NULL output pointers. Returns TCL_ERROR for complex vectors without changing outputs. Recomputes whole-vector extrema only when UPDATE_RANGE is set, otherwise uses the cache. Empty or entirely nonfinite real vectors return TCL_OK with NaN bounds. Does not use the current selection, flush mapped arrays or notify observers. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -267,8 +270,11 @@ Empty vectors and vectors without finite values return NaN extrema. </p>
 <dt class="sig sig-object c" id="c.Rbc_VectorUpdateClients">
 <span class="target" id="rbc_vector_int_8h_1ac01b2957267c836b1ed5ac22f43c8c6c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorUpdateClients</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorUpdateClients" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invalidate extrema and report a full/unknown data change internally. </p>
+<p>Invalidate global extrema and schedule a full update.</p>
 <p>
-Increments the dirty counter and follows the vector’s notification policy. Immediate policy invokes callbacks before return. Does not flush the mapped Tcl array cache or check read-only state; mutation code owns those steps. </p>
+Increments the dirty counter and follows the vector’s notification policy. Immediate policy invokes callbacks before return. Does not flush the mapped Tcl array cache or check read-only state; mutation code owns those steps.</p>
+<p>Invalidate extrema and report a full/unknown data change internally.</p>
+<p>Requires a live vector record. Invalidates cached bounds and their indices before delegating to the notification scheduler. Does not alter storage, check writability or flush mapped arrays. Immediate notification may execute callbacks and destroy the vector before return; callers needing further access must preserve and revalidate it. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -282,8 +288,11 @@ Increments the dirty counter and follows the vector’s notification policy. Imm
 <dt class="sig sig-object c" id="c.Rbc_VectorUpdateClientsRange">
 <span class="target" id="rbc_vector_int_8h_1a4b606a3c76a3b7758eb9ebafaff11c87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorUpdateClientsRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorUpdateClientsRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Report changed existing storage using inclusive zero-based indices. </p>
+<p>Publish an inclusive changed interval with incremental extrema maintenance.</p>
 <p>
-Invalid intervals become full updates. Valid intervals coalesce until delivery; real extrema are maintained incrementally when possible. Does not change length/ownership, flush array caches or enforce read-only state. </p>
+Invalid intervals become full updates. Valid intervals coalesce until delivery; real extrema are maintained incrementally when possible. Does not change length/ownership, flush array caches or enforce read-only state.</p>
+<p>Report changed existing storage using inclusive zero-based indices.</p>
+<p>Requires a live vector whose caller has already changed only the stated storage interval. Invalid or reversed bounds delegate to a full update. Valid real intervals update cached extrema when untouched old extrema suffice, otherwise invalidate the cache for a later full scan. Schedules a ranged notification for valid intervals, including complex vectors. Does not enforce writability, change storage or flush arrays. Immediate callbacks may destroy the vector; no vector access follows scheduling. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

@@ -65,3 +65,74 @@ The output helpers return new reference-count-zero Tcl objects containing copied
 values: doubles for real storage and two-double lists for complex storage.
 They do not validate storage bounds. ``Rbc_GetValues`` uses an inclusive interval
 and returns an empty list for a reversed interval.
+
+Index parsing branches and caller obligations
+---------------------------------------------
+
+The index parser distinguishes several forms before applying ordinary numeric
+bounds checks:
+
+* Empty strings are rejected.
+* Strings beginning with ``e`` go through Tcl's end-index parser. These forms
+  require a nonempty vector and a result within its current storage bounds,
+  regardless of ``INDEX_CHECK``. They do not subtract the external offset.
+* ``++end`` returns the storage length, including zero for an empty vector.
+  It is an append position, not a readable element.
+* Registered special names are recognized only when a procedure-output pointer
+  is supplied. The parser returns ``SPECIAL_INDEX`` and the procedure pointer;
+  it does not call the procedure.
+* Other strings first try integer conversion, then Tcl expression evaluation.
+  The resulting external integer is converted to storage coordinates by
+  subtracting the current offset, with checks against negative results and
+  signed overflow. ``INDEX_CHECK`` adds the upper-bound check.
+
+For example, a length-three vector with offset 10 maps numeric index ``11``
+to storage index 1, ``end`` to storage index 2, and ``++end`` to storage index
+3. A numeric index above the end can be accepted without ``INDEX_CHECK``;
+that does not authorize the caller to read it. Failed conversion leaves the
+index output unchanged, while the optional procedure output is cleared on entry.
+
+The colon-range parser splits at the first colon when ``INDEX_COLON`` is set.
+It does not parse a Tcl expression grammar to locate that separator. An omitted
+lower endpoint is storage zero. An omitted upper endpoint is length minus one,
+or zero for an empty vector. Thus ``:`` on an empty vector is not a valid
+one-element storage interval: consumers must handle emptiness explicitly.
+Registered special procedures apply only to single-index parsing, not range
+endpoints.
+
+Endpoints are staged locally before selection is committed. This prevents a
+partial parser commit, but does not undo effects of Tcl index expressions.
+The vector's selection is shared mutable state, not part of a separately owned
+view. Retaining the object protects its record across callbacks; it does not
+freeze its length, offset, selection or values. Consumers must validate the
+state they require after callback-capable parsing.
+
+Finite extrema and low-level writes
+-----------------------------------
+
+``Rbc_VectorUpdateRange`` scans the whole real vector, independently of its
+selection or external offset. It ignores both infinities and NaNs, keeps the
+first storage index for tied minima/maxima, and clears ``UPDATE_RANGE`` after
+installing the cache. Empty and entirely nonfinite vectors use NaN bounds and
+indices of -1. Complex vectors use that same cache representation rather than
+ordering complex values.
+
+``Rbc_VectorGetRange`` rejects complex vectors without writing its outputs.
+For real vectors it recomputes only an invalid cache and returns the bounds;
+NaN bounds for an empty/nonfinite vector are a successful result. Both output
+pointers are required. Neither helper publishes an update.
+
+``Rbc_ReplicateValue`` is deliberately a low-level real-storage loop. Its caller
+must validate type, writability and bounds, then invalidate or maintain extrema
+and publish the change. It does not perform these steps itself. Likewise,
+``Rbc_GetValues`` copies a validated inclusive storage interval into independent
+Tcl values; it neither applies the external offset nor alters selection.
+
+A full ``Rbc_VectorUpdateClients`` invalidates extrema before scheduling a
+notification. ``Rbc_VectorUpdateClientsRange`` instead attempts to maintain
+real extrema from the changed interval. It can do this when the previous
+extrema were not overwritten and the old cache is valid; otherwise the next
+range query must scan the whole vector. Invalid notification bounds become a
+full update. Neither publication helper flushes mapped arrays or enforces
+read-only state. Immediate observers can destroy the vector, so a caller that
+continues accessing it must preserve and revalidate the object.
