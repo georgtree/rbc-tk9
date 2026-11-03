@@ -66,6 +66,41 @@ They are not substitutes for installed public stub entries. See
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.VectorAlive">
+<span class="target" id="group__vector__storage__private_1ga11060dbef3c46d62bb5ff0a09e77edb4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorAlive</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorAlive" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Check logical liveness of a retained vector record. </p>
+<p>The caller must already protect storage lifetime; this cannot validate an arbitrary pointer. Rejects destruction or interpreter deletion with RBC VECTOR DESTROYED. Does not check writability, name identity or numeric storage stability. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ReleaseVectorStorage">
+<span class="target" id="group__vector__storage__private_1ga1b3ca3d8c8022b59c4cfd823303c93fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseVectorStorage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReleaseVectorStorage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release detached numeric storage according to its ownership policy. </p>
+<p>NULL storage and TCL_STATIC require no action; TCL_DYNAMIC uses ckfree. A custom release callback runs with the outer interpreter state saved and restored. The caller must install the completed replacement contract before calling, and separately protect record/interpreter lifetime across arbitrary callback code. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PublishVectorChange">
+<span class="target" id="group__vector__storage__private_1ga610f0ac1487d85e8654b80535577ccc5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PublishVectorChange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">all</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PublishVectorChange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Publish an update while retaining the original vector identity. </p>
+<p>Preserves vector and interpreter, saves interpreter state, optionally flushes mapped-array cache, then rechecks liveness before notifying all data or an inclusive interval. Callbacks may delete or replace the vector; this never resolves a replacement by name. Restores state and releases both records before returning. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CheckResizedVector">
+<span class="target" id="group__vector__storage__private_1gacb9be26b5dedbb4443be38da5d4e04d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckResizedVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CheckResizedVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate a writable resize destination after callback activity. </p>
+<p>Requires a retained record. Checks liveness and read-only state, then compares data pointer, length, capacity and full-vector selection against the caller snapshot. Reports RBC VECTOR CHANGED on layout mismatch. Does not prove that numeric values remained unchanged or that no same-layout mutation occurred. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.VectorTraceError">
+<span class="target" id="group__vector__storage__private_1gac92cbc61de9eefab2aac0e75de56034b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">VectorTraceError</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorTraceError" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Retain a Tcl object as a variable-trace error result. </p>
+<p>Increments the supplied object reference and returns it through the legacy char pointer signature. Valid only with traces registered using TCL_TRACE_RESULT_OBJECT, which tells Tcl to consume an object rather than interpret the pointer as message bytes. </p>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.ZeroVectorElements">
 <span class="target" id="group__vector__storage__private_1ga66f2408898b303ccb790d553eb8f6c3e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ZeroVectorElements</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ZeroVectorElements" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Zero the half-open interval [first,last) of typed storage. </p>
@@ -143,10 +178,38 @@ They are not substitutes for installed public stub entries. See
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.VectorNotifyClients">
+<span class="target" id="group__vector__storage__private_1ga13bcc650910a8730d1e491f5f92d6837"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorNotifyClients</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorNotifyClients" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Deliver a snapshot of vector observers with stable update metadata. </p>
+<p>Preserves vector, interpreter and snapshotted client IDs, not chain links. Clears pending update state before invoking callbacks. New clients wait for a later notification; detached or reassigned IDs are skipped and destruction stops remaining update callbacks. Temporarily installs the event interval on each client and restores its outer interval after nested delivery. Releases every retained ID even when delivery stops early. </p>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorChangeLength">
 <span class="target" id="group__vector__storage__private_1ga8bf46aba1ddb536dc8e1396ed596d029"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorChangeLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorChangeLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resize typed storage without publishing a change to clients. </p>
 <p>Checks writability and a nonnegative length. Chooses a capacity starting at DEF_ARRAY_SIZE and doubling to fit, with overflow protection. Reuses an equal capacity allocation; otherwise copies the retained prefix into new storage. Zeros added values and installs length/capacity, selection 0..length-1 and invalid extrema before releasing old owned storage. Zero length releases storage. Does not flush or notify. Retains the record and interpreter across custom release; returns TCL_ERROR if it destroys, protects or changes the installed storage/selection. Such errors do not roll back the commit or callback effects. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ScheduleVectorUpdate">
+<span class="target" id="group__vector__storage__private_1ga6724e7adf326832994fbd857e2c9d1be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScheduleVectorUpdate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">all</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ScheduleVectorUpdate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coalesce changed intervals and apply the notification policy. </p>
+<p>Destroyed vectors are ignored. Increments dirty even when notifications are disabled. A full update supersedes interval metadata; ranged updates merge inclusive endpoints. Immediate mode can invoke callbacks before return; idle mode queues at most one pending callback. Does not itself invalidate or recompute extrema. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.InvalidateVectorRange">
+<span class="target" id="group__vector__storage__private_1gab07ade781d883c8a8ed5a68e640339d4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvalidateVectorRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InvalidateVectorRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mark cached extrema as requiring recomputation. </p>
+<p>Stores NaN bounds and negative indices, then sets UPDATE_RANGE. Does not inspect numeric data, increment dirty or schedule observers; callers separately publish the change. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.UpdateVectorRangeForChangedRange">
+<span class="target" id="group__vector__storage__private_1ga181ccd619ea53e4cef82906ae68b7012"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UpdateVectorRangeForChangedRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.UpdateVectorRangeForChangedRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Maintain exact real-vector extrema after a bounded modification. </p>
+<p>Requires a real vector whose caller has already changed only the stated inclusive interval. Returns FALSE without committing when the cache is invalid, bounds are invalid, an old extremum was touched or cache state is inconsistent. Otherwise scans only changed finite values, retaining the earliest index on equal extrema, and commits the exact cache. TRUE also covers a vector with no finite values. </p>
 </dd></dl>
 
 <dl class="c function">
@@ -174,6 +237,11 @@ They are not substitutes for installed public stub entries. See
 <li><a class="reference internal" href="#">Vector storage private C reference</a><ul>
 <li><a class="reference internal" href="#c.VectorElementSize"><code class="docutils literal notranslate"><span class="pre">VectorElementSize()</span></code></a></li>
 <li><a class="reference internal" href="#c.GetVectorByteCount"><code class="docutils literal notranslate"><span class="pre">GetVectorByteCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorAlive"><code class="docutils literal notranslate"><span class="pre">VectorAlive()</span></code></a></li>
+<li><a class="reference internal" href="#c.ReleaseVectorStorage"><code class="docutils literal notranslate"><span class="pre">ReleaseVectorStorage()</span></code></a></li>
+<li><a class="reference internal" href="#c.PublishVectorChange"><code class="docutils literal notranslate"><span class="pre">PublishVectorChange()</span></code></a></li>
+<li><a class="reference internal" href="#c.CheckResizedVector"><code class="docutils literal notranslate"><span class="pre">CheckResizedVector()</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorTraceError"><code class="docutils literal notranslate"><span class="pre">VectorTraceError()</span></code></a></li>
 <li><a class="reference internal" href="#c.ZeroVectorElements"><code class="docutils literal notranslate"><span class="pre">ZeroVectorElements()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_VectorGetInterpData"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetInterpData()</span></code></a></li>
 <li><a class="reference internal" href="#c.VectorInterpDeleteProc"><code class="docutils literal notranslate"><span class="pre">VectorInterpDeleteProc()</span></code></a></li>
@@ -185,7 +253,11 @@ They are not substitutes for installed public stub entries. See
 <li><a class="reference internal" href="#c.Rbc_VectorDuplicate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorDuplicate()</span></code></a></li>
 <li><a class="reference internal" href="#c.ResetVectorStorage"><code class="docutils literal notranslate"><span class="pre">ResetVectorStorage()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_VectorReset"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorReset()</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorNotifyClients"><code class="docutils literal notranslate"><span class="pre">VectorNotifyClients()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_VectorChangeLength"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangeLength()</span></code></a></li>
+<li><a class="reference internal" href="#c.ScheduleVectorUpdate"><code class="docutils literal notranslate"><span class="pre">ScheduleVectorUpdate()</span></code></a></li>
+<li><a class="reference internal" href="#c.InvalidateVectorRange"><code class="docutils literal notranslate"><span class="pre">InvalidateVectorRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.UpdateVectorRangeForChangedRange"><code class="docutils literal notranslate"><span class="pre">UpdateVectorRangeForChangedRange()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_CreateVector2"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector2()</span></code></a></li>
 </ul>
 </li>

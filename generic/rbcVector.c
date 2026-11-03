@@ -145,7 +145,13 @@ static int GetVectorByteCount(Tcl_Interp *interp, Rbc_VectorType type, Tcl_Size 
     return TCL_OK;
 }
 
-/* Callers pass retained records, not arbitrary potentially freed pointers. */
+/**
+ * @ingroup vector_storage_private
+ * @brief Check logical liveness of a retained vector record.
+ * The caller must already protect storage lifetime; this cannot validate an arbitrary pointer. Rejects
+ * destruction or interpreter deletion with RBC VECTOR DESTROYED. Does not check writability, name
+ * identity or numeric storage stability.
+ */
 static int VectorAlive(VectorObject *vPtr) {
     if (vPtr->destroying || Tcl_InterpDeleted(vPtr->interp)) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector was destroyed during callback", -1));
@@ -155,8 +161,14 @@ static int VectorAlive(VectorObject *vPtr) {
     return TCL_OK;
 }
 
-/* The completed storage contract is installed before invoking this callback.
- * Preserve the outer Tcl result, including error options, across user code. */
+/**
+ * @ingroup vector_storage_private
+ * @brief Release detached numeric storage according to its ownership policy.
+ * NULL storage and TCL_STATIC require no action; TCL_DYNAMIC uses ckfree. A custom release callback
+ * runs with the outer interpreter state saved and restored. The caller must install the completed
+ * replacement contract before calling, and separately protect record/interpreter lifetime across
+ * arbitrary callback code.
+ */
 static void ReleaseVectorStorage(Tcl_Interp *interp, void *data, Tcl_FreeProc *freeProc) {
     if (data != NULL && freeProc != TCL_STATIC) {
         if (freeProc == TCL_DYNAMIC) ckfree(data);
@@ -168,8 +180,14 @@ static void ReleaseVectorStorage(Tcl_Interp *interp, void *data, Tcl_FreeProc *f
     }
 }
 
-/* Cache traces and observers may delete or replace the vector. Keep the
- * original identity, and never continue on a replacement found by name. */
+/**
+ * @ingroup vector_storage_private
+ * @brief Publish an update while retaining the original vector identity.
+ * Preserves vector and interpreter, saves interpreter state, optionally flushes mapped-array cache,
+ * then rechecks liveness before notifying all data or an inclusive interval. Callbacks may delete or
+ * replace the vector; this never resolves a replacement by name. Restores state and releases both
+ * records before returning.
+ */
 static void PublishVectorChange(VectorObject *vPtr, int all, Tcl_Size first, Tcl_Size last) {
     Tcl_Interp *interp = vPtr->interp;
     Tcl_InterpState state;
@@ -189,8 +207,14 @@ static void PublishVectorChange(VectorObject *vPtr, int all, Tcl_Size first, Tcl
     Tcl_Release(interp);
 }
 
-/* Internal resize callers often continue filling the result. Reject a changed
- * layout or newly protected destination instead of letting them use stale bounds. */
+/**
+ * @ingroup vector_storage_private
+ * @brief Validate a writable resize destination after callback activity.
+ * Requires a retained record. Checks liveness and read-only state, then compares data pointer, length,
+ * capacity and full-vector selection against the caller snapshot. Reports RBC VECTOR CHANGED on layout
+ * mismatch. Does not prove that numeric values remained unchanged or that no same-layout mutation
+ * occurred.
+ */
 static int CheckResizedVector(VectorObject *vPtr, void *data, Tcl_Size length, Tcl_Size size) {
     if (VectorAlive(vPtr) != TCL_OK) return TCL_ERROR;
     if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) return TCL_ERROR;
@@ -203,6 +227,13 @@ static int CheckResizedVector(VectorObject *vPtr, void *data, Tcl_Size length, T
     return TCL_OK;
 }
 
+/**
+ * @ingroup vector_storage_private
+ * @brief Retain a Tcl object as a variable-trace error result.
+ * Increments the supplied object reference and returns it through the legacy char pointer signature.
+ * Valid only with traces registered using TCL_TRACE_RESULT_OBJECT, which tells Tcl to consume an
+ * object rather than interpret the pointer as message bytes.
+ */
 static char *VectorTraceError(Tcl_Obj *objPtr) {
     Tcl_IncrRefCount(objPtr);
     return (char *)objPtr;
@@ -2020,27 +2051,14 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
     return ResetVectorStorage(vPtr, valueArr, length, size, freeProc);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * VectorNotifyClients --
- *
- *      Notifies each client of the vector that the vector has changed
- *      (updated or destroyed) by calling the provided function back.
- *      The function pointer may be NULL, in that case the client is
- *      not notified.
- *
- * Parameters:
- *      ClientData clientData
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The results depend upon what actions the client callbacks
- *      take.
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Deliver a snapshot of vector observers with stable update metadata.
+ * Preserves vector, interpreter and snapshotted client IDs, not chain links. Clears pending update
+ * state before invoking callbacks. New clients wait for a later notification; detached or reassigned
+ * IDs are skipped and destruction stops remaining update callbacks. Temporarily installs the event
+ * interval on each client and restores its outer interval after nested delivery. Releases every
+ * retained ID even when delivery stops early.
  */
 static void VectorNotifyClients(ClientData clientData) {
     VectorObject *vPtr = clientData;
@@ -2798,19 +2816,13 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
     return vPtr;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * ScheduleVectorUpdate --
- *
- *      Records an update and arranges for vector clients to be
- *      notified according to the vector's notification policy.
- *
- *      A ranged update may be coalesced with another ranged update
- *      while an idle notification is pending.  An unknown/full update
- *      supersedes all ranged information.
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Coalesce changed intervals and apply the notification policy.
+ * Destroyed vectors are ignored. Increments dirty even when notifications are disabled. A full update
+ * supersedes interval metadata; ranged updates merge inclusive endpoints. Immediate mode can invoke
+ * callbacks before return; idle mode queues at most one pending callback. Does not itself invalidate
+ * or recompute extrema.
  */
 static void ScheduleVectorUpdate(VectorObject *vPtr, int all, Tcl_Size first, Tcl_Size last) {
     if (vPtr->destroying) {
@@ -2848,6 +2860,12 @@ static void ScheduleVectorUpdate(VectorObject *vPtr, int all, Tcl_Size first, Tc
     }
 }
 
+/**
+ * @ingroup vector_storage_private
+ * @brief Mark cached extrema as requiring recomputation.
+ * Stores NaN bounds and negative indices, then sets UPDATE_RANGE. Does not inspect numeric data,
+ * increment dirty or schedule observers; callers separately publish the change.
+ */
 static void InvalidateVectorRange(VectorObject *vPtr) {
     vPtr->min = vPtr->max = rbcNaN;
     vPtr->minIndex = vPtr->maxIndex = -1;
@@ -2859,25 +2877,14 @@ void Rbc_VectorUpdateClients(VectorObject *vPtr) {
     ScheduleVectorUpdate(vPtr, TRUE, 0, 0);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * UpdateVectorRangeForChangedRange --
- *
- *      Maintains the cached global range after the caller has already
- *      modified an exact inclusive source range.
- *
- *      If the changed range did not contain either cached global
- *      extremum, only the changed source values need to be examined.
- *
- *      If an old extremum was touched, a complete scan is required
- *      because another equal extremum may or may not exist elsewhere.
- *
- * Results:
- *      TRUE if the cached range remains exact.
- *      FALSE if a complete range recomputation is required.
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Maintain exact real-vector extrema after a bounded modification.
+ * Requires a real vector whose caller has already changed only the stated inclusive interval. Returns
+ * FALSE without committing when the cache is invalid, bounds are invalid, an old extremum was touched
+ * or cache state is inconsistent. Otherwise scans only changed finite values, retaining the earliest
+ * index on equal extrema, and commits the exact cache. TRUE also covers a vector with no finite
+ * values.
  */
 static int UpdateVectorRangeForChangedRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
     double min;

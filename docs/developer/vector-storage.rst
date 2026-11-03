@@ -188,3 +188,75 @@ replacement command are rejected without overwriting that command.
 These protections require a valid pointer at entry. They cannot validate a
 pointer already freed by an earlier call, intercept native pointer writes, or
 make cross-thread access safe.
+
+Post-callback checks and publication
+------------------------------------
+
+A retained vector record can be logically destroyed while its memory remains
+available. ``VectorAlive`` checks that distinction and interpreter deletion;
+it is not a guard for arbitrary pointers. ``CheckResizedVector`` additionally
+checks writability, numeric storage identity, length, capacity and full-vector
+selection after a callback. These checks protect subsequent writes using saved
+bounds. They do not detect every mutation: a callback can change values while
+leaving the same storage layout in place.
+
+Storage release and change publication have separate roles. The completed
+replacement storage contract must be installed before ``ReleaseVectorStorage``
+invokes a custom free callback. Static storage is left alone and dynamic storage
+uses the allocator directly. Saving the Tcl interpreter state around custom
+release preserves the outer result, but the caller still owns lifetime protection
+and post-callback validity checks.
+
+``PublishVectorChange`` preserves the original vector and interpreter, optionally
+flushes mapped-array cache, and rechecks logical liveness before notifying
+observers. It does not look up the name again: a callback-created vector with
+the same name is a different object. Interpreter result restoration does not
+roll back mutations made by callbacks.
+
+Observer snapshots and interval scope
+-------------------------------------
+
+Notification snapshots and preserves client IDs rather than linked-list nodes.
+A callback may unlink itself or another client, add observers, or destroy the
+vector. Delivery checks that each ID is still valid and attached to the original
+server before calling it. New observers do not join the current snapshot, and
+vector destruction stops the remaining update callbacks. All retained IDs are
+released even after early termination.
+
+The pending interval is copied locally and cleared before callbacks start.
+Each client temporarily receives that event's full/ranged metadata. Nested
+immediate notifications save and restore this per-client metadata, so querying
+the interval after nested delivery returns the outer event's interval again.
+The vector's accumulating pending state and a client's currently delivered
+interval are therefore distinct records.
+
+``ScheduleVectorUpdate`` merges inclusive ranged intervals; a full update
+supersedes them. Immediate policy delivers before the scheduling call returns,
+while idle policy keeps at most one queued notification. Disabled notification
+still increments the dirty generation. This helper does not maintain extrema:
+callers invalidate or update the range before scheduling observers.
+
+Incremental extrema maintenance
+--------------------------------
+
+For a real vector, an exact changed interval can preserve the cached global
+range without scanning unaffected data. If either cached extremum index was
+overwritten, a full recomputation is required even when another equal value
+might exist elsewhere. Invalid intervals or inconsistent cache state likewise
+fall back to recomputation.
+
+Otherwise only changed finite values are scanned. Equal extrema retain the
+lowest index, and the no-finite-values state uses NaN bounds with negative
+indices. A successful incremental update commits both values and indices.
+Invalidation instead marks the cache dirty and stores those sentinel values;
+it does not itself notify observers. Correctness depends on callers reporting
+all modified indices, not merely the subset that changed visibly on a graph.
+
+Variable-trace errors use Tcl object results
+--------------------------------------------
+
+``VectorTraceError`` returns a retained Tcl object through the historical
+``char *`` trace callback signature. RBC registers these traces with
+``TCL_TRACE_RESULT_OBJECT``; Tcl therefore treats the return value as an object,
+not a C string. Removing that registration flag or reusing the helper for a
+string-result trace would violate the ownership and representation contract.
