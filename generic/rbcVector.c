@@ -283,24 +283,14 @@ static void ZeroVectorElements(Rbc_VectorType type, VectorData data, Tcl_Size fi
     }
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_VectorInit --
- *
- *      This procedure is invoked to initialize the "vector" command.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Creates the new command and adds a new entry into a global Tcl
- *      associative array.
- *
- * ------------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Register the vector ensemble and standalone simplifier.
+ * Initializes the shared NaN value and obtains interpreter-local registry data. Creates rbc::vector,
+ * ensures its command namespace exists, then registers rbc::vector::simplify. Returns TCL_ERROR if
+ * namespace creation fails, otherwise TCL_OK. Registration is not transactional: an already installed
+ * ensemble is not removed on that error. Registry cleanup belongs to the interpreter associated-data
+ * delete procedure.
  */
 int Rbc_VectorInit(Tcl_Interp *interp) {
     VectorInterpData *dataPtr; /* Interpreter-specific data. */
@@ -334,20 +324,16 @@ static void VectorRenameTrace(ClientData clientData, Tcl_Interp *interp, const c
     }
 }
 
-/*
- * -----------------------------------------------------------------------
- * VectorRenameObjCmd --
- *
- *      Rename a whole vector and its instance command without replacing its
- *      C object, storage or clients. Names are literal (not slice syntax).
- *      The mapped array variable keeps its existing name and association.
- *
- * Results:
- *      TCL_OK with the qualified destination name, or TCL_ERROR. Collisions
- *      are rejected before mutation. User command traces may themselves
- *      mutate/delete commands; detect these changes rather than use stale
- *      pointers or overwrite a vector created by a trace.
- * -----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Rename vector identity and its command without copying storage.
+ * Resolves a literal source name and an existing destination namespace, validates the destination
+ * tail, and rejects registry or command collisions. A canonical unchanged name succeeds immediately.
+ * If an instance command exists, invokes global ::rename with a temporary command trace to detect
+ * deletion and recursive rename, then verifies the surviving command name. Rechecks registry collision
+ * before moving the hash entry. Retains the same vector, storage, clients and mapped-array
+ * association; the array name is not changed. Returns the qualified destination name. User trace
+ * effects and an already completed command rename are not rolled back if a later check fails.
  */
 static int VectorRenameObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = clientData;
@@ -892,6 +878,18 @@ static Tcl_Size ParseVectorType(void *clientData, Tcl_Interp *interp, Tcl_Size o
     return 1;
 }
 
+/**
+ * @ingroup vector_storage_private
+ * @brief Parse vector creation options and process names sequentially.
+ * Borrows ensemble arguments and owns the parsed name array, work string and result object. Prechecks
+ * existing candidate vectors for read-only state before processing names. Exact registered names take
+ * precedence over legacy numeric size/range suffixes; -literal disables suffix interpretation.
+ * Explicit type changes are rejected. Real names without parentheses receive default array mappings;
+ * complex or parenthesized names do not. Positive requested lengths resize storage; zero does not
+ * truncate an existing vector. Retains each returned vector and interpreter across resize and
+ * publication, checks liveness, and returns the last qualified name. Later failures do not roll back
+ * earlier creations, reconfiguration or callback effects.
+ */
 static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = clientData;
     VectorObject *vPtr;
@@ -1152,26 +1150,13 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * VectorDestroyObjCmd --
- *
- *      processes the Tcl 'vector destroy' command
- *
- * Parameters:
- *      ClientData clientData - Interpreter-specific data.
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Destroy named vectors in argument order.
+ * Uses the range-aware lookup helper, then destroys the entire returned vector, not only its selected
+ * interval. Stops on the first lookup error; earlier destruction and observer side effects remain. No
+ * names is a successful no-op. Read-only state protects data mutation, not destruction. Lookup and
+ * destruction may run callbacks; this handler does not stage or retain all targets in advance.
  */
 static int VectorDestroyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     /* Not Implemented Correctly */
@@ -1188,28 +1173,15 @@ static int VectorDestroyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Si
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * VectorExprObjCmd --
- *
- *      Computes the result of the expression which may be
- *      either a scalar (single value) or vector (list of values).
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      With -name, creates a vector with the evaluated numeric type and
- *      transfers the temporary storage. Existing vectors are never replaced.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Evaluate an expression as Tcl values or a newly named vector.
+ * Without -name delegates directly to Rbc_ExprVector. Named output resolves an existing destination
+ * namespace and rejects vector or command collisions before evaluation and again afterward. Evaluates
+ * once into an owned temporary, creates an unmapped vector of the resulting type, and transfers its
+ * storage without Tcl-list conversion. A final `#auto` component requests generated naming. Returns the
+ * qualified new name; never overwrites an existing vector. Frees the temporary and work strings on
+ * every exit. Expression callback side effects are not rolled back.
  */
 static int VectorExprObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = Rbc_VectorGetInterpData(interp);
@@ -1280,28 +1252,13 @@ done:
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * VectorNamesObjCmd --
- *
- *      Reports the names of all the current vectors in the
- *      interpreter.
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result. The interpreter result will contain a
- *      list of all the names of the vector instances.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief List registered vector names with an optional glob filter.
+ * Walks the interpreter vector hash table, appending fully qualified keys to a new Tcl list. Matching
+ * uses Tcl_StringMatch on the full name. Order follows hash traversal and is not sorted. Does not
+ * enumerate Tcl aliases, instance command spellings or mapped arrays, and does not invoke vector
+ * observers.
  */
 static int VectorNamesObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = clientData;
@@ -2275,29 +2232,14 @@ int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VectorLookupName --
- *
- *      Searches for the vector associated with the name given.  Allow
- *      for a range specification.
- *
- * Parameters:
- *      VectorInterpData *dataPtr - Interpreter-specific data.
- *      char *vecName
- *      VectorObject **vPtrPtr
- *
- * Results:
- *      Returns a pointer to the vector if found, otherwise NULL.
- *      If the name is not associated with a vector and the
- *      TCL_LEAVE_ERR_MSG flag is set, and the interpreter result
- *      will contain an error message.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Resolve a complete vector reference including an optional selection.
+ * Delegates to Rbc_VectorParseElement with current/global namespace search and rejects trailing
+ * unconsumed characters. Returns TCL_OK and writes a borrowed vector pointer only on success,
+ * otherwise TCL_ERROR with an interpreter diagnostic. Parsing may update the selection and evaluate
+ * index expressions; this is not a literal-name lookup or a lifetime-retaining API. Callers needing to
+ * survive subsequent callbacks must retain and revalidate the object separately.
  */
 int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorObject **vPtrPtr) {
     VectorObject *vPtr;

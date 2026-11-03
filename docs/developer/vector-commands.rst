@@ -97,3 +97,79 @@ was committed, preserving the original error and its options. The incomplete
 final chunk is not committed. Successful completion returns the logical value
 count. The command does not stage the entire stream or retry a short positive-
 count read to satisfy the requested count.
+
+Vector ensemble and registry operations
+---------------------------------------
+
+The ensemble in ``rbcVector.c`` is separate from the instance dispatcher in
+``rbcVecCmd.c``. Its typed table validates operation names and argument counts;
+each handler owns its own mutation and callback policy. See
+:doc:`vector-storage-private-reference` for the handler contracts and
+:doc:`vector-storage` for registry ownership.
+
+Creation and reuse
+~~~~~~~~~~~~~~~~~~
+
+``VectorCreateObjCmd`` collects names and options, then prechecks existing
+candidate vectors for read-only state. This is not a transaction across the
+whole argument list: subsequent names, size specifications, command collisions
+or mapping failures can fail after earlier vectors were successfully processed.
+The result on success is the last vector's qualified name, not a list of names.
+
+An exact registered name wins over the legacy numeric ``name(size)`` or
+``name(first:last)`` syntax. Otherwise a numeric-looking final balanced group
+is interpreted as a size/range; ``-literal`` disables that interpretation.
+The first index becomes the vector offset. An explicitly supplied type must
+match an existing vector; omission preserves its type. Positive sizes request a
+length change, while zero does not truncate existing storage. New storage starts
+empty unless a positive size is requested.
+
+Default array mapping is requested only for real vectors whose names contain
+no opening parenthesis. Complex vectors and parenthesized names require an
+explicit separate array name to request mapping. Absence of a mapping request
+must not be confused with unmapping an existing array. Command and mapping
+setup are delegated to ``Rbc_VectorCreate``; reusing a vector can execute
+command-deletion and variable traces. The handler retains the returned object
+across resizing and publication, then checks that it still exists before
+reading its name. Existing-vector changes publish a full update.
+
+Named expression results
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ordinary ``expr`` returns Tcl values through ``Rbc_ExprVector``. With ``-name``,
+the handler resolves the destination namespace, checks for collisions and
+evaluates once into a temporary vector. It checks collisions again because
+expression callbacks may have created the requested target. A final ``#auto``
+component delegates unique naming to vector creation.
+
+The new vector has the evaluated real or complex type and no mapped array.
+Its storage pointer, length, capacity and release procedure are transferred
+from the temporary; the temporary is detached before destruction. This avoids
+conversion through a Tcl list and never changes an existing vector's type.
+On success the Tcl result is the new qualified name. Errors dispose of the
+owned temporary, but do not undo side effects of expression callbacks.
+
+Rename, destruction and enumeration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Rename uses literal registry names rather than range syntax. It preserves the
+C object, data allocation and observer connections. The mapped array retains
+its original name and association. A commandless vector can be renamed by
+moving its registry entry alone. Otherwise the handler calls global ``::rename``
+and monitors command traces for deletion, recursive rename and a changed final
+command name. It checks registry collisions again before moving the entry.
+These checks are not rollback: trace side effects, including an already renamed
+command, can remain after a later error. Read-only data does not prohibit rename.
+
+Destroy resolves each argument immediately before freeing that vector. Earlier
+destructions remain if a later name fails, and callbacks can affect later
+lookups. Its lookup accepts a selection, but destruction removes the whole
+vector, not the selected values. Calling destroy without names succeeds without
+work. Destruction remains allowed for read-only vectors.
+
+Names enumerates registry keys, not Tcl command aliases or array variables.
+The optional Tcl glob pattern matches the fully qualified key, and results
+follow hash-table order rather than sorted order. Enumeration performs no
+vector notification. The range-aware lookup used by destroy is different:
+``Rbc_VectorLookupName`` can change a selection and evaluate index expressions,
+returns a borrowed pointer, and does not retain a vector for its caller.
