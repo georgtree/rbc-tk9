@@ -676,38 +676,9 @@ int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window pro
  * clamp the count to INT_MAX. Callers still own request batching and headers.
  */
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
-/**
- * @brief Return a native client or toplevel-wrapper identifier.
- *
- * May realize the borrowed Tk window. X11 queries the toplevel parent; Windows
- * returns a raw HWND cast to Window. It is not a portable Tk drawable token.
- * No ownership transfers. X11 keeps the realized client if parent lookup fails;
- * callers must still distinguish native wrapper IDs from Tk drawable tokens.
- */
 Window Rbc_GetRealWindowId(Tk_Window tkwin);
-/**
- * @brief Look up a borrowed per-window payload.
- *
- * Return NULL for a missing entry or an absent interpreter table. Lookup does
- * not allocate a table and does not retain the payload or Tk window. Require
- * a live Tk_Window even when no association exists.
- */
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin);
-/**
- * @brief Associate a borrowed payload with a Tk window in its interpreter.
- *
- * Lazily allocate a one-word-key table as Tcl associated data. Replacing a value
- * does not free the old payload. The caller must remove the entry before the
- * window/payload becomes invalid; interpreter cleanup frees only the table.
- */
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData);
-/**
- * @brief Remove a per-window association without freeing its payload.
- *
- * Require a live window. An absent table or missing entry is a no-op and does
- * not allocate storage. The window owner is responsible for removing its
- * association during teardown.
- */
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
 /**
  * @brief Clamp an integer offset according to the selected legacy scroll mode.

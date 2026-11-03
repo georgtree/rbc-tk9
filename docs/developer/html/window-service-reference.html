@@ -114,6 +114,40 @@ These are private implementation interfaces.</p>
 <p>Require a live window. An absent table or missing entry is a no-op and does not allocate storage. The window owner is responsible for removing its association during teardown. </p>
 </dd></dl>
 
+<section id="window-lookup-and-table-cleanup-internals">
+<h2>Window lookup and table cleanup internals<a class="headerlink" href="#window-lookup-and-table-cleanup-internals" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__window__helpers"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Window</span> <span class="pre">association</span> <span class="pre">and</span> <span class="pre">X11</span> <span class="pre">lookup</span> <span class="pre">internals</span></span></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowHelpers.rbcGetParent">
+<span class="target" id="group__window__helpers_1ga7b15fc8e2bcb0945ac7332237eca6486"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rbcGetParent</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="n"><span class="pre">window</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowHelpers.rbcGetParent" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query an X window parent and release the returned child array. </p>
+<p>Returns None when XQueryTree reports failure. Owns the query child array only on success and releases it with XFree before returning. The returned parent identifier is borrowed; no window is realized or retained here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowHelpers.GetWindowId">
+<span class="target" id="group__window__helpers_1ga2dacdd11c1aee45fa5fb8b2f6027783c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetWindowId</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowHelpers.GetWindowId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Realize a Tk client and select its immediate X11 parent for a toplevel. </p>
+<p>Non-toplevel windows retain their client ID. For toplevels, a successful non-None parent replaces it; failed lookup retains the client ID. This does not guarantee a particular window-manager decoration ancestor. Requires a live window and does not change ownership or map it explicitly. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowHelpers.AssocDataCleanup">
+<span class="target" id="group__window__helpers_1ga00c9a0ae68bb6437c49c326eb87cd3f4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AssocDataCleanup</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">assocData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowHelpers.AssocDataCleanup" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release the interpreter-owned association table and its allocation. </p>
+<p>Registered as a Tcl associated-data delete callback. Hash entries contain borrowed Tk_Window keys and borrowed payloads; neither is dereferenced or released. The interp argument is unused. Requires the table allocation installed by Rbc_SetWindowInstanceData, not a caller-owned hash table. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<p>The Windows handle lookup is extracted separately in
+<a class="reference internal" href="native-windows-reference.html"><span class="doc">Windows native backend C reference</span></a>.</p>
+</section>
 </section>
 
 
@@ -137,6 +171,12 @@ These are private implementation interfaces.</p>
 <li><a class="reference internal" href="#c.Rbc_SetWindowInstanceData"><code class="docutils literal notranslate"><span class="pre">Rbc_SetWindowInstanceData()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_GetWindowInstanceData"><code class="docutils literal notranslate"><span class="pre">Rbc_GetWindowInstanceData()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_DeleteWindowInstanceData"><code class="docutils literal notranslate"><span class="pre">Rbc_DeleteWindowInstanceData()</span></code></a></li>
+<li><a class="reference internal" href="#window-lookup-and-table-cleanup-internals">Window lookup and table cleanup internals</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowHelpers.rbcGetParent"><code class="docutils literal notranslate"><span class="pre">rbcGetParent()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowHelpers.GetWindowId"><code class="docutils literal notranslate"><span class="pre">GetWindowId()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowHelpers.AssocDataCleanup"><code class="docutils literal notranslate"><span class="pre">AssocDataCleanup()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

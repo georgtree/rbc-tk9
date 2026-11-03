@@ -71,3 +71,14 @@ header declarations. See :doc:`images-tiles` for common image ownership and
    :members:
 
 .. c:namespace-pop::
+
+Native window handle lookup
+---------------------------
+
+.. c:namespace:: rbcWindowsHandles
+
+.. doxygengroup:: window_windows
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::

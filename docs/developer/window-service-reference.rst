@@ -23,3 +23,16 @@ These are private implementation interfaces.
 .. doxygenfunction:: Rbc_GetWindowInstanceData
 
 .. doxygenfunction:: Rbc_DeleteWindowInstanceData
+
+Window lookup and table cleanup internals
+-----------------------------------------
+
+.. c:namespace:: rbcWindowHelpers
+
+.. doxygengroup:: window_helpers
+   :members:
+
+.. c:namespace-pop::
+
+The Windows handle lookup is extracted separately in
+:doc:`native-windows-reference`.

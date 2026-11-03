@@ -1,8 +1,11 @@
-/*
- * rbcWindow.c --
+/**
+ * @file rbcWindow.c
+ * @brief Native window identifiers and borrowed interpreter-local payloads.
  *
  *      Native client/wrapper identifiers and interpreter-local window data.
- *      Shared function contracts are declared in rbcInt.h.
+ *      Shared declarations are in rbcInt.h.
+ * @defgroup window_helpers Window association and X11 lookup internals
+ * @defgroup window_windows Windows native handle lookup
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -14,28 +17,14 @@
 
 #ifdef WIN32
 #include <tkPlatDecls.h>
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Return the client HWND or its immediate parent for a toplevel.
+ * @ingroup window_windows
  *
- * GetWindowHandle --
- *
- *      Returns the XID for the Tk_Window given.  Starting in Tk 8.0,
- *      the toplevel widgets are wrapped by another window.
- *      Currently there's no way to get at that window, other than
- *      what is done here: query the X window hierarchy and grab the
- *      parent.
- *
- * Parameters:
- *      Tk_Window tkwin
- *
- * Results:
- *      Returns the X Window ID of the widget.  If it's a toplevel,
- *      then the XID of the wrapper is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Realizes the Tk window if needed, then converts its drawable with
+ * Tk_GetHWND. Toplevels use GetParent; a NULL result is returned unchanged.
+ * Does not walk ancestors, map the window, retain the handle or install
+ * destruction hooks. Requires a live Tk window on its owning thread.
  */
 static HWND GetWindowHandle(Tk_Window tkwin) {
     HWND hWnd;
@@ -52,28 +41,25 @@ static HWND GetWindowHandle(Tk_Window tkwin) {
     return hWnd;
 }
 
+/**
+ * @brief Return a native client or toplevel-wrapper identifier.
+ *
+ * May realize the borrowed Tk window. X11 queries the toplevel parent; Windows
+ * returns a raw HWND cast to Window. It is not a portable Tk drawable token.
+ * No ownership transfers. X11 keeps the realized client if parent lookup fails;
+ * callers must still distinguish native wrapper IDs from Tk drawable tokens.
+ */
 Window Rbc_GetRealWindowId(Tk_Window tkwin) { return (Window)GetWindowHandle(tkwin); }
 
 #else /* ! WIN32 */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Query an X window parent and release the returned child array.
+ * @ingroup window_helpers
  *
- * rbcGetParent --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Window window
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns None when XQueryTree reports failure. Owns the query child array
+ * only on success and releases it with XFree before returning. The returned
+ * parent identifier is borrowed; no window is realized or retained here.
  */
 static Window rbcGetParent(Display *display, Window window) {
     Window root, parent;
@@ -87,23 +73,14 @@ static Window rbcGetParent(Display *display, Window window) {
     return None;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Realize a Tk client and select its immediate X11 parent for a toplevel.
+ * @ingroup window_helpers
  *
- * GetWindowId --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Non-toplevel windows retain their client ID. For toplevels, a successful
+ * non-None parent replaces it; failed lookup retains the client ID. This
+ * does not guarantee a particular window-manager decoration ancestor.
+ * Requires a live window and does not change ownership or map it explicitly.
  */
 static Window GetWindowId(Tk_Window tkwin) {
     Window window;
@@ -121,6 +98,14 @@ static Window GetWindowId(Tk_Window tkwin) {
     return window;
 }
 
+/**
+ * @brief Return a native client or toplevel-wrapper identifier.
+ *
+ * May realize the borrowed Tk window. X11 queries the toplevel parent; Windows
+ * returns a raw HWND cast to Window. It is not a portable Tk drawable token.
+ * No ownership transfers. X11 keeps the realized client if parent lookup fails;
+ * callers must still distinguish native wrapper IDs from Tk drawable tokens.
+ */
 Window Rbc_GetRealWindowId(Tk_Window tkwin) { return GetWindowId(tkwin); }
 
 #endif /* WIN32 */
@@ -130,11 +115,27 @@ Window Rbc_GetRealWindowId(Tk_Window tkwin) { return GetWindowId(tkwin); }
  */
 #define INST_DATA_KEY "Rbc Window instance data"
 
+/**
+ * @brief Release the interpreter-owned association table and its allocation.
+ * @ingroup window_helpers
+ *
+ * Registered as a Tcl associated-data delete callback. Hash entries contain
+ * borrowed Tk_Window keys and borrowed payloads; neither is dereferenced or
+ * released. The interp argument is unused. Requires the table allocation
+ * installed by Rbc_SetWindowInstanceData, not a caller-owned hash table.
+ */
 static void AssocDataCleanup(void *assocData, Tcl_Interp *interp) {
     Tcl_DeleteHashTable((Tcl_HashTable *)assocData);
     ckfree(assocData);
 }
 
+/**
+ * @brief Associate a borrowed payload with a Tk window in its interpreter.
+ *
+ * Lazily allocate a one-word-key table as Tcl associated data. Replacing a value
+ * does not free the old payload. The caller must remove the entry before the
+ * window/payload becomes invalid; interpreter cleanup frees only the table.
+ */
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
@@ -150,6 +151,13 @@ void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
     Tcl_SetHashValue(entryPtr, instanceData);
 }
 
+/**
+ * @brief Look up a borrowed per-window payload.
+ *
+ * Return NULL for a missing entry or an absent interpreter table. Lookup does
+ * not allocate a table and does not retain the payload or Tk window. Require
+ * a live Tk_Window even when no association exists.
+ */
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin) {
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
@@ -164,6 +172,13 @@ ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin) {
     return Tcl_GetHashValue(entryPtr);
 }
 
+/**
+ * @brief Remove a per-window association without freeing its payload.
+ *
+ * Require a live window. An absent table or missing entry is a no-op and does
+ * not allocate storage. The window owner is responsible for removing its
+ * association during teardown.
+ */
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin) {
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);

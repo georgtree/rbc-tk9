@@ -552,6 +552,26 @@ header declarations. See <a class="reference internal" href="images-tiles.html">
 </dd></dl>
 
 </section>
+<section id="native-window-handle-lookup">
+<h2>Native window handle lookup<a class="headerlink" href="#native-window-handle-lookup" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__window__windows"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">native</span> <span class="pre">handle</span> <span class="pre">lookup</span></span></dt>
+<dd><p>Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo All rights reserved. </p>
+<p>See “license.terms” for details. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsHandles.GetWindowHandle">
+<span class="target" id="group__window__windows_1gab530567b3732cb21c3dad2e62117c1bc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">HWND</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetWindowHandle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsHandles.GetWindowHandle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the client HWND or its immediate parent for a toplevel. </p>
+<p>Realizes the Tk window if needed, then converts its drawable with Tk_GetHWND. Toplevels use GetParent; a NULL result is returned unchanged. Does not walk ancestors, map the window, retain the handle or install destruction hooks. Requires a live Tk window on its owning thread. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -637,6 +657,10 @@ header declarations. See <a class="reference internal" href="images-tiles.html">
 <li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_ScaleBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_ScaleRotateBitmapRegion"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsImages.Rbc_LastError"><code class="docutils literal notranslate"><span class="pre">Rbc_LastError()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#native-window-handle-lookup">Native window handle lookup</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsHandles.GetWindowHandle"><code class="docutils literal notranslate"><span class="pre">GetWindowHandle()</span></code></a></li>
 </ul>
 </li>
 </ul>
