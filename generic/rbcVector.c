@@ -461,20 +461,14 @@ done:
     return code;
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * SimplifyDistance --
- *
- *      Euclidean distance from P to the closed segment AB, not its infinite
- *      supporting line. Coincident endpoints and backtracking are supported.
- *      Scale differences before projection; do not square data coordinates.
- *
- * Results:
- *      A nonnegative distance. Long double reduces intermediate overflow;
- *      the fallback also works on platforms where it has double precision.
- *
- * -----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Measure distance from a finite point to a closed segment.
+ * Uses long-double differences, scaled projection and hypot rather than squaring raw coordinates. If
+ * initial differences overflow, halves operands before subtraction and restores the factor afterward.
+ * Handles coincident endpoints and projections beyond either endpoint. Returns nonnegative distance; a
+ * distance outside the platform long-double range may be infinite. Callers validate finite input
+ * coordinates.
  */
 static long double SimplifyDistance(double ax, double ay, double bx, double by, double px, double py) {
     long double dx = (long double)bx - ax, dy = (long double)by - ay;
@@ -512,9 +506,12 @@ static long double SimplifyDistance(double ax, double ay, double bx, double by, 
     return fabsl(ux * dy - uy * dx) * scale * factor;
 }
 
-/*
- * SimplifyDeleted -- Invalidate a temporary client handle before destruction
- * frees the client record. Update notifications do not change the handle.
+/**
+ * @ingroup vector_storage_private
+ * @brief Invalidate a temporary destination ID on vector destruction.
+ * clientData addresses a live caller-owned ID slot. Destruction clears the slot before the server
+ * frees remaining client records; update notifications leave it unchanged. Does not free the ID itself
+ * or access a destroyed vector.
  */
 static void SimplifyDeleted(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     Rbc_VectorId *idPtr = clientData;
@@ -525,19 +522,13 @@ static void SimplifyDeleted(Tcl_Interp *interp, ClientData clientData, Rbc_Vecto
     }
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * SimplifyFlush --
- *
- *      Clear a destination's mapped array after both results are installed.
- *      Unset/write traces may delete either destination: use a client ID
- *      to check its lifetime before restoring the mapping or notifying it.
- *
- * Results:
- *      None. User trace side effects are not rolled back.
- *
- * -----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Refresh a simplified destination mapped array after commit.
+ * Uses a temporary observer ID whose deletion callback clears the caller slot. Copies the array name
+ * before unsetting and re-fetches the server after unset and sentinel write, restoring the trace only
+ * while the server survives with the same name. Skips absent IDs, disabled flushing and unmapped
+ * vectors. Trace side effects are not rolled back.
  */
 static void SimplifyFlush(Rbc_VectorId *idPtr) {
     VectorObject *vPtr = (*idPtr != NULL) ? (*idPtr)->serverPtr : NULL;
@@ -566,26 +557,15 @@ static void SimplifyFlush(Rbc_VectorId *idPtr) {
     Tcl_DStringFree(&name);
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * VectorSimplifyObjCmd --
- *
- *      Iterative Douglas-Peucker simplification of paired real vectors.
- *      All four names identify existing, whole vectors. The two outputs
- *      must differ, but may overlap either input. Tolerance is a finite,
- *      nonnegative distance in data coordinates; endpoints are retained.
- *
- * Results:
- *      TCL_OK with the retained point count, or TCL_ERROR. Validation and
- *      allocation errors leave both destinations unchanged.
- *
- * Side effects:
- *      Both output arrays are installed before invoking free procedures,
- *      variable traces or client notifications. Vector identities, offsets
- *      and bindings are retained. No Tk or event processing is required.
- *
- * -----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Simplify paired whole real vectors with staged output storage.
+ * Requires finite coordinates, finite nonnegative tolerance, equal input lengths and distinct writable
+ * existing destinations. Inputs may alias outputs. Iterative closed-segment Douglas-Peucker
+ * subdivision computes both outputs before mutation. Validation/allocation failures leave destinations
+ * unchanged. Commit installs both arrays before releasing old storage, flushing arrays or notifying
+ * observers. Temporary IDs track destination deletion during callbacks. Preserves identity and
+ * offsets, returns retained count, and does not roll back post-commit callback side effects.
  */
 static int VectorSimplifyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = clientData;
@@ -745,7 +725,13 @@ error:
     return TCL_ERROR;
 }
 
-/* Allow the same operation through the conventional vector dispatcher. */
+/**
+ * @ingroup vector_storage_private
+ * @brief Adapt ensemble syntax to the standalone simplify command.
+ * Borrows arguments and removes the ensemble command word by shifting the vector and count. The shared
+ * implementation performs arity checking, validation, allocation and commit; no Tcl arguments or
+ * vectors are copied by this adapter.
+ */
 static int VectorSimplifyOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return VectorSimplifyObjCmd(clientData, interp, objc - 1, objv + 1);
 }

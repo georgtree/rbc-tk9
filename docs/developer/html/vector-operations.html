@@ -184,6 +184,66 @@ real and imaginary components separately. The result is computed into owned
 storage before resolving its output. This handles source/output aliasing and
 ensures that storage-release and array-mapping callbacks see a complete result.</p>
 </section>
+<section id="paired-vector-simplification">
+<h2>Paired-vector simplification<a class="headerlink" href="#paired-vector-simplification" title="Link to this heading">¶</a></h2>
+<p>The standalone <code class="docutils literal notranslate"><span class="pre">rbc::vector::simplify</span></code> command and the vector ensemble
+<code class="docutils literal notranslate"><span class="pre">simplify</span></code> operation share <code class="docutils literal notranslate"><span class="pre">VectorSimplifyObjCmd</span></code>. The ensemble adapter
+only shifts arguments. This algorithm operates on whole existing real vectors
+in data coordinates; it is separate from screen-space line decimation and the
+mapped-polyline helper described in <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a>.</p>
+<p>Both inputs must have equal lengths and finite coordinates. Tolerance must be
+finite and nonnegative. Both destinations must exist, be real and writable, and
+be distinct from each other. Either destination may also be either input because
+all computation completes before destination storage changes. No command creates
+output vectors, interprets range suffixes, or changes vector type here.</p>
+<section id="distance-and-subdivision">
+<h3>Distance and subdivision<a class="headerlink" href="#distance-and-subdivision" title="Link to this heading">¶</a></h3>
+<p>The algorithm measures distance to the closed segment between the current
+endpoints, not the infinite supporting line. This retains backtracking features
+that a supporting-line test could discard. Coincident endpoints reduce to
+point distance. Differences and projection are scaled before arithmetic; a
+half-coordinate fallback avoids overflowing subtraction on platforms where
+long double has the same range as double. A true distance beyond the available
+range can still be infinite, which exceeds any accepted finite tolerance.</p>
+<p>Subdivision uses an explicit stack of high indices. The first point is retained;
+for each interval, the earliest point whose distance is the greatest value
+strictly above tolerance becomes the next split. Otherwise the high endpoint is
+emitted, and traversal continues with the pending interval. Equality with the
+tolerance does not force retention. This preserves input order and endpoints
+without recursion. Empty input returns zero points, and a singleton returns one.</p>
+<p>The two output arrays and the index stack reserve space proportional to input
+length, with at least one allocation slot for empty input. Allocation arithmetic
+is checked before allocation. Worst-case repeated interval scans remain quadratic;
+the explicit stack avoids recursive call-depth growth but does not change that
+complexity. The tolerance is geometric, not an amplitude or frequency error bound.</p>
+</section>
+<section id="commit-and-observer-lifetime">
+<h3>Commit and observer lifetime<a class="headerlink" href="#commit-and-observer-lifetime" title="Link to this heading">¶</a></h3>
+<p>All lookup, coordinate validation, computation and temporary observer-ID
+allocation precede mutation. Failures in those steps free temporary buffers and
+IDs, leaving both destinations unchanged. Commit installs both numeric arrays,
+lengths, capacities and full-vector selections, and invalidates extrema before
+calling any old custom storage releaser or mapped-array trace. Existing vector
+identity, external index offset and bindings remain intact.</p>
+<p>Old storage is released according to each destination’s prior ownership policy.
+This happens after both outputs are visible, so a release callback cannot observe
+only half of the initial commit. Subsequent callback mutations are permitted and
+are not undone. The returned count describes the computed simplification, not a
+promise that callbacks left both vectors at that length.</p>
+<p>Temporary observer IDs use <code class="docutils literal notranslate"><span class="pre">SimplifyDeleted</span></code> to clear their local slots when a
+destination is destroyed. <code class="docutils literal notranslate"><span class="pre">SimplifyFlush</span></code> snapshots the mapped-array name and
+re-fetches the server through the surviving ID after trace-producing operations.
+It does not find a replacement vector by name. Surviving destinations then
+receive full update notifications, and surviving temporary IDs are released.
+This protocol concerns destination identity; it is not a general transaction
+covering all user trace or custom-release side effects.</p>
+<p>Regression coverage should distinguish zero tolerance, coincident endpoints,
+backtracking, very large finite coordinates, empty/singleton inputs, aliases
+between inputs and outputs, protected destinations, and deletion or mutation of
+either destination during post-commit callbacks. Internal contracts are included
+in <a class="reference internal" href="vector-storage-private-reference.html"><span class="doc">Vector storage private C reference</span></a>.</p>
+</section>
+</section>
 </section>
 
 
@@ -202,6 +262,11 @@ ensures that storage-release and array-mapping callbacks see a complete result.<
 <li><a class="reference internal" href="#length-and-offset">Length and offset</a></li>
 <li><a class="reference internal" href="#copying-interleaving-and-splitting">Copying, interleaving and splitting</a></li>
 <li><a class="reference internal" href="#population-and-source-aliasing">Population and source aliasing</a></li>
+<li><a class="reference internal" href="#paired-vector-simplification">Paired-vector simplification</a><ul>
+<li><a class="reference internal" href="#distance-and-subdivision">Distance and subdivision</a></li>
+<li><a class="reference internal" href="#commit-and-observer-lifetime">Commit and observer lifetime</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

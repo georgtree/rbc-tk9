@@ -147,3 +147,72 @@ last source endpoint is written once at the end. Complex values interpolate
 real and imaginary components separately. The result is computed into owned
 storage before resolving its output. This handles source/output aliasing and
 ensures that storage-release and array-mapping callbacks see a complete result.
+
+Paired-vector simplification
+----------------------------
+
+The standalone ``rbc::vector::simplify`` command and the vector ensemble
+``simplify`` operation share ``VectorSimplifyObjCmd``. The ensemble adapter
+only shifts arguments. This algorithm operates on whole existing real vectors
+in data coordinates; it is separate from screen-space line decimation and the
+mapped-polyline helper described in :doc:`geometry`.
+
+Both inputs must have equal lengths and finite coordinates. Tolerance must be
+finite and nonnegative. Both destinations must exist, be real and writable, and
+be distinct from each other. Either destination may also be either input because
+all computation completes before destination storage changes. No command creates
+output vectors, interprets range suffixes, or changes vector type here.
+
+Distance and subdivision
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The algorithm measures distance to the closed segment between the current
+endpoints, not the infinite supporting line. This retains backtracking features
+that a supporting-line test could discard. Coincident endpoints reduce to
+point distance. Differences and projection are scaled before arithmetic; a
+half-coordinate fallback avoids overflowing subtraction on platforms where
+long double has the same range as double. A true distance beyond the available
+range can still be infinite, which exceeds any accepted finite tolerance.
+
+Subdivision uses an explicit stack of high indices. The first point is retained;
+for each interval, the earliest point whose distance is the greatest value
+strictly above tolerance becomes the next split. Otherwise the high endpoint is
+emitted, and traversal continues with the pending interval. Equality with the
+tolerance does not force retention. This preserves input order and endpoints
+without recursion. Empty input returns zero points, and a singleton returns one.
+
+The two output arrays and the index stack reserve space proportional to input
+length, with at least one allocation slot for empty input. Allocation arithmetic
+is checked before allocation. Worst-case repeated interval scans remain quadratic;
+the explicit stack avoids recursive call-depth growth but does not change that
+complexity. The tolerance is geometric, not an amplitude or frequency error bound.
+
+Commit and observer lifetime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All lookup, coordinate validation, computation and temporary observer-ID
+allocation precede mutation. Failures in those steps free temporary buffers and
+IDs, leaving both destinations unchanged. Commit installs both numeric arrays,
+lengths, capacities and full-vector selections, and invalidates extrema before
+calling any old custom storage releaser or mapped-array trace. Existing vector
+identity, external index offset and bindings remain intact.
+
+Old storage is released according to each destination's prior ownership policy.
+This happens after both outputs are visible, so a release callback cannot observe
+only half of the initial commit. Subsequent callback mutations are permitted and
+are not undone. The returned count describes the computed simplification, not a
+promise that callbacks left both vectors at that length.
+
+Temporary observer IDs use ``SimplifyDeleted`` to clear their local slots when a
+destination is destroyed. ``SimplifyFlush`` snapshots the mapped-array name and
+re-fetches the server through the surviving ID after trace-producing operations.
+It does not find a replacement vector by name. Surviving destinations then
+receive full update notifications, and surviving temporary IDs are released.
+This protocol concerns destination identity; it is not a general transaction
+covering all user trace or custom-release side effects.
+
+Regression coverage should distinguish zero tolerance, coincident endpoints,
+backtracking, very large finite coordinates, empty/singleton inputs, aliases
+between inputs and outputs, protected destinations, and deletion or mutation of
+either destination during post-commit callbacks. Internal contracts are included
+in :doc:`vector-storage-private-reference`.
