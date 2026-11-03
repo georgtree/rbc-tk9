@@ -125,6 +125,8 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="vector-storage.html#observer-snapshots-and-interval-scope">Observer snapshots and interval scope</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage.html#incremental-extrema-maintenance">Incremental extrema maintenance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage.html#variable-trace-errors-use-tcl-object-results">Variable-trace errors use Tcl object results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#names-namespaces-and-access-surfaces">Names, namespaces and access surfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#creation-parsers-and-bounded-index-strings">Creation parsers and bounded index strings</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vector-storage-reference.html">Vector storage public C reference</a><ul>
@@ -159,6 +161,12 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.CheckResizedVector"><code class="docutils literal notranslate"><span class="pre">CheckResizedVector()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorTraceError"><code class="docutils literal notranslate"><span class="pre">VectorTraceError()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ZeroVectorElements"><code class="docutils literal notranslate"><span class="pre">ZeroVectorElements()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorRenameTrace"><code class="docutils literal notranslate"><span class="pre">VectorRenameTrace()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorObjCmd"><code class="docutils literal notranslate"><span class="pre">VectorObjCmd()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ParseBool"><code class="docutils literal notranslate"><span class="pre">ParseBool()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorLength"><code class="docutils literal notranslate"><span class="pre">ParseVectorLength()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.GetSizeFromString"><code class="docutils literal notranslate"><span class="pre">GetSizeFromString()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorType"><code class="docutils literal notranslate"><span class="pre">ParseVectorType()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorGetInterpData"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetInterpData()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorInterpDeleteProc"><code class="docutils literal notranslate"><span class="pre">VectorInterpDeleteProc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorNew"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorNew()</span></code></a></li>
@@ -171,9 +179,17 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorReset"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorReset()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorNotifyClients"><code class="docutils literal notranslate"><span class="pre">VectorNotifyClients()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorChangeLength"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangeLength()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.GetVectorIndexFromSpan"><code class="docutils literal notranslate"><span class="pre">GetVectorIndexFromSpan()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ScheduleVectorUpdate"><code class="docutils literal notranslate"><span class="pre">ScheduleVectorUpdate()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.InvalidateVectorRange"><code class="docutils literal notranslate"><span class="pre">InvalidateVectorRange()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.UpdateVectorRangeForChangedRange"><code class="docutils literal notranslate"><span class="pre">UpdateVectorRangeForChangedRange()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.BuildQualifiedName"><code class="docutils literal notranslate"><span class="pre">BuildQualifiedName()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ParseQualifiedName"><code class="docutils literal notranslate"><span class="pre">ParseQualifiedName()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.GetQualifiedName"><code class="docutils literal notranslate"><span class="pre">GetQualifiedName()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.GetVectorObject"><code class="docutils literal notranslate"><span class="pre">GetVectorObject()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.FindVectorInNamespace"><code class="docutils literal notranslate"><span class="pre">FindVectorInNamespace()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.DeleteCommand"><code class="docutils literal notranslate"><span class="pre">DeleteCommand()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.UnmapVariable"><code class="docutils literal notranslate"><span class="pre">UnmapVariable()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_CreateVector2"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector2()</span></code></a></li>
 </ul>
 </li>

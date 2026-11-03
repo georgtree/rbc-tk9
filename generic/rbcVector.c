@@ -317,11 +317,11 @@ int Rbc_VectorInit(Tcl_Interp *interp) {
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
- * VectorRenameTrace -- Track command deletion while user rename traces run.
- * The vector may be freed synchronously; never dereference it after deletion.
- * -----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Record deletion during a command rename transaction.
+ * clientData points to a live caller-owned flag, set only for TCL_TRACE_DELETE. Ignores name strings
+ * and never dereferences the vector, which user command traces may already have destroyed.
  */
 static void VectorRenameTrace(ClientData clientData, Tcl_Interp *interp, const char *oldName, const char *newName,
                               int flags) {
@@ -758,27 +758,12 @@ static const VectorOpSpec vectorOpCmd[] = {{{"create", 2, 0, "?vecName? ?switche
                                            {{"simplify", 7, 7, "x y destX destY tolerance"}, VectorSimplifyOp},
                                            {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- * ------------------------------------------------------------------------
- *
- * VectorObjCmd --
- *
- *      This implements the Tcl vector command from the rbc package.
- *      See the user documentation on what is does.
- *
- * Parameters:
- *      ClientData dataPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      Do some user action.
- *
- * ------------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Validate and dispatch the vector ensemble operation.
+ * Uses the typed command table to check name and arity before calling the selected handler. Borrows
+ * interpreter data and arguments, returning the handler status. Does not itself create vectors or
+ * implement transaction rollback.
  */
 static int VectorObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -790,8 +775,12 @@ static int VectorObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     return vectorOpCmd[index].proc(clientData, interp, objc, objv);
 }
 
-/*
- * Helper function for Tcl_ParseArgsObjv in VectorCreateObjCmd.
+/**
+ * @ingroup vector_storage_private
+ * @brief Consume one boolean creation-option argument.
+ * Returns one consumed argument or minus one with a diagnostic. Uses the borrowed clientData option
+ * name for a missing-value error. Writes the destination integer only after successful conversion;
+ * does not retain the Tcl object.
  */
 static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], void *dstPtr) {
     int value;
@@ -811,6 +800,13 @@ static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, T
     return 1;
 }
 
+/**
+ * @ingroup vector_storage_private
+ * @brief Consume one Tcl_Size creation-option argument.
+ * Returns one on success or minus one on missing/invalid input. Writes only after conversion. This
+ * parses a size integer, not the full vector length policy; caller checks allowed ranges and
+ * allocation limits.
+ */
 static Tcl_Size ParseVectorLength(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
                                   void *dstPtr) {
     Tcl_Size value;
@@ -828,6 +824,12 @@ static Tcl_Size ParseVectorLength(void *clientData, Tcl_Interp *interp, Tcl_Size
     return 1;
 }
 
+/**
+ * @ingroup vector_storage_private
+ * @brief Convert a NUL-terminated string to Tcl_Size.
+ * Owns a temporary retained Tcl object for conversion and releases it on either outcome. Returns the
+ * conversion status; does not evaluate an expression or validate vector-specific length limits.
+ */
 static int GetSizeFromString(Tcl_Interp *interp, const char *string, Tcl_Size *valuePtr) {
     Tcl_Obj *objPtr;
     int result;
@@ -872,6 +874,13 @@ typedef struct {
     int specified;
 } VectorTypeOption;
 
+/**
+ * @ingroup vector_storage_private
+ * @brief Consume an explicit real or complex creation type.
+ * Accepts exact lowercase names only. On success stores type and marks specified, distinguishing
+ * explicit selection from the caller default. Returns one consumed argument, or minus one without
+ * changing option state on error.
+ */
 static Tcl_Size ParseVectorType(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
                                 void *dstPtr) {
     VectorTypeOption *optionPtr;
@@ -2557,6 +2566,13 @@ int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *strin
     return TCL_OK;
 }
 
+/**
+ * @ingroup vector_storage_private
+ * @brief Parse an index from a bounded string span.
+ * Requires start and end in one readable buffer with end not before start. Copies the half-open span
+ * into a temporary retained Tcl object, delegates index and flag semantics to Rbc_VectorGetIndex, then
+ * releases the object. Does not require a NUL byte at end.
+ */
 static int GetVectorIndexFromSpan(Tcl_Interp *interp, VectorObject *vPtr, const char *start, const char *end,
                                   Tcl_Size *indexPtr, int flags) {
     Tcl_Obj *objPtr;
@@ -3184,31 +3200,12 @@ error:
     return VectorTraceError(Tcl_GetObjResult(interp));
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * BuildQualifiedName --
- *
- *      Builds a fully qualified name from a given name depending on the current namespace
- *
- *        - lookup current namespace
- *        - if name starts with :: -> do nothing
- *        - if name does not start with :: -> set name relative to current namespace
- *
- *      (used in VectorCreate)
- *
- * Parameters:
- *      Tcl_Interp *interp - the interpreter in which to lookup the variable or command
- *      const char *name - the name of a variable, or command to build the qualified name for 
- *      Tcl_DString *fullName - string pointer to save the qualified name into (free or uninitialized DString)
- *
- * Results:
- *      Returns the qualified name
- *
- * Side effects:
- *      fullName is filled with the qualified name
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Build an absolute name relative to the current namespace.
+ * NULL input returns NULL without initializing the output. Otherwise initializes the caller DString,
+ * preserves an already absolute spelling, or prefixes the current namespace. Returns borrowed DString
+ * storage that the caller must free. Does not create or validate namespace existence.
  */
 static char *BuildQualifiedName(Tcl_Interp *interp, const char *name, Tcl_DString *fullName) {
     Tcl_Namespace *nsPtr;
@@ -3234,33 +3231,13 @@ static char *BuildQualifiedName(Tcl_Interp *interp, const char *name, Tcl_DStrin
     return Tcl_DStringValue(fullName);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * ParseQualifiedName --
- *
- *      Parses a possibly namespaced (variable) name
- *      and checkes whether the corresponding namespace
- *      exists or not. Splits the name into its components
- *      as the namespace part and the name itself
- *
- *      This function is the counterpart of GetQualifiedName
- *
- * Parameters:
- *      Tcl_Interp *interp - the interpreter, where the name is found in
- *      const char *qualName - the qualified name to parse 
- *      Tcl_Namespace **nsPtrPtr - pointer to store the namespace part into
- *      const char **namePtrPtr - pointer to store the name itself into
- *
- * Results:
- *      A standard Tcl result. Returns TCL_ERROR if the namespace does
- *      not exist yet, else returns TCL_OK
- *
- * Side effects:
- *      If TCL_OK is returned, the nsPtr contains the namespace
- *      and namePtr contains the name of the vector in that namespace
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Split a name at its final namespace separator.
+ * Without a separator, returns a NULL namespace and the original name. Otherwise resolves the
+ * namespace and returns a tail pointer into the borrowed input. Does not create namespaces, parse
+ * vector ranges or validate the tail. Output pointers are meaningful only on TCL_OK; a missing
+ * namespace returns TCL_ERROR without constructing a vector-specific diagnostic.
  */
 static int ParseQualifiedName(Tcl_Interp *interp, const char *qualName, Tcl_Namespace **nsPtrPtr,
                               const char **namePtrPtr) {
@@ -3309,28 +3286,12 @@ static int ParseQualifiedName(Tcl_Interp *interp, const char *qualName, Tcl_Name
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * GetQualifiedName --
- *
- *      Builds a namespaced variable name
- *      from a namespace and a variable name specification
- *
- *      This function is the counterpart of ParseQualifiedName
- *
- * Parameters:
- *      Tcl_Namespace *nsPtr
- *      const char *name
- *      Tcl_DString *resultPtr
- *
- * Results:
- *      A namespaced Tcl name
- *
- * Side effects:
- *      fills the supplied DString with the qualified name
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Join a known namespace and an unqualified tail.
+ * Initializes the caller DString and returns its borrowed buffer, adding exactly the join separator
+ * for the global namespace. Requires a live namespace and readable tail; does not parse or normalize a
+ * qualified tail. Caller releases the DString.
  */
 static char *GetQualifiedName(Tcl_Namespace *nsPtr, const char *name, Tcl_DString *resultPtr) {
     Tcl_DStringInit(resultPtr);
@@ -3342,26 +3303,12 @@ static char *GetQualifiedName(Tcl_Namespace *nsPtr, const char *name, Tcl_DStrin
     return Tcl_DStringValue(resultPtr);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * GetVectorObject --
- *
- *      Searches for the vector associated with the name given.
- *      Allow for a range specification.
- *
- * Parameters:
- *      VectorInterpData *dataPtr - Interpreter-specific data.
- *      const char *name
- *      int flags
- *
- * Results:
- *      Returns a pointer to the vector if found, otherwise NULL.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Resolve a literal vector registry name with controlled namespace search.
+ * Explicit namespace syntax restricts lookup to that namespace. Otherwise flags select current
+ * namespace first and optional global fallback. Returns a borrowed vector or NULL, without changing
+ * its index selection. Range syntax belongs to higher-level parsing, not this lookup helper.
  */
 static VectorObject *GetVectorObject(VectorInterpData *dataPtr, const char *name, int flags) {
     const char *vecName;
@@ -3389,26 +3336,12 @@ static VectorObject *GetVectorObject(VectorInterpData *dataPtr, const char *name
     return vPtr;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * FindVectorInNamespace --
- *
- *      Retrieves the vector indicated when it is located in
- *      a certain namespace.
- *
- * Parameters:
- *      VectorInterpData *dataPtr - Interpreter-specific data.
- *      Tcl_Namespace *nsPtr - Namespace pointer
- *      const char *vecName - Name of the vector to find
- *
- * Results:
- *      Returns a pointer to the vector if found, otherwise NULL.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Find a literal vector in one namespace registry scope.
+ * Builds a temporary qualified key, queries the interpreter-local vector table and frees the key.
+ * Returns a borrowed record or NULL. Does not resolve Tcl command aliases or acquire a vector client
+ * ID.
  */
 static VectorObject *FindVectorInNamespace(VectorInterpData *dataPtr, Tcl_Namespace *nsPtr, const char *vecName) {
     Tcl_DString dString;
@@ -3485,24 +3418,13 @@ void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, doubl
     }
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * DeleteCommand --
- *
- *      Deletes the Tcl command associated with the vector, without
- *      triggering a callback to "VectorInstDeleteProc".
- *
- * Parameters:
- *      VectorObject *vPtr - Vector associated with the Tcl command.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Remove the instance command without recursively destroying its vector.
+ * Clears the stored command token first, disables the vector command deletion callback and deletes by
+ * token rather than caller-relative name. Other command traces may still run. Caller owns
+ * record/interpreter lifetime across deletion; this helper does not remove the registry entry or
+ * mapped variable.
  */
 static void DeleteCommand(VectorObject *vPtr) {
     Tcl_Interp *interp = vPtr->interp;
@@ -3521,24 +3443,12 @@ static void DeleteCommand(VectorObject *vPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * UnmapVariable --
- *
- *      Destroys the trace on the current Tcl variable designated
- *      to access the vector.
- *
- * Parameters:
- *      VectorObject *vPtr - Vector to unmap
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Detach and unset the vector mapped-array access surface.
+ * Captures the owned name and flags, clears arrayName before removing the RBC trace and unsetting the
+ * variable, then frees the captured name. User unset traces may destroy or remap the vector. No vector
+ * fields are accessed after unset; caller owns surrounding lifetime and continuation checks.
  */
 static void UnmapVariable(VectorObject *vPtr) {
     Tcl_Interp *interp = vPtr->interp;

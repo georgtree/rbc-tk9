@@ -260,3 +260,52 @@ Variable-trace errors use Tcl object results
 ``TCL_TRACE_RESULT_OBJECT``; Tcl therefore treats the return value as an object,
 not a C string. Removing that registration flag or reusing the helper for a
 string-result trace would violate the ownership and representation contract.
+
+Names, namespaces and access surfaces
+-------------------------------------
+
+Vector identity belongs to the interpreter-local registry. Literal registry
+lookup does not inspect Tcl command aliases or parse an index suffix. An explicit
+namespace restricts the search to that namespace; an unqualified name uses the
+requested current/global search flags. Returned vector pointers are borrowed,
+not retained client IDs, and lookup does not change the vector's index selection.
+Higher-level parsers decide when parentheses describe a literal name or a range.
+
+The name helpers have different contracts. ``BuildQualifiedName`` prefixes the
+current namespace unless the input already starts with a global qualifier;
+it does not check namespace existence. ``ParseQualifiedName`` finds the final
+separator and resolves an existing namespace, returning a tail pointer into the
+original string. Without a separator it reports no namespace, leaving search
+policy to the caller. ``GetQualifiedName`` joins a known namespace and a tail.
+Both construction helpers initialize caller-owned DStrings; their returned
+pointers expire when those strings are changed or freed.
+
+The instance command and mapped array are access surfaces, not the registry
+record itself. ``DeleteCommand`` clears the vector's token and disables its
+instance deletion callback before deleting by token. This avoids deleting an
+unrelated same-name command in the caller namespace, but does not suppress all
+user command traces. The surrounding operation must still retain resources and
+check whether callbacks destroyed or changed them.
+
+``UnmapVariable`` detaches the old array name before unsetting the variable.
+User unset traces can then destroy or remap the vector without the helper later
+reading the old vector fields. The captured name remains owned locally until
+unset completes. Neither helper is a complete vector destructor, and neither
+makes arbitrary continuation after callback activity safe.
+
+Creation parsers and bounded index strings
+------------------------------------------
+
+The creation-option parsers report consumed argument counts: one on success,
+minus one on missing or invalid input. Boolean and size parsers write their
+output only after conversion. A successfully parsed Tcl_Size still needs the
+caller's vector length and allocation checks. The type parser accepts exact
+real/complex names and records whether the choice was explicit; it does not
+change an existing vector's type.
+
+String-size conversion owns a temporary Tcl object. Bounded index parsing
+similarly copies a half-open character span, allowing a range endpoint to be
+parsed without modifying or NUL-terminating the caller's input buffer. It then
+delegates external index offsets, special indices and flags to the ordinary
+index parser. The copied string is temporary; returned numeric indices have no
+ownership relationship with it.
