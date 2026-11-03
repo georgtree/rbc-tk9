@@ -1070,13 +1070,34 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="cairo-rendering.html#patterns-and-pixel-conversion">Patterns and pixel conversion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cairo-rendering.html#windows-marker-pass-target">Windows marker-pass target</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cairo-rendering.html#fallback-and-validation-boundaries">Fallback and validation boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-rendering.html#path-consumption-and-batching">Path consumption and batching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-rendering.html#coordinate-and-pattern-state">Coordinate and pattern state</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cairo-reference.html">Cairo backend C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoClipBegin"><code class="docutils literal notranslate"><span class="pre">CairoClipBegin()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoClipEnd"><code class="docutils literal notranslate"><span class="pre">CairoClipEnd()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.FreeRenderContext"><code class="docutils literal notranslate"><span class="pre">FreeRenderContext()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.GetAntialias"><code class="docutils literal notranslate"><span class="pre">GetAntialias()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.SetStrokeColor"><code class="docutils literal notranslate"><span class="pre">SetStrokeColor()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.StrokeRenderPath"><code class="docutils literal notranslate"><span class="pre">StrokeRenderPath()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.BeginRenderTarget"><code class="docutils literal notranslate"><span class="pre">BeginRenderTarget()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoPolyline"><code class="docutils literal notranslate"><span class="pre">CairoPolyline()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoArcPath"><code class="docutils literal notranslate"><span class="pre">CairoArcPath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoArc"><code class="docutils literal notranslate"><span class="pre">CairoArc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoFillArc"><code class="docutils literal notranslate"><span class="pre">CairoFillArc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoLineStyle"><code class="docutils literal notranslate"><span class="pre">CairoLineStyle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoDashBackground"><code class="docutils literal notranslate"><span class="pre">CairoDashBackground()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoSegments"><code class="docutils literal notranslate"><span class="pre">CairoSegments()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.AppendRenderSymbol"><code class="docutils literal notranslate"><span class="pre">AppendRenderSymbol()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.RenderAreaPixel"><code class="docutils literal notranslate"><span class="pre">RenderAreaPixel()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CreateRenderStipple"><code class="docutils literal notranslate"><span class="pre">CreateRenderStipple()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoFillRectangles"><code class="docutils literal notranslate"><span class="pre">CairoFillRectangles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.FillRenderArea"><code class="docutils literal notranslate"><span class="pre">FillRenderArea()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CreateRenderBitmap"><code class="docutils literal notranslate"><span class="pre">CreateRenderBitmap()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoFillPolygon"><code class="docutils literal notranslate"><span class="pre">CairoFillPolygon()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CreateRenderPhoto"><code class="docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cairo-reference.html#c.CairoEnd"><code class="docutils literal notranslate"><span class="pre">CairoEnd()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reference.html">Renderer C reference</a><ul>

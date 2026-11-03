@@ -4,7 +4,7 @@ Cairo surfaces and drawing contexts
 ``rbcRenderCairo.c`` implements screen rendering and the disabled-Cairo entry
 points. SVG, PDF and PostScript do not use this backend. Components still own
 mapped geometry, clipping scopes and painter order; see :doc:`rendering`.
-Selected private contracts are in :doc:`cairo-reference`.
+Private helper contracts are in :doc:`cairo-reference`.
 
 Construction and ownership
 --------------------------
@@ -70,8 +70,9 @@ Tk/Windows monochrome inversion associated with the other image format. It
 creates ARGB32 pixels from foreground/background colors, destroys the XImage,
 and returns a repeating nearest-filtered pattern. A missing background can
 leave transparent pattern pixels. Solid-fill opacity is applied separately;
-pattern pixels retain their constructed alpha rather than automatically being
-multiplied by the solid-fill opacity argument.
+polygon and arc pattern pixels retain their constructed alpha rather than being
+multiplied by solid-fill opacity. Rectangle batches and legend bar swatches
+instead apply opacity to a composed group, including stipple paint.
 
 ``CreateRenderPhoto`` copies a borrowed Tk photo block into a new ARGB32 image.
 RGB offsets must be within the pixel size. Alpha is used only if its offset is
@@ -132,3 +133,53 @@ Renderer changes should check alternating native/Cairo operations on one target,
 marker passes containing text and photos, nested clipping, transparent pixels,
 stipple backgrounds, dash backgrounds and resized targets. Windows DIB/DC
 synchronization and X11 surface wrapping exercise different lifetime paths.
+
+Path consumption and batching
+-----------------------------
+
+Cairo paths are not part of saved graphics state. A save/restore pair restores
+sources, transforms and clipping, but does not resurrect geometry consumed by
+fill, stroke or clip. Callers must finish each primitive before entering another
+operation or clip scope. ``CairoArcPath`` explicitly replaces the path; other
+append helpers rely on the preceding operation having consumed its geometry.
+
+Segment strokes flush every 8192 segments to bound path storage. With two-color
+dashes they instead finish each segment separately, preserving painter order
+where segments intersect. Symbol batches append independent subpaths: circles
+start new subpaths, segment symbols use separate pairs, and polygons close.
+The component bounds ordinary symbol batches; tiny point symbols flush their
+one-pixel rectangle paths every 8192 points.
+
+Rectangle fills also flush every 8192 input entries. If opacity is requested,
+these fills accumulate into one group and opacity is applied once to that group.
+Overlapping rectangles in a single call therefore do not accumulate opacity as
+independent translucent objects. This differs from solid polygon calls, which
+paint their opacity directly. Preserve call boundaries when changing batching.
+
+Coordinate and pattern state
+----------------------------
+
+Stroke contexts start with a half-pixel translation. Area boundaries, integer
+rectangles, bitmap symbols and photos cancel it where their contracts require
+pixel-boundary coordinates. ``FillRenderArea`` makes that translation without
+saving state itself: reusable polygon callers bracket it, while one-shot tile
+and bitmap callers finish the context afterward. Calling it repeatedly without
+a corresponding restore would accumulate translations.
+
+Stipples and photos produce repeating nearest-filtered patterns. Mapped bitmap
+patterns do not repeat, and one-shot photos explicitly disable repetition after
+conversion. Bitmap masks may alias their source bitmap; the conversion helper
+shares and releases the readback once in that case. Dimensions remain the
+caller's responsibility, especially for raw mapped pixmaps outside Tk's named
+bitmap registry.
+
+Stipple colors are converted to eight-bit channels with rounded division by
+257, with NULL meaning transparent zero. Photo colors use alpha premultiplication
+instead. These conversions serve different source layouts and should not be
+merged by substituting simple channel truncation.
+
+Initial stroke construction collapses equal foreground/off-colors to a solid
+stroke. Later ``CairoDashBackground`` calls only enable or disable the underlay
+and copy its color; they do not repeat that optimization or reconstruct dash
+values discarded during construction. Callers needing a different dash pattern
+must construct an appropriately configured context.

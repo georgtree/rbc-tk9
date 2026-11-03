@@ -45,11 +45,24 @@ typedef struct {
 
 #define CAIRO(ctx) ((CairoRenderContext *)(ctx))
 
+/**
+ * @ingroup cairo_backend
+ * @brief Save graphics state and intersect with a rectangular clip.
+ * Nonpositive dimensions become an empty rectangle. Coordinates use the current transform; the common
+ * dispatcher owns clip depth. Cairo clipping consumes the current path, so callers must finish pending
+ * geometry before pushing a clip.
+ */
 static void CairoClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     cairo_save(CAIRO(ctx)->cr);
     cairo_rectangle(CAIRO(ctx)->cr, x, y, MAX(0, width), MAX(0, height));
     cairo_clip(CAIRO(ctx)->cr);
 }
+/**
+ * @ingroup cairo_backend
+ * @brief Restore the state saved by one clip push.
+ * Requires a matching CairoClipBegin through common dispatch. This does not decrement common clip
+ * depth itself and cannot restore a consumed path.
+ */
 static void CairoClipEnd(Rbc_RenderContext *ctx) { cairo_restore(CAIRO(ctx)->cr); }
 
 static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
@@ -187,6 +200,12 @@ static void FreeRenderContext(Rbc_RenderContext *ctx) {
     ckfree(ctx);
 }
 
+/**
+ * @ingroup cairo_backend
+ * @brief Translate an RBC antialias mode to Cairo.
+ * Known modes map directly; unrecognized values select Cairo default. This is a mapping helper, not
+ * option validation.
+ */
 static cairo_antialias_t GetAntialias(int mode) {
     switch (mode) {
     case RBC_ANTIALIAS_NONE:
@@ -204,6 +223,12 @@ static cairo_antialias_t GetAntialias(int mode) {
     }
 }
 
+/**
+ * @ingroup cairo_backend
+ * @brief Set an opaque RGB source from a borrowed Tk color.
+ * Requires a non-NULL color. Channels are normalized from 16-bit values; Cairo copies the numeric
+ * source, so the color pointer is not retained.
+ */
 static void SetStrokeColor(cairo_t *cr, const XColor *colorPtr) {
     cairo_set_source_rgb(cr, colorPtr->red / 65535.0, colorPtr->green / 65535.0, colorPtr->blue / 65535.0);
 }
@@ -372,6 +397,13 @@ Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, i
 }
 
 /* Each call is a separate trace; preserve joins within that trace. */
+/**
+ * @ingroup cairo_backend
+ * @brief Build and stroke a connected trace.
+ * Counts below two do nothing. Borrows mapped points and preserves joins within the trace.
+ * StrokeRenderPath consumes the path, including its optional off-color pass; callers must not leave
+ * unrelated pending geometry.
+ */
 static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Tcl_Size i;
 
@@ -387,6 +419,13 @@ static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Siz
 
 /* Restore the CTM before painting so ellipse aspect ratio changes geometry
  * only, not line width/dash lengths or the stipple's widget-space origin. */
+/**
+ * @ingroup cairo_backend
+ * @brief Replace the path with a normalized mapped ellipse arc.
+ * Builds the arc under a temporary translate/scale, then restores the transform before painting. Full
+ * sweeps close without a radial edge; partial sectors add the center and chords close directly. The
+ * caller supplies common-dispatch-validated geometry.
+ */
 static void CairoArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     double start = -arc->start * M_PI / 180.0;
     double end = -(arc->start + arc->extent) * M_PI / 180.0;
@@ -411,11 +450,24 @@ static void CairoArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *ar
     }
 }
 
+/**
+ * @ingroup cairo_backend
+ * @brief Stroke the normalized arc with current dash policy.
+ * Replaces and consumes the current path. The temporary ellipse transform affects geometry only,
+ * preserving screen-space line widths and dash lengths.
+ */
 static void CairoArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     CairoArcPath(ctx, arc);
     StrokeRenderPath(ctx);
 }
 
+/**
+ * @ingroup cairo_backend
+ * @brief Fill a normalized closed arc with the configured style.
+ * Temporarily cancels the half-pixel center translation and selects even-odd fill. A retained bitmap
+ * pattern takes precedence over solid opacity. Common dispatch excludes open arcs; a solid style
+ * requires its borrowed foreground to remain live.
+ */
 static void CairoFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     const Rbc_RenderFillStyle *style = &CAIRO(ctx)->fillStyle;
     const XColor *foreground = style->foreground;
@@ -436,6 +488,12 @@ static void CairoFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *ar
 }
 
 /* Marker options use X cap/join constants; keep them out of Cairo callers. */
+/**
+ * @ingroup cairo_backend
+ * @brief Translate native cap and join constants to Cairo state.
+ * Round and projecting caps map to round and square; other caps use butt. Round and bevel joins map
+ * directly, with miter as the fallback. Does not change dash state or pending geometry.
+ */
 static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     cairo_set_line_cap(CAIRO(ctx)->cr, (capStyle == CapRound)        ? CAIRO_LINE_CAP_ROUND
                                        : (capStyle == CapProjecting) ? CAIRO_LINE_CAP_SQUARE
@@ -446,6 +504,13 @@ static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) 
 }
 
 /* Change only the off-dash underlay; retain the configured dash pattern. */
+/**
+ * @ingroup cairo_backend
+ * @brief Update the off-color underlay without changing dashes.
+ * Enables double-dash only when dashes exist and a color is supplied, copying that color by value.
+ * NULL disables the underlay; unlike initial construction, this helper does not collapse equal colors
+ * to a solid stroke.
+ */
 static void CairoDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
     CAIRO(ctx)->doubleDash = (CAIRO(ctx)->nDashes > 0) && (color != NULL);
     if (CAIRO(ctx)->doubleDash) {
@@ -454,6 +519,13 @@ static void CairoDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
 }
 
 /* Separate subpaths preserve strip-segment boundaries. Bound path storage. */
+/**
+ * @ingroup cairo_backend
+ * @brief Stroke independent segment subpaths in bounded batches.
+ * Ordinary strokes flush every 8192 segments and at completion. Double-dash strokes flush after each
+ * segment to preserve painter order at intersections. Input geometry is borrowed, and each flush
+ * consumes the path.
+ */
 static void CairoSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Tcl_Size i;
 
@@ -469,6 +541,13 @@ static void CairoSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl
 }
 
 /* Append independent shapes; never connect adjacent circle or segment symbols. */
+/**
+ * @ingroup cairo_backend
+ * @brief Append one independent symbol without painting it.
+ * Borrows shape and center. Circles start a new subpath; segment shapes use pairs and ignore an
+ * unmatched final point; other nonempty shapes close a polygon. Does not clear existing shapes, set
+ * paint or allocate caller-owned storage.
+ */
 static void AppendRenderSymbol(cairo_t *cr, const Rbc_RenderShape *shape, const Point2D *center) {
     int i;
 
@@ -535,6 +614,12 @@ void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, con
     cairo_restore(CAIRO(ctx)->cr);
 }
 
+/**
+ * @ingroup cairo_backend
+ * @brief Convert a borrowed Tk color to an opaque ARGB32 pixel.
+ * NULL becomes transparent zero. Color channels use rounded division by 257, not truncation; opaque
+ * channels require no additional premultiplication.
+ */
 static uint32_t RenderAreaPixel(const XColor *color) {
     if (color == NULL) {
         return 0; /* Transparent stipple gap. */
@@ -544,6 +629,14 @@ static uint32_t RenderAreaPixel(const XColor *color) {
 }
 
 /* Read the native bitmap before acquiring the destination drawing context. */
+/**
+ * @ingroup cairo_backend
+ * @brief Copy a named bitmap into an owned repeating pattern.
+ * Reads XYPixmap bits before destination-context acquisition and maps them to foreground/background
+ * ARGB pixels. Releases the temporary XImage and local surface reference. Returns a nearest-filtered
+ * pattern owned by the caller, or NULL after cleanup on failure; NULL colors create transparent
+ * pixels.
+ */
 static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple, const XColor *foreground,
                                             const XColor *background) {
     cairo_surface_t *surface;
@@ -657,6 +750,14 @@ int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRec
     return TRUE;
 }
 
+/**
+ * @ingroup cairo_backend
+ * @brief Fill rectangle batches with optional group opacity.
+ * Temporarily cancels pixel-center translation and uses winding fill. Nonpositive rectangles are
+ * skipped and paths flush every 8192 input entries. Opacity applies once to the composed group,
+ * including stipple paint, rather than separately at every overlap. Restores graphics state after
+ * consuming the path.
+ */
 static void CairoFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     Tcl_Size i;
 
@@ -687,6 +788,13 @@ static void CairoFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangl
 }
 
 /* Area vertices are boundaries, not the pixel centers used by strokes. */
+/**
+ * @ingroup cairo_backend
+ * @brief Fill a borrowed polygon in pixel-boundary coordinates.
+ * Requires at least three readable points and no unrelated pending geometry. Cancels the half-pixel
+ * translation, selects even-odd fill and optionally sets a borrowed pattern. This helper does not save
+ * or restore graphics state: callers must bracket it or end the context afterward.
+ */
 static void FillRenderArea(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count, cairo_pattern_t *pattern) {
     Tcl_Size i;
 
@@ -704,6 +812,14 @@ static void FillRenderArea(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
 }
 
 /* Mapped bitmaps are raw pixmaps, not entries in Tk's named bitmap cache. */
+/**
+ * @ingroup cairo_backend
+ * @brief Copy mapped bitmap and optional mask into an owned pattern.
+ * Caller supplies positive dimensions and pixmaps readable over that rectangle. When mask equals
+ * bitmap, one XImage serves both roles and is freed once. Distinct readbacks and the local surface are
+ * cleaned up on failure. Returns a nearest-filtered, nonrepeating pattern or NULL; source pixmaps
+ * remain borrowed.
+ */
 static cairo_pattern_t *CreateRenderBitmap(Graph *graphPtr, Pixmap bitmap, Pixmap mask, int width, int height,
                                            const XColor *foreground, const XColor *background) {
     XImage *bits, *maskBits = NULL;
@@ -872,6 +988,13 @@ Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const
     return ctx;
 }
 
+/**
+ * @ingroup cairo_backend
+ * @brief Fill a polygon using retained solid or stipple style.
+ * Common dispatch guarantees at least three points. Solid opacity is applied only without a stipple;
+ * the retained pattern already owns its pixel alpha. Saves and restores state around FillRenderArea,
+ * but consumes the path.
+ */
 static void CairoFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     const Rbc_RenderFillStyle *style = &CAIRO(ctx)->fillStyle;
     const XColor *foreground = style->foreground;
@@ -1034,6 +1157,13 @@ int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock
 }
 
 /* Flush before any native drawing resumes on the same drawable. */
+/**
+ * @ingroup cairo_backend
+ * @brief Flush, release and report completion errors.
+ * Requires a live context and interpreter after common clip unwinding. Captures context status, then
+ * surface status if needed, frees owned resources, and reports a background Tcl exception with
+ * interpreter state restored. This is terminal cleanup, not a request to replay native drawing.
+ */
 static void CairoEnd(Rbc_RenderContext *ctx) {
     cairo_status_t status;
     Tcl_Interp *interp = ctx->graphPtr->interp;

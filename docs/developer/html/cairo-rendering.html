@@ -45,7 +45,7 @@
 <p><code class="docutils literal notranslate"><span class="pre">rbcRenderCairo.c</span></code> implements screen rendering and the disabled-Cairo entry
 points. SVG, PDF and PostScript do not use this backend. Components still own
 mapped geometry, clipping scopes and painter order; see <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>.
-Selected private contracts are in <a class="reference internal" href="cairo-reference.html"><span class="doc">Cairo backend C reference</span></a>.</p>
+Private helper contracts are in <a class="reference internal" href="cairo-reference.html"><span class="doc">Cairo backend C reference</span></a>.</p>
 <section id="construction-and-ownership">
 <h2>Construction and ownership<a class="headerlink" href="#construction-and-ownership" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">CairoRenderContext</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Rbc_RenderContext</span></code> first and owns a Cairo
@@ -101,8 +101,9 @@ Tk/Windows monochrome inversion associated with the other image format. It
 creates ARGB32 pixels from foreground/background colors, destroys the XImage,
 and returns a repeating nearest-filtered pattern. A missing background can
 leave transparent pattern pixels. Solid-fill opacity is applied separately;
-pattern pixels retain their constructed alpha rather than automatically being
-multiplied by the solid-fill opacity argument.</p>
+polygon and arc pattern pixels retain their constructed alpha rather than being
+multiplied by solid-fill opacity. Rectangle batches and legend bar swatches
+instead apply opacity to a composed group, including stipple paint.</p>
 <p><code class="docutils literal notranslate"><span class="pre">CreateRenderPhoto</span></code> copies a borrowed Tk photo block into a new ARGB32 image.
 RGB offsets must be within the pixel size. Alpha is used only if its offset is
 valid and distinct from all RGB offsets; otherwise pixels are opaque. Each RGB
@@ -155,6 +156,49 @@ marker passes containing text and photos, nested clipping, transparent pixels,
 stipple backgrounds, dash backgrounds and resized targets. Windows DIB/DC
 synchronization and X11 surface wrapping exercise different lifetime paths.</p>
 </section>
+<section id="path-consumption-and-batching">
+<h2>Path consumption and batching<a class="headerlink" href="#path-consumption-and-batching" title="Link to this heading">¶</a></h2>
+<p>Cairo paths are not part of saved graphics state. A save/restore pair restores
+sources, transforms and clipping, but does not resurrect geometry consumed by
+fill, stroke or clip. Callers must finish each primitive before entering another
+operation or clip scope. <code class="docutils literal notranslate"><span class="pre">CairoArcPath</span></code> explicitly replaces the path; other
+append helpers rely on the preceding operation having consumed its geometry.</p>
+<p>Segment strokes flush every 8192 segments to bound path storage. With two-color
+dashes they instead finish each segment separately, preserving painter order
+where segments intersect. Symbol batches append independent subpaths: circles
+start new subpaths, segment symbols use separate pairs, and polygons close.
+The component bounds ordinary symbol batches; tiny point symbols flush their
+one-pixel rectangle paths every 8192 points.</p>
+<p>Rectangle fills also flush every 8192 input entries. If opacity is requested,
+these fills accumulate into one group and opacity is applied once to that group.
+Overlapping rectangles in a single call therefore do not accumulate opacity as
+independent translucent objects. This differs from solid polygon calls, which
+paint their opacity directly. Preserve call boundaries when changing batching.</p>
+</section>
+<section id="coordinate-and-pattern-state">
+<h2>Coordinate and pattern state<a class="headerlink" href="#coordinate-and-pattern-state" title="Link to this heading">¶</a></h2>
+<p>Stroke contexts start with a half-pixel translation. Area boundaries, integer
+rectangles, bitmap symbols and photos cancel it where their contracts require
+pixel-boundary coordinates. <code class="docutils literal notranslate"><span class="pre">FillRenderArea</span></code> makes that translation without
+saving state itself: reusable polygon callers bracket it, while one-shot tile
+and bitmap callers finish the context afterward. Calling it repeatedly without
+a corresponding restore would accumulate translations.</p>
+<p>Stipples and photos produce repeating nearest-filtered patterns. Mapped bitmap
+patterns do not repeat, and one-shot photos explicitly disable repetition after
+conversion. Bitmap masks may alias their source bitmap; the conversion helper
+shares and releases the readback once in that case. Dimensions remain the
+caller’s responsibility, especially for raw mapped pixmaps outside Tk’s named
+bitmap registry.</p>
+<p>Stipple colors are converted to eight-bit channels with rounded division by
+257, with NULL meaning transparent zero. Photo colors use alpha premultiplication
+instead. These conversions serve different source layouts and should not be
+merged by substituting simple channel truncation.</p>
+<p>Initial stroke construction collapses equal foreground/off-colors to a solid
+stroke. Later <code class="docutils literal notranslate"><span class="pre">CairoDashBackground</span></code> calls only enable or disable the underlay
+and copy its color; they do not repeat that optimization or reconstruct dash
+values discarded during construction. Callers needing a different dash pattern
+must construct an appropriately configured context.</p>
+</section>
 </section>
 
 
@@ -173,6 +217,8 @@ synchronization and X11 surface wrapping exercise different lifetime paths.</p>
 <li><a class="reference internal" href="#patterns-and-pixel-conversion">Patterns and pixel conversion</a></li>
 <li><a class="reference internal" href="#windows-marker-pass-target">Windows marker-pass target</a></li>
 <li><a class="reference internal" href="#fallback-and-validation-boundaries">Fallback and validation boundaries</a></li>
+<li><a class="reference internal" href="#path-consumption-and-batching">Path consumption and batching</a></li>
+<li><a class="reference internal" href="#coordinate-and-pattern-state">Coordinate and pattern state</a></li>
 </ul>
 </li>
 </ul>
