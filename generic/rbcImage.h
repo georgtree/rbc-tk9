@@ -165,14 +165,6 @@ Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter)
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height);
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma);
-/**
- * @brief Resolve a filter name or unambiguous abbreviation to borrowed static state.
- *
- * Return TCL_OK and a filter-table pointer, or NULL for the name none. On
- * lookup failure return TCL_ERROR without assigning the output pointer.
- * Do not free or modify a returned filter. NULL selects policy in callers;
- * it is not a valid filter argument to Rbc_ResampleColorImage().
- */
 int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, ResampleFilter **filterPtrPtr);
 /**
  * @brief Release both the pixel array and its owning image record.
@@ -207,25 +199,8 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
  * lookup-table population. Some split diagnostics use stderr.
  */
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
-/**
- * @brief Return a newly owned image filtered horizontally and then vertically.
- *
- * Borrow the source and two valid, non-NULL filters; leave the source intact.
- * Release the result with Rbc_FreeColorImage(). Negative destination dimensions
- * or missing filters panic. Zero dimensions are allowed; empty input leaves
- * zero-initialized output. Each pass filters straight RGBA channels separately,
- * with fixed-point weights and clamping, without gamma conversion.
- */
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage image, int destWidth, int destHeight,
                                       ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
-/**
- * @brief Filter a source photo region into the destination photo's existing dimensions.
- *
- * Snapshot the source region before writing, allowing identical photo handles.
- * Borrow both handles and valid non-NULL filters. Temporary RBC images are
- * released internally. The void photo-write wrapper does not propagate Tk's
- * write status; callers must not interpret return as a success code.
- */
 void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                        Tk_PhotoHandle destPhoto, ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
 /**

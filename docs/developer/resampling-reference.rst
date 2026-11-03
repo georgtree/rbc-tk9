@@ -16,3 +16,17 @@ These private services are declared in ``rbcImage.h`` and implemented in
 .. doxygenfunction:: Rbc_ResamplePhoto
 
 .. doxygenfunction:: Rbc_ResizePhoto
+
+Filter kernels and contribution records
+---------------------------------------
+
+These helpers implement the filtered path in ``rbcImage.c``. See
+:doc:`image-resampling` for kernel support, coordinate conventions and
+fixed-point arithmetic.
+
+.. c:namespace:: rbcImageResampling
+
+.. doxygengroup:: image_resample_internals
+   :members:
+
+.. c:namespace-pop::

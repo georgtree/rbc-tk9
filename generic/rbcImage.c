@@ -1,5 +1,7 @@
-/*
- * rbcImage.c --
+/**
+ * @file rbcImage.c
+ * @brief CPU image processing and Tk photo conversion.
+ * @defgroup image_resample_internals Image resampling kernels and contributions
  *
  *      This module implements image processing procedures for the rbc
  *      toolkit.
@@ -433,23 +435,12 @@ static ResampleFilterProc SincFilter;
 static ResampleFilterProc TriangleFilter;
 static Tk_ImageChangedProc TempImageChangedProc;
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the compact cubic default kernel.
+ * @ingroup image_resample_internals
  *
- * DefaultFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * For t = abs(x) below one returns (2t - 3)t squared + 1, otherwise zero.
+ * Uses no mutable state or allocation. The table support is one pixel.
  */
 static double DefaultFilter(double x) {
     if (x < 0.0) {
@@ -462,23 +453,13 @@ static double DefaultFilter(double x) {
     return 0.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the historical diagnostic kernel abs(x).
+ * @ingroup image_resample_internals
  *
- * DummyFilter --
- *
- *      Just for testing...
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Has no intrinsic cutoff, normalization or image access. Its table support
+ * is 0.5; contribution construction supplies the sampling interval. This
+ * test kernel is not an identity or nearest-neighbour operation.
  */
 static double DummyFilter(double x) { return FABS(x); }
 
@@ -493,23 +474,12 @@ static double DummyFilter(double x) { return FABS(x); }
  *
  */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return unit weight inside the closed interval [-0.5, 0.5].
+ * @ingroup image_resample_internals
  *
- * BoxFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns zero outside the interval, including neither endpoint in that
+ * rejection. Stateless; the table support is 0.5 pixels.
  */
 static double BoxFilter(double x) {
     if ((x < -0.5) || (x > 0.5)) {
@@ -518,23 +488,12 @@ static double BoxFilter(double x) {
     return 1.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the linear tent kernel.
+ * @ingroup image_resample_internals
  *
- * TriangleFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns 1 - abs(x) for abs(x) below one, otherwise zero. Stateless with
+ * table support one pixel; performs no contribution normalization itself.
  */
 static double TriangleFilter(double x) {
     if (x < 0.0) {
@@ -546,23 +505,12 @@ static double TriangleFilter(double x) {
     return 0.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the piecewise quadratic bell kernel.
+ * @ingroup image_resample_internals
  *
- * BellFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * For t = abs(x), returns 0.75 - t squared below 0.5 and half of
+ * (t - 1.5) squared below 1.5; otherwise zero. Stateless; support is 1.5.
  */
 static double BellFilter(double x) {
     if (x < 0.0) {
@@ -578,23 +526,13 @@ static double BellFilter(double x) {
     return 0.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the compact cubic B-spline kernel.
+ * @ingroup image_resample_internals
  *
- * BSplineFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses even cubic pieces on abs(x) below one and below two, and returns
+ * zero outside. Stateless; table support is two pixels. The kernel value
+ * at zero is 2/3, so this is not an interpolating cardinal kernel.
  */
 static double BSplineFilter(double x) {
     double x2;
@@ -622,23 +560,12 @@ static double BSplineFilter(double x) {
  *      Mitchell
  */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate sin(pi*x)/(pi*x), with its removable singularity filled.
+ * @ingroup image_resample_internals
  *
- * SincFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns one at zero. No intrinsic cutoff; the table limits sampling to
+ * support four. Stateless; signed lobes are preserved for normalization.
  */
 static double SincFilter(double x) {
     x *= M_PI;
@@ -648,23 +575,14 @@ static double SincFilter(double x) {
     return (sin(x) / x);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the legacy Bessel reconstruction kernel.
+ * @ingroup image_resample_internals
  *
- * BesselFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns pi/4 at zero and j1(pi*x)/(2*x) otherwise. The table support is
+ * 3.2383; there is no cutoff in this function. The legacy Borland branch
+ * returns zero for all inputs. Requires the platform j1 implementation
+ * on other builds. Owns no state and performs no normalization.
  */
 static double BesselFilter(double x) {
 #ifdef NEED_DECL_J1
@@ -684,43 +602,21 @@ static double BesselFilter(double x) {
 
 #define SQRT_2PI 0.79788456080286541 /* sqrt(2.0 / M_PI) */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate exp(-2*x*x) times sqrt(2/pi).
+ * @ingroup image_resample_internals
  *
- * GaussianFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Stateless with no intrinsic cutoff. The gaussian and gauss8 table entries
+ * share this procedure but use support radii 1.25 and 8 respectively.
  */
 static double GaussianFilter(double x) { return exp(-2.0 * x * x) * SQRT_2PI; }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate a sinc kernel with a three-lobe sinc window.
+ * @ingroup image_resample_internals
  *
- * Lanczos3Filter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * For abs(x) below three returns SincFilter(x) times SincFilter(x/3),
+ * otherwise zero. Stateless; the table support is three pixels.
  */
 static double Lanczos3Filter(double x) {
     if (x < 0) {
@@ -735,23 +631,13 @@ static double Lanczos3Filter(double x) {
 #define B 0.3333333333333333 /* (1.0 / 3.0) */
 #define C 0.3333333333333333 /* (1.0 / 3.0) */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the compact Mitchell cubic with B = C = 1/3.
+ * @ingroup image_resample_internals
  *
- * MitchellFilter --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses even polynomial pieces below absolute distances one and two, then
+ * returns zero. Stateless; support is two. Negative lobes are retained
+ * here and may produce values later clamped by the image passes.
  */
 static double MitchellFilter(double x) {
     double x2;
@@ -771,23 +657,13 @@ static double MitchellFilter(double x) {
     return 0.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the piecewise Catmull-Rom cubic kernel.
+ * @ingroup image_resample_internals
  *
- * CatRomFilter --
- *
- *      Catmull-Rom spline
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses four polynomial intervals spanning [-2, 2] and is zero outside.
+ * Returns one at zero. Stateless; signed lobes are not clipped here and
+ * the table support is two pixels.
  */
 static double CatRomFilter(double x) {
     if (x < -2.) {
@@ -808,23 +684,13 @@ static double CatRomFilter(double x) {
     return 0.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Evaluate the historical Gaussian-tail integral approximation.
+ * @ingroup image_resample_internals
  *
- * GiFilter --
- *
- *      Approximation to the gaussian integral [x, inf)
- *
- * Parameters:
- *      double x
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns one below -1.5 and zero above 1.5, with three polynomial pieces
+ * between. This is an asymmetric cumulative function, not the even
+ * Gaussian kernel. The table support is 1.25. Owns no mutable state.
  */
 static double GiFilter(double x) {
     if (x > 1.5) {
@@ -868,28 +734,13 @@ static ResampleFilter filterTable[] = {
 
 ResampleFilter *rbcBoxFilterPtr = &(filterTable[2]);
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Resolve a filter name or unambiguous abbreviation to borrowed static state.
  *
- * Rbc_GetResampleFilterFromObj --
- *
- *      Finds a 1-D filter associated by the given filter name.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tcl_Obj *filterObj
- *      ResampleFilter **filterPtrPtr
- *
- * Results:
- *      A standard Tcl result.  Returns TCL_OK is the filter was
- *      found.  The filter information (proc and support) is returned
- *      via filterPtrPtr. Otherwise TCL_ERROR is returned and an error
- *      message is left in the interpreter result.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Return TCL_OK and a filter-table pointer, or NULL for the name none. On
+ * lookup failure return TCL_ERROR without assigning the output pointer.
+ * Do not free or modify a returned filter. NULL selects policy in callers;
+ * it is not a valid filter argument to Rbc_ResampleColorImage().
  */
 int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, ResampleFilter **filterPtrPtr) {
     int index;
@@ -929,6 +780,15 @@ typedef struct {
     Weight weights[1]; /* Array of weights. */
 } Sample;
 
+/**
+ * @brief Compute storage for one variable-sized contribution record.
+ * @ingroup image_resample_internals
+ *
+ * Requires a positive weight count. Includes the first Weight already in
+ * Sample and checks extra storage against SIZE_MAX before multiplying.
+ * Returns a byte stride; invalid count or representational overflow panics.
+ * Does not allocate or initialize a record.
+ */
 static size_t GetSampleRecordSize(int nWeights) {
     size_t size;
     size_t extraWeights;
@@ -944,6 +804,15 @@ static size_t GetSampleRecordSize(int nWeights) {
     return size + (extraWeights * sizeof(Weight));
 }
 
+/**
+ * @brief Bound contribution capacity by the source pixel count.
+ * @ingroup image_resample_internals
+ *
+ * Requires positive srcWidth and finite nonnegative radius; invalid input
+ * panics. Computes 2*radius + 2, caps at srcWidth before integer conversion
+ * (also for an overflowed sum), and returns at least one. This capacity
+ * bounds the clipped interval, not the count of nonzero weights.
+ */
 static int GetFilterSize(int srcWidth, double radius) {
     double value;
 
@@ -968,6 +837,16 @@ static int GetFilterSize(int srcWidth, double radius) {
     return (int)value;
 }
 
+/**
+ * @brief Round and clip an inclusive source contribution interval.
+ * @ingroup image_resample_internals
+ *
+ * Borrows output pointers. Requires positive srcWidth, finite center/radius
+ * and nonnegative radius; invalid geometry panics. Rounds center +/- radius
+ * using +0.5 then positive integer truncation, with clipping before casts.
+ * Writes ordered bounds in [0, srcWidth-1]; outlying centers clamp to an
+ * edge sample rather than yielding an empty interval.
+ */
 static void GetFilterBounds(int srcWidth, double center, double radius, int *leftPtr, int *rightPtr) {
     double value;
     int left;
@@ -999,26 +878,20 @@ static void GetFilterBounds(int srcWidth, double center, double radius, int *lef
     *rightPtr = right;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Allocate normalized fixed-point contributions for one output axis.
+ * @ingroup image_resample_internals
  *
- * ComputeWeights --
- *
- *      TODO: Description
- *
- * Parameters:
- *      int srcWidth,
- *      int destWidth
- *      ResampleFilter *filterPtr
- *      Sample **samplePtrPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires positive dimensions and a non-NULL filter with a valid procedure
+ * and finite nonnegative support. Invalid geometry panics. Returns the
+ * byte stride between records and writes an owned zero-allocated array to
+ * samplePtrPtr; caller frees it with ckfree. One record per destination
+ * coordinate stores the clipped source start/count. Downsampling expands
+ * support by inverse scale; weights use a half-pixel offset. Float weights
+ * are summed in double, normalized unless the sum is zero, then overwritten
+ * in the union by fixed-point ints using a scale of 16384 and +0.5 before
+ * truncation. Custom kernels must yield finite, representable normalized
+ * weights; there is no general validation of callback results.
  */
 static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filterPtr, Sample **samplePtrPtr) {
     Sample *samples;
@@ -1122,25 +995,16 @@ static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filter
  */
 #define SICLAMP(s) (unsigned char)(((s) < 0) ? 0 : ((s) > 4177920) ? 255 : (si2int(s)))
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Filter source columns into an equally wide destination image.
+ * @ingroup image_resample_internals
  *
- * ZoomImageVertically --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      Rbc_ColorImage dest
- *      ResampleFilter *filterPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows distinct source/destination images and a valid non-NULL filter.
+ * Requires equal widths; empty dimensions return without writing. Computes
+ * one owned contribution array for all columns, accumulates straight RGBA
+ * independently and clamps to bytes. Frees weights before returning.
+ * Does not allocate image storage or perform gamma conversion; in-place
+ * filtering is unsupported.
  */
 static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr) {
     Sample *samples, *s, *endPtr;
@@ -1188,25 +1052,16 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
     ckfree((char *)samples);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Filter source rows into an equally tall destination image.
+ * @ingroup image_resample_internals
  *
- * ZoomImageHorizontally --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      Rbc_ColorImage dest
- *      ResampleFilter *filterPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows distinct source/destination images and a valid non-NULL filter.
+ * Requires equal heights; returns without writing if either image has an
+ * empty dimension. Computes one owned contribution array for all rows,
+ * accumulates straight RGBA independently and clamps each channel to a
+ * byte. Releases weights before returning. Does not resize either image
+ * or perform gamma conversion; in-place filtering is unsupported.
  */
 static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr) {
     Sample *samples, *s, *endPtr;
@@ -1254,29 +1109,14 @@ static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, Resam
     ckfree((char *)samples);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Return a newly owned image filtered horizontally and then vertically.
  *
- * Rbc_ResampleColorImage --
- *
- *      Resamples a given color image using 1-D filters and returns
- *      a new color image of the designated size.
- *
- * Parameters:
- *      Rbc_ColorImage src
- *      int width
- *      int height
- *      ResampleFilter *horzFilterPtr
- *      ResampleFilter *vertFilterPtr
- *
- * Results:
- *      Returns the resampled color image. The original color image
- *      is left intact.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrow the source and two valid, non-NULL filters; leave the source intact.
+ * Release the result with Rbc_FreeColorImage(). Negative destination dimensions
+ * or missing filters panic. Zero dimensions are allowed; empty input leaves
+ * zero-initialized output. Each pass filters straight RGBA channels separately,
+ * with fixed-point weights and clamping, without gamma conversion.
  */
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage src, int width, int height, ResampleFilter *horzFilterPtr,
                                       ResampleFilter *vertFilterPtr) {
@@ -1300,34 +1140,13 @@ Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage src, int width, int height,
     return dest;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Filter a source photo region into the destination photo's existing dimensions.
  *
- * Rbc_ResamplePhoto --
- *
- *      Resamples a Tk photo image using 1-D filters and writes the
- *      image into another Tk photo.  It is possible for the
- *      source and destination to be the same photo.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_PhotoHandle srcPhoto - Source photo image to scale
- *      int x
- *      int y
- *      int width
- *      int height
- *      Tk_PhotoHandle destPhoto - Resulting scaled photo image
- *      ResampleFilter *horzFilterPtr
- *      ResampleFilter *vertFilterPtr
- *
- * Results:
- *      The designated destination photo will contain the resampled
- *      color image. The original photo is left intact.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Snapshot the source region before writing, allowing identical photo handles.
+ * Borrow both handles and valid non-NULL filters. Temporary RBC images are
+ * released internally. The void photo-write wrapper does not propagate Tk's
+ * write status; callers must not interpret return as a success code.
  */
 void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                        Tk_PhotoHandle destPhoto, ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr) {

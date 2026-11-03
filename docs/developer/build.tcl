@@ -100,6 +100,7 @@ proc ::rbcDocBuild::main {arguments} {
         @CHAIN_HEADER@ [doxyQuote [file join $root generic rbcChain.h]] \
         @LIST_HEADER@ [doxyQuote [file join $root generic rbcList.h]] \
         @IMAGE_HEADER@ [doxyQuote [file join $root generic rbcImage.h]] \
+        @IMAGE_SOURCE@ [doxyQuote [file join $root generic rbcImage.c]] \
         @TILE_HEADER@ [doxyQuote [file join $root generic rbcTile.h]] \
         @TEXT_HEADER@ [doxyQuote [file join $root generic rbcText.h]] \
         @TEXT_SOURCE@ [doxyQuote [file join $root generic rbcText.c]] \

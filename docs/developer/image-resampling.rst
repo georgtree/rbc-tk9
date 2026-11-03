@@ -60,6 +60,105 @@ image therefore introduces quantization before the second pass; this is not
 a single floating-point two-dimensional convolution. Signed filter lobes can
 produce overshoot that is clipped at this boundary.
 
+Kernel table and support
+------------------------
+
+Support is a table policy, not always an intrinsic cutoff in the function.
+All values below are source-pixel distances before downsampling broadens them.
+The aliases are distinct table entries even when they share a procedure.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 18 15 67
+
+   * - Name
+     - Support
+     - Implemented kernel
+   * - ``bell``
+     - 1.5
+     - Even piecewise quadratic bell.
+   * - ``bessel``
+     - 3.2383
+     - j1(pi*x)/(2*x), with pi/4 at zero; legacy Borland builds return zero.
+   * - ``box``
+     - 0.5
+     - One on the closed interval [-0.5, 0.5], zero outside.
+   * - ``bspline``
+     - 2
+     - Even cubic B-spline; value at zero is 2/3.
+   * - ``catrom``
+     - 2
+     - Interpolating Catmull-Rom cubic with signed lobes.
+   * - ``default``
+     - 1
+     - For t = abs(x) below one: 2*t^3 - 3*t^2 + 1; otherwise zero.
+   * - ``dummy``
+     - 0.5
+     - Diagnostic abs(x), not an identity filter.
+   * - ``gauss8``
+     - 8
+     - exp(-2*x*x) times sqrt(2/pi).
+   * - ``gaussian``
+     - 1.25
+     - Same procedure as gauss8, sampled over a narrower support.
+   * - ``gi``
+     - 1.25
+     - Asymmetric piecewise approximation to a Gaussian tail integral.
+   * - ``lanczos3``
+     - 3
+     - sinc(x)*sinc(x/3), zero at absolute distances of at least three.
+   * - ``mitchell``
+     - 2
+     - Piecewise cubic with B = C = 1/3 and signed lobes.
+   * - ``none``
+     - 0
+     - NULL procedure; lookup returns NULL for caller-selected resize policy.
+   * - ``sinc``
+     - 4
+     - sin(pi*x)/(pi*x), with one at zero.
+   * - ``triangle``
+     - 1
+     - max(1 - abs(x), 0).
+
+None of these kernel functions reads image storage or normalizes its output.
+The caller samples the support and normalizes the resulting contribution
+record. ``rbcBoxFilterPtr`` borrows the box table entry; neither that pointer
+nor a lookup result transfers ownership of the static record.
+
+Contribution layout and rounding
+--------------------------------
+
+Each Sample stores a source start index, count and variable-length Weight
+array. ComputeWeights returns the byte stride, which must be used to advance
+between records; ordinary Sample pointer arithmetic would be incorrect.
+GetSampleRecordSize accounts for the first inline weight and checks extra
+storage before multiplication. GetFilterSize caps capacity by source length
+before narrowing to int, and GetFilterBounds clips each inclusive interval
+before converting its endpoints.
+
+For scale = destination/source and destination coordinate x, center = x/scale.
+The kernel argument is i + 0.5 - center for enlargement, and that expression
+times scale for reduction. Bounds use center +/- radius + 0.5, followed by
+clipping and integer truncation. This historical phase convention is not a
+promise that filtering at unchanged dimensions copies source pixels exactly.
+Clipped edge contributions are normalized over retained source samples;
+there is no mirrored or wrapped padding.
+
+Weights initially occupy the float member of a union and are summed in double.
+After normalization, each is replaced by its integer representation using
+``(int)(weight * 16384 + 0.5)``. The same +0.5 applies to negative weights, so
+conversion is not symmetric rounding about zero. Quantized weights are not
+adjusted again to make their integer sum exactly 16384. A zero floating sum
+uses a normalization factor of one rather than selecting a fallback pixel.
+
+The horizontal pass requires source and destination heights to match; the
+vertical pass requires widths to match. They do not validate these internal
+shape invariants or support aliased storage. Rbc_ResampleColorImage constructs
+the intermediate and final images to satisfy them. Custom C filters must
+return finite weights whose normalized fixed-point values are representable;
+the kernel does not validate arbitrary callback results. Changing phase,
+normalization or rounding requires explicit compatibility tests.
+
 Alpha and color space
 ---------------------
 
