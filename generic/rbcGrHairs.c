@@ -547,27 +547,12 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CgetOp --
- *
- *      Queries configuration attributes of the crosshairs such as
- *      line width, dashes, and position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup crosshair_internals
+ * @brief Return one component option value.
+ * The typed dispatcher has validated argument count. Borrows the graph-owned component and its option
+ * table, returning Tk option errors unchanged. This query does not configure resources or schedule
+ * drawing.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr;
@@ -582,27 +567,13 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ConfigureOp --
- *
- *      Queries or resets configuration attributes of the crosshairs
- *      such as line width, dashes, and position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Crosshairs are reset.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup crosshair_internals
+ * @brief Query or transactionally configure crosshair options.
+ * Three or four arguments return Tk option metadata. Updates stage Tk fields and invoke
+ * ConfigureCrosshairs to validate derived state before visual replacement. Failure restores saved
+ * options and the diagnostic; success frees saved values. Presentation is handled by the helper rather
+ * than scheduling a whole-graph redraw here.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr;
@@ -638,26 +609,12 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * OnOp --
- *
- *      Maps the crosshairs.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Crosshairs are reset if necessary.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup crosshair_internals
+ * @brief Request crosshairs to be shown.
+ * When previously hidden, attempts drawing with TurnOnHairs before clearing hidden. Actual visibility
+ * still depends on window mapping and hotspot location. Repeated on is a no-op even if requested hairs
+ * are not currently visible; display/motion paths own later presentation.
  */
 static int OnOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
@@ -668,26 +625,12 @@ static int OnOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * OffOp --
- *
- *      Unmaps the crosshairs.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Crosshairs are reset if necessary.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup crosshair_internals
+ * @brief Request crosshairs to be hidden.
+ * When previously requested on, erases through TurnOffHairs before setting hidden. Repeated off is a
+ * no-op. The low-level helper may leave actual visibility unchanged on an unmapped window; requested
+ * state is not a direct pixel-state assertion.
  */
 static int OffOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
@@ -698,26 +641,12 @@ static int OffOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ToggleOp --
- *
- *      Toggles the state of the crosshairs.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Crosshairs are reset.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup crosshair_internals
+ * @brief Toggle requested crosshair state and perform its visual transition.
+ * Updates hidden first, then erases or draws through the low-level helpers. Those helpers do not
+ * consult hidden; they use actual visibility, mapping and hotspot eligibility. Does not invalidate the
+ * reusable graph backing store.
  */
 static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
@@ -735,32 +664,12 @@ static const CrosshairsOpSpec xhairOps[] = {
     {{"off", 3, 3, ""}, OffOp},         {{"on", 3, 3, ""}, OnOp},
     {{"toggle", 3, 3, ""}, ToggleOp},   {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CrosshairsOp --
- *
- *      User routine to configure crosshair simulation. Crosshairs
- *      are drawn using XOR so ordinary pointer motion can erase
- *      and replace them without redrawing the graph.
- *
- *      Buffered on-screen redraws compose the crosshairs into the
- *      completed frame before copying it to the window. Direct,
- *      unbuffered redraws erase and restore them around drawing.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      Crosshairs may be drawn in the plotting area.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup crosshair_internals
+ * @brief Validate and dispatch a crosshair subcommand.
+ * The typed table validates operation name and argument count before calling a handler. Borrowed graph
+ * state must remain live. Dispatch itself does not update segment geometry, process events or perform
+ * buffered presentation.
  */
 int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;

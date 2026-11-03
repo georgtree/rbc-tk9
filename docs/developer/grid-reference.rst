@@ -23,5 +23,9 @@ Ownership and cleanup
 Implementation helpers
 ----------------------
 
+.. c:namespace-push:: rbcGrid
+
 .. doxygengroup:: grid_internals
    :members:
+
+.. c:namespace-pop::

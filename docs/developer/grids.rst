@@ -170,3 +170,34 @@ The custom automatic anchor is simpler: its internal representation contains
 only a Tk anchor and a boolean. Set saves the old inline value, get constructs
 a fresh Tcl string, restore copies the saved value, and free is intentionally
 a no-op. It owns no resource requiring deferred release.
+
+Command transactions and visibility
+-----------------------------------
+
+The graph grid dispatcher checks command names and arity before handlers access
+arguments. ``cget`` and both forms of ``configure`` query return Tk option values
+or metadata without configuring the grid. An update stages Tk options, exposes
+the original argument sequence to derived-state validation, then clears that
+borrowed sequence before either committing or restoring saved options. Keeping
+the sequence is necessary for duplicate tick-option validation, not permission
+to retain command arguments beyond the call.
+
+Successful polar changes request a world reset. Changing grid axis mappings also
+requests that reset when polar automatic aspect depends on those axes. Options
+marked for redraw invalidate the backing store and schedule an idle display.
+Visibility commands only change hidden state and schedule that redraw; they do
+not erase pixels directly or discard mapped segments.
+
+Track dispatch validates the adapted command before materializing local state.
+Its query classification is based on the selected handler and argument count,
+so abbreviated operation names retain query semantics. Any successful modifying
+command detaches an inherited grid, even an ``on`` or ``off`` command that leaves
+the effective hidden value unchanged. Failed first mutations destroy the candidate
+and preserve inheritance. Subsequent mutations operate on the existing local
+record with its own saved-options transaction.
+
+The temporary global-grid pointer replacement is safe only while operations stay
+synchronous and do not evaluate Tcl callbacks. Format-prefix validation checks
+list syntax here; actual label evaluation belongs to drawing. Adding event
+processing or callbacks inside grid configuration would require revisiting this
+selection and candidate-lifetime protocol.

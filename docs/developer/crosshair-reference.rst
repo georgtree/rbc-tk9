@@ -23,5 +23,9 @@ Buffered presentation
 Implementation helpers
 ----------------------
 
+.. c:namespace-push:: rbcCrosshairs
+
 .. doxygengroup:: crosshair_internals
    :members:
+
+.. c:namespace-pop::

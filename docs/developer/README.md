@@ -11,7 +11,7 @@ bands, polar data adapters, sampled polar/Smith grid geometry, viewport-aware la
 transactions and resource ownership, scrolling and viewport contracts, geometry and clipping
 contracts and private subdivision helpers, chain/list ownership, insertion and keyed lookup, image and tile ownership, text layout, document font ownership, sfnt/CFF metadata parsing, Unicode/Symbol lookup and PDF font resources,
 export orchestration, SVG primitive paint, bitmap-symbol reuse, text placement, definitions and image encoding, PDF resource serialization and document
-ownership, PDF/PostScript drawing primitives and shared export capture, crosshair presentation and XOR configuration, legend ownership and layout, grid inheritance,
+ownership, PDF/PostScript drawing primitives and shared export capture, crosshair presentation, XOR configuration and command-state transitions, legend ownership and layout, grid inheritance and transactional command dispatch,
 tick-list transactions and output, pen and
 palette ownership, named-pen dispatch and revival, palette staging and range defaults, marker lifecycle, element data and dispatch, shared configuration transactions and retained coordinate representations, element data observation, extrema and value-label formatting, axis and track mapping, shared
 GC/window services, standalone window/photo command dispatch, EPS canvas parsing and preview

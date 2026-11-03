@@ -1322,27 +1322,12 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CgetOp --
- *
- *      Queries configuration attributes of the grid such as line
- *      width, dashes, and position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup grid_internals
+ * @brief Return one component option value.
+ * The typed dispatcher has validated argument count. Borrows the graph-owned component and its option
+ * table, returning Tk option errors unchanged. This query does not configure resources or schedule
+ * drawing.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr;
@@ -1357,28 +1342,13 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ConfigureOp --
- *
- *      Queries or resets configuration attributes of the grid
- *      such as line width, dashes, and position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Grid attributes are reset.  The graph is redrawn at the
- *      next idle point.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup grid_internals
+ * @brief Query or transactionally configure the selected grid.
+ * Three or four arguments return option metadata without mutation. Updates first stage Tk options,
+ * then expose the borrowed original argument sequence only while ConfigureGrid validates derived
+ * state. Clears that temporary sequence on both outcomes. Failure restores saved options and the
+ * diagnostic; success frees saved values and schedules masked world/backing-store invalidation.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr;
@@ -1435,26 +1405,12 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * MapOp --
- *
- *      Maps the grid.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Grid attributes are reset and the graph is redrawn if necessary.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup grid_internals
+ * @brief Request visibility for the selected grid.
+ * Changes hidden only when necessary, invalidates the backing store and schedules idle graph redraw.
+ * Does not immediately paint or remap segments. Under track dispatch, the selected grid may be a newly
+ * created local candidate.
  */
 static int MapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
@@ -1466,26 +1422,11 @@ static int MapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * MapOp --
- *
- *      Maps or unmaps the grid (off or on).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Grid attributes are reset and the graph is redrawn if necessary.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup grid_internals
+ * @brief Hide the selected grid through deferred redraw.
+ * Changes hidden only when currently shown, then invalidates the backing store and schedules idle
+ * redraw. Does not free segment caches or erase pixels directly.
  */
 static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
@@ -1497,27 +1438,11 @@ static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ToggleOp --
- *
- *      Toggles the state of the grid shown/hidden.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Grid is hidden/displayed. The graph is redrawn at the next
- *      idle time.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup grid_internals
+ * @brief Invert grid visibility and schedule a backing-store redraw.
+ * Mutates the selected grid, which can be global or temporarily selected track-local state. Always
+ * schedules redraw; does not remap or synchronously draw geometry.
  */
 static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
@@ -1532,27 +1457,12 @@ static const GridOpSpec gridOps[] = {
     {{"off", 3, 3, ""}, UnmapOp},       {{"on", 3, 3, ""}, MapOp},
     {{"toggle", 3, 3, ""}, ToggleOp},   {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GridOp --
- *
- *      User routine to configure grid lines.  Grids are drawn
- *      at major tick intervals across the graph.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      Grid may be drawn in the plotting area.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup grid_internals
+ * @brief Validate and dispatch a graph grid subcommand.
+ * Uses the typed operation table to check name and arity before accessing operation-specific
+ * arguments. Borrows graph and Tcl arguments, returns the handler result, and performs no independent
+ * drawing or option rollback.
  */
 int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -1564,13 +1474,14 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
     return gridOps[index].proc(graphPtr, interp, objc, objv);
 }
 
-/*
- * Rbc_TrackGridOp --
- *
- *      Query the effective Cartesian grid, or detach it from the graph defaults
- *      on the first successful mutation. Failed changes leave inheritance intact.
- *      Temporary graph selection lets the ordinary transactional grid operations
- *      share their implementation; none of these operations evaluates Tcl scripts.
+/**
+ * @ingroup grid_internals
+ * @brief Adapt nested track grid commands without freezing query defaults.
+ * Owns a temporary adapted argument vector and option table, and retains a temporary Y-axis name.
+ * Inherited queries use a shallow borrowed global view with the track first Y axis when enabled. First
+ * mutation prepares an owned local candidate; only success attaches it. Temporarily selects the view
+ * or candidate through graphPtr->gridPtr, restoring the global pointer before cleanup. This
+ * synchronous path must not evaluate Tcl callbacks while temporary selection is active.
  */
 int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *global = graphPtr->gridPtr;

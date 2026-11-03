@@ -142,3 +142,24 @@ configuration and frame presentation retain the geometry needed for XOR erasure.
 They should not be consolidated merely because all three can draw segments.
 The Windows helper is compiled only for Windows; its source contract complements
 the platform-independent reference and the presentation protocol above.
+
+Command dispatch and idempotence
+--------------------------------
+
+The crosshair dispatcher validates operation name and arity before calling a
+handler. Queries use Tk option accessors without updating the overlay. Configure
+updates use saved Tk options around the derived-state helper; restoration on
+failure preserves the diagnostic as well as the old configuration.
+
+The on/off commands are idempotent with respect to requested state, not actual
+pixels. Repeating ``on`` while hidden is already false does not force an absent
+overlay onto the window. Motion and display paths handle later eligibility and
+presentation. Repeating ``off`` while hidden is true similarly performs no new
+erase. Toggle always changes requested state and invokes the corresponding
+low-level visual operation.
+
+Unlike grid visibility, these commands do not invalidate the graph backing store
+and schedule a full redraw. They use the crosshair XOR transition machinery.
+This distinction keeps pointer interaction inexpensive and prevents cached graph
+content from acquiring overlay pixels. Do not replace these handlers with the
+grid's visibility implementation merely because their Tcl command names match.

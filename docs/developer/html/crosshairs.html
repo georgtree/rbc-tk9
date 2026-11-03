@@ -174,6 +174,24 @@ They should not be consolidated merely because all three can draw segments.
 The Windows helper is compiled only for Windows; its source contract complements
 the platform-independent reference and the presentation protocol above.</p>
 </section>
+<section id="command-dispatch-and-idempotence">
+<h2>Command dispatch and idempotence<a class="headerlink" href="#command-dispatch-and-idempotence" title="Link to this heading">¶</a></h2>
+<p>The crosshair dispatcher validates operation name and arity before calling a
+handler. Queries use Tk option accessors without updating the overlay. Configure
+updates use saved Tk options around the derived-state helper; restoration on
+failure preserves the diagnostic as well as the old configuration.</p>
+<p>The on/off commands are idempotent with respect to requested state, not actual
+pixels. Repeating <code class="docutils literal notranslate"><span class="pre">on</span></code> while hidden is already false does not force an absent
+overlay onto the window. Motion and display paths handle later eligibility and
+presentation. Repeating <code class="docutils literal notranslate"><span class="pre">off</span></code> while hidden is true similarly performs no new
+erase. Toggle always changes requested state and invokes the corresponding
+low-level visual operation.</p>
+<p>Unlike grid visibility, these commands do not invalidate the graph backing store
+and schedule a full redraw. They use the crosshair XOR transition machinery.
+This distinction keeps pointer interaction inexpensive and prevents cached graph
+content from acquiring overlay pixels. Do not replace these handlers with the
+grid’s visibility implementation merely because their Tcl command names match.</p>
+</section>
 </section>
 
 
@@ -192,6 +210,7 @@ the platform-independent reference and the presentation protocol above.</p>
 <li><a class="reference internal" href="#double-buffered-presentation">Double-buffered presentation</a></li>
 <li><a class="reference internal" href="#direct-drawing-and-teardown">Direct drawing and teardown</a></li>
 <li><a class="reference internal" href="#parsing-and-configuration-boundaries">Parsing and configuration boundaries</a></li>
+<li><a class="reference internal" href="#command-dispatch-and-idempotence">Command dispatch and idempotence</a></li>
 </ul>
 </li>
 </ul>
