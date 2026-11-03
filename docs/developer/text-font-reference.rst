@@ -30,3 +30,15 @@ Shared text drawing implementation
    :members:
 
 .. c:namespace-pop::
+
+Native font acquisition and parsing
+-----------------------------------
+
+.. doxygengroup:: export_font_internals
+   :members:
+
+PDF font resource encoding
+---------------------------
+
+.. doxygengroup:: pdf_font_internals
+   :members:

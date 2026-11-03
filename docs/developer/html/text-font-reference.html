@@ -225,6 +225,200 @@
 </dd></dl>
 
 </section>
+<section id="native-font-acquisition-and-parsing">
+<h2>Native font acquisition and parsing<a class="headerlink" href="#native-font-acquisition-and-parsing" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__export__font__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Shared</span> <span class="pre">export</span> <span class="pre">font</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private readers and builders. </p>
+<p>Table views borrow their owning font program; bounds-checked metadata parsing is not a complete font-file sanitizer. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FontU16">
+<span class="target" id="group__export__font__internals_1ga9a11fdd8122f94618de58fc7887a6a7f"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontU16</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontU16" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read an unsigned big-endian 16-bit field. </p>
+<p>Requires two readable bytes; performs no bounds check or allocation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FontU32">
+<span class="target" id="group__export__font__internals_1gaeb3dacc93f037dd39a505f436f6be5bd"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontU32</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontU32" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read an unsigned big-endian 32-bit field. </p>
+<p>Requires four readable bytes; performs no alignment-dependent loads or bounds check. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FontS16">
+<span class="target" id="group__export__font__internals_1ga4d7cdc57696d875551c81bf5ba631b32"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontS16</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontS16" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read a signed big-endian 16-bit field. </p>
+<p>Requires two readable bytes; explicitly sign-extends the unsigned value. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FontPut16">
+<span class="target" id="group__export__font__internals_1ga0c4ab6e75696327b4e86e4f60092ead8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontPut16</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontPut16" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write the low 16 bits in big-endian order. </p>
+<p>Requires two writable bytes. Values outside the field width are truncated, not rejected. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontPut32">
+<span class="target" id="group__export__font__internals_1ga25b81c4f718d9ee0c07703db1c139bdc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontPut32</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontPut32" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write a big-endian 32-bit field. </p>
+<p>Requires four writable bytes. Used for rebuilt directories, checksums and cmap fields. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontSourceFree">
+<span class="target" id="group__export__font__internals_1ga1bb19a3007a41a3af16f294b72d26087"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSourceFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FontSource</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontSourceFree" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a partially or fully initialized native font source. </p>
+<p>Requires a zero-initialized source before acquisition. Frees byte storage and, on Windows, restores the selected font before releasing the DC and created font. Does not free the source record or clear fields; do not call twice. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontSourceOpen">
+<span class="target" id="group__export__font__internals_1gad56cfc5de68310200c5561ac0f69a790"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSourceOpen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">family</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">bold</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">italic</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="n"><span class="pre">FontSource</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontSourceOpen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a native scalable face for a selected family, style and character. </p>
+<p>Caller supplies a zeroed FontSource and must call FontSourceFree on success and failure. Windows creates a GDI font/DC and reads the sfnt directory; individual tables remain available through that DC. X11 matches character coverage through Fontconfig, reads at most 64 MiB through Tcl channels and selects a collection face. Returns TCL_ERROR with an export diagnostic on failure; partial source ownership remains with the caller. Does not build the independent export program or validate all its tables. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontProgram">
+<span class="target" id="group__export__font__internals_1ga6a09ff381fdb3ca0dbde8a1b7eb5495b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontProgram</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">FontSource</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontProgram" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild an independent sfnt with fresh offsets and checksums. </p>
+<p>Borrows an acquired FontSource; requires a fresh destination font record. Drops DSIG, rejects fvar, bounds directory and table sizes and copies full tables into a zero-padded allocation. Windows reads tables by GDI tag; other sources use checked file-relative offsets. Installs bytes/length before all validation finishes, so the caller must free the partial font on TCL_ERROR. Recomputes table checksums and head adjustment, but does not validate every outline instruction, table relationship or semantic field. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FontGetTable">
+<span class="target" id="group__export__font__internals_1ga9784721893fb91b95cc9e3385739b4b4"></span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontGetTable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tag</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontGetTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find a borrowed table slice in a rebuilt export font. </p>
+<p>Requires a FontProgram-validated directory and a readable four-byte tag. Returns {NULL,0} when absent. Does not revalidate bounds or retain the owning font; the returned view expires when its program storage is released. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CffOffset">
+<span class="target" id="group__export__font__internals_1ga0e49ac1d1c7e161c65e0aa6e29851f92"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CffOffset</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CffOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Decode a big-endian variable-width CFF offset. </p>
+<p>Caller validates width (one through four) and the corresponding readable bytes. Returns the unsigned offset without adjusting its one-based origin. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CffIndex">
+<span class="target" id="group__export__font__internals_1gada3a8b79a120dc11b3e892734de4daa8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CffIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">position</span></span>, <span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CffIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate a CFF INDEX and advance a caller-owned cursor. </p>
+<p>Checks count, offset width, one-based initial offset, monotonic offsets and final data bounds. Empty INDEX records occupy two bytes. On success returns one and a borrowed complete INDEX slice, advancing position past it. On failure returns zero without advancing position; the output slice may be partially written and must not be used. Does not validate item contents. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CffItem">
+<span class="target" id="group__export__font__internals_1ga3ad8731a6cd013ff0d2b565a4f5bcbe0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CffItem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">item</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CffItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow one item from an already validated CFF INDEX. </p>
+<p>Requires the complete slice returned by successful CffIndex, even for an empty INDEX. Out-of-range item indices return {NULL,0}; an in-range item may have zero length. No allocation, ownership transfer or repeated validation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FontGlyphName">
+<span class="target" id="group__export__font__internals_1ga0ba65e6c4775ed67846b7bfae9bbadde"></span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontGlyphName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">glyph</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontGlyphName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a validated name-keyed CFF glyph to its name bytes. </p>
+<p>Requires an in-range glyph and initialized SID array. Standard SIDs borrow static names; custom SIDs borrow the validated String INDEX. The returned slice is not necessarily NUL-terminated. FontCffInit validates name lengths before consumers serialize them; this helper does not validate glyph bounds. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontCffInit">
+<span class="target" id="group__export__font__internals_1gac408a148b935dc6cc2368c8a95938069"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontCffInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontCffInit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize glyph-name SIDs for a name-keyed CFF 1 font. </p>
+<p>Requires a validated sfnt font, CFF table and positive glyph count. Parses Name/Top DICT/String INDEX data, relevant charset and CharStrings offsets, and predefined or explicit charset forms. Rejects CID-keyed CFF and malformed metadata. Allocates font-&gt;sids, retained for FontFree even on later failure. Only the metadata required by export is interpreted; charstring programs and unused DICT operands are not a complete CFF validation target. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontTables">
+<span class="target" id="group__export__font__internals_1gadcffcc72900045a958f486b73f137390"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontTables</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontTables" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate and cache the table views needed by document text export. </p>
+<p>Requires a rebuilt sfnt. Checks metrics, cmap directory bounds, outline type, color-table exclusions and embedding permission bits. Derives a safe export name or falls back to RBCFont plus the serial ID. Cached views borrow font bytes; no table is copied. Returns TCL_ERROR through the export context; partial metadata remains attached for cleanup. CFF charset initialization and per-character cmap lookup are separate stages. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontGlyph">
+<span class="target" id="group__export__font__internals_1gab13933a15fa92dc3d84a42fbac1af1a9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontGlyph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontGlyph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a Unicode scalar to a native glyph index. </p>
+<p>Requires FontTables-validated metadata. Tries Unicode format 12, Unicode format 4, then Windows Symbol format 4 with F000 and legacy byte mappings. Uses the retained named Tcl encoding when available. Subtable bounds and resulting glyph indices are checked; malformed/unsupported candidates are skipped. Returns zero for no usable nonzero glyph. Format-12 binary search assumes sorted groups; this is not a complete cmap conformance validator. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontFree">
+<span class="target" id="group__export__font__internals_1ga1164b8d808ea3bc70df3428d5a8c601f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontFree" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one export font record and all its owned allocations. </p>
+<p>Requires initialized codes hash storage, including for failed acquisition. Releases program bytes, key, glyph/character/SID arrays and optional Tcl encoding, then the record. Does not unlink it or free following list nodes. All borrowed table/name views become invalid; Tk_Font handles are not owned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontActual">
+<span class="target" id="group__export__font__internals_1ga636fd97b13bf6f37e79fb5dafad16806"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FontActual</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontActual" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query Tk 9 for the actual per-character font attributes. </p>
+<p>Evaluates global ::font actual with display window and the Unicode character. Returns a retained result object on success; caller decrements it. Restores interpreter state on both paths and records an export error on failure. Requires live Tk font/window/interpreter. This Tcl boundary does not itself preserve graph resources or guard reentrant replacement of the font command. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontAttribute">
+<span class="target" id="group__export__font__internals_1gafeb9e4a65c0bc367d87ceeaecb482406"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FontAttribute</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">attributes</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontAttribute" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow a named attribute from a dictionary-like Tcl result. </p>
+<p>Creates and releases a temporary key. Returns NULL for a missing key or failed dictionary lookup; returned values remain owned by attributes. No interpreter diagnostic is produced. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontUnicodeCompare">
+<span class="target" id="group__export__font__internals_1gad1743b667071d64a89f46f28ce9ed8e4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontUnicodeCompare</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">a</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontUnicodeCompare" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Order temporary Unicode-to-glyph pairs by scalar value. </p>
+<p>qsort comparator for FontUnicodePair records; ignores glyph values and uses relational comparisons rather than subtraction that could overflow. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="pdf-font-resource-encoding">
+<h2>PDF font resource encoding<a class="headerlink" href="#pdf-font-resource-encoding" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__pdf__font__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PDF</span> <span class="pre">font</span> <span class="pre">resources</span></span></dt>
+<dd><p>Private document-owned resources. </p>
+<p>Character collection precedes finalization. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PdfStandardCharacter">
+<span class="target" id="group__pdf__font__internals_1gafec4a6138ea089c02e06a036639b6360"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfStandardCharacter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">codePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfStandardCharacter" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a nonembedded character to a standard PDF font and WinAnsi code. </p>
+<p>Accepts printable ASCII, Latin-1 and the defined Windows-1252 extension characters. Unsupported text sets an export error. Derives Courier/Times/ Helvetica style from Tk PostScript naming, reserves a deduplicated Type1 resource and returns pixel size/code/id. Borrows the Tk font; no native font program is acquired. Outputs are only usable on TCL_OK. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfFontCharacter">
+<span class="target" id="group__pdf__font__internals_1ga1966e9d7afa23da3572cc38e3bc71441"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFontCharacter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">tkfont</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cidPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">digitsPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">advancePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFontCharacter" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a character and reserve its PDF font resource. </p>
+<p>With embedding disabled uses WinAnsi and two hex digits. Otherwise borrows the shared font cache and its native advance; TrueType uses four-digit CIDs, CFF uses two-digit codes in 255-character blocks. Resource placeholders are replaced by Rbc_PdfFontsFinish. Requires initialized PDF export state; caller must not serialize the document before successful finalization. Returns TCL_ERROR for existing or newly recorded export errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FontCffResources">
+<span class="target" id="group__pdf__font__internals_1ga009f03480f3eb804b142809bdb648e83"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontCffResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">descriptor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontCffResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Finalize simple Type1C resources in blocks of 255 characters. </p>
+<p>Requires a collected name-keyed CFF font, reserved block IDs and a shared descriptor object. Builds per-block widths, escaped glyph-name Differences and ToUnicode maps, sharing the embedded CFF program through the descriptor. Temporarily redirects token-&gt;buffer and restores it before releasing local DString storage. Does not release the font or serialize the final PDF file. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfFontsFinish">
+<span class="target" id="group__pdf__font__internals_1gae8e5475888ec2bc35363c529a20f6ec5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFontsFinish</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFontsFinish" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace collected font placeholders with complete PDF font dictionaries. </p>
+<p>Requires completed character collection and initialized PDF resources. Embeds full TrueType programs or CFF tables, descriptors, widths and Unicode maps. TrueType adds CIDToGIDMap and Identity-H descendant resources; CFF delegates block encodings to FontCffResources. Borrows all cached fonts and restores token-&gt;buffer after temporary serialization. Returns TCL_ERROR for a pre-existing export error. Finalize once before document serialization; this operation does not freeze the cache or enforce one-shot use. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -263,6 +457,36 @@
 <li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_DrawText2"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawText2()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_DrawText"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawText()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_GetBitmapGC"><code class="docutils literal notranslate"><span class="pre">Rbc_GetBitmapGC()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#native-font-acquisition-and-parsing">Native font acquisition and parsing</a><ul>
+<li><a class="reference internal" href="#c.Rbc_FontU16"><code class="docutils literal notranslate"><span class="pre">Rbc_FontU16()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FontU32"><code class="docutils literal notranslate"><span class="pre">Rbc_FontU32()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FontS16"><code class="docutils literal notranslate"><span class="pre">Rbc_FontS16()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FontPut16"><code class="docutils literal notranslate"><span class="pre">Rbc_FontPut16()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontPut32"><code class="docutils literal notranslate"><span class="pre">FontPut32()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontSourceFree"><code class="docutils literal notranslate"><span class="pre">FontSourceFree()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontSourceOpen"><code class="docutils literal notranslate"><span class="pre">FontSourceOpen()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontProgram"><code class="docutils literal notranslate"><span class="pre">FontProgram()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FontGetTable"><code class="docutils literal notranslate"><span class="pre">Rbc_FontGetTable()</span></code></a></li>
+<li><a class="reference internal" href="#c.CffOffset"><code class="docutils literal notranslate"><span class="pre">CffOffset()</span></code></a></li>
+<li><a class="reference internal" href="#c.CffIndex"><code class="docutils literal notranslate"><span class="pre">CffIndex()</span></code></a></li>
+<li><a class="reference internal" href="#c.CffItem"><code class="docutils literal notranslate"><span class="pre">CffItem()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FontGlyphName"><code class="docutils literal notranslate"><span class="pre">Rbc_FontGlyphName()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontCffInit"><code class="docutils literal notranslate"><span class="pre">FontCffInit()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontTables"><code class="docutils literal notranslate"><span class="pre">FontTables()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontGlyph"><code class="docutils literal notranslate"><span class="pre">FontGlyph()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontFree"><code class="docutils literal notranslate"><span class="pre">FontFree()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontActual"><code class="docutils literal notranslate"><span class="pre">FontActual()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontAttribute"><code class="docutils literal notranslate"><span class="pre">FontAttribute()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontUnicodeCompare"><code class="docutils literal notranslate"><span class="pre">FontUnicodeCompare()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pdf-font-resource-encoding">PDF font resource encoding</a><ul>
+<li><a class="reference internal" href="#c.PdfStandardCharacter"><code class="docutils literal notranslate"><span class="pre">PdfStandardCharacter()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfFontCharacter"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfFontCharacter()</span></code></a></li>
+<li><a class="reference internal" href="#c.FontCffResources"><code class="docutils literal notranslate"><span class="pre">FontCffResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfFontsFinish"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfFontsFinish()</span></code></a></li>
 </ul>
 </li>
 </ul>

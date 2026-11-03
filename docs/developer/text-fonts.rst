@@ -189,6 +189,139 @@ Partial cache state after an error is retained for this cleanup; do not resume
 serialization after a failed character lookup. Shared ``Rbc_ExportFree`` calls
 this cleanup as part of ending the document.
 
-See :doc:`text-font-reference` for the maintained function contracts. Detailed
-sfnt/CFF parsing and PDF resource encoding remain with their implementation
-modules.
+See :doc:`text-font-reference` for maintained contracts for the text services,
+shared sfnt/CFF readers and PDF font resource writer.
+
+Reader trust boundaries
+-----------------------
+
+The small big-endian readers and writers do not check buffer lengths. Their
+callers establish readable/writable spans first. Rbc_FontGetTable similarly
+assumes a directory rebuilt by FontProgram; it is not an entry point for arbitrary
+unvalidated file bytes. A missing table returns a NULL/zero slice. Present slices
+borrow the owning program and cannot outlive it.
+
+FontProgram accepts TrueType, the legacy true signature and OpenType OTTO. It
+checks the directory count and table spans, omits DSIG signatures, rejects fvar
+variable-font tables and limits rebuilt storage to 64 MiB. Table data is padded
+to four-byte boundaries, checksums are recalculated and head.checkSumAdjustment
+is repaired. The original table order is retained. This creates an independent
+sfnt for a selected collection face, without removing unused outlines.
+
+The destination owns its allocation as soon as rebuilding starts. An error in a
+later table or a missing head table therefore requires ordinary font cleanup,
+not merely source cleanup. FontSourceFree releases the temporary input resources;
+FontFree releases the rebuilt program. Neither routine can safely be called twice
+on the same unchanged record.
+
+FontTables checks the fields used by export: head, hhea, maxp, horizontal metrics,
+OS/2 permissions and the cmap record directory. It rejects the supported set of
+recognized color-font tables and permission bits prohibiting outline embedding.
+A usable PostScript name is restricted to safe ASCII name bytes; otherwise a
+local RBCFont serial name is used. These checks do not constitute complete
+validation of glyph instructions, outlines, all cross-table relationships or
+all possible OpenType extensions.
+
+Unicode and legacy Symbol lookup
+--------------------------------
+
+FontGlyph performs four passes, returning the first usable nonzero glyph:
+
+#. Unicode format 12, covering BMP and supplementary-plane characters.
+#. Unicode format 4, covering the BMP.
+#. Windows Symbol format 4 using its F000-offset byte range.
+#. Windows Symbol format 4 using the legacy unoffset byte range.
+
+Unicode candidates use platform 0 or Windows Unicode encoding records. Format-12
+lookup binary-searches groups and checks the resulting glyph against glyphCount;
+its search assumes sorted groups. Format 4 walks segments, handles idDelta and
+relative glyph arrays, and preserves glyph zero as missing. Malformed bounds or
+unsupported subtables are skipped, so another candidate can still resolve the
+character. Bounds checks do not promise acceptance or rejection of every malformed
+cmap arrangement.
+
+For Symbol records, a retained Tcl encoding named after the lowercased family
+converts a Unicode character to one byte where possible. Without that encoding,
+only direct byte values and the F000--F0FF range can use this fallback. The cache
+keeps Unicode characters distinct even when multiple characters resolve to one
+native glyph; text extraction must not infer Unicode from glyph numbers alone.
+
+Name-keyed CFF metadata
+-----------------------
+
+CffIndex checks its count, offset width, initial one-based offset, monotonic
+following offsets and final data extent. Success advances the caller's cursor
+and returns a borrowed complete INDEX; failure does not advance the cursor, but
+its output slice may already be partially written. CffItem is deliberately
+lighter: it requires an already validated INDEX and returns a borrowed item,
+which can be empty. It performs no repeated directory validation.
+
+FontCffInit supports CFF version 1 with one name and one Top DICT. It reads the
+charset and CharStrings offsets needed by export, checks the CharStrings count
+against the sfnt glyph count, then constructs a glyph-to-SID array. ISOAdobe,
+Expert and ExpertSubset predefined charsets and explicit formats 0/1/2 are
+supported. Standard SIDs refer to static names; custom SIDs refer to String INDEX
+items. Names must be nonempty and at most 127 bytes before PDF serialization.
+They are byte slices, not necessarily NUL-terminated strings.
+
+CID-keyed CFF and CFF2 are outside this path. The parser interprets selected
+metadata and bounds its operand stack; it does not execute or fully validate
+charstring programs or every unused DICT operator. Partial SID allocations remain
+attached to the font for normal failure cleanup.
+
+SVG cmap reconstruction
+-----------------------
+
+Rbc_FontUnicodeProgram sorts temporary Unicode/glyph pairs from the collected
+characters. It generates format 12 entries for the complete used set and format 4
+entries for up to 8,188 BMP characters below U+FFFF, plus the mandatory sentinel.
+This limit keeps format 4 within its 16-bit length field; format 12 still represents
+characters omitted from that compact table. Each pair maps the original Unicode
+scalar to the resolved glyph, including Symbol fallback results.
+
+The routine copies the font, redirects its cmap directory entry to the new data,
+then passes that temporary source through FontProgram again to restore directory
+layout and checksums. It appends the rebuilt bytes to the caller's DString only
+on success. Temporary arrays and programs are released in both cases, and the
+cached font remains unchanged. Retaining every outline is deliberate full
+embedding, not glyph subsetting.
+
+PDF character codes and finalization
+------------------------------------
+
+.. list-table:: Font encoding paths
+   :header-rows: 1
+   :widths: 24 38 38
+
+   * - Mode
+     - Content codes
+     - Resources
+   * - Nonembedded
+     - One-byte WinAnsi; unsupported characters fail explicitly.
+     - Standard Courier, Times or Helvetica family/style dictionaries.
+   * - Embedded TrueType
+     - One-based document-local CID, emitted with four hexadecimal digits.
+     - Full sfnt, descriptor, CIDToGIDMap, widths, ToUnicode and Identity-H Type0 font.
+   * - Embedded name-keyed CFF
+     - Codes 1--255 within each block, emitted with two hexadecimal digits.
+     - Shared CFF program/descriptor; separate Type1 encoding, widths and ToUnicode per block.
+
+Character lookup reserves placeholders before final dictionaries are known.
+Rbc_PdfFontsFinish replaces them after all text has been collected and before
+final PDF serialization. CFF blocks split every 255 distinct characters; they
+share the program rather than duplicate it. The shared cache limits a font to
+65,535 distinct characters. Callers must finalize once and stop collecting text
+at that point: the API does not freeze the cache or prevent repeated finalization.
+
+Widths and descriptor geometry scale native units to 1,000-unit PDF text space.
+Glyphs beyond the long-metric count use the last horizontal advance. TrueType
+CIDToGIDMap controls which outline is drawn, while ToUnicode independently
+controls extraction. BMP values use one UTF-16 code unit and supplementary values
+use a surrogate pair; mapping blocks contain at most 100 entries. CFF Differences
+names escape PDF delimiters and nonprintable bytes instead of assuming all glyph
+names are directly usable PDF names.
+
+Resource serialization temporarily redirects token->buffer to local DStrings and
+restores the previous pointer on return. Font records and table views stay owned
+by the export context; PDF resource copies have their own document lifetime.
+A failed export is not a checkpoint from which serialization can resume.

@@ -1,8 +1,23 @@
 /* PDF font resources. Native font loading is shared with SVG in rbcFont.c. */
+/** @file rbcPdfFont.c
+ * PDF character codes, font resource reservations and final serialization.
+ */
+/** @defgroup pdf_font_internals PDF font resources
+ * Private document-owned resources. Character collection precedes finalization.
+ */
 #include "rbcFont.h"
 
 /* The compact, non-embedded mode intentionally retains the standard-font
  * WinAnsi repertoire. Do not emit native glyph IDs without their font program. */
+/**
+ * @ingroup pdf_font_internals
+ * @brief Map a nonembedded character to a standard PDF font and WinAnsi code.
+ * Accepts printable ASCII, Latin-1 and the defined Windows-1252 extension
+ * characters. Unsupported text sets an export error. Derives Courier/Times/
+ * Helvetica style from Tk PostScript naming, reserves a deduplicated Type1
+ * resource and returns pixel size/code/id. Borrows the Tk font; no native font
+ * program is acquired. Outputs are only usable on TCL_OK.
+ */
 static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar ch, int *idPtr, int *codePtr,
                                 double *sizePtr) {
     static const unsigned short extra[32] = {0x20ac, 0,      0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
@@ -49,6 +64,16 @@ static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniC
     return TCL_OK;
 }
 
+/**
+ * @ingroup pdf_font_internals
+ * @brief Resolve a character and reserve its PDF font resource.
+ * With embedding disabled uses WinAnsi and two hex digits. Otherwise borrows
+ * the shared font cache and its native advance; TrueType uses four-digit CIDs,
+ * CFF uses two-digit codes in 255-character blocks. Resource placeholders are
+ * replaced by Rbc_PdfFontsFinish. Requires initialized PDF export state; caller
+ * must not serialize the document before successful finalization. Returns
+ * TCL_ERROR for existing or newly recorded export errors.
+ */
 int Rbc_PdfFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniChar ch, int *idPtr, int *cidPtr,
                          double *sizePtr, int *digitsPtr, double *advancePtr) {
     Rbc_ExportFont *font;
@@ -79,6 +104,15 @@ int Rbc_PdfFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniChar c
 
 /* Simple Type1C fonts have 8-bit codes. Split their encodings into groups of
  * 255 characters while sharing a single embedded CFF program and descriptor. */
+/**
+ * @ingroup pdf_font_internals
+ * @brief Finalize simple Type1C resources in blocks of 255 characters.
+ * Requires a collected name-keyed CFF font, reserved block IDs and a shared
+ * descriptor object. Builds per-block widths, escaped glyph-name Differences
+ * and ToUnicode maps, sharing the embedded CFF program through the descriptor.
+ * Temporarily redirects token->buffer and restores it before releasing local
+ * DString storage. Does not release the font or serialize the final PDF file.
+ */
 static void FontCffResources(Rbc_ExportContext *token, Rbc_ExportFont *font, int descriptor) {
     Tcl_DString body;
     Tcl_DString *saved = token->buffer;
@@ -145,6 +179,17 @@ static void FontCffResources(Rbc_ExportContext *token, Rbc_ExportFont *font, int
 
 /* Emit the font program, descriptor, CID-to-glyph map, widths and ToUnicode.
  * PDF glyph codes and Unicode text extraction have deliberately separate maps. */
+/**
+ * @ingroup pdf_font_internals
+ * @brief Replace collected font placeholders with complete PDF font dictionaries.
+ * Requires completed character collection and initialized PDF resources.
+ * Embeds full TrueType programs or CFF tables, descriptors, widths and Unicode
+ * maps. TrueType adds CIDToGIDMap and Identity-H descendant resources; CFF
+ * delegates block encodings to FontCffResources. Borrows all cached fonts and
+ * restores token->buffer after temporary serialization. Returns TCL_ERROR for
+ * a pre-existing export error. Finalize once before document serialization;
+ * this operation does not freeze the cache or enforce one-shot use.
+ */
 int Rbc_PdfFontsFinish(Rbc_ExportContext *token) {
     Rbc_ExportFont *font;
     Tcl_DString body;
