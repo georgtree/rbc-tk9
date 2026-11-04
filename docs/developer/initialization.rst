@@ -18,7 +18,7 @@ Tcl version and registers three package scripts:
    * - Package
      - Loading work
    * - ``rbc::vector``
-     - Loads the shared library with entry-point prefix ``Rbc``. ``Rbc_Init``
+     - Loads the shared library with entry-point prefix ``Rbc``. :c:func:`Rbc_Init`
        initializes Tcl stubs and vector commands without requiring Tk.
    * - ``rbc``
      - Requires the exact matching vector package and Tk, invokes
@@ -42,10 +42,10 @@ Interpreter state and registration
 
 ``RbcInitData`` is associated with the interpreter under ``rbc::init``. Its
 five flags record completed vector, graph, winop, spline and EPS initialization.
-``FreeInitData`` frees this bookkeeping record at interpreter teardown; it does
+:c:func:`FreeInitData <rbcInitialization.FreeInitData>` frees this bookkeeping record at interpreter teardown; it does
 not own every object created by those subsystems.
 
-``Rbc_Init`` creates ``::rbc`` if needed, initializes the vector subsystem once,
+:c:func:`Rbc_Init` creates ``::rbc`` if needed, initializes the vector subsystem once,
 creates ``::rbc::_initTk`` and exports ``vector``. Vector initialization creates
 both ``::rbc::vector`` and ``::rbc::vector::simplify``. Its registry, numerical
 function tables and vector cleanup belong to a separate interpreter-associated
@@ -81,8 +81,8 @@ not a guarantee of automatic recovery on a subsequent require.
 Client stubs and ABI maintenance
 --------------------------------
 
-A consumer links the RBC stub library and calls ``Rbc_VectorInitStubs`` for
-Tcl-only vector access or ``Rbc_InitStubs`` when it needs the full package.
+A consumer links the RBC stub library and calls :c:func:`Rbc_VectorInitStubs` for
+Tcl-only vector access or :c:func:`Rbc_InitStubs` when it needs the full package.
 Both use ``Tcl_PkgRequireEx`` and assign its client data to the consumer's
 ``rbcStubsPtr``. Both packages publish the same table from ``rbcStubInit.c``.
 Successful initialization selects functions; it does not own vectors or retain
@@ -112,7 +112,7 @@ forwards to it. Neither performs registration, allocation or subsystem cleanup.
 Loading the DLL and initializing its Tcl package are distinct steps; none of the
 per-interpreter readiness flags is set by the native loader callbacks.
 
-InitTkObjCmd assumes that Rbc_Init has already installed the associated record
+:c:func:`InitTkObjCmd <rbcInitialization.InitTkObjCmd>` assumes that :c:func:`Rbc_Init` has already installed the associated record
 and namespace. It checks arity before Tk initialization. Readiness flags guard
 registration phases only: namespace exports and package provision still run on
 a later call even when all subsystem flags are set. EPS registration is marked
@@ -126,4 +126,4 @@ interpreter does not establish initialization in another. Always check the
 returned version pointer for each initialization attempt. A previous dispatch
 table remains selected on failure, including the case where a package exists
 but publishes no client data. Native package teardown does not free this borrowed
-pointer through FreeInitData.
+pointer through :c:func:`FreeInitData <rbcInitialization.FreeInitData>`.

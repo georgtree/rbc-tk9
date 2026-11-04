@@ -40,6 +40,24 @@ An illustrative contract (not an existing function):
     * Release successful output with the matching destructor.
     */
 
+Link functions in narrative prose with ``:c:func:`` rather than plain text or
+literal markup. For private helpers rendered in a C namespace, use the qualified
+target and a short displayed title, for example
+``:c:func:`ClearOp <rbcVectorCommands.ClearOp>```.
+Use ``@ref`` or ``@see`` for source-comment links. Reserve literal markup for Tcl
+commands, options, values, and code fragments. Do not guess a target: verify it
+against the generated reference with the strict build.
+
+Use ``@param`` entries for meaningful function-specific inputs and outputs.
+For standard ``interp`` and ``objc``/``objv`` semantics, add
+``@param[in] interp See @ref rbc_interp_argument.`` and corresponding links
+to ``rbc_command_arguments`` for ``objc``/``objv``. Add
+``@see @ref rbc_calling_conventions`` for the complete contract. Describe local
+exceptions explicitly. Once a function uses ``@param``, document every parameter
+to retain Doxygen missing-parameter checks. Always identify
+the concrete ``clientData`` type and its owner. Do not infer that a pointer is
+borrowed or that an output is unchanged on error without checking the code.
+
 Use ``@see`` or Sphinx references to connect related operations. Use the C
 domain for C identifiers, for example :c:func:`Rbc_RenderEnd`.
 Prose chapters explain relationships; reference signatures come from headers.
@@ -53,3 +71,13 @@ the rendered pages. Check references, table readability and retained caveats.
 The reference includes selected contracts across the documented subsystems.
 Undocumented helpers, parameters and record members still need review.
 Strict checking validates included documentation, not coverage of all C sources.
+
+Navigation and groups
+---------------------
+
+Each chapter and C reference belongs to one subsystem landing page. Keep existing
+page filenames and group identifiers stable when reorganizing navigation.
+``groups.dox`` adds parent groups to existing Doxygen groups without moving their
+members. It is included in both platform documentation projects. Keep those
+relationships aligned with the Sphinx subsystem pages; avoid rendering a whole
+parent group recursively when its members already have dedicated reference pages.

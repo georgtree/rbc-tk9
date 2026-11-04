@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>C calling conventions &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="C documentation conventions" href="commenting.html" />
+    <link rel="prev" title="Package initialization C reference" href="initialization-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="initialization-reference.html" title="Package initialization C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="manual-foundations.html" accesskey="U">Architecture and conventions</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">C calling conventions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="c-calling-conventions">
+<h1>C calling conventions<a class="headerlink" href="#c-calling-conventions" title="Link to this heading">¶</a></h1>
+<p>These are shared interpretation rules, not substitutes for a function’s own
+contract. A specific parameter, return or lifetime description takes precedence.
+The same page is a Doxygen reference target, so source comments can link here
+with <code class="docutils literal notranslate"><span class="pre">&#64;ref</span> <span class="pre">rbc_calling_conventions</span></code>.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="rbc_calling_conventions"></span><em><span class="pre">page</span></em> <span class="sig-name descname"><span class="pre">Shared</span> <span class="pre">C</span> <span class="pre">argument</span> <span class="pre">and</span> <span class="pre">lifetime</span> <span class="pre">conventions</span></span></dt>
+<dd><section id="rbc_calling_conventions_1rbc_interp_argument">
+<h2>Interpreter arguments<a class="headerlink" href="#rbc_calling_conventions_1rbc_interp_argument" title="Link to this heading">¶</a></h2>
+<p id="rbc_calling_conventions_1rbc_interp_argument">A Tcl_Interp pointer named interp is normally borrowed for the duration of the call. It identifies the interpreter used for results, diagnostics and interpreter-owned objects; passing it does not transfer ownership. Do not assume NULL is accepted unless the function says so. TCL_ERROR normally leaves a diagnostic, but legacy helpers with different behavior document it. Preservation keeps a record allocated; it does not prevent interpreter deletion or make interpreter services valid after deletion.</p>
+</section>
+<section id="rbc_calling_conventions_1rbc_command_arguments">
+<h2>Tcl command arguments<a class="headerlink" href="#rbc_calling_conventions_1rbc_command_arguments" title="Link to this heading">¶</a></h2>
+<p id="rbc_calling_conventions_1rbc_command_arguments">In a registered object command, objc counts borrowed objv entries and objv[0] names the command. Treat the array as read-only. RBC dispatchers may pass a shifted argument vector to a private handler; that handler’s contract defines its positions and arity. Do not retain an entry beyond its guaranteed lifetime without taking a Tcl reference, or mutate shared Tcl objects without following Tcl copy-on-write rules. Conversions that evaluate expressions can run Tcl.</p>
+</section>
+<section id="rbc_calling_conventions_1rbc_client_data">
+<h2>Callback client data<a class="headerlink" href="#rbc_calling_conventions_1rbc_client_data" title="Link to this heading">¶</a></h2>
+<p id="rbc_calling_conventions_1rbc_client_data">ClientData is an untyped pointer, not an ownership annotation. Each callback must specify its concrete target (for example a graph, vector, or stack-local status flag), who owns it, and when it remains valid. Registration does not itself imply a reference count or preservation guarantee.</p>
+</section>
+<section id="rbc_calling_conventions_1rbc_output_arguments">
+<h2>Results and output pointers<a class="headerlink" href="#rbc_calling_conventions_1rbc_output_arguments" title="Link to this heading">¶</a></h2>
+<p id="rbc_calling_conventions_1rbc_output_arguments">An output pointer is not necessarily an ownership transfer. Each function describes whether a returned object is borrowed or owned, which release operation applies, and whether outputs remain unchanged, are cleared, or may be partly initialized on failure. A Tcl status alone does not promise rollback.</p>
+</section>
+<section id="rbc_calling_conventions_1rbc_callback_lifetimes">
+<h2>Reentry and object lifetime<a class="headerlink" href="#rbc_calling_conventions_1rbc_callback_lifetimes" title="Link to this heading">¶</a></h2>
+<p id="rbc_calling_conventions_1rbc_callback_lifetimes">Run interpreter-owned operations in the owning thread. Tcl evaluation, variable traces, notifications and custom storage destructors can invoke client code. Preserving a record does not preserve its old buffers or prevent renaming, remapping, locking or destruction. Revalidate the specific state needed after a callback; documented local checks are not a universal guarantee. </p>
+</section>
+</dd></dl>
+
+<section id="writing-parameter-contracts">
+<h2>Writing parameter contracts<a class="headerlink" href="#writing-parameter-contracts" title="Link to this heading">¶</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">&#64;param[in]</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;param[out]</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;param[in,out]</span></code> for function-specific
+arguments. State units, accepted ranges, NULL handling, ownership and the state
+of output arguments on failure. For conventional interpreter and command-vector
+arguments, link the common description and document only exceptions locally.
+Always describe the concrete meaning of <code class="docutils literal notranslate"><span class="pre">clientData</span></code>; it has no universal
+object type. See <a class="reference internal" href="commenting.html"><span class="doc">C documentation conventions</span></a> for examples and link syntax.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">C calling conventions</a><ul>
+<li><a class="reference internal" href="#writing-parameter-contracts">Writing parameter contracts</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="initialization-reference.html"
+                          title="previous chapter">Package initialization C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="commenting.html"
+                          title="next chapter">C documentation conventions</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="initialization-reference.html" title="Package initialization C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="manual-foundations.html" >Architecture and conventions</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">C calling conventions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

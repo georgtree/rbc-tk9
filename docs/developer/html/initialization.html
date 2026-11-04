@@ -31,6 +31,7 @@
           <a href="headers.html" title="Header structure"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="manual-foundations.html" accesskey="U">Architecture and conventions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Package loading and stubs</a></li> 
       </ul>
     </div>  
@@ -61,7 +62,7 @@ Tcl version and registers three package scripts:</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code></p></td>
-<td><p>Loads the shared library with entry-point prefix <code class="docutils literal notranslate"><span class="pre">Rbc</span></code>. <code class="docutils literal notranslate"><span class="pre">Rbc_Init</span></code>
+<td><p>Loads the shared library with entry-point prefix <code class="docutils literal notranslate"><span class="pre">Rbc</span></code>. <a class="reference internal" href="initialization-reference.html#c.Rbc_Init" title="Rbc_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Init()</span></code></a>
 initializes Tcl stubs and vector commands without requiring Tk.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbc</span></code></p></td>
@@ -87,9 +88,9 @@ than treating successful binary loading as full initialization. The private
 <h2>Interpreter state and registration<a class="headerlink" href="#interpreter-state-and-registration" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">RbcInitData</span></code> is associated with the interpreter under <code class="docutils literal notranslate"><span class="pre">rbc::init</span></code>. Its
 five flags record completed vector, graph, winop, spline and EPS initialization.
-<code class="docutils literal notranslate"><span class="pre">FreeInitData</span></code> frees this bookkeeping record at interpreter teardown; it does
+<a class="reference internal" href="initialization-reference.html#c.rbcInitialization.FreeInitData" title="rbcInitialization.FreeInitData"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeInitData</span></code></a> frees this bookkeeping record at interpreter teardown; it does
 not own every object created by those subsystems.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_Init</span></code> creates <code class="docutils literal notranslate"><span class="pre">::rbc</span></code> if needed, initializes the vector subsystem once,
+<p><a class="reference internal" href="initialization-reference.html#c.Rbc_Init" title="Rbc_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Init()</span></code></a> creates <code class="docutils literal notranslate"><span class="pre">::rbc</span></code> if needed, initializes the vector subsystem once,
 creates <code class="docutils literal notranslate"><span class="pre">::rbc::_initTk</span></code> and exports <code class="docutils literal notranslate"><span class="pre">vector</span></code>. Vector initialization creates
 both <code class="docutils literal notranslate"><span class="pre">::rbc::vector</span></code> and <code class="docutils literal notranslate"><span class="pre">::rbc::vector::simplify</span></code>. Its registry, numerical
 function tables and vector cleanup belong to a separate interpreter-associated
@@ -120,8 +121,8 @@ not a guarantee of automatic recovery on a subsequent require.</p>
 </section>
 <section id="client-stubs-and-abi-maintenance">
 <h2>Client stubs and ABI maintenance<a class="headerlink" href="#client-stubs-and-abi-maintenance" title="Link to this heading">¶</a></h2>
-<p>A consumer links the RBC stub library and calls <code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs</span></code> for
-Tcl-only vector access or <code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs</span></code> when it needs the full package.
+<p>A consumer links the RBC stub library and calls <a class="reference internal" href="initialization-reference.html#c.Rbc_VectorInitStubs" title="Rbc_VectorInitStubs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs()</span></code></a> for
+Tcl-only vector access or <a class="reference internal" href="initialization-reference.html#c.Rbc_InitStubs" title="Rbc_InitStubs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitStubs()</span></code></a> when it needs the full package.
 Both use <code class="docutils literal notranslate"><span class="pre">Tcl_PkgRequireEx</span></code> and assign its client data to the consumer’s
 <code class="docutils literal notranslate"><span class="pre">rbcStubsPtr</span></code>. Both packages publish the same table from <code class="docutils literal notranslate"><span class="pre">rbcStubInit.c</span></code>.
 Successful initialization selects functions; it does not own vectors or retain
@@ -147,7 +148,7 @@ merely by being documented; see <a class="reference internal" href="headers.html
 forwards to it. Neither performs registration, allocation or subsystem cleanup.
 Loading the DLL and initializing its Tcl package are distinct steps; none of the
 per-interpreter readiness flags is set by the native loader callbacks.</p>
-<p>InitTkObjCmd assumes that Rbc_Init has already installed the associated record
+<p><a class="reference internal" href="initialization-reference.html#c.rbcInitialization.InitTkObjCmd" title="rbcInitialization.InitTkObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">InitTkObjCmd</span></code></a> assumes that <a class="reference internal" href="initialization-reference.html#c.Rbc_Init" title="Rbc_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Init()</span></code></a> has already installed the associated record
 and namespace. It checks arity before Tk initialization. Readiness flags guard
 registration phases only: namespace exports and package provision still run on
 a later call even when all subsystem flags are set. EPS registration is marked
@@ -160,7 +161,7 @@ interpreter does not establish initialization in another. Always check the
 returned version pointer for each initialization attempt. A previous dispatch
 table remains selected on failure, including the case where a package exists
 but publishes no client data. Native package teardown does not free this borrowed
-pointer through FreeInitData.</p>
+pointer through <a class="reference internal" href="initialization-reference.html#c.rbcInitialization.FreeInitData" title="rbcInitialization.FreeInitData"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeInitData</span></code></a>.</p>
 </section>
 </section>
 
@@ -222,6 +223,7 @@ pointer through FreeInitData.</p>
           <a href="headers.html" title="Header structure"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="manual-foundations.html" >Architecture and conventions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Package loading and stubs</a></li> 
       </ul>
     </div>

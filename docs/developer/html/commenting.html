@@ -15,7 +15,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Numeric compatibility C reference" href="math-reference.html" /> 
+    <link rel="next" title="Vectors and numerical operations" href="manual-vectors.html" />
+    <link rel="prev" title="C calling conventions" href="calling-conventions.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
@@ -24,9 +25,13 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="math-reference.html" title="Numeric compatibility C reference"
+          <a href="manual-vectors.html" title="Vectors and numerical operations"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="calling-conventions.html" title="C calling conventions"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="manual-foundations.html" accesskey="U">Architecture and conventions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">C documentation conventions</a></li> 
       </ul>
     </div>  
@@ -73,6 +78,22 @@ policies are uniform throughout RBC.</p>
 <span class="cm"> */</span>
 </pre></div>
 </div>
+<p>Link functions in narrative prose with <code class="docutils literal notranslate"><span class="pre">:c:func:</span></code> rather than plain text or
+literal markup. For private helpers rendered in a C namespace, use the qualified
+target and a short displayed title, for example
+<code class="docutils literal notranslate"><span class="pre">:c:func:`ClearOp</span> <span class="pre">&lt;rbcVectorCommands.ClearOp&gt;`</span></code>.
+Use <code class="docutils literal notranslate"><span class="pre">&#64;ref</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;see</span></code> for source-comment links. Reserve literal markup for Tcl
+commands, options, values, and code fragments. Do not guess a target: verify it
+against the generated reference with the strict build.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">&#64;param</span></code> entries for meaningful function-specific inputs and outputs.
+For standard <code class="docutils literal notranslate"><span class="pre">interp</span></code> and <code class="docutils literal notranslate"><span class="pre">objc</span></code>/<code class="docutils literal notranslate"><span class="pre">objv</span></code> semantics, add
+<code class="docutils literal notranslate"><span class="pre">&#64;param[in]</span> <span class="pre">interp</span> <span class="pre">See</span> <span class="pre">&#64;ref</span> <span class="pre">rbc_interp_argument.</span></code> and corresponding links
+to <code class="docutils literal notranslate"><span class="pre">rbc_command_arguments</span></code> for <code class="docutils literal notranslate"><span class="pre">objc</span></code>/<code class="docutils literal notranslate"><span class="pre">objv</span></code>. Add
+<code class="docutils literal notranslate"><span class="pre">&#64;see</span> <span class="pre">&#64;ref</span> <span class="pre">rbc_calling_conventions</span></code> for the complete contract. Describe local
+exceptions explicitly. Once a function uses <code class="docutils literal notranslate"><span class="pre">&#64;param</span></code>, document every parameter
+to retain Doxygen missing-parameter checks. Always identify
+the concrete <code class="docutils literal notranslate"><span class="pre">clientData</span></code> type and its owner. Do not infer that a pointer is
+borrowed or that an output is unchanged on error without checking the code.</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">&#64;see</span></code> or Sphinx references to connect related operations. Use the C
 domain for C identifiers, for example <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.
 Prose chapters explain relationships; reference signatures come from headers.</p>
@@ -84,6 +105,15 @@ the rendered pages. Check references, table readability and retained caveats.</p
 <p>The reference includes selected contracts across the documented subsystems.
 Undocumented helpers, parameters and record members still need review.
 Strict checking validates included documentation, not coverage of all C sources.</p>
+</section>
+<section id="navigation-and-groups">
+<h2>Navigation and groups<a class="headerlink" href="#navigation-and-groups" title="Link to this heading">¶</a></h2>
+<p>Each chapter and C reference belongs to one subsystem landing page. Keep existing
+page filenames and group identifiers stable when reorganizing navigation.
+<code class="docutils literal notranslate"><span class="pre">groups.dox</span></code> adds parent groups to existing Doxygen groups without moving their
+members. It is included in both platform documentation projects. Keep those
+relationships aligned with the Sphinx subsystem pages; avoid rendering a whole
+parent group recursively when its members already have dedicated reference pages.</p>
 </section>
 </section>
 
@@ -101,6 +131,7 @@ Strict checking validates included documentation, not coverage of all C sources.
 <li><a class="reference internal" href="#where-comments-belong">Where comments belong</a></li>
 <li><a class="reference internal" href="#contract-contents">Contract contents</a></li>
 <li><a class="reference internal" href="#migration-and-review">Migration and review</a></li>
+<li><a class="reference internal" href="#navigation-and-groups">Navigation and groups</a></li>
 </ul>
 </li>
 </ul>
@@ -108,8 +139,13 @@ Strict checking validates included documentation, not coverage of all C sources.
   </div>
   <div>
     <h4>Previous topic</h4>
-    <p class="topless"><a href="math-reference.html"
-                          title="previous chapter">Numeric compatibility C reference</a></p>
+    <p class="topless"><a href="calling-conventions.html"
+                          title="previous chapter">C calling conventions</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="manual-vectors.html"
+                          title="next chapter">Vectors and numerical operations</a></p>
   </div>
 <search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
@@ -132,9 +168,13 @@ Strict checking validates included documentation, not coverage of all C sources.
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="math-reference.html" title="Numeric compatibility C reference"
+          <a href="manual-vectors.html" title="Vectors and numerical operations"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="calling-conventions.html" title="C calling conventions"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="manual-foundations.html" >Architecture and conventions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">C documentation conventions</a></li> 
       </ul>
     </div>

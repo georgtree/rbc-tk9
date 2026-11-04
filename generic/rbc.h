@@ -75,6 +75,7 @@ EXTERN Rbc_Uid Rbc_FindUid (char *string);
  * source the Tcl support scripts; the package index performs those later steps.
  * Completed initialization phases survive errors. Readiness flags prevent
  * repeating completed phases, but do not repair commands deleted by callers.
+ * @see @ref rbc_calling_conventions
  */
 EXTERN int Rbc_Init (Tcl_Interp *interp);
 
@@ -92,6 +93,7 @@ EXTERN int Rbc_Init (Tcl_Interp *interp);
  * leaves its previous value unchanged. Requires Tk through the full package
  * loader. Does not retain an interpreter or vector, validate table entries,
  * or provide synchronization for changing the pointer.
+ * @see @ref rbc_calling_conventions
  */
 const char *Rbc_InitStubs(Tcl_Interp *interp, const char *version, int exact);
 
@@ -107,6 +109,7 @@ const char *Rbc_InitStubs(Tcl_Interp *interp, const char *version, int exact);
  * Has the same pointer ownership and failure behavior as Rbc_InitStubs, but
  * does not require Tk. Both packages publish the same RBC stubs table. The
  * caller must request a version supporting every table slot it will use.
+ * @see @ref rbc_calling_conventions
  */
 const char *Rbc_VectorInitStubs(Tcl_Interp *interp, const char *version, int exact);
 

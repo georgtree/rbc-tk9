@@ -1,0 +1,39 @@
+/**
+ * @page rbc_calling_conventions Shared C argument and lifetime conventions
+ *
+ * @section rbc_interp_argument Interpreter arguments
+ * A Tcl_Interp pointer named interp is normally borrowed for the duration of
+ * the call. It identifies the interpreter used for results, diagnostics and
+ * interpreter-owned objects; passing it does not transfer ownership. Do not
+ * assume NULL is accepted unless the function says so. TCL_ERROR normally
+ * leaves a diagnostic, but legacy helpers with different behavior document it.
+ * Preservation keeps a record allocated; it does not prevent interpreter
+ * deletion or make interpreter services valid after deletion.
+ *
+ * @section rbc_command_arguments Tcl command arguments
+ * In a registered object command, objc counts borrowed objv entries and objv[0]
+ * names the command. Treat the array as read-only. RBC dispatchers may pass a
+ * shifted argument vector to a private handler; that handler's contract defines
+ * its positions and arity. Do not retain an entry beyond its guaranteed lifetime
+ * without taking a Tcl reference, or mutate shared Tcl objects without following
+ * Tcl copy-on-write rules. Conversions that evaluate expressions can run Tcl.
+ *
+ * @section rbc_client_data Callback client data
+ * ClientData is an untyped pointer, not an ownership annotation. Each callback
+ * must specify its concrete target (for example a graph, vector, or stack-local
+ * status flag), who owns it, and when it remains valid. Registration does not
+ * itself imply a reference count or preservation guarantee.
+ *
+ * @section rbc_output_arguments Results and output pointers
+ * An output pointer is not necessarily an ownership transfer. Each function
+ * describes whether a returned object is borrowed or owned, which release
+ * operation applies, and whether outputs remain unchanged, are cleared, or may
+ * be partly initialized on failure. A Tcl status alone does not promise rollback.
+ *
+ * @section rbc_callback_lifetimes Reentry and object lifetime
+ * Run interpreter-owned operations in the owning thread. Tcl evaluation,
+ * variable traces, notifications and custom storage destructors can invoke
+ * client code. Preserving a record does not preserve its old buffers or prevent
+ * renaming, remapping, locking or destruction. Revalidate the specific state
+ * needed after a callback; documented local checks are not a universal guarantee.
+ */

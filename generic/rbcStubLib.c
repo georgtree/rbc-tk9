@@ -40,6 +40,12 @@ const RbcStubs *rbcStubsPtr;
 /**
  * @ingroup initialization_private
  * @brief Require a package and select its published C dispatch table.
+ * @param[in] interp See @ref rbc_interp_argument; package loading may execute Tcl.
+ * @param[in] package Borrowed package name: rbc or rbc::vector.
+ * @param[in] version Borrowed version requirement passed to Tcl.
+ * @param[in] exact Nonzero requests an exact version match.
+ * @return Borrowed actual version on success, or NULL on failure.
+ * @see @ref rbc_calling_conventions
  *
  * Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx.
  * Package loading may execute Tcl. If require fails or returns NULL client data,

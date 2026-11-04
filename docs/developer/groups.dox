@@ -1,0 +1,470 @@
+/** @file groups.dox
+ * @brief Documentation-only subsystem hierarchy; no compiled declarations.
+ */
+
+/** @defgroup rbc_developer RBC implementation
+ */
+
+/** @defgroup rbc_vectors Vectors
+ * @ingroup rbc_developer
+ */
+
+/** @defgroup rbc_graphs Graphs and components
+ * @ingroup rbc_developer
+ */
+
+/** @defgroup rbc_renderers Rendering
+ * @ingroup rbc_developer
+ */
+
+/** @defgroup rbc_native Native renderers
+ * @ingroup rbc_renderers
+ */
+
+/** @defgroup rbc_cairo Cairo renderer
+ * @ingroup rbc_renderers
+ */
+
+/** @defgroup rbc_svg SVG exporter
+ * @ingroup rbc_renderers
+ */
+
+/** @defgroup rbc_pdf PDF exporter
+ * @ingroup rbc_renderers
+ */
+
+/** @defgroup rbc_postscript PostScript exporter
+ * @ingroup rbc_renderers
+ */
+
+/** @defgroup rbc_images Images, fonts and windows
+ * @ingroup rbc_developer
+ */
+
+/** @defgroup rbc_infrastructure Shared infrastructure
+ * @ingroup rbc_developer
+ */
+
+/** @defgroup rbc_initialization Package initialization
+ * @ingroup rbc_developer
+ */
+
+/** @addtogroup binding_callbacks
+ * @ingroup rbc_infrastructure
+ */
+
+/** @addtogroup eps_canvas
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup rbcConfig_internals
+ * @ingroup rbc_infrastructure
+ */
+
+/** @addtogroup export_font_internals
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup geometry_internals
+ * @ingroup rbc_infrastructure
+ */
+
+/** @addtogroup axis_transactions
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup axis_ranges
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup axis_presentation
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup axis_layout_control
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup axis_registry
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup axis_configuration
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup axis_commands
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup bar_configuration
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup bar_geometry
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup bar_output
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup bar_layout
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup palette_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup element_transaction_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup element_data_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup element_lifecycle_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup element_command_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup graph_export_commands
+ * @ingroup rbc_renderers
+ */
+
+/** @addtogroup grid_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup crosshair_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup legend_layout
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup legend_bindings
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup legend_configuration
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup legend_lifetime
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup legend_output
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup legend_commands
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_decimation
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_fills
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup polar_data
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_data_transactions
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_option_transactions
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_geometry_lifecycle
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_mapping_pipeline
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_picking_rendering
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_output_dispatch
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_configuration_smoothing
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup line_cache_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_configuration
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_mapping_core
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_lifecycle_core
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_commands
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_line_geometry
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_shape_output
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_polygon_geometry
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_bitmap
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_image
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_text
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_window
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup marker_batches
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup rbcGrMisc_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup pen_internals
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup polar_geometry
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup polar_labels
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup graph_postscript
+ * @ingroup rbc_postscript
+ */
+
+/** @addtogroup track_ownership
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup graph_lifecycle_callbacks
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup graph_option_transactions
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup graph_lifecycle_support
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup graph_picking
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup graph_commands_drawing
+ * @ingroup rbc_graphs
+ */
+
+/** @addtogroup image_resample_internals
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup image_quantize_internals
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup image_rotation_internals
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup image_storage_internals
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup initialization_private
+ * @ingroup rbc_initialization
+ */
+
+/** @addtogroup initialization_windows
+ * @ingroup rbc_initialization
+ */
+
+/** @addtogroup list_internals
+ * @ingroup rbc_infrastructure
+ */
+
+/** @addtogroup pdf_font_internals
+ * @ingroup rbc_pdf
+ */
+
+/** @addtogroup ps_legacy_primitives
+ * @ingroup rbc_postscript
+ */
+
+/** @addtogroup ps_raster_encoding
+ * @ingroup rbc_postscript
+ */
+
+/** @addtogroup ps_text_mapping
+ * @ingroup rbc_postscript
+ */
+
+/** @addtogroup render_dispatch_internals
+ * @ingroup rbc_renderers
+ */
+
+/** @addtogroup cairo_backend
+ * @ingroup rbc_cairo
+ */
+
+/** @addtogroup export_backend
+ * @ingroup rbc_renderers
+ */
+
+/** @addtogroup native_shared_drawing
+ * @ingroup rbc_native
+ */
+
+/** @addtogroup native_windows_drawing
+ * @ingroup rbc_native
+ */
+
+/** @addtogroup native_x11_drawing
+ * @ingroup rbc_native
+ */
+
+/** @addtogroup pdf_backend
+ * @ingroup rbc_pdf
+ */
+
+/** @addtogroup postscript_backend
+ * @ingroup rbc_postscript
+ */
+
+/** @addtogroup svg_backend
+ * @ingroup rbc_svg
+ */
+
+/** @addtogroup scroll_internals
+ * @ingroup rbc_infrastructure
+ */
+
+/** @addtogroup spline_internals
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup text_drawing
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup tile_lifecycle
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup tile_native_masks
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup x11_image_helpers
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup rbcUtil_internals
+ * @ingroup rbc_infrastructure
+ */
+
+/** @addtogroup vector_command_paths
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup vector_edit_paths
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup vector_numeric_paths
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup fft_internals
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup expression_engine
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup expression_numerics
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup vector_storage_public
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup vector_storage_private
+ * @ingroup rbc_vectors
+ */
+
+/** @addtogroup windows_drawing_resources
+ * @ingroup rbc_native
+ */
+
+/** @addtogroup windows_drawing_primitives
+ * @ingroup rbc_native
+ */
+
+/** @addtogroup windows_bitmap_images
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup window_helpers
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup window_windows
+ * @ingroup rbc_images
+ */
+
+/** @addtogroup winop_commands
+ * @ingroup rbc_images
+ */
