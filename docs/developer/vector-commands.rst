@@ -48,7 +48,8 @@ Cache flushing and notifications check that the object and interpreter remain
 live and preserve command results/errors across callbacks.
 
 These protections cover the reviewed set/append/binread/sort paths, not every
-legacy mutation handler or the mapped-array write trace.
+legacy mutation handler. Mapped-array trace protection and its layout checks
+are described separately in :doc:`vector-access`.
 
 Sorting
 -------

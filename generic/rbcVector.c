@@ -43,7 +43,6 @@ static Tcl_CmdDeleteProc VectorInstDeleteProc;
 static Tcl_InterpDeleteProc VectorInterpDeleteProc;
 
 static void VectorNotifyClients(ClientData clientData);
-static void VectorFlushCache(VectorObject *vPtr);
 static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *part1, char *part2, int flags);
 static char *BuildQualifiedName(Tcl_Interp *interp, const char *name, Tcl_DString *fullName);
 static int ParseQualifiedName(Tcl_Interp *interp, const char *qualName, Tcl_Namespace **nsPtrPtr,
@@ -2097,52 +2096,6 @@ int Rbc_VectorNotifyPending(Rbc_VectorId clientId) {
     return (clientPtr->serverPtr->notifyFlags & NOTIFY_PENDING);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * VectorFlushCache --
- *
- *      Unsets all the elements of the Tcl array variable associated
- *      with the vector, freeing memory associated with the variable.
- *      This includes both the hash table and the hash keys.  The down
- *      side is that this effectively flushes the caching of vector
- *      elements in the array.  This means that the subsequent reads
- *      of the array will require a decimal to string conversion.
- *
- *      This is needed when the vector changes its values, making
- *      the array variable out-of-sync.
- *
- * Parameters:
- *      VectorObject *vPtr - The vector to flush
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      All elements of array variable (except one) are unset, freeing
- *      the memory associated with the variable.
- *
- * ----------------------------------------------------------------------
- */
-static void VectorFlushCache(VectorObject *vPtr) {
-    Tcl_Interp *interp = vPtr->interp;
-    if (vPtr->arrayName == NULL) {
-        return; /* Doesn't use the variable API */
-    }
-    /* Turn off the trace temporarily so that we can unset all the
-     * elements in the array.  */
-    /* TODO I added a cast to Tcl_VarTraceProc * which might cause issues. */
-    Tcl_UntraceVar2(interp, vPtr->arrayName, (char *)NULL, TRACE_ALL | vPtr->varFlags,
-                    (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
-    /* Clear all the element entries from the entire array */
-    Tcl_UnsetVar2(interp, vPtr->arrayName, (char *)NULL, vPtr->varFlags);
-    /* Restore the "end" index by default and the trace on the entire array */
-    Tcl_SetVar2(interp, vPtr->arrayName, "end", "", vPtr->varFlags);
-    /* TODO I added a cast to Tcl_VarTraceProc * which might cause issues. */
-    Tcl_TraceVar2(interp, vPtr->arrayName, (char *)NULL, TRACE_ALL | vPtr->varFlags, (Tcl_VarTraceProc *)VectorVarTrace,
-                  vPtr);
-}
-
 /**
  * @brief Resize typed storage without publishing a change to clients.
  * @ingroup vector_storage_private
@@ -2883,30 +2836,18 @@ void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size l
     ScheduleVectorUpdate(vPtr, FALSE, first, last);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * VectorVarTrace --
- *
- *      Procedure invoked when a vector variable is read, written or unset
-*
- * Parameters:
- *      ClientData clientData - Vector object.
- *      Tcl_Interp *interp - Interpreter of the vector
- *      char *part1 - name of array variable accessed
- *      char *part2 - name of array element accessed
- *      int flags
- *
- * Results:
- *      Returns NULL on success.  Returns an error message on failure.
- *      Only called from a variable trace.
- *
- * Side effects:
- *       may be several, like deleting a vector, etc.
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_storage_private
+ * @brief Perform one mapped-array access while the wrapper retains its owners.
+ * Reads materialize copied values; writes stage conversion before committing an
+ * inclusive interval; unsets compact storage and publish a full update. Value
+ * and index expressions may execute Tcl. Revalidate liveness, writability and
+ * storage layout before writing, and retain a private conversion object so
+ * callback changes to the array cannot invalidate a complex pair. Callback
+ * effects are not rolled back. Errors are retained Tcl objects for traces
+ * registered with TCL_TRACE_RESULT_OBJECT.
  */
-static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *part1, char *part2, int flags) {
+static char *VectorVarTraceImpl(ClientData clientData, Tcl_Interp *interp, char *part1, char *part2, int flags) {
     Rbc_VectorIndexProc *indexProc;
     VectorObject *vPtr = clientData;
     Tcl_Size first, last;
@@ -2926,6 +2867,9 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     if (Rbc_VectorGetIndexRange(interp, vPtr, part2, INDEX_ALL_FLAGS, &indexProc) != TCL_OK) {
         goto error;
     }
+    if (VectorAlive(vPtr) != TCL_OK) {
+        goto error;
+    }
     first = vPtr->first;
     last = vPtr->last;
     varFlags = TCL_LEAVE_ERR_MSG | (flags & (TCL_GLOBAL_ONLY | TCL_NAMESPACE_ONLY));
@@ -2938,6 +2882,10 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         double realValue;
         Rbc_Complex complexValue;
         int result;
+        void *data = vPtr->data.raw;
+        Tcl_Size length = vPtr->length;
+        Tcl_Size size = vPtr->size;
+        Tcl_Size offset = vPtr->offset;
 
         if ((first == SPECIAL_INDEX) || (last == SPECIAL_INDEX)) {
             return VectorTraceError(Tcl_NewStringObj("read-only index", -1));
@@ -2946,6 +2894,9 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         if (objPtr == NULL) {
             goto error;
         }
+        /* Conversion can unset or replace the source array entry. */
+        objPtr = Tcl_DuplicateObj(objPtr);
+        Tcl_IncrRefCount(objPtr);
         switch (vPtr->type) {
         case RBC_VECTOR_REAL:
             result = Rbc_GetDouble(interp, objPtr, &realValue);
@@ -2958,20 +2909,19 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
             result = TCL_ERROR;
             break;
         }
+        Tcl_DecrRefCount(objPtr);
         if (result != TCL_OK) {
             goto error;
         }
-        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+        if (VectorAlive(vPtr) != TCL_OK ||
+            Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
             goto error;
         }
-        /*
-         * For an ordinary real-vector replacement, determine whether the
-         * cached global min/max can be maintained before overwriting the old
-         * source values.
-         *
-         * Appends are handled conservatively below because Rbc_VectorChangeLength()
-         * changes the temporary vector contents before the final value is stored.
-         */
+        if (vPtr->data.raw != data || vPtr->length != length ||
+            vPtr->size != size || vPtr->offset != offset) {
+            return VectorTraceError(Tcl_NewStringObj("vector changed during variable conversion", -1));
+        }
+        /* The saved selection is valid only for the unchanged layout. */
         if ((first == vPtr->length) || (last == vPtr->length)) {
             if (vPtr->length == TCL_SIZE_MAX) {
                 return VectorTraceError(Tcl_NewStringObj("vector is too large to append", -1));
@@ -3025,16 +2975,23 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
                 vPtr->first = 0;
                 vPtr->last = vPtr->length - 1;
                 value = (*indexProc)((Rbc_Vector *)vPtr);
+                if (VectorAlive(vPtr) != TCL_OK) {
+                    goto error;
+                }
                 objPtr = Tcl_NewDoubleObj(value);
             }
-            if (Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags) == NULL) {
-                Tcl_DecrRefCount(objPtr);
+            Tcl_IncrRefCount(objPtr);
+            Tcl_Obj *stored = Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags);
+            Tcl_DecrRefCount(objPtr);
+            if (stored == NULL) {
                 goto error;
             }
         } else {
             objPtr = Rbc_GetValues(vPtr, first, last);
-            if (Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags) == NULL) {
-                Tcl_DecrRefCount(objPtr);
+            Tcl_IncrRefCount(objPtr);
+            Tcl_Obj *stored = Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags);
+            Tcl_DecrRefCount(objPtr);
+            if (stored == NULL) {
                 goto error;
             }
         }
@@ -3063,7 +3020,10 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         }
         vPtr->length -= ((last - first) + 1);
         if (vPtr->flush) {
-            VectorFlushCache(vPtr);
+            Rbc_VectorFlushCache(vPtr);
+            if (VectorAlive(vPtr) != TCL_OK) {
+                goto error;
+            }
         }
     } else {
         return VectorTraceError(Tcl_NewStringObj("unknown variable trace flag", -1));
@@ -3092,6 +3052,27 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
 
 error:
     return VectorTraceError(Tcl_GetObjResult(interp));
+}
+
+/**
+ * @ingroup vector_storage_private
+ * @brief Retain the vector and interpreter for the complete variable trace.
+ * Keeps the record alive across index/value expressions, array traces, custom
+ * index procedures, storage release and immediate observer notification. This
+ * does not retain destroyed numeric storage; the implementation checks state
+ * again before access after callbacks. Returns an owned trace-error object or
+ * NULL, releasing both preservation references on every exit.
+ */
+static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *part1, char *part2, int flags) {
+    VectorObject *vPtr = clientData;
+    char *result;
+
+    Tcl_Preserve(interp);
+    Tcl_Preserve(vPtr);
+    result = VectorVarTraceImpl(clientData, interp, part1, part2, flags);
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
+    return result;
 }
 
 /**

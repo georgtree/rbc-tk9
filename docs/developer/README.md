@@ -3,7 +3,7 @@
 This maintained Sphinx project is independent of the Ruff-generated Tcl manual.
 Coverage includes package initialization and client stubs, architecture, header dependencies,
 renderer contracts, capability-specific screen dispatch and fallback order, native batching/clip ownership, Cairo surface and pattern ownership, path consumption, batch opacity and coordinate-state rules, graph
-widget lifecycle and redisplay, vector ownership, observer snapshots, post-callback storage checks, namespace lookup, ensemble creation/reuse, named-result storage transfer, rename and sequential destruction, access-surface cleanup, index-parser branches, shared selections, finite-only extrema and low-level publication responsibilities, expression evaluation and
+widget lifecycle and redisplay, vector ownership, observer snapshots, post-callback storage checks, namespace lookup, ensemble creation/reuse, named-result storage transfer, rename and sequential destruction, access-surface cleanup, retained mapped-array traces and post-conversion layout checks, index-parser branches, shared selections, finite-only extrema and low-level publication responsibilities, expression evaluation and
 callback boundaries, recursive expression parsing, temporary-type adapters, reduction formulas and complex scalar kernels, FFT workspace and output ownership, private FFT commit helpers, paired-vector simplification geometry and commit ownership, spline interpolation and smoothing,
 quadratic interval selection and parametric cubic factorization, line
 decimation and cache maintenance, bar grouping and error positioning, area fills and uncertainty

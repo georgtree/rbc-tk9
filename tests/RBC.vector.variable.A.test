@@ -151,6 +151,143 @@ namespace eval vector.variable {
         catch {unset VarName}
     } -result {0 {}}
 	
+    # Conversion expressions must not leave the trace using stale storage.
+    proc ChangeDuringConversion {action} {
+        switch -- $action {
+            shrink {Vector1 length 0}
+            grow {Vector1 length 10}
+            offset {Vector1 offset 10}
+            lock {Vector1 readonly true}
+            delete {vector destroy Vector1}
+            replace {
+                vector destroy Vector1
+                vector create Vector1 -variable {}
+                Vector1 set {40 50 60}
+            }
+            source {
+                variable VarName
+                set VarName(2) {70 80}
+            }
+        }
+        return 9
+    }
+
+    set case 0
+    foreach type {real complex} {
+        foreach action {shrink grow offset lock delete replace} {
+            incr case
+            test RBC.vector.variable.A.3.$case "vector variable: $type conversion callback $action" -setup {
+                vector create Vector1 -type $type -variable VarName
+                Vector1 set {1 2 3}
+                set expression [format {[::vector.variable::ChangeDuringConversion %s]} $action]
+                set value [expr {$type eq "complex" ? [list $expression 4] : $expression}]
+            } -body {
+                set code [catch {set VarName(2) $value} message]
+                switch -- $action {
+                    shrink {set intact [expr {[Vector1 length] == 0}]}
+                    grow {set intact [expr {[Vector1 length] == 10 &&
+                        [lindex [Vector1 range 0 2] 2] eq ($type eq "complex" ? "3.0 0.0" : "3.0")}]}
+                    offset {set intact [expr {[Vector1 offset] == 10 &&
+                        [lindex [Vector1 range 10 12] 2] eq ($type eq "complex" ? "3.0 0.0" : "3.0")}]}
+                    lock {set intact [Vector1 readonly]}
+                    delete {set intact [expr {![llength [info commands Vector1]]}]}
+                    replace {set intact [expr {[Vector1 range 0 end] eq {40.0 50.0 60.0}}]}
+                }
+                list $code $intact [string match {can't set *} $message]
+            } -cleanup {
+                catch {vector destroy Vector1}
+                catch {unset VarName}
+            } -result {1 1 1}
+        }
+    }
+
+    test RBC.vector.variable.A.4.1 {
+        vector variable: complex conversion retains input when callback replaces its entry
+    } -setup {
+        vector create Vector1 -type complex -variable VarName
+        Vector1 set {1 2 3}
+    } -body {
+        set VarName(2) {{[::vector.variable::ChangeDuringConversion source]} 4}
+        Vector1 range 0 end
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {{1.0 0.0} {2.0 0.0} {9.0 4.0}}
+
+    test RBC.vector.variable.A.4.2 {
+        vector variable: ordinary expression and append still work
+    } -setup {
+        vector create Vector1 -variable VarName
+        Vector1 set {1 2 3}
+    } -body {
+        set VarName(1) {2 + 5}
+        set VarName(++end) {4 * 2}
+        Vector1 range 0 end
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {1.0 7.0 3.0 8.0}
+
+    proc DeleteDuringFlush {name1 name2 op} {
+        if {$name2 eq {}} {vector destroy Vector1}
+    }
+
+    test RBC.vector.variable.A.4.3 {
+        vector variable: unset-cache callback may destroy the vector
+    } -setup {
+        vector create Vector1 -variable VarName -flush true
+        Vector1 set {1 2 3}
+        set VarName(1)
+        trace add variable VarName unset ::vector.variable::DeleteDuringFlush
+    } -body {
+        unset VarName(1)
+        list [info commands Vector1] [vector names ::vector.variable::Vector1]
+    } -cleanup {
+        catch {trace remove variable VarName unset ::vector.variable::DeleteDuringFlush}
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {{} {}}
+
+    test RBC.vector.variable.A.4.4 {
+        vector variable: conversion may delete the owning interpreter
+    } -setup {
+        set child [interp create]
+        $child eval [list set auto_path $::auto_path]
+        $child eval {package require rbc::vector; rbc::vector create v; v set {1 2 3}}
+        interp alias $child removeChild {} interp delete $child
+    } -body {
+        set code [catch {$child eval {set v(2) {[removeChild; expr 9]}}}]
+        list $code [interp exists $child]
+    } -cleanup {
+        catch {interp delete $child}
+    } -result {1 0}
+
+    proc RemapDuringFlush {name1 name2 op} {
+        if {$name2 eq {}} {Vector1 variable ::vector.variable::OtherName}
+    }
+
+    test RBC.vector.variable.A.4.5 {
+        vector variable: unset-cache callback may remap the vector
+    } -setup {
+        vector create Vector1 -variable VarName -flush true
+        Vector1 set {1 2 3}
+        set VarName(1)
+        trace add variable VarName unset ::vector.variable::RemapDuringFlush
+    } -body {
+        unset VarName(1)
+        set OtherName(1) 9
+        list [Vector1 variable] [Vector1 range 0 end]
+    } -cleanup {
+        catch {trace remove variable VarName unset ::vector.variable::RemapDuringFlush}
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+        catch {unset OtherName}
+    } -result {::vector.variable::OtherName {1.0 9.0}}
+
+    rename RemapDuringFlush {}
+    rename ChangeDuringConversion {}
+    rename DeleteDuringFlush {}
+
 	cleanupTests
 # }
 }

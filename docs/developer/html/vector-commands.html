@@ -82,7 +82,8 @@ Storage installation precedes invocation of any old custom free procedure.
 Cache flushing and notifications check that the object and interpreter remain
 live and preserve command results/errors across callbacks.</p>
 <p>These protections cover the reviewed set/append/binread/sort paths, not every
-legacy mutation handler or the mapped-array write trace.</p>
+legacy mutation handler. Mapped-array trace protection and its layout checks
+are described separately in <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a>.</p>
 </section>
 <section id="sorting">
 <h2>Sorting<a class="headerlink" href="#sorting" title="Link to this heading">¶</a></h2>

@@ -53,6 +53,28 @@ preserve the vector/interpreter across variable traces and check for destruction
 or reentrant remapping before reinstalling RBC's trace. This local protection
 does not automatically protect the caller after the helper returns.
 
+The mapped-array trace now retains the vector record and interpreter throughout
+the access, including conversion, cache flushing and immediate notification.
+Writes copy the input Tcl object before conversion, so replacement or removal
+of the source array entry cannot invalidate a complex pair being converted.
+Before committing, the trace checks that the vector survives, remains writable,
+and has the same storage pointer, length, capacity and offset as before value
+conversion. Structural changes reject the outer write; callback side effects
+remain. A replacement vector with the same name is not the original target.
+
+For example, a value expression that empties its own vector now reports an
+error instead of writing through the old index into released storage. Ordinary
+expressions and append writes retain their existing behavior. The checks do not
+freeze values or selection: a callback may edit values without changing the
+layout, and the outer write then applies to its captured interval.
+
+Element-unset cache flushing uses the same guarded implementation as other
+vector updates. User unset traces may destroy the vector or move its mapping;
+RBC does not reinstall a trace on a stale mapping or notify a destroyed vector.
+Read-result objects are retained while being stored in the array. Registered
+special-index callbacks are checked for vector destruction before storing their
+result. No public C signature or stub-table entry changes.
+
 Value objects
 -------------
 
