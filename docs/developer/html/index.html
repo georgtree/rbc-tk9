@@ -233,6 +233,7 @@ safe. Chapters identify current limitations separately from intended guarantees.
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vector-commands.html">Vector instance commands and binary input</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vector-commands.html#dispatch-and-mutation-boundaries">Dispatch and mutation boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-commands.html#control-operations-and-array-access">Control operations and array access</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-commands.html#append-and-replacement">Append and replacement</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-commands.html#sorting">Sorting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-commands.html#binary-channel-input">Binary channel input</a></li>
@@ -258,12 +259,19 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PublishCommandOutput"><code class="docutils literal notranslate"><span class="pre">PublishCommandOutput()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AllocateCommandData"><code class="docutils literal notranslate"><span class="pre">AllocateCommandData()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList"><code class="docutils literal notranslate"><span class="pre">ConvertCommandList()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ComplexOpSupported"><code class="docutils literal notranslate"><span class="pre">ComplexOpSupported()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.Rbc_VectorInstanceObjCmd"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorInstanceObjCmd()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ReadOnlyOp"><code class="docutils literal notranslate"><span class="pre">ReadOnlyOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.TypeOp"><code class="docutils literal notranslate"><span class="pre">TypeOp()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendOp"><code class="docutils literal notranslate"><span class="pre">AppendOp()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseFormat"><code class="docutils literal notranslate"><span class="pre">ParseFormat()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseAt"><code class="docutils literal notranslate"><span class="pre">ParseAt()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.BinreadOp"><code class="docutils literal notranslate"><span class="pre">BinreadOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ClearOp"><code class="docutils literal notranslate"><span class="pre">ClearOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ExprOp"><code class="docutils literal notranslate"><span class="pre">ExprOp()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SetOp"><code class="docutils literal notranslate"><span class="pre">SetOp()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortOp"><code class="docutils literal notranslate"><span class="pre">SortOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.VariableOp"><code class="docutils literal notranslate"><span class="pre">VariableOp()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendVector"><code class="docutils literal notranslate"><span class="pre">AppendVector()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendList"><code class="docutils literal notranslate"><span class="pre">AppendList()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyValues"><code class="docutils literal notranslate"><span class="pre">CopyValues()</span></code></a></li>

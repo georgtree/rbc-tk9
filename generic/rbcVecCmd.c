@@ -635,6 +635,15 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {
     {{"window", 4, 0, "type length ?-periodic boolean?"}, Rbc_VectorWindowOp},
     {{NULL, 0, 0, NULL}, NULL}};
 
+/**
+ * @ingroup vector_command_paths
+ * @brief Test whether an instance handler accepts complex vectors.
+ *
+ * Compare handler pointers against the explicit complex-operation allowlist.
+ * Aliases sharing a handler inherit its eligibility. This is a dispatch gate,
+ * not type validation for operands or output vectors. Adding a handler requires
+ * reviewing this list separately from the operation table and write checks.
+ */
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
     return ((proc == ReadOnlyOp) || (proc == Rbc_VectorFftOp) || (proc == ExprOp) || (proc == AppendOp) ||
             (proc == ArithOp) || (proc == BinreadOp) || (proc == ClearOp) || (proc == DeleteOp) || (proc == DupOp) ||
@@ -643,30 +652,18 @@ static int ComplexOpSupported(RbcVectorCmdOp *proc) {
             (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup vector_command_paths
+ * @brief Validate and dispatch one vector instance operation.
  *
- * VectorInstanceCmd --
- *
- *      Instance command for the vector. This command
- *      is registered via Tcl_CreatObjCommand for each new vector
- *      and is called when the Tcl vector instance command is called
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      Returns the result from the operation called on the command or
- *      TCL_ERROR if the operation was unknown or a wrong number of
- *      arguments was specified
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * clientData is the live receiver. Resolve operation spelling and arity before
+ * checking complex support, then reject protected receiver writes according to
+ * the handler and argument count. Source-only operations check destinations in
+ * their own handlers. Reset the shared inclusive selection to the whole vector
+ * only after these checks succeed. Preserve the interpreter and receiver while
+ * calling the handler, release both, and return its status. Preservation retains
+ * the record, not storage after destruction; handlers must revalidate after
+ * callbacks. Rejected dispatch does not reset a prior selection.
  */
 int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *vPtr;
@@ -717,9 +714,15 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
     }
 }
 
-/*
- * ReadOnlyOp -- Query or change the vector's reversible data protection.
- * Setting the state does not alter values or notify graph clients.
+/**
+ * @ingroup vector_command_paths
+ * @brief Query or set reversible vector data protection.
+ *
+ * With objv[2], parse a Tcl boolean before setting the flag; invalid input
+ * leaves the flag unchanged. Return the current boolean state for both forms.
+ * Changing protection does not change values, length or type, flush the array,
+ * or notify clients. Unlocking is allowed; this is not a lifetime/ownership lock.
+ * The dispatcher preserves the live receiver for this handler.
  */
 static int ReadOnlyOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int readOnly;
@@ -734,6 +737,14 @@ static int ReadOnlyOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
+/**
+ * @ingroup vector_command_paths
+ * @brief Return the receiver numeric type without converting storage.
+ *
+ * Return real or complex as a Tcl string. Requires a live receiver and performs
+ * no mutation, cache flush or client notification. An unrecognized internal type
+ * is an invariant violation handled by Tcl_Panic, not a user conversion error.
+ */
 static int TypeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     const char *typeName;
 
@@ -1328,28 +1339,16 @@ cleanup:
     }
     return result;
 }
-/*
- * -----------------------------------------------------------------------
+/**
+ * @ingroup vector_command_paths
+ * @brief Flush the mapped-array cache without emptying vector storage.
  *
- * ClearOp --
- *
- *      Deletes all the accumulated array indices for the Tcl array
- *      associated will the vector.  This routine can be used to
- *      free excess memory from a large vector.
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      Always returns TCL_OK.
- *
- * Side Effects:
- *      Memory used for the entries of the Tcl array variable is freed.
- *
- * -----------------------------------------------------------------------
+ * Delegate to Rbc_VectorFlushCache even when automatic flushing is disabled.
+ * Read-only vectors are accepted because this is not a numerical write. The
+ * helper may invoke user variable traces, whose side effects are not undone.
+ * Return TCL_OK after the void helper; do not access the receiver afterward or
+ * claim that cache recreation errors are propagated. No value notification is
+ * requested by this handler.
  */
 static int ClearOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_VectorFlushCache(vPtr);
@@ -1503,27 +1502,17 @@ done:
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup vector_command_paths
+ * @brief Evaluate an expression into the existing receiver, then publish.
  *
- * ExprOp --
- *
- *      Computes the result of the expression which may be
- *      either a scalar (single value) or vector (list of values).
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Pass objv[2] to Rbc_ExprVector with the receiver as destination. Evaluation
+ * uses temporary result storage and validates destination survival, writability
+ * and compatible result type before assignment. Propagate an evaluation or
+ * assignment error without calling NotifyCommandWrite. On success, request a
+ * full update through that callback-aware helper and return TCL_OK. This path
+ * does not create a named result vector or return its values as a Tcl list;
+ * expression and notification callback side effects remain observable.
  */
 static int ExprOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (Rbc_ExprVector(interp, Tcl_GetString(objv[2]), (Rbc_Vector *)vPtr) != TCL_OK) {
@@ -2799,26 +2788,16 @@ done:
     return result;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @ingroup vector_command_paths
+ * @brief Query, replace or remove the receiver mapped-array association.
  *
- * VariableOp --
- *
- *      Renames the variable associated with the vector
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * With objv[2], delegate to Rbc_VectorMapVariable and propagate its error.
+ * An empty name removes the mapping; it does not rename the vector command.
+ * On success, copy the stored array name into the Tcl result when non-NULL;
+ * otherwise do not explicitly set a result. The name is the stored mapping
+ * spelling, not a newly qualified command name. Read-only and complex receivers
+ * are supported. Mapping can invoke traces and is not a rollback transaction.
  */
 static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc > 2) {

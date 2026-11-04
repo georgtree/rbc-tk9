@@ -1741,32 +1741,18 @@ int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr) {
     return result;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Discard cached Tcl array entries while retaining vector data.
  *
- * Rbc_VectorFlushCache --
- *
- *      Unsets all the elements of the Tcl array variable associated
- *      with the vector, freeing memory associated with the variable.
- *      This includes both the hash table and the hash keys.  The down
- *      side is that this effectively flushes the caching of vector
- *      elements in the array.  This means that the subsequent reads
- *      of the array will require a decimal to string conversion.
- *
- *      This is needed when the vector changes its values, making
- *      the array variable out-of-sync.
- *
- * Parameters:
- *      VectorObject *vPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      All elements of array variable (except one) are unset, freeing
- *      the memory associated with the variable.
- *
- * ----------------------------------------------------------------------
+ * Return immediately for an unmapped/destroying vector or deleted interpreter.
+ * Otherwise preserve the record and interpreter, copy the mapping name/flags,
+ * remove RBC's trace and unset the array. User traces can destroy or remap the
+ * vector. Recreate the end entry and reinstall RBC's trace only while the saved
+ * association still matches, rechecking after each callback-capable write.
+ * Release the copied name and preservation references on completion. The void
+ * interface does not propagate unset/write/trace status or preserve the Tcl
+ * result. No vector values are changed or client notification requested here;
+ * user-trace side effects are not rolled back.
  */
 void Rbc_VectorFlushCache(VectorObject *vPtr) {
     Tcl_Interp *interp = vPtr->interp;
@@ -1798,35 +1784,19 @@ void Rbc_VectorFlushCache(VectorObject *vPtr) {
     Tcl_Release(interp);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Replace a vector array mapping with callback-aware lifetime checks.
  *
- * Rbc_VectorMapVariable --
- *
- *      Sets up traces on a Tcl variable to access the vector.
- *
- *      If another variable is already mapped, it's first untraced and
- *      removed.  Don't do anything else for variables named "" (even
- *      though Tcl allows this pathology). Saves the name of the new
- *      array variable.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      VectorObject *vPtr
- *      const char *name - name of array variable to map to vector
- *
- * Results:
- *      A standard Tcl result. If an error occurs setting the variable
- *      TCL_ERROR is returned and an error message is left in the
- *      interpreter.
- *
- * Side effects:
- *      Traces are set for the new variable. The new variable name is
- *        saved in a malloc'ed string in vPtr->arrayName.  If this
- *        variable is non-NULL, it indicates that a Tcl variable has
- *      been mapped to this vector.
- *
- * ----------------------------------------------------------------------
+ * Borrow the live vector, interpreter and name; NULL or empty names request
+ * unmapping. Reject parentheses before changing an existing association. Copy
+ * the requested name and preserve the vector/interpreter while unmapping the
+ * old array, unsetting the target variable and creating its end entry. After
+ * callback boundaries, reject destruction or a competing reentrant mapping.
+ * On a successful initial write install RBC's read/write/unset trace. Store the
+ * requested name even when that initial write fails, and return its Tcl status;
+ * a failure does not restore the old mapping or undo user trace effects.
+ * This changes the Tcl access surface, not vector storage or command identity.
+ * Callers must not infer that preservation keeps destroyed storage valid.
  */
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name) {
     const char *result;

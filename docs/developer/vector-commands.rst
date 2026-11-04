@@ -24,6 +24,48 @@ notifications and Tcl variable traces are callback boundaries; numerical
 expression conversion and reflected-channel operations can also execute Tcl.
 Handler-specific protection must not be inferred from the common dispatcher.
 
+Control operations and array access
+-----------------------------------
+
+Complex support is selected by handler identity, separately from the operation
+table. Aliases sharing a handler share its eligibility. The read-only gate is
+also explicit: it checks receiver writes, including argument-dependent setters,
+while operations writing other vectors must validate those destinations.
+Unsupported complex operations are rejected before the read-only check.
+Dispatch errors leave the previous selection unchanged; accepted operations
+start with the complete receiver selected.
+
+``type`` reports ``real`` or ``complex`` and never changes storage type.
+``readonly`` returns the current boolean, optionally changing it after boolean
+conversion succeeds. It is reversible and emits no value-change notification.
+The flag protects data writes, not command renaming, mapping or lifecycle.
+
+``clear`` means **clear the mapped-array cache**, not empty the vector. It is
+allowed for protected vectors and explicitly flushes even when automatic
+flushing is disabled. The cache normally retains only its ``end`` entry after
+recreation; subsequent reads materialize values again. User unset/write traces
+may run during flushing, and their side effects can include data changes,
+remapping or destruction. The handler returns TCL_OK after the void helper and
+does not report lower-level cache recreation status.
+
+``variable`` queries the stored mapping name, or delegates replacement/removal
+to Rbc_VectorMapVariable. An empty argument removes the association; it does not
+rename the vector command or discard numerical storage. The returned mapping
+spelling need not be a fully qualified command name. Array names reject
+parentheses before removing an old mapping, although literal vector command
+names may contain them. For later mapping failures, the old array is not
+restored. See :doc:`vector-access` for trace ownership and lifetime boundaries.
+
+Instance ``expr`` assigns to the existing receiver. Evaluation creates a
+temporary result and checks that the original destination survives and remains
+writable before copying compatible data. A real result can populate a complex
+destination with zero imaginary parts; a complex result cannot change a real
+destination's type. On success the handler requests a full notification through
+NotifyCommandWrite. On evaluation/assignment failure it returns the error
+without that publication step. Neither case rolls back Tcl callback effects.
+This differs from ensemble expression forms that return a list or create a
+named vector; see :doc:`expression-engine` for the evaluator contracts.
+
 Append and replacement
 ----------------------
 

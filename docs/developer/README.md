@@ -57,3 +57,8 @@ The window/photo internals chapter also records native command argument and
 partial-update rules, pointer coordinates, platform geometry queries, and the
 legacy colormap and gradient assumptions. Their private helper contracts are
 included in the window/photo C reference.
+
+Vector command documentation includes the instance dispatch gates, reversible
+read-only state, type queries, expression assignment, and the distinction between
+clearing an array cache and changing numerical storage. Mapping and cache helpers
+describe their callback checks and nontransactional failure behavior.

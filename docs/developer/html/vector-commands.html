@@ -62,6 +62,43 @@ notifications and Tcl variable traces are callback boundaries; numerical
 expression conversion and reflected-channel operations can also execute Tcl.
 Handler-specific protection must not be inferred from the common dispatcher.</p>
 </section>
+<section id="control-operations-and-array-access">
+<h2>Control operations and array access<a class="headerlink" href="#control-operations-and-array-access" title="Link to this heading">¶</a></h2>
+<p>Complex support is selected by handler identity, separately from the operation
+table. Aliases sharing a handler share its eligibility. The read-only gate is
+also explicit: it checks receiver writes, including argument-dependent setters,
+while operations writing other vectors must validate those destinations.
+Unsupported complex operations are rejected before the read-only check.
+Dispatch errors leave the previous selection unchanged; accepted operations
+start with the complete receiver selected.</p>
+<p><code class="docutils literal notranslate"><span class="pre">type</span></code> reports <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code> and never changes storage type.
+<code class="docutils literal notranslate"><span class="pre">readonly</span></code> returns the current boolean, optionally changing it after boolean
+conversion succeeds. It is reversible and emits no value-change notification.
+The flag protects data writes, not command renaming, mapping or lifecycle.</p>
+<p><code class="docutils literal notranslate"><span class="pre">clear</span></code> means <strong>clear the mapped-array cache</strong>, not empty the vector. It is
+allowed for protected vectors and explicitly flushes even when automatic
+flushing is disabled. The cache normally retains only its <code class="docutils literal notranslate"><span class="pre">end</span></code> entry after
+recreation; subsequent reads materialize values again. User unset/write traces
+may run during flushing, and their side effects can include data changes,
+remapping or destruction. The handler returns TCL_OK after the void helper and
+does not report lower-level cache recreation status.</p>
+<p><code class="docutils literal notranslate"><span class="pre">variable</span></code> queries the stored mapping name, or delegates replacement/removal
+to Rbc_VectorMapVariable. An empty argument removes the association; it does not
+rename the vector command or discard numerical storage. The returned mapping
+spelling need not be a fully qualified command name. Array names reject
+parentheses before removing an old mapping, although literal vector command
+names may contain them. For later mapping failures, the old array is not
+restored. See <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a> for trace ownership and lifetime boundaries.</p>
+<p>Instance <code class="docutils literal notranslate"><span class="pre">expr</span></code> assigns to the existing receiver. Evaluation creates a
+temporary result and checks that the original destination survives and remains
+writable before copying compatible data. A real result can populate a complex
+destination with zero imaginary parts; a complex result cannot change a real
+destination’s type. On success the handler requests a full notification through
+NotifyCommandWrite. On evaluation/assignment failure it returns the error
+without that publication step. Neither case rolls back Tcl callback effects.
+This differs from ensemble expression forms that return a list or create a
+named vector; see <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for the evaluator contracts.</p>
+</section>
 <section id="append-and-replacement">
 <h2>Append and replacement<a class="headerlink" href="#append-and-replacement" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">append</span></code> tries each argument as a vector reference before treating it as a
@@ -272,6 +309,7 @@ handler applies the resulting permutation.</p>
     <ul>
 <li><a class="reference internal" href="#">Vector instance commands and binary input</a><ul>
 <li><a class="reference internal" href="#dispatch-and-mutation-boundaries">Dispatch and mutation boundaries</a></li>
+<li><a class="reference internal" href="#control-operations-and-array-access">Control operations and array access</a></li>
 <li><a class="reference internal" href="#append-and-replacement">Append and replacement</a></li>
 <li><a class="reference internal" href="#sorting">Sorting</a></li>
 <li><a class="reference internal" href="#binary-channel-input">Binary channel input</a></li>

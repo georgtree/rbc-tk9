@@ -53,6 +53,19 @@ preserve the vector/interpreter across variable traces and check for destruction
 or reentrant remapping before reinstalling RBC's trace. This local protection
 does not automatically protect the caller after the helper returns.
 
+Cache flushing removes RBC's trace before unsetting the array, then recreates
+``end`` and reinstalls the trace only if the saved name and flags still match.
+Its void interface does not propagate Tcl variable-operation status or preserve
+the interpreter result. Callers needing result preservation must supply it;
+NotifyCommandWrite does so, while the instance clear handler simply returns.
+
+Mapping copies its requested name before any traces can invalidate it. After
+the old mapping is removed it unsets the target and writes ``end``. A failed
+initial write still leaves the requested name recorded, although RBC's trace
+is installed only on a successful write. Errors are therefore not evidence
+that no mapping metadata changed. Reentrant mapping changes are detected and
+reported rather than overwritten by the outer operation.
+
 The mapped-array trace now retains the vector record and interpreter throughout
 the access, including conversion, cache flushing and immediate notification.
 Writes copy the input Tcl object before conversion, so replacement or removal
