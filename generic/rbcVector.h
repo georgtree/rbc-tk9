@@ -83,6 +83,7 @@ typedef void(Rbc_VectorChangedProc)(Tcl_Interp *interp, ClientData clientData, R
  * @return New token, initially without a callback, or NULL with a diagnostic.
  * @see Rbc_SetVectorChangedProc
  * @see Rbc_FreeVectorId
+ * @see @ref rbc_calling_conventions
  */
 Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *vecName);
 
@@ -93,6 +94,7 @@ Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *vecName);
  * Does not destroy the vector. May be called from UPDATE or DESTROY callbacks.
  * Destruction itself frees remaining IDs. A magic-field check is not permission
  * to pass freed or arbitrary pointers. NULL is accepted.
+ * @see @ref rbc_calling_conventions
  */
 void Rbc_FreeVectorId(Rbc_VectorId clientId);
 
@@ -106,6 +108,7 @@ void Rbc_FreeVectorId(Rbc_VectorId clientId);
  * Neither the returned pointer nor the ID extends vector lifetime. Never call
  * this with a token left over after vector destruction. Cached extrema are
  * recomputed when invalidated; this is not always a constant-time lookup.
+ * @see @ref rbc_calling_conventions
  */
 int Rbc_GetVectorById(Tcl_Interp *interp, Rbc_VectorId clientId, Rbc_Vector **vecPtrPtr);
 
@@ -116,6 +119,7 @@ int Rbc_GetVectorById(Tcl_Interp *interp, Rbc_VectorId clientId, Rbc_Vector **ve
  * @param[in] clientData Borrowed data passed to proc; never freed by RBC.
  *
  * Does not invoke the callback immediately or transfer ownership of clientData.
+ * @see @ref rbc_calling_conventions
  */
 void Rbc_SetVectorChangedProc(Rbc_VectorId clientId, Rbc_VectorChangedProc *proc, ClientData clientData);
 
@@ -126,6 +130,7 @@ void Rbc_SetVectorChangedProc(Rbc_VectorId clientId, Rbc_VectorChangedProc *proc
  *
  * Do not modify or free the returned string. Copy it if it must survive rename.
  * A token already freed by destruction cannot be queried.
+ * @see @ref rbc_calling_conventions
  */
 char *Rbc_NameOfVectorId(Rbc_VectorId clientId);
 
@@ -136,6 +141,7 @@ char *Rbc_NameOfVectorId(Rbc_VectorId clientId);
  *
  * The nonzero result is a flag mask, not necessarily 1. It is not a test for
  * all possible data changes, and cannot validate a freed token.
+ * @see @ref rbc_calling_conventions
  */
 int Rbc_VectorNotifyPending(Rbc_VectorId clientId);
 
@@ -148,6 +154,7 @@ int Rbc_VectorNotifyPending(Rbc_VectorId clientId);
  * an interpreter diagnostic or changes to the output parameters.
  *
  * Empty vectors and vectors without finite values return NaN extrema.
+ * @see @ref rbc_calling_conventions
  */
 int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr);
 

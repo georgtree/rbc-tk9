@@ -101,6 +101,9 @@ static double MakeNaN(void) {
 /**
  * @brief Return the byte stride for one real or complex value.
  * @ingroup vector_storage_private
+ * @param[in] type Validated real or complex storage type.
+ * @return Byte stride of one value; unsupported types panic.
+ * @see @ref rbc_calling_conventions
  *
  * Uses sizeof(double) or sizeof(Rbc_Complex). Unsupported internal types panic;
  * this is not a recoverable public type validator.
@@ -119,6 +122,12 @@ static size_t VectorElementSize(Rbc_VectorType type) {
 /**
  * @brief Validate a value count and convert it to an allocation byte count.
  * @ingroup vector_storage_private
+ * @param[in] interp See @ref rbc_interp_argument.
+ * @param[in] type Validated numeric storage type.
+ * @param[in] count Nonnegative number of values, not bytes.
+ * @param[out] byteCountPtr Required byte-count output; unchanged on failure.
+ * @return TCL_OK on success; TCL_ERROR with a size diagnostic otherwise.
+ * @see @ref rbc_calling_conventions
  *
  * Rejects negative counts and multiplication overflow with a Tcl error. Writes
  * the output only on success; calls VectorElementSize, so the type must already
@@ -147,6 +156,10 @@ static int GetVectorByteCount(Tcl_Interp *interp, Rbc_VectorType type, Tcl_Size 
 /**
  * @ingroup vector_storage_private
  * @brief Check logical liveness of a retained vector record.
+ * @param[in] vPtr Valid retained record whose logical liveness is checked; its interpreter must also remain
+ *   allocated.
+ * @return TCL_OK if live; TCL_ERROR with RBC VECTOR DESTROYED otherwise.
+ * @see @ref rbc_calling_conventions
  * The caller must already protect storage lifetime; this cannot validate an arbitrary pointer. Rejects
  * destruction or interpreter deletion with RBC VECTOR DESTROYED. Does not check writability, name
  * identity or numeric storage stability.
@@ -163,6 +176,11 @@ static int VectorAlive(VectorObject *vPtr) {
 /**
  * @ingroup vector_storage_private
  * @brief Release detached numeric storage according to its ownership policy.
+ * @param[in] interp See @ref rbc_interp_argument. Caller protects its lifetime across a custom destructor.
+ * @param[in] data Detached allocation to release, or NULL.
+ * @param[in] freeProc TCL_STATIC, TCL_DYNAMIC, or a callable custom destructor. TCL_VOLATILE must already have been
+ *   converted to owned storage.
+ * @see @ref rbc_calling_conventions
  * NULL storage and TCL_STATIC require no action; TCL_DYNAMIC uses ckfree. A custom release callback
  * runs with the outer interpreter state saved and restored. The caller must install the completed
  * replacement contract before calling, and separately protect record/interpreter lifetime across
@@ -182,6 +200,11 @@ static void ReleaseVectorStorage(Tcl_Interp *interp, void *data, Tcl_FreeProc *f
 /**
  * @ingroup vector_storage_private
  * @brief Publish an update while retaining the original vector identity.
+ * @param[in,out] vPtr Valid borrowed record; retained internally across publication callbacks.
+ * @param[in] all Nonzero publishes a full update; zero selects the interval.
+ * @param[in] first Inclusive first storage index; ignored for a full update.
+ * @param[in] last Inclusive last storage index; ignored for a full update.
+ * @see @ref rbc_calling_conventions
  * Preserves vector and interpreter, saves interpreter state, optionally flushes mapped-array cache,
  * then rechecks liveness before notifying all data or an inclusive interval. Callbacks may delete or
  * replace the vector; this never resolves a replacement by name. Restores state and releases both
@@ -209,6 +232,12 @@ static void PublishVectorChange(VectorObject *vPtr, int all, Tcl_Size first, Tcl
 /**
  * @ingroup vector_storage_private
  * @brief Validate a writable resize destination after callback activity.
+ * @param[in] vPtr Retained destination to revalidate after callbacks.
+ * @param[in] data Expected current storage address; compared without dereferencing.
+ * @param[in] length Expected used length and full-selection extent.
+ * @param[in] size Expected capacity in values.
+ * @return TCL_OK if writable and matching the snapshot; TCL_ERROR otherwise.
+ * @see @ref rbc_calling_conventions
  * Requires a retained record. Checks liveness and read-only state, then compares data pointer, length,
  * capacity and full-vector selection against the caller snapshot. Reports RBC VECTOR CHANGED on layout
  * mismatch. Does not prove that numeric values remained unchanged or that no same-layout mutation
@@ -229,6 +258,9 @@ static int CheckResizedVector(VectorObject *vPtr, void *data, Tcl_Size length, T
 /**
  * @ingroup vector_storage_private
  * @brief Retain a Tcl object as a variable-trace error result.
+ * @param[in] objPtr Non-NULL error object; this helper adds the reference consumed by Tcl trace processing.
+ * @return The retained object cast to char *, for TCL_TRACE_RESULT_OBJECT only.
+ * @see @ref rbc_calling_conventions
  * Increments the supplied object reference and returns it through the legacy char pointer signature.
  * Valid only with traces registered using TCL_TRACE_RESULT_OBJECT, which tells Tcl to consume an
  * object rather than interpret the pointer as message bytes.
@@ -267,6 +299,11 @@ int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr) {
 /**
  * @brief Zero the half-open interval [first,last) of typed storage.
  * @ingroup vector_storage_private
+ * @param[in] type Real or complex storage type.
+ * @param[in] data Borrowed writable typed buffer; must cover the requested interval.
+ * @param[in] first First storage index, inclusive; bounds are caller-validated.
+ * @param[in] last End storage index, exclusive; must not exceed capacity.
+ * @see @ref rbc_calling_conventions
  *
  * Zeros both components for complex values. Bounds and capacity are caller
  * preconditions; does not allocate, change metadata, invalidate extrema or notify.
@@ -1287,6 +1324,9 @@ static int VectorNamesObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
 /**
  * @brief Obtain or lazily initialize an interpreter-local vector registry.
  * @ingroup vector_storage_private
+ * @param[in] interp See @ref rbc_interp_argument. Owns the lazily allocated registry.
+ * @return Borrowed interpreter-associated registry; no ownership transfer.
+ * @see @ref rbc_calling_conventions
  *
  * Returns borrowed associated data. First access allocates the vector, math and
  * special-index tables, installs built-in functions and registers interpreter
@@ -1319,6 +1359,9 @@ VectorInterpData *Rbc_VectorGetInterpData(Tcl_Interp *interp) {
 /**
  * @brief Destroy registered vectors and release interpreter-local tables.
  * @ingroup vector_storage_private
+ * @param[in] clientData Owned VectorInterpData associated with the interpreter; released here.
+ * @param[in] interp See @ref rbc_interp_argument. Interpreter undergoing teardown.
+ * @see @ref rbc_calling_conventions
  *
  * Repeatedly takes the first remaining registry entry because destruction mutates
  * the table and invokes callbacks. Deletes the math/index table containers and
@@ -1346,6 +1389,9 @@ static void VectorInterpDeleteProc(ClientData clientData, Tcl_Interp *interp) {
 /**
  * @brief Allocate an unregistered empty real vector record.
  * @ingroup vector_storage_private
+ * @param[in] dataPtr Borrowed owning-interpreter registry; must outlive the new record.
+ * @return Owned empty record, released with Rbc_VectorFree.
+ * @see @ref rbc_calling_conventions
  *
  * Initializes static NULL storage, zero length/capacity, an empty observer chain,
  * idle notifications, invalid extrema and no array flushing. The caller owns the
@@ -1374,6 +1420,14 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
 /**
  * @brief Create or reuse a registered vector and configure its access surfaces.
  * @ingroup vector_storage_private
+ * @param[in] dataPtr Borrowed registry receiving or reusing the identity.
+ * @param[in] vecName Borrowed requested name; \#auto tail generates an unused name.
+ * @param[in] cmdName Borrowed instance command name, or NULL to omit command setup.
+ * @param[in] varName Borrowed array mapping name; NULL omits setup and empty requests unmapping.
+ * @param[in] type Requested real/complex type; an existing identity must match.
+ * @param[out] newPtr Required output: nonzero for a new identity, zero for reuse, written only on success.
+ * @return Borrowed registered identity on success, or NULL with a diagnostic.
+ * @see @ref rbc_calling_conventions
  *
  * Qualifies the name in the current namespace; \#auto selects an unused registry
  * and command name. Existing vectors must be writable and have the requested
@@ -1586,6 +1640,8 @@ static void VectorInstDeleteProc(ClientData clientData) {
 /**
  * @brief Release a record after Tcl preservation references have drained.
  * @ingroup vector_storage_private
+ * @param[in] data Owned vector or client record whose resources are already detached; freed here.
+ * @see @ref rbc_calling_conventions
  *
  * Calls ckfree on the supplied allocation. Used for deferred vector and client
  * record reclamation; resources must already have been detached.
@@ -1597,6 +1653,8 @@ static void FreeVectorRecord(DestroyData data) {
 /**
  * @brief Destroy a vector identity, its observers and owned resources.
  * @ingroup vector_storage_private
+ * @param[in] vPtr Valid non-NULL identity to destroy; may already be marked destroying during recursive cleanup.
+ * @see @ref rbc_calling_conventions
  *
  * Ignores recursive destruction while the retained record is marked destroying.
  * Preserves record/interpreter, deletes the command and mapping, unregisters the
@@ -1670,6 +1728,10 @@ void Rbc_VectorFree(VectorObject *vPtr) {
 /**
  * @brief Resize an existing destination and copy the selected source values.
  * @ingroup vector_storage_private
+ * @param[in,out] destPtr Live writable same-type destination; may equal the source.
+ * @param[in] srcPtr Live source with a valid inclusive first/last selection; values are copied, not adopted.
+ * @return TCL_OK on successful copy and post-callback checks; TCL_ERROR otherwise.
+ * @see @ref rbc_calling_conventions
  *
  * Requires matching numeric types; selected length is last-first+1. Checks byte
  * arithmetic and writability, copies with memmove and copies the source offset.
@@ -1884,6 +1946,15 @@ done:
  * @anchor rbc_vector_reset_storage_contract
  * @brief Validate and replace the complete storage ownership contract.
  * @ingroup vector_storage_private
+ * @param[in,out] vPtr Live writable destination; its current numeric type selects the element size.
+ * @param[in] valueArr Buffer to copy, borrow or adopt; NULL selects empty storage.
+ * @param[in] length Nonnegative used count, at most size.
+ * @param[in] size Nonnegative capacity in values; zero selects empty storage.
+ * @param[in] freeProc TCL_STATIC borrows, TCL_DYNAMIC adopts, TCL_VOLATILE copies, or a custom release callback.
+ *   Ownership is accepted only on success.
+ * @return TCL_OK once the storage contract is accepted, even if later callbacks destroy the vector; TCL_ERROR
+ *   before acceptance.
+ * @see @ref rbc_calling_conventions
  *
  * Checks writability, nonnegative length/capacity, length<=capacity and byte
  * counts. NULL data or zero capacity installs empty static storage. TCL_VOLATILE
@@ -1967,6 +2038,13 @@ static int ResetVectorStorage(VectorObject *vPtr, void *valueArr, Tcl_Size lengt
 /**
  * @brief Apply a real storage reset after checking the vector type.
  * @ingroup vector_storage_private
+ * @param[in,out] vPtr Live real destination; complex type is rejected.
+ * @param[in] valueArr Real buffer under the freeProc ownership policy, or NULL.
+ * @param[in] length Nonnegative used count, at most size.
+ * @param[in] size Nonnegative capacity in doubles, not bytes.
+ * @param[in] freeProc Storage policy passed to the shared reset implementation.
+ * @return Tcl status with the shared reset ownership-acceptance semantics.
+ * @see @ref rbc_calling_conventions
  *
  * Rejects a complex vector with a Tcl error; otherwise delegates to
  * ResetVectorStorage, including its ownership and callback restrictions.
@@ -1983,6 +2061,9 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
 /**
  * @ingroup vector_storage_private
  * @brief Deliver a snapshot of vector observers with stable update metadata.
+ * @param[in] clientData Valid VectorObject for this delivery, including destruction delivery; retained internally,
+ *   but not owned by the callback.
+ * @see @ref rbc_calling_conventions
  * Preserves vector, interpreter and snapshotted client IDs, not chain links. Clears pending update
  * state before invoking callbacks. New clients wait for a later notification; detached or reassigned
  * IDs are skipped and destruction stops remaining update callbacks. Temporarily installs the event
@@ -2070,6 +2151,10 @@ int Rbc_VectorNotifyPending(Rbc_VectorId clientId) {
 /**
  * @brief Resize typed storage without publishing a change to clients.
  * @ingroup vector_storage_private
+ * @param[in,out] vPtr Live writable destination; its selection and extrema metadata are updated.
+ * @param[in] length Nonnegative requested used count in values, subject to allocation limits.
+ * @return TCL_OK on success; TCL_ERROR for protection, size or post-callback failures.
+ * @see @ref rbc_calling_conventions
  *
  * Checks writability and a nonnegative length. Chooses a capacity starting at
  * DEF_ARRAY_SIZE and doubling to fit, with overflow protection. Reuses an equal
@@ -2637,6 +2722,11 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
 /**
  * @ingroup vector_storage_private
  * @brief Coalesce changed intervals and apply the notification policy.
+ * @param[in,out] vPtr Valid vector record; logically destroyed records are ignored.
+ * @param[in] all Nonzero supersedes ranged metadata with a full update.
+ * @param[in] first Validated inclusive first changed storage index; ignored when all is nonzero.
+ * @param[in] last Validated inclusive last changed storage index; ignored when all is nonzero.
+ * @see @ref rbc_calling_conventions
  * Destroyed vectors are ignored. Increments dirty even when notifications are disabled. A full update
  * supersedes interval metadata; ranged updates merge inclusive endpoints. Immediate mode can invoke
  * callbacks before return; idle mode queues at most one pending callback. Does not itself invalidate
@@ -2681,6 +2771,8 @@ static void ScheduleVectorUpdate(VectorObject *vPtr, int all, Tcl_Size first, Tc
 /**
  * @ingroup vector_storage_private
  * @brief Mark cached extrema as requiring recomputation.
+ * @param[in,out] vPtr Valid record whose extrema cache is invalidated; storage is not examined.
+ * @see @ref rbc_calling_conventions
  * Stores NaN bounds and negative indices, then sets UPDATE_RANGE. Does not inspect numeric data,
  * increment dirty or schedule observers; callers separately publish the change.
  */
@@ -2705,6 +2797,11 @@ void Rbc_VectorUpdateClients(VectorObject *vPtr) {
 /**
  * @ingroup vector_storage_private
  * @brief Maintain exact real-vector extrema after a bounded modification.
+ * @param[in,out] vPtr Valid real vector with completed in-place writes and existing cache metadata.
+ * @param[in] first First changed storage index, inclusive.
+ * @param[in] last Last changed storage index, inclusive; invalid intervals cannot update the cache incrementally.
+ * @return Nonzero if the extrema cache was updated; zero requests full recomputation later.
+ * @see @ref rbc_calling_conventions
  * Requires a real vector whose caller has already changed only the stated inclusive interval. Returns
  * FALSE without committing when the cache is invalid, bounds are invalid, an old extremum was touched
  * or cache state is inconsistent. Otherwise scans only changed finite values, retaining the earliest

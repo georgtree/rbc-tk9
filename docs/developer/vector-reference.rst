@@ -28,6 +28,27 @@ Callback signature (included verbatim to retain Tcl's function-typedef syntax):
    :start-at: typedef void(Rbc_VectorChangedProc)
    :end-at: typedef void(Rbc_VectorChangedProc)
 
+.. list-table:: Notification callback arguments
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Parameter
+     - Contract
+   * - ``interp``
+     - Borrowed owning interpreter; see :ref:`interpreter arguments <rbc_calling_conventions_1rbc_interp_argument>`.
+   * - ``clientData``
+     - Caller-owned registration data, never freed or preserved by RBC. The
+       observer's owner must keep it valid through nested callbacks.
+   * - ``notify``
+     - UPDATE announces changed values; DESTROY announces teardown. During
+       DESTROY, discard the token and borrowed vector views. Remaining tokens
+       are freed by RBC after delivery.
+
+Use :c:func:`Rbc_SetVectorChangedProc` to install or disable the callback, and
+:c:func:`Rbc_FreeVectorId` to detach an observer. A token observes an identity;
+it is not a preservation reference. For ranged updates, the private
+:c:func:`Rbc_VectorGetChangedRange` reports the current callback's snapshot.
+
 Callbacks borrow their data and must obey the lifetime and reentry restrictions
 in :doc:`vectors`.
 
