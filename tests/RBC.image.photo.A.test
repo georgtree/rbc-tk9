@@ -9,6 +9,7 @@ if {[info exists ::env(RBC_IMAGE_TEST_LIB)]} {
     set imageAvailable 1
 }
 testConstraint imageHarness $imageAvailable
+testConstraint x11ImageHarness [expr {$imageAvailable && [llength [info commands ::rbctruecolortest]] != 0}]
 namespace eval image.photo {
     foreach {case pixelSize expected} {
         1 1 {{10 10 10 255} {11 11 11 255} {12 12 12 255} {13 13 13 255} {14 14 14 255} {15 15 15 255}}
@@ -21,6 +22,16 @@ namespace eval image.photo {
                 -result [list $expected [list [lindex $expected 1] [lindex $expected 2] \
                         [lindex $expected 4] [lindex $expected 5]]]
     }
+    foreach {case bits expected} {
+        1 5 {0 5 10 15 20 25}
+        2 6 {0 6 12 18 24}
+        3 8 {0 8 16 24}
+        4 10 {0 10 20}
+    } {
+        test RBC.image.photo.A.2.$case "X11 $bits-bit capture channels fit the gamma table" \
+                -constraints x11ImageHarness -body [list ::rbctruecolortest $bits] -result $expected
+    }
+
 }
 cleanupTests
 if {$imageAvailable} {destroy .}

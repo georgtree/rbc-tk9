@@ -25,3 +25,13 @@ three-shear path. Native bitmap transforms use separate implementations.
    :members:
 
 .. c:namespace-pop::
+
+X11 image and bitmap helpers
+----------------------------
+
+.. c:namespace:: rbcX11Image
+
+.. doxygengroup:: x11_image_helpers
+   :members:
+
+.. c:namespace-pop::

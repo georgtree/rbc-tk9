@@ -11,6 +11,15 @@
  * See "license.terms" for details.
  */
 
+/**
+ * @file rbcUnixImage.c
+ * @brief X11 drawable capture and native bitmap conversion.
+ */
+/**
+ * @defgroup x11_image_helpers X11 image sizing and capture helpers
+ * @brief Checked dimensions, visual channel masks and asynchronous capture errors.
+ */
+
 #include "rbcInt.h"
 #include "rbcImage.h"
 #include <X11/Xutil.h>
@@ -18,6 +27,13 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/**
+ * @ingroup x11_image_helpers
+ * @brief Compute a nonnegative image pixel count without size_t overflow.
+ * Returns width times height, including zero for an empty dimension. Negative dimensions or overflow
+ * panic rather than returning a recoverable Tcl error. Does not check a later pixel-byte
+ * multiplication or allocate storage.
+ */
 static size_t GetUnixImagePixelCount(int width, int height) {
     if ((width < 0) || (height < 0)) {
         Tcl_Panic("negative image dimension");
@@ -28,6 +44,12 @@ static size_t GetUnixImagePixelCount(int width, int height) {
     return (size_t)width * (size_t)height;
 }
 
+/**
+ * @ingroup x11_image_helpers
+ * @brief Compute bytes per tightly packed one-bit bitmap row.
+ * Returns ceiling(width/8) using size_t arithmetic, including zero for width zero. Negative width
+ * panics. This is byte packing, not the Windows DWORD-aligned bitmap stride.
+ */
 static size_t GetPackedBitmapRowBytes(int width) {
     if (width < 0) {
         Tcl_Panic("negative bitmap width");
@@ -35,6 +57,13 @@ static size_t GetPackedBitmapRowBytes(int width) {
     return ((size_t)width + 7u) / 8u;
 }
 
+/**
+ * @ingroup x11_image_helpers
+ * @brief Round a geometric extent upward to a usable native dimension.
+ * Applies ceil and accepts only finite results from 1 through INT_MAX. Returns zero for invalid,
+ * nonpositive or unrepresentable rounded dimensions. Does not allocate or set an interpreter
+ * diagnostic.
+ */
 static int GetBitmapDimension(double value) {
     value = ceil(value);
     if ((!FINITE(value)) || (value < 1.0) || (value > (double)INT_MAX)) {
@@ -51,29 +80,11 @@ typedef struct {
     int redMaskShift, greenMaskShift, blueMaskShift;
 } TrueColorMasks;
 
-/*
- *----------------------------------------------------------------------
- *
- * ShiftCount --
- *
- *    Returns the position of the least significant (low) bit in
- *    the given mask.
- *
- *    For TrueColor and DirectColor visuals, a pixel value is
- *    formed by OR-ing the red, green, and blue colormap indices
- *    into a single 32-bit word.  The visual's color masks tell
- *    you where in the word the indices are supposed to be.  The
- *    masks contain bits only where the index is found.  By counting
- *    the leading zeros in the mask, we know how many bits to shift
- *    to the individual red, green, and blue values to form a pixel.
- *
- * Parameters:
- *      register unsigned int mask
- *
- * Results:
- *      The number of the least significant bit.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup x11_image_helpers
+ * @brief Find the lowest set bit in a 32-bit visual component mask.
+ * Examines at most 32 positions and returns 32 when none is set. Caller supplies a nonzero valid
+ * TrueColor mask before using the result as a shift. Does not allocate or inspect a display.
  */
 static int ShiftCount(register unsigned int mask) {
     int count;
@@ -87,23 +98,12 @@ static int ShiftCount(register unsigned int mask) {
     return count;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CountBits --
- *
- *    Returns the number of bits set in the given mask.
- *
- *    Reference: Graphics Gems Volume 2.
- *
- * Parameters:
- *      register unsigned long mask - 32 1-bit tallies
- *
- * Results:
- *      The number of bits to set in the mask.
- *
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup x11_image_helpers
+ * @brief Count set bits in a 32-bit visual mask.
+ * Uses parallel masked tallies over the low 32 bits, returning zero for a zero mask. The caller
+ * supplies a visual component mask within that range. Runs during mask preparation, not once
+ * per captured pixel.
  */
 static int CountBits(register unsigned long mask) {
     /* 16  2-bit tallies */
@@ -119,6 +119,15 @@ static int CountBits(register unsigned long mask) {
     return mask;
 }
 
+/**
+ * @ingroup x11_image_helpers
+ * @brief Prepare per-capture TrueColor shifts for eight-bit gamma indices.
+ * Borrows a Visual with valid nonzero contiguous RGB masks in its 32-bit pixel layout and fills
+ * caller-owned shift metadata. Components narrower than eight bits retain the legacy left shift
+ * without low-bit replication. Wider components discard low bits by increasing the extraction shift,
+ * so ten-bit channels cannot index beyond the 256-entry gamma table. Eight-bit extraction is
+ * unchanged. No display calls, shared mutable state or allocation occur.
+ */
 static void ComputeMasks(const Visual *visualPtr, TrueColorMasks *masks) {
     int count;
 
@@ -129,18 +138,33 @@ static void ComputeMasks(const Visual *visualPtr, TrueColorMasks *masks) {
     count = CountBits((unsigned long)visualPtr->red_mask);
     if (count < 8) {
         masks->redAdjust = 8 - count;
+    } else if (count > 8) {
+        /* Discard low component bits before indexing the 256-entry LUT. */
+        masks->redMaskShift += count - 8;
     }
     count = CountBits((unsigned long)visualPtr->green_mask);
     if (count < 8) {
         masks->greenAdjust = 8 - count;
+    } else if (count > 8) {
+        /* Discard low component bits before indexing the 256-entry LUT. */
+        masks->greenMaskShift += count - 8;
     }
     count = CountBits((unsigned long)visualPtr->blue_mask);
     if (count < 8) {
         masks->blueAdjust = 8 - count;
+    } else if (count > 8) {
+        /* Discard low component bits before indexing the 256-entry LUT. */
+        masks->blueMaskShift += count - 8;
     }
 }
 
-/* Record asynchronous drawable-capture errors while the X handler is installed. */
+/**
+ * @ingroup x11_image_helpers
+ * @brief Record an X capture error in a caller-owned status slot.
+ * Sets the retained integer slot to TCL_ERROR and returns zero to mark the error handled. Does not
+ * inspect error fields, report Tcl diagnostics or release resources. The caller keeps the slot alive
+ * until XSync has delivered errors and the temporary Tk handler is removed.
+ */
 static int XGetImageErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     int *errorPtr = clientData;
     *errorPtr = TCL_ERROR;

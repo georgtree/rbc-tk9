@@ -394,12 +394,12 @@ test-image: $(TEST_IMAGE_LIB)
 	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.image.photo.A.test` $(TESTFLAGS)
 
-rbcImageTest.$(OBJEXT): $(srcdir)/tests/rbcImageTest.c $(srcdir)/generic/rbcImage.c $(PKG_HEADERS)
+rbcImageTest.$(OBJEXT): $(srcdir)/tests/rbcImageTest.c $(srcdir)/generic/rbcImage.c $(srcdir)/generic/rbcUnixImage.c $(PKG_HEADERS)
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcImageTest.c` -o $@
 
 $(TEST_IMAGE_LIB): $(PKG_OBJECTS) rbcImageTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
-		$(filter-out rbcImage.$(OBJEXT),$(PKG_OBJECTS)) rbcImageTest.$(OBJEXT) $(SHLIB_LD_LIBS)
+		$(filter-out rbcImage.$(OBJEXT) rbcUnixImage.$(OBJEXT),$(PKG_OBJECTS)) rbcImageTest.$(OBJEXT) $(SHLIB_LD_LIBS)
 
 # Inspect EPS/color releases and inject native parent-query failure.
 test-resources: $(TEST_RESOURCE_LIB)

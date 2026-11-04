@@ -42,6 +42,47 @@ static void TestFreeImage(Tk_Image image) {
 #undef Tk_GetImage
 #undef Tk_FreeImage
 
+/* Test the actual X11 capture masks without requiring a 30-bit X server. */
+#ifndef WIN32
+#include "../generic/rbcUnixImage.c"
+
+static int TrueColorTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Visual visual;
+    TrueColorMasks masks;
+    unsigned long pixel;
+    Tcl_Obj *result;
+    int bits, shift;
+    (void)data;
+
+    if (objc != 2 || Tcl_GetIntFromObj(interp, objv[1], &bits) != TCL_OK) return TCL_ERROR;
+    if (bits != 5 && bits != 6 && bits != 8 && bits != 10) return TCL_ERROR;
+    result = Tcl_NewListObj(0, NULL);
+    for (shift = 0; shift + bits <= 32; shift += bits) {
+        unsigned long mask = ((1UL << bits) - 1) << shift;
+        int sample;
+        memset(&visual, 0, sizeof(visual));
+        visual.red_mask = visual.green_mask = visual.blue_mask = mask;
+        ComputeMasks(&visual, &masks);
+        for (sample = 0; sample < (1 << bits); sample++) {
+            unsigned int r, g, b, expected;
+            pixel = (unsigned long)sample << shift;
+            r = ((pixel & mask) >> masks.redMaskShift) << masks.redAdjust;
+            g = ((pixel & mask) >> masks.greenMaskShift) << masks.greenAdjust;
+            b = ((pixel & mask) >> masks.blueMaskShift) << masks.blueAdjust;
+            expected = bits > 8 ? (unsigned int)sample >> (bits - 8) : (unsigned int)sample << (8 - bits);
+            if (r != expected || g != expected || b != expected || r > 255 || g > 255 || b > 255) {
+                Tcl_DecrRefCount(result);
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("invalid capture gamma-table index", -1));
+                return TCL_ERROR;
+            }
+        }
+        Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(shift));
+    }
+    Tcl_SetObjResult(interp, result);
+    return TCL_OK;
+}
+#endif
+
 static int ImageTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Image image = NULL;
     Tcl_Obj *result, *savedResult;
@@ -198,5 +239,8 @@ DLLEXPORT int Rbcimagetest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL || Tk_InitStubs(interp, "9.0", 0) == NULL) return TCL_ERROR;
     Tcl_CreateObjCommand2(interp, "::rbcimagetest", ImageTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcphotoblocktest", PhotoBlockTestCmd, NULL, NULL);
+#ifndef WIN32
+    Tcl_CreateObjCommand2(interp, "::rbctruecolortest", TrueColorTestCmd, NULL, NULL);
+#endif
     return Tcl_PkgProvide(interp, "rbcimagetest", "1.0");
 }

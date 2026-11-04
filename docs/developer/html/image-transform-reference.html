@@ -149,6 +149,67 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 </dd></dl>
 
 </section>
+<section id="x11-image-and-bitmap-helpers">
+<h2>X11 image and bitmap helpers<a class="headerlink" href="#x11-image-and-bitmap-helpers" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__x11__image__helpers"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">X11</span> <span class="pre">image</span> <span class="pre">sizing</span> <span class="pre">and</span> <span class="pre">capture</span> <span class="pre">helpers</span></span></dt>
+<dd><p>Checked dimensions, visual channel masks and asynchronous capture errors. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.GetUnixImagePixelCount">
+<span class="target" id="group__x11__image__helpers_1ga0df3ee611c61fd8f3d93f06b571840fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetUnixImagePixelCount</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.GetUnixImagePixelCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a nonnegative image pixel count without size_t overflow. </p>
+<p>Returns width times height, including zero for an empty dimension. Negative dimensions or overflow panic rather than returning a recoverable Tcl error. Does not check a later pixel-byte multiplication or allocate storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.GetPackedBitmapRowBytes">
+<span class="target" id="group__x11__image__helpers_1ga8fbc1622b716798adf55400beca9a53f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPackedBitmapRowBytes</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.GetPackedBitmapRowBytes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute bytes per tightly packed one-bit bitmap row. </p>
+<p>Returns ceiling(width/8) using size_t arithmetic, including zero for width zero. Negative width panics. This is byte packing, not the Windows DWORD-aligned bitmap stride. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.GetBitmapDimension">
+<span class="target" id="group__x11__image__helpers_1ga7b8d1e9e439849feafd9c705e8dcfcaf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBitmapDimension</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.GetBitmapDimension" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round a geometric extent upward to a usable native dimension. </p>
+<p>Applies ceil and accepts only finite results from 1 through INT_MAX. Returns zero for invalid, nonpositive or unrepresentable rounded dimensions. Does not allocate or set an interpreter diagnostic. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.ShiftCount">
+<span class="target" id="group__x11__image__helpers_1ga926aee0400ddee46fb130ecc7e347813"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShiftCount</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.ShiftCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find the lowest set bit in a 32-bit visual component mask. </p>
+<p>Examines at most 32 positions and returns 32 when none is set. Caller supplies a nonzero valid TrueColor mask before using the result as a shift. Does not allocate or inspect a display. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.CountBits">
+<span class="target" id="group__x11__image__helpers_1gadf418fed72bda0218c08b2e3b0fe70cd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CountBits</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.CountBits" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Count set bits in a 32-bit visual mask. </p>
+<p>Uses parallel masked tallies over the low 32 bits, returning zero for a zero mask. The caller supplies a visual component mask within that range. Runs during mask preparation, not once per captured pixel. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.ComputeMasks">
+<span class="target" id="group__x11__image__helpers_1gaaa20b9a6ecab40a1e630009ed4c60a49"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeMasks</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Visual</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">visualPtr</span></span>, <span class="n"><span class="pre">TrueColorMasks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">masks</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.ComputeMasks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare per-capture TrueColor shifts for eight-bit gamma indices. </p>
+<p>Borrows a Visual with valid nonzero contiguous RGB masks in its 32-bit pixel layout and fills caller-owned shift metadata. Components narrower than eight bits retain the legacy left shift without low-bit replication. Wider components discard low bits by increasing the extraction shift, so ten-bit channels cannot index beyond the 256-entry gamma table. Eight-bit extraction is unchanged. No display calls, shared mutable state or allocation occur. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.XGetImageErrorProc">
+<span class="target" id="group__x11__image__helpers_1gae7683fee94b3023a6f550958394ceb56"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">XGetImageErrorProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">XErrorEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">errEventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.XGetImageErrorProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Record an X capture error in a caller-owned status slot. </p>
+<p>Sets the retained integer slot to TCL_ERROR and returns zero to mark the error handled. Does not inspect error fields, report Tcl diagnostics or release resources. The caller keeps the slot alive until XSync has delivered errors and the temporary Tk handler is removed. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -176,6 +237,16 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 <li><a class="reference internal" href="#c.rbcImageRotation.Rotate90"><code class="docutils literal notranslate"><span class="pre">Rotate90()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageRotation.Rotate180"><code class="docutils literal notranslate"><span class="pre">Rotate180()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageRotation.Rotate270"><code class="docutils literal notranslate"><span class="pre">Rotate270()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#x11-image-and-bitmap-helpers">X11 image and bitmap helpers</a><ul>
+<li><a class="reference internal" href="#c.rbcX11Image.GetUnixImagePixelCount"><code class="docutils literal notranslate"><span class="pre">GetUnixImagePixelCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.GetPackedBitmapRowBytes"><code class="docutils literal notranslate"><span class="pre">GetPackedBitmapRowBytes()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.GetBitmapDimension"><code class="docutils literal notranslate"><span class="pre">GetBitmapDimension()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.ShiftCount"><code class="docutils literal notranslate"><span class="pre">ShiftCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.CountBits"><code class="docutils literal notranslate"><span class="pre">CountBits()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.ComputeMasks"><code class="docutils literal notranslate"><span class="pre">ComputeMasks()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.XGetImageErrorProc"><code class="docutils literal notranslate"><span class="pre">XGetImageErrorProc()</span></code></a></li>
 </ul>
 </li>
 </ul>

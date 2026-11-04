@@ -9,7 +9,7 @@ quadratic interval selection and parametric cubic factorization, line
 decimation and cache maintenance, bar grouping and error positioning, area fills and uncertainty
 bands, polar data adapters, sampled polar/Smith grid geometry, viewport-aware labels and formatter cancellation, binding dispatch and picking, component option
 transactions and resource ownership, scrolling and viewport contracts, geometry and clipping
-contracts and private subdivision helpers, chain/list ownership, insertion and keyed lookup, image and tile ownership, text layout, document font ownership, sfnt/CFF metadata parsing, Unicode/Symbol lookup and PDF font resources,
+contracts and private subdivision helpers, chain/list ownership, insertion and keyed lookup, image and tile ownership, X11 capture dimensions and wide TrueColor channel extraction, text layout, document font ownership, sfnt/CFF metadata parsing, Unicode/Symbol lookup and PDF font resources,
 export orchestration, SVG primitive paint, bitmap-symbol reuse, text placement, definitions and image encoding, PDF resource serialization and document
 ownership, PDF/PostScript drawing primitives and shared export capture, crosshair presentation, XOR configuration and command-state transitions, legend ownership and layout, grid inheritance and transactional command dispatch,
 tick-list transactions and output, pen and
