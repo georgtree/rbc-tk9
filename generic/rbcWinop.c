@@ -120,26 +120,14 @@ static Window StringToWindow(Tcl_Interp *interp, const char *string) {
 
 #ifdef WIN32
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Read the outer Windows rectangle of a Tk drawable.
  *
- * GetWindowSize --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Window window
- *      int *widthPtr
- *      int *heightPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow window and resolve its HWND with Tk_GetHWND. Write both dimensions
+ * only after GetWindowRect succeeds. Return TCL_ERROR without adding a
+ * diagnostic for an invalid handle or failed query; interp is unused. This
+ * measures the native outer rectangle, not the Tk client dimensions.
  */
 static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *heightPtr) {
     HWND hWnd;
@@ -160,24 +148,13 @@ static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *
 
 #else
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Record an XGetGeometry protocol error.
  *
- * XGeometryErrorProc --
- *
- *      Flags errors generated from XGetGeometry calls to the X server.
- *
- * Parameters:
- *      ClientData clientData
- *      XErrorEvent *errEventPtr
- *
- * Results:
- *      Always returns 0.
- *
- * Side Effects:
- *      Sets a flag, indicating an error occurred.
- *
- *----------------------------------------------------------------------
+ * clientData points to the caller-owned integer flag while the temporary
+ * Tk error handler is installed. Set it to TCL_ERROR and return zero to
+ * consume the error. Do not retain the flag or event pointer.
  */
 static int XGeometryErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     int *errorPtr = clientData;
@@ -186,26 +163,15 @@ static int XGeometryErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     return 0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Query X11 drawable dimensions with a scoped protocol-error handler.
  *
- * GetWindowSize --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Window window
- *      int *widthPtr
- *      int *heightPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow the interpreter and its main-window display. Synchronize the X
+ * connection before removing the temporary X_GetGeometry error handler, so
+ * its stack-backed error flag remains valid. Return TCL_ERROR on query or
+ * protocol failure, or dimensions exceeding INT_MAX; only the overflow case
+ * sets a diagnostic here. Publish both output dimensions only on success.
  */
 static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *heightPtr) {
     Tk_Window tkwin;
@@ -245,26 +211,15 @@ static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *
 #endif /*WIN32*/
 
 #ifndef WIN32
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Inspect allocated cells in the legacy X11 colormap range.
  *
- * ColormapOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Resolve and realize the Tk path in objv[2]. Probe up to 256 writable
+ * cells, release the allocated cells, then query pixel IDs 0 through 255.
+ * Return alternating RGB strings and pixel IDs for cells not obtained by
+ * the probe. This legacy algorithm assumes an indexed colormap with
+ * allocated pixel IDs below 256; it is not a general visual enumerator.
  */
 static int ColormapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register int i;
@@ -315,26 +270,14 @@ static int ColormapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 }
 #endif
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Lower each named Tk window in argument order.
  *
- * LowerOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Resolve objv[2..objc-1] relative to the interpreter main window and
+ * request Below stacking with no sibling. Return TCL_ERROR on a failed
+ * lookup, retaining any earlier restacking. The Tk_RestackWindow return
+ * status is not propagated. An empty window list succeeds.
  */
 static int LowerOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -350,28 +293,15 @@ static int LowerOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Raise each named Tk window in argument order.
  *
- * RaiseOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Resolve objv[2..objc-1] relative to the interpreter main window and
+ * request Above stacking with no sibling. Return TCL_ERROR on a failed
+ * lookup, retaining any earlier restacking. The Tk_RestackWindow return
+ * status is not propagated. An empty window list succeeds.
  */
-
 static int RaiseOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
     Tk_Window tkwin;
@@ -386,26 +316,15 @@ static int RaiseOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Request native mapping for each path or legacy integer ID.
  *
- * MapOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * For Tk paths, realize the window, set TK_MAPPED through Tk_FakeWin,
+ * and use its client window ID. Numeric arguments are parsed with
+ * Tcl_GetInt and cast directly to Window, without StringToWindow. Issue
+ * XMapWindow requests in argument order; later conversion errors do not
+ * undo earlier requests. This path does not call Tk_MapWindow.
  */
 static int MapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -439,26 +358,14 @@ static int MapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Move a named Tk window using screen-distance arguments.
  *
- * MoveOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow the window resolved from objv[2]. Convert objv[3] and objv[4]
+ * with Tk_GetPixelsFromObj before moving; append an axis-specific diagnostic
+ * on conversion failure. Tk_MoveWindow uses parent-relative pixel
+ * coordinates, not graph coordinates or an explicit toplevel wrapper.
  */
 static int MoveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int x, y;
@@ -485,26 +392,15 @@ static int MoveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Request native unmapping for each path or legacy integer ID.
  *
- * UnmapOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * For Tk paths, realize the window, clear TK_MAPPED through Tk_FakeWin,
+ * and use its client window ID. Numeric arguments are parsed with
+ * Tcl_GetInt and cast directly to Window, without StringToWindow. Issue
+ * XUnmapWindow requests in argument order; later conversion errors do not
+ * undo earlier requests. This path does not call Tk_UnmapWindow.
  */
 static int UnmapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -539,26 +435,14 @@ static int UnmapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Request backing-store and save-under attributes for a toplevel.
  *
- * ChangesOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Resolve and realize objv[2]. For a toplevel, obtain its real native
+ * window ID and issue XChangeWindowAttributes with WhenMapped backing
+ * store and save_under enabled. A child window is a successful no-op.
+ * TCL_OK reports request submission, not server acceptance of the hints.
  */
 static int ChangesOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
@@ -580,26 +464,14 @@ static int ChangesOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, T
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Return the pointer position in root coordinates when available.
  *
- * QueryOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * clientData is the borrowed Tk main window. Query its display and window
+ * ID; on success set the Tcl result to \@x,y using root coordinates. A false
+ * XQueryPointer result leaves the interpreter result unchanged and still
+ * returns TCL_OK. objc and objv are unused.
  */
 static int QueryOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int rootX, rootY, childX, childY;
@@ -614,26 +486,15 @@ static int QueryOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Optionally warp the pointer, then query its root position.
  *
- * WarpToOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * With no target, delegate directly to QueryOp. An \@x,y target is parsed
+ * by Rbc_GetXY and uses the main window screen root; otherwise resolve and
+ * realize a Tk path, reject an unmapped window, and target its integer
+ * center. Native warping can generate pointer events; no Tcl event loop
+ * is run here. Return parsing/lookup errors or the subsequent query status.
  */
 static int WarpToOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin, mainWindow;
@@ -819,26 +680,14 @@ static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Decode a JPEG file into an existing photo when enabled.
  *
- * ReadJPEGOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * The direct and normalized nested dispatch forms place the file name
+ * in objv[2] and destination photo name in objv[3]. Borrow the photo handle
+ * and return Rbc_JPEGToPhoto status. Without HAVE_JPEGLIB_H, return TCL_ERROR
+ * with the unsupported diagnostic without looking up the photo.
  */
 static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
 #if HAVE_JPEGLIB_H
@@ -857,26 +706,17 @@ static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 #endif
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Fill an existing photo with a legacy procedural gradient.
  *
- * GradientOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow the destination photo and use its current dimensions. Acquire
+ * both Tk colors, create temporary color pixels, and select the type from
+ * objv[5]. Release both color references and pixel storage on completion
+ * or an invalid type. Linear, radial and rectangular modes consume random
+ * values; blank writes opaque white but still validates both colors.
+ * Publication uses the void Rbc_ColorImageToPhoto helper, so TCL_OK does
+ * not propagate lower-level photo-write status.
  */
 static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle photo;

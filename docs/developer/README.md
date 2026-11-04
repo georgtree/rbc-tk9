@@ -52,3 +52,8 @@ Use `--html-dir PATH` to override the published HTML destination.
 Developer HTML is not yet included in installation or binary archives.
 Source documentation is incremental: strict checks validate included comments and links, not documentation coverage of the entire codebase.
 See the rendered Building and C documentation conventions chapters for details.
+
+The window/photo internals chapter also records native command argument and
+partial-update rules, pointer coordinates, platform geometry queries, and the
+legacy colormap and gradient assumptions. Their private helper contracts are
+included in the window/photo C reference.

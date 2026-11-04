@@ -27,6 +27,42 @@ query/warp uses screen or window coordinates, not graph data coordinates.
 The colormap operation is compiled only for X11. These operations neither
 participate in graph mapping nor acquire renderer contexts.
 
+Native command contracts
+------------------------
+
+Lower and raise accept Tk paths only. They resolve and restack each window in
+order, stop on a lookup error, and do not propagate Tk_RestackWindow status.
+Map and unmap also accept legacy integer IDs, but do not use StringToWindow:
+numeric values are cast directly to Window. Their Tk-path branch realizes the
+client window, edits TK_MAPPED through Tk_FakeWin, and sends the native request.
+It does not select the toplevel wrapper or call Tk_MapWindow/Tk_UnmapWindow.
+Consequently, the conversion and wrapper rules of snap must not be generalized
+to these operations. Multi-window commands do not roll back earlier requests
+when a later argument is invalid; an empty window list succeeds.
+
+Move validates both screen distances before Tk_MoveWindow and uses coordinates
+relative to the parent. Changes realizes a window, applies backing-store and
+save-under hints to a toplevel's real window, and is a no-op for child windows.
+Successful submission does not guarantee that a server honors these hints.
+
+Query reports root coordinates as ``@x,y``. If XQueryPointer returns false, it
+returns TCL_OK without setting a new result. Warpto without an argument is a
+query; an ``@x,y`` argument selects the screen root, while a Tk path selects
+the center of a mapped window. These are native pointer operations and can
+generate events, but the handlers do not run a Tcl event loop themselves.
+
+For numeric snapshot targets, GetWindowSize has platform-specific geometry:
+Windows reads the outer GetWindowRect, while X11 uses XGetGeometry dimensions.
+The X11 implementation synchronizes before removing its scoped error handler,
+whose client data points to a stack-local flag. Failed queries leave output
+dimensions untouched; only dimension overflow adds a diagnostic in this helper.
+The Windows helper likewise writes dimensions only after a successful query.
+
+Colormap is a legacy X11 diagnostic, not a general visual inspection API. It
+probes at most 256 writable cells, releases them, then queries IDs 0 through
+255. Its bookkeeping assumes returned pixel IDs fit that range. Returned pairs
+identify cells not acquired by the probe; they do not identify their owners.
+
 Photo-operation ownership
 -------------------------
 
@@ -67,6 +103,14 @@ lifetime guard. See :doc:`image-compatibility` and :doc:`images-tiles`.
    * - snap
      - Capture native pixels, optionally resize
      - Captures a drawable; does not rerender a graph at export size
+
+Gradient retains its historical formulas. Linear uses clamped random noise
+multiplied by the horizontal pixel index, rather than a normalized left-to-right
+ramp. Radial uses distance from the normalized center; rectangular uses a fixed
+rotation and Manhattan distance. Blank produces opaque white while still
+requiring valid endpoint colors. Tests must not assume deterministic pixels for
+the three randomized modes. Readjpeg delegates to the platform decoder only
+when JPEG support was compiled in; otherwise it fails before photo lookup.
 
 Resample rejects source dimensions of one pixel or less. If either destination
 dimension is one pixel or less, it sets source dimensions and copies. Subsample
