@@ -59,7 +59,9 @@ inclusive storage indices, shared by subsequent operations on the same object.
 A caller needing stable selection across another lookup or Tcl evaluation must
 save the indices, and must separately ensure the vector remains alive. Parse
 errors restore the previous selection; a returned pointer is borrowed.</p>
-<p>Ordinary numeric indices subtract the vector’s external offset. <code class="docutils literal notranslate"><span class="pre">end</span></code> forms
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorGetIndex" title="Rbc_VectorGetIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetIndex()</span></code></a> translates single indices;
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorGetIndexRange" title="Rbc_VectorGetIndexRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetIndexRange()</span></code></a> commits a shared inclusive selection.
+Ordinary numeric indices subtract the vector’s external offset. <code class="docutils literal notranslate"><span class="pre">end</span></code> forms
 are relative to length, while <code class="docutils literal notranslate"><span class="pre">++end</span></code> selects the append position. Registered
 special indices return a sentinel and callback rather than a storage index.
 Bounds checking does not make these special cases safe to dereference. Range
@@ -91,7 +93,7 @@ does not automatically protect the caller after the helper returns.</p>
 <code class="docutils literal notranslate"><span class="pre">end</span></code> and reinstalls the trace only if the saved name and flags still match.
 Its void interface does not propagate Tcl variable-operation status or preserve
 the interpreter result. Callers needing result preservation must supply it;
-NotifyCommandWrite does so, while the instance clear handler simply returns.</p>
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.NotifyCommandWrite" title="rbcVectorCommands.NotifyCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyCommandWrite</span></code></a> does so, while the instance clear handler simply returns.</p>
 <p>Mapping copies its requested name before any traces can invalidate it. After
 the old mapping is removed it unsets the target and writes <code class="docutils literal notranslate"><span class="pre">end</span></code>. A failed
 initial write still leaves the requested name recorded, although RBC’s trace
@@ -124,7 +126,7 @@ result. No public C signature or stub-table entry changes.</p>
 <a class="reference internal" href="vector-access-reference.html#c.Rbc_GetComplex" title="Rbc_GetComplex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetComplex()</span></code></a> accepts a two-item list or a scalar with imaginary part zero.
 The pair conversion can write its real component before imaginary conversion
 fails. Neither helper establishes an atomic vector update or retains a vector.</p>
-<p>The output helpers return new reference-count-zero Tcl objects containing copied
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_NewComplexObj" title="Rbc_NewComplexObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NewComplexObj()</span></code></a> and <a class="reference internal" href="vector-access-reference.html#c.Rbc_NewVectorValueObj" title="Rbc_NewVectorValueObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NewVectorValueObj()</span></code></a> return new reference-count-zero Tcl objects containing copied
 values: doubles for real storage and two-double lists for complex storage.
 They do not validate storage bounds. <a class="reference internal" href="vector-access-reference.html#c.Rbc_GetValues" title="Rbc_GetValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetValues()</span></code></a> uses an inclusive interval
 and returns an empty list for a reversed interval.</p>

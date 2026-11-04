@@ -311,6 +311,13 @@ int Rbc_VectorWindowOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
 void Rbc_VectorFlushCache(VectorObject *vPtr);
 /**
  * @brief Resolve a vector name and optional range into a borrowed vector.
+ * @param[in] interp Diagnostic interpreter, or NULL to suppress lookup diagnostics; see @ref rbc_interp_argument.
+ * @param[in] dataPtr Live owning interpreter registry, retained by the caller through index evaluation.
+ * @param[in] start NUL-terminated reference buffer, valid throughout the call.
+ * @param[out] endPtr Optional unconsumed-suffix output, written only on success; aliases start storage.
+ * @param[in] flags Namespace search mask: NS_SEARCH_CURRENT, NS_SEARCH_GLOBAL or NS_SEARCH_BOTH.
+ * @return Borrowed vector with committed selection, or NULL on failure.
+ * @see @ref rbc_calling_conventions
  *
  * Prefers the longest existing name at a balanced-parenthesis boundary, so
  * parentheses may belong to the name itself. Sets the shared first/last
@@ -372,6 +379,14 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
                                Rbc_VectorType type, int *newPtr);
 /**
  * @brief Translate an external index into a storage index or special callback.
+ * @param[in] interp Optional diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Live vector supplying length, offset and owning evaluation interpreter.
+ * @param[in] string NUL-terminated index text, valid throughout evaluation.
+ * @param[out] indexPtr Required output, written only on success; may be an append or special sentinel.
+ * @param[in] flags INDEX_CHECK requests ordinary numeric upper-bound validation.
+ * @param[out] procPtrPtr Optional callback output, cleared on entry and set for a registered special name.
+ * @return TCL_OK for a recognized index; TCL_ERROR for conversion, bounds or destruction failure.
+ * @see @ref rbc_calling_conventions
  *
  * Numeric indices subtract the vector offset with overflow checks. end-based
  * indices are relative to length; ++end denotes the append position.
@@ -386,6 +401,11 @@ int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *strin
                        Rbc_VectorIndexProc **procPtrPtr);
 /**
  * @brief Convert an object to a double, with Tcl expression fallback.
+ * @param[in] interp Evaluation and diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] objPtr Input value or expression, kept alive by the caller through evaluation.
+ * @param[out] valuePtr Required double output; consume it only after TCL_OK.
+ * @return TCL_OK on conversion, otherwise TCL_ERROR with an interpreter diagnostic.
+ * @see @ref rbc_calling_conventions
  *
  * Tries Tcl_GetDoubleFromObj first, then clears its error and calls
  * Tcl_ExprDoubleObj. Returns a Tcl status. Expression evaluation can execute
@@ -394,6 +414,11 @@ int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *strin
 int Rbc_GetDouble(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr);
 /**
  * @brief Convert a two-item list or a real scalar to a complex value.
+ * @param[in] interp Evaluation and diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] objPtr Input pair or scalar, kept alive by the caller through component evaluation.
+ * @param[out] valuePtr Required output; its real component may be written before imaginary conversion fails.
+ * @return TCL_OK with both components, otherwise TCL_ERROR; the output is not transactional.
+ * @see @ref rbc_calling_conventions
  *
  * Each pair component uses Rbc_GetDouble; scalar input receives zero imaginary
  * part. Returns a Tcl status. Conversion may execute Tcl and can modify the
@@ -402,6 +427,9 @@ int Rbc_GetDouble(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr);
 int Rbc_GetComplex(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex *valuePtr);
 /**
  * @brief Create a reference-count-zero two-double Tcl list.
+ * @param[in] value Real and imaginary components copied into the result.
+ * @return New two-element Tcl list with reference count zero; no vector storage is borrowed.
+ * @see @ref rbc_calling_conventions
  *
  * The result owns copies of the real and imaginary values; the caller follows
  * normal Tcl object ownership rules.
@@ -409,6 +437,10 @@ int Rbc_GetComplex(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex *valuePtr);
 Tcl_Obj *Rbc_NewComplexObj(Rbc_Complex value);
 /**
  * @brief Create a reference-count-zero Tcl value for one storage index.
+ * @param[in] vPtr Live real or complex source with valid storage.
+ * @param[in] index Valid zero-based storage index, independent of the external offset and selection.
+ * @return New reference-count-zero Tcl double or complex pair containing a copy.
+ * @see @ref rbc_calling_conventions
  *
  * Returns a double for real vectors or a two-double list for complex vectors.
  * The caller supplies a live vector and valid zero-based index. Does not check
@@ -419,6 +451,13 @@ Tcl_Obj *Rbc_NewVectorValueObj(VectorObject *vPtr, Tcl_Size index);
 void Rbc_VectorFree(VectorObject *vPtr);
 /**
  * @brief Set the vector's inclusive first/last selection.
+ * @param[in] interp Optional diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Live vector whose shared first/last selection is committed on success.
+ * @param[in] string NUL-terminated index or range text, unchanged by the parser.
+ * @param[in] flags INDEX_COLON enables ranges; INDEX_CHECK requests numeric bounds validation.
+ * @param[out] procPtrPtr Optional special-index callback output, cleared on entry; ranges leave it NULL.
+ * @return TCL_OK after committing selection, otherwise TCL_ERROR; callback side effects are not undone.
+ * @see @ref rbc_calling_conventions
  *
  * INDEX_COLON enables first:last syntax with omitted endpoints. A single
  * index selects one value. Commits selection only after both endpoints and
@@ -431,6 +470,11 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr);
 /**
  * @brief Copy an inclusive storage interval into a new Tcl list.
+ * @param[in] vPtr Live real or complex source, kept valid throughout copying.
+ * @param[in] first First zero-based storage index; validated by the caller when the interval is nonempty.
+ * @param[in] last Inclusive final storage index; values below first produce an empty list.
+ * @return New reference-count-zero Tcl list of copied values.
+ * @see @ref rbc_calling_conventions
  *
  * Returns a reference-count-zero list, empty when first exceeds last. The
  * caller validates storage bounds and lifetime. Complex entries are pairs;
@@ -535,6 +579,11 @@ void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr);
 void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr);
 /**
  * @brief Allocate a lexicographic permutation for real vector keys.
+ * @param[in] vPtrPtr Array of live real key vectors in primary-to-secondary comparison order.
+ * @param[in] nVectors Positive array length; all keys must cover the first vector's selected storage indices.
+ * @return Owned Tcl-allocated index array, released with ckfree, or NULL on failure.
+ * @see Rbc_VectorGetIndexRange
+ * @see @ref rbc_calling_conventions
  *
  * Requires nVectors greater than zero, live vectors, and valid storage for
  * every index in the first vector's inclusive selection. Returns a Tcl-allocated

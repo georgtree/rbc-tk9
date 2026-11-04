@@ -21,6 +21,8 @@ A caller needing stable selection across another lookup or Tcl evaluation must
 save the indices, and must separately ensure the vector remains alive. Parse
 errors restore the previous selection; a returned pointer is borrowed.
 
+:c:func:`Rbc_VectorGetIndex` translates single indices;
+:c:func:`Rbc_VectorGetIndexRange` commits a shared inclusive selection.
 Ordinary numeric indices subtract the vector's external offset. ``end`` forms
 are relative to length, while ``++end`` selects the append position. Registered
 special indices return a sentinel and callback rather than a storage index.
@@ -57,7 +59,7 @@ Cache flushing removes RBC's trace before unsetting the array, then recreates
 ``end`` and reinstalls the trace only if the saved name and flags still match.
 Its void interface does not propagate Tcl variable-operation status or preserve
 the interpreter result. Callers needing result preservation must supply it;
-NotifyCommandWrite does so, while the instance clear handler simply returns.
+:c:func:`NotifyCommandWrite <rbcVectorCommands.NotifyCommandWrite>` does so, while the instance clear handler simply returns.
 
 Mapping copies its requested name before any traces can invalidate it. After
 the old mapping is removed it unsets the target and writes ``end``. A failed
@@ -96,7 +98,7 @@ Value objects
 The pair conversion can write its real component before imaginary conversion
 fails. Neither helper establishes an atomic vector update or retains a vector.
 
-The output helpers return new reference-count-zero Tcl objects containing copied
+:c:func:`Rbc_NewComplexObj` and :c:func:`Rbc_NewVectorValueObj` return new reference-count-zero Tcl objects containing copied
 values: doubles for real storage and two-double lists for complex storage.
 They do not validate storage bounds. :c:func:`Rbc_GetValues` uses an inclusive interval
 and returns an empty list for a reversed interval.

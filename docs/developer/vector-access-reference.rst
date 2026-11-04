@@ -3,6 +3,11 @@ Vector access C reference
 
 These declarations are private to RBC. See :doc:`vector-access`.
 
+Parameter directions and Tcl ownership follow :doc:`calling-conventions`.
+Indices in these contracts are zero-based storage positions unless explicitly
+identified as external indices. Selection and append sentinels require caller
+validation before storage access.
+
 .. doxygenfunction:: Rbc_VectorFlushCache
 
 .. doxygenfunction:: Rbc_VectorParseElement
