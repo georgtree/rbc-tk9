@@ -580,6 +580,13 @@ static int ConvertCommandList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const 
 
 /**
  * @brief Distinguish an explicit complex pair before scalar expression parsing.
+ * @param[in] interp Evaluation interpreter; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed scalar or pair kept alive through component evaluation.
+ * @param[out] valuePtr Required complex output; may be partially written on conversion failure.
+ * @param[out] isComplexPtr Required flag, set from pair syntax before conversion, not from the imaginary value.
+ * @return TCL_OK on conversion, otherwise TCL_ERROR; consume valuePtr only on success.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_numeric_paths
  *
  * Marks a two-item Tcl list as complex even if the imaginary part is zero,
@@ -609,6 +616,14 @@ static int GetArithmeticScalar(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex 
 
 /**
  * @brief Apply one supported arithmetic operator to two complex scalars.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] operator Character code for +, -, * or /.
+ * @param[in] a Left operand copied by value.
+ * @param[in] b Right operand; a zero divisor is rejected for division.
+ * @param[out] resultPtr Required result output, unchanged for rejected division by zero.
+ * @return TCL_OK after arithmetic, or TCL_ERROR for zero division; finiteness is not guaranteed.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_numeric_paths
  *
  * Accepts +, -, * and /. Returns TCL_ERROR with divide-by-zero diagnostic for
@@ -740,7 +755,6 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {
  * @brief Test whether an instance handler accepts complex vectors.
  * @param[in] proc Handler identity to test against the complex-operation allowlist; never invoked here.
  * @return Nonzero for an allowed handler, zero otherwise.
- *
  *
  * Compare handler pointers against the explicit complex-operation allowlist.
  * Aliases sharing a handler inherit its eligibility. This is a dispatch gate,
@@ -1120,6 +1134,14 @@ struct NativeFmtValue {
 
 /**
  * @brief Select a supported native scalar type from a format and byte width.
+ * @param[in] clientData Unused callback data; no ownership transfer.
+ * @param[in] interp Diagnostic/evaluation interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Number of remaining option-value arguments; zero reports a missing value.
+ * @param[in] objv Borrowed option-value slice; objv[0] is the value, not the option name.
+ * @param[out] dstPtr Required NativeFmtValue output, written only for a supported native representation.
+ * @return One consumed argument on success, or -1 on failure; not a Tcl status code.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_command_paths
  *
  * Floating, signed and unsigned formats resolve against native C sizeof
@@ -1195,6 +1217,14 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
 
 /**
  * @brief Parse a binary-input starting storage position.
+ * @param[in] clientData Borrowed VectorObject retained by the binread caller through index evaluation.
+ * @param[in] interp Diagnostic/evaluation interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Number of remaining option-value arguments; zero reports a missing value.
+ * @param[in] objv Borrowed option-value slice; objv[0] is the value, not the option name.
+ * @param[out] dstPtr Required Tcl_Size output receiving a zero-based storage position, written only on success.
+ * @return One consumed argument on success, or -1 on failure; not a Tcl status code.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_command_paths
  *
  * Uses vector index conversion, allowing positions from zero through length
@@ -2355,6 +2385,14 @@ static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 
 /**
  * @brief Search for a complex value by matching both scalar components.
+ * @param[in,out] vPtr Live complex receiver retained by the instance dispatcher with its interpreter.
+ * @param[in] interp Owning evaluation interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Full command argument count inherited from the delegating handler.
+ * @param[in] objv Borrowed full command array. Optional -value at index 2, then exactly one complex target;
+ *     two-bound searches fail.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; conversion callbacks can have independent side effects.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_numeric_paths
  *
  * Accepts one target only; interval search is rejected. Uses InRange separately
@@ -2509,6 +2547,16 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /**
  * @brief Derive one component's finite, representable sequence count.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] componentName Borrowed component label used in zero-step diagnostics.
+ * @param[in] start First component value, required finite.
+ * @param[in] finish Last requested component bound, required finite.
+ * @param[in] step Component increment, required finite; zero is allowed only for constant bounds.
+ * @param[out] hasLengthPtr Required constraint flag, initialized false; may change before a later size error.
+ * @param[out] lengthPtr Required count output, initialized zero; consume both outputs only on TCL_OK.
+ * @return TCL_OK with an optional count constraint, otherwise TCL_ERROR.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_numeric_paths
  *
  * Initializes hasLengthPtr false and lengthPtr zero. Rejects nonfinite bounds
@@ -2568,6 +2616,14 @@ static int GetComplexSequenceComponentLength(Tcl_Interp *interp, const char *com
 
 /**
  * @brief Generate a complex progression with compatible component lengths.
+ * @param[in,out] vPtr Live complex receiver retained by the instance dispatcher with its interpreter.
+ * @param[in] interp Owning evaluation interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Full command argument count inherited from the delegating handler.
+ * @param[in] objv Borrowed full command array. Start at index 2, finish or end at index 3, and optional step at
+ *     index 4.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; conversion callbacks can have independent side effects.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_numeric_paths
  *
  * Defaults step to 1+0i. Numeric finish requires each varying component to
@@ -3122,6 +3178,12 @@ static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
 
 /**
  * @brief Append a selected vector range without Tcl-list conversion.
+ * @param[in,out] destPtr Caller-retained writable destination and interpreter; old-storage release may run
+ *     callbacks.
+ * @param[in] srcPtr Live matching-type source with a caller-validated inclusive selection; may equal destPtr.
+ * @return TCL_OK after append commit, otherwise TCL_ERROR; publication remains the caller's responsibility.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_command_paths
  *
  * Requires matching real/complex types. Saves source selection before resize
@@ -3191,6 +3253,12 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
 
 /**
  * @brief Stage list values before appending the completed list.
+ * @param[in,out] vPtr Caller-retained destination and interpreter; value conversion may execute Tcl.
+ * @param[in] objc Nonnegative number of values, excluding command and operation names.
+ * @param[in] objv Borrowed value-only array, copied into a private list representation for conversion.
+ * @return TCL_OK after commit, otherwise TCL_ERROR; callback side effects are not rolled back.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_command_paths
  *
  * Converts a complete list into temporary storage and rechecks lifetime and
@@ -3229,6 +3297,18 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
 
 /**
  * @brief Convert a binary scalar buffer into real vector storage.
+ * @param[in,out] vPtr Live writable real destination; caller retains record and interpreter through commit.
+ * @param[in,out] byteArr Writable suitably aligned native-format buffer with one scalar per value; swap modifies
+ *     it.
+ * @param[in] fmt Supported native scalar format matching the supplied size and buffer representation.
+ * @param[in] size Positive native scalar width in bytes, validated against fmt by the caller.
+ * @param[in] length Nonnegative number of real values to copy.
+ * @param[in] swap Nonzero to reverse the bytes of each scalar in byteArr before conversion.
+ * @param[in,out] indexPtr Required zero-based destination position, from zero through current length; advanced on
+ *     success.
+ * @return TCL_OK after copying and committing, otherwise TCL_ERROR; no cache flushing or notification.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_command_paths
  *
  * Checks writable state, range and size arithmetic, extends storage as needed,
@@ -3342,6 +3422,18 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
 
 /**
  * @brief Convert interleaved binary components into complex storage.
+ * @param[in,out] vPtr Live writable complex destination; caller retains record and interpreter through commit.
+ * @param[in,out] byteArr Writable suitably aligned native-format buffer with two scalars per logical value; swap
+ *     modifies it.
+ * @param[in] fmt Supported native scalar format matching the supplied size and buffer representation.
+ * @param[in] size Positive native scalar width in bytes, validated against fmt by the caller.
+ * @param[in] length Nonnegative number of complex values, not scalar components to copy.
+ * @param[in] swap Nonzero to reverse the bytes of each scalar in byteArr before conversion.
+ * @param[in,out] indexPtr Required zero-based destination position, from zero through current length; advanced on
+ *     success.
+ * @return TCL_OK after copying and committing, otherwise TCL_ERROR; no cache flushing or notification.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_command_paths
  *
  * Requires a complex vector. Checks writable state and size arithmetic;
@@ -3465,6 +3557,12 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
 
 /**
  * @brief Test scalar membership using the legacy search tolerance.
+ * @param[in] value Candidate scalar.
+ * @param[in] min Lower bound as supplied; not reordered or checked for finiteness.
+ * @param[in] max Upper bound as supplied; used as the equality target for a near-zero or negative range.
+ * @return Nonzero for membership under the legacy tolerance rule, zero otherwise.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_numeric_paths
  *
  * When max-min is below DBL_EPSILON, compares absolute distance from max
@@ -3487,6 +3585,12 @@ static int InRange(double value, double min, double max) {
 
 /**
  * @brief Convert a complete Tcl list before replacing vector storage.
+ * @param[in,out] vPtr Caller-retained destination and interpreter; value conversion may execute Tcl.
+ * @param[in] objc Nonnegative number of values, excluding command and operation names.
+ * @param[in] objv Borrowed value-only array, copied into a private list representation for conversion.
+ * @return TCL_OK after commit, otherwise TCL_ERROR; callback side effects are not rolled back.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup vector_command_paths
  *
  * Returns a Tcl status. Conversion failure leaves destination values/length

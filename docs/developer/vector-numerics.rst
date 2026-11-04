@@ -91,3 +91,27 @@ Both generators recheck receiver lifetime and writability after argument
 conversion. They reuse capacity where possible and fill prepared storage before
 committing it and releasing the old allocation. Cache flushing and notification
 skip destroyed identities and preserve the command result.
+
+Scalar helper contracts
+------------------------
+
+:c:func:`GetArithmeticScalar` distinguishes an explicit pair from a scalar
+before calling :c:func:`Rbc_GetComplex`. Its complex flag describes the input
+syntax, even if the imaginary component is zero; the flag is not evidence
+that conversion succeeded. Conversion can execute Tcl and partially write
+its output, so callers must inspect the status before using the value.
+
+:c:func:`Rbc_ComplexAdd`, :c:func:`Rbc_ComplexSub` and
+:c:func:`Rbc_ComplexMul` perform ordinary double arithmetic on copied values.
+:c:func:`Rbc_ComplexDiv` uses a ratio-based denominator to reduce avoidable
+intermediate overflow and underflow. It requires the caller to reject zero
+and does not report nonfinite results. :c:func:`ComplexArithmetic` adds the
+zero-divisor error check for the instance arithmetic path. These are distinct
+contracts, not interchangeable error-reporting interfaces.
+
+:c:func:`Rbc_ComplexFromReal` supplies a zero imaginary component, while
+:c:func:`Rbc_VectorValueAsComplex` copies one caller-validated storage index
+and promotes real storage if necessary. Neither helper changes a vector's
+type or transfers ownership. :c:func:`Rbc_ComplexIsZero` tests exact zero in
+both components; it is not a magnitude tolerance test. The declarations are
+collected in :doc:`vector-access-reference`.

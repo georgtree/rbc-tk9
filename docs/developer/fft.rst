@@ -137,14 +137,14 @@ layers:
    * - Layer
      - Preconditions supplied by caller
      - Failure/ownership boundary
-   * - ``FftAllocate`` / ``FftVector``
+   * - :c:func:`FftAllocate` / :c:func:`FftVector`
      - Nonzero element size; live interpreter data
      - Allocation is owned by caller; lookup returns a borrowed record and may
        change its selected range
-   * - ``FftTransform``
+   * - :c:func:`FftTransform`
      - Positive power-of-two length, complete roots, pre-scaled inverse input
      - Overwrites scratch data; caller checks all components for finiteness
-   * - ``FftInstall`` / ``FftCommit``
+   * - :c:func:`FftInstall` / :c:func:`FftCommit`
      - One or two distinct, writable, correctly typed destinations; complete
        Tcl-allocated buffers
      - Transfers ownership and commits before callbacks; no numerical rollback
@@ -154,3 +154,27 @@ multi-vector transaction API. :c:func:`FftStoreReal` is its single-real-output a
 not an additional validation layer. New callers must establish the same
 preconditions as the current command handlers rather than relying on commit
 to discover invalid lengths, destination aliases or read-only vectors.
+
+Count and ownership conventions
+-------------------------------
+
+FFT lengths and capacities count **typed values**, not bytes.
+:c:func:`FftAllocate` alone takes a separate byte stride. The transform
+kernel consumes N complex values and N/2 roots, with no roots needed for
+N=1. It does not normalize inverse output itself: inverse input is scaled
+before the call.
+
+The pointer returned by :c:func:`FftVector` is borrowed. By contrast,
+:c:func:`FftAllocate` returns caller-owned storage. :c:func:`FftInstall`
+transfers an independent completed allocation to the vector and returns
+its detached old pointer and release policy. :c:func:`FftCommit` consumes
+all supplied output allocations before running release or notification
+callbacks. The buffer arrays themselves remain caller-owned; transferring
+their entries does not clear those entries. Callers must not free them after
+commit, even if a callback destroys an output.
+
+:c:func:`FftStoreReal` supplies the same ownership transfer for a single
+real generator. None of these commit helpers validates its caller's
+preconditions or provides rollback after callbacks. The parameter contracts
+in :doc:`fft-reference` distinguish borrowed records, consumed buffers, and
+old-storage outputs explicitly.

@@ -33,3 +33,24 @@ validation before storage access.
 .. doxygenfunction:: Rbc_ReplicateValue
 
 .. doxygenfunction:: Rbc_VectorUpdateRange
+
+Scalar complex helpers
+----------------------
+
+These private helpers copy scalars by value. They neither allocate vector
+storage nor invoke Tcl callbacks. Arithmetic results are not checked for
+finiteness; callers choose their own error policy. See :doc:`vector-numerics`.
+
+.. doxygenfunction:: Rbc_ComplexFromReal
+
+.. doxygenfunction:: Rbc_ComplexIsZero
+
+.. doxygenfunction:: Rbc_ComplexAdd
+
+.. doxygenfunction:: Rbc_ComplexSub
+
+.. doxygenfunction:: Rbc_ComplexMul
+
+.. doxygenfunction:: Rbc_ComplexDiv
+
+.. doxygenfunction:: Rbc_VectorValueAsComplex

@@ -135,6 +135,14 @@ not a platform-independent file format, and large integers may lose precision.
 Real vectors consume one scalar per value; complex vectors consume interleaved
 real/imaginary pairs. Byte swapping reverses each scalar independently.
 
+The option callbacks use an argument **slice**, unlike instance handlers.
+:c:func:`ParseFormat <rbcVectorCommands.ParseFormat>` and
+:c:func:`ParseAt <rbcVectorCommands.ParseAt>` read their first value from
+``objv[0]`` and return a consumed count (one), or -1 on error. Those return
+values are not Tcl status codes. The format callback writes a native type
+and byte width; the position callback writes a zero-based storage position
+and may evaluate an index expression.
+
 The starting position defaults to the current length. A positive requested
 count performs one read, which may be short. A zero count reads successive
 chunks until EOF or a zero-byte read. Every returned chunk must contain complete
@@ -148,6 +156,14 @@ under the read. The command checks whether the caller closed it and stops rather
 than using an unregistered handle; it does not reopen or restore a closed channel.
 The channel remains caller-owned. Destination lifetime/read-only checks follow
 reflected reads, and the complete original error state survives cleanup callbacks.
+
+The conversion helpers :c:func:`CopyValues <rbcVectorCommands.CopyValues>` and
+:c:func:`CopyComplexValues <rbcVectorCommands.CopyComplexValues>` receive
+logical value counts, not byte counts. The latter reads two native scalars
+per complex value. Their input buffer must have the native alignment and
+representation required by the selected format; byte swapping modifies that
+buffer in place. Both advance a caller-owned storage index and leave cache
+flushing and notification to the surrounding operation.
 
 Each successful chunk is copied directly into storage, reusing capacity when
 possible. Completed chunks remain if a later read or translation restoration
@@ -165,6 +181,25 @@ The ensemble in ``rbcVector.c`` is separate from the instance dispatcher in
 each handler owns its own mutation and callback policy. See
 :doc:`vector-storage-private-reference` for the handler contracts and
 :doc:`vector-storage` for registry ownership.
+
+Ensemble argument and callback contracts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:c:func:`VectorObjCmd` forwards the full ensemble argument array. Creation,
+destruction, naming, renaming and expression handlers read operation input
+starting at index 2. :c:func:`VectorSimplifyOp` is the exception: it removes
+the ensemble command word before calling :c:func:`VectorSimplifyObjCmd`,
+which receives the same six arguments as standalone simplify. Its first
+vector name is consequently at index 1.
+
+The creation-option parsers :c:func:`ParseBool`, :c:func:`ParseVectorLength`
+and :c:func:`ParseVectorType` receive a value slice and return one consumed
+argument or -1. Their ``clientData`` is a borrowed option-name string, while
+the ensemble handlers receive interpreter-owned vector registry data.
+:c:func:`VectorRenameTrace` instead receives a caller-owned integer flag,
+and :c:func:`SimplifyDeleted` receives a caller-owned observer-ID slot.
+Neither callback owns or frees that storage. See :doc:`calling-conventions`
+for why an untyped callback pointer must have a concrete per-function contract.
 
 Creation and reuse
 ~~~~~~~~~~~~~~~~~~

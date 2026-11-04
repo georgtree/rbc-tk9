@@ -159,6 +159,13 @@ scalar types by family and byte width; bytes are converted to doubles. This is
 not a platform-independent file format, and large integers may lose precision.
 Real vectors consume one scalar per value; complex vectors consume interleaved
 real/imaginary pairs. Byte swapping reverses each scalar independently.</p>
+<p>The option callbacks use an argument <strong>slice</strong>, unlike instance handlers.
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseFormat" title="rbcVectorCommands.ParseFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseFormat</span></code></a> and
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseAt" title="rbcVectorCommands.ParseAt"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseAt</span></code></a> read their first value from
+<code class="docutils literal notranslate"><span class="pre">objv[0]</span></code> and return a consumed count (one), or -1 on error. Those return
+values are not Tcl status codes. The format callback writes a native type
+and byte width; the position callback writes a zero-based storage position
+and may evaluate an index expression.</p>
 <p>The starting position defaults to the current length. A positive requested
 count performs one read, which may be short. A zero count reads successive
 chunks until EOF or a zero-byte read. Every returned chunk must contain complete
@@ -171,6 +178,13 @@ under the read. The command checks whether the caller closed it and stops rather
 than using an unregistered handle; it does not reopen or restore a closed channel.
 The channel remains caller-owned. Destination lifetime/read-only checks follow
 reflected reads, and the complete original error state survives cleanup callbacks.</p>
+<p>The conversion helpers <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyValues" title="rbcVectorCommands.CopyValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyValues</span></code></a> and
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyComplexValues" title="rbcVectorCommands.CopyComplexValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyComplexValues</span></code></a> receive
+logical value counts, not byte counts. The latter reads two native scalars
+per complex value. Their input buffer must have the native alignment and
+representation required by the selected format; byte swapping modifies that
+buffer in place. Both advance a caller-owned storage index and leave cache
+flushing and notification to the surrounding operation.</p>
 <p>Each successful chunk is copied directly into storage, reusing capacity when
 possible. Completed chunks remain if a later read or translation restoration
 fails. The error path flushes and notifies any surviving destination when data
@@ -186,6 +200,23 @@ count read to satisfy the requested count.</p>
 each handler owns its own mutation and callback policy. See
 <a class="reference internal" href="vector-storage-private-reference.html"><span class="doc">Vector storage private C reference</span></a> for the handler contracts and
 <a class="reference internal" href="vector-storage.html"><span class="doc">Vector C API and storage primitives</span></a> for registry ownership.</p>
+<section id="ensemble-argument-and-callback-contracts">
+<h3>Ensemble argument and callback contracts<a class="headerlink" href="#ensemble-argument-and-callback-contracts" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorObjCmd" title="VectorObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorObjCmd()</span></code></a> forwards the full ensemble argument array. Creation,
+destruction, naming, renaming and expression handlers read operation input
+starting at index 2. <a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyOp" title="VectorSimplifyOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyOp()</span></code></a> is the exception: it removes
+the ensemble command word before calling <a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyObjCmd" title="VectorSimplifyObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyObjCmd()</span></code></a>,
+which receives the same six arguments as standalone simplify. Its first
+vector name is consequently at index 1.</p>
+<p>The creation-option parsers <a class="reference internal" href="vector-storage-private-reference.html#c.ParseBool" title="ParseBool"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseBool()</span></code></a>, <a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorLength" title="ParseVectorLength"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseVectorLength()</span></code></a>
+and <a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorType" title="ParseVectorType"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseVectorType()</span></code></a> receive a value slice and return one consumed
+argument or -1. Their <code class="docutils literal notranslate"><span class="pre">clientData</span></code> is a borrowed option-name string, while
+the ensemble handlers receive interpreter-owned vector registry data.
+<a class="reference internal" href="vector-storage-private-reference.html#c.VectorRenameTrace" title="VectorRenameTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorRenameTrace()</span></code></a> instead receives a caller-owned integer flag,
+and <a class="reference internal" href="vector-storage-private-reference.html#c.SimplifyDeleted" title="SimplifyDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">SimplifyDeleted()</span></code></a> receives a caller-owned observer-ID slot.
+Neither callback owns or frees that storage. See <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>
+for why an untyped callback pointer must have a concrete per-function contract.</p>
+</section>
 <section id="creation-and-reuse">
 <h3>Creation and reuse<a class="headerlink" href="#creation-and-reuse" title="Link to this heading">¶</a></h3>
 <p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorCreateObjCmd" title="VectorCreateObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorCreateObjCmd()</span></code></a> collects names and options, then prechecks existing
@@ -373,6 +404,7 @@ handler applies the resulting permutation.</p>
 <li><a class="reference internal" href="#sorting">Sorting</a></li>
 <li><a class="reference internal" href="#binary-channel-input">Binary channel input</a></li>
 <li><a class="reference internal" href="#vector-ensemble-and-registry-operations">Vector ensemble and registry operations</a><ul>
+<li><a class="reference internal" href="#ensemble-argument-and-callback-contracts">Ensemble argument and callback contracts</a></li>
 <li><a class="reference internal" href="#creation-and-reuse">Creation and reuse</a></li>
 <li><a class="reference internal" href="#named-expression-results">Named expression results</a></li>
 <li><a class="reference internal" href="#rename-destruction-and-enumeration">Rename, destruction and enumeration</a></li>

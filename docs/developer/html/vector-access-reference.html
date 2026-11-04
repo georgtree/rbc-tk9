@@ -347,6 +347,165 @@ Scans real storage in ascending index order, ignores NaNs and infinities, and ke
 </dl>
 </dd></dl>
 
+<section id="scalar-complex-helpers">
+<h2>Scalar complex helpers<a class="headerlink" href="#scalar-complex-helpers" title="Link to this heading">¶</a></h2>
+<p>These private helpers copy scalars by value. They neither allocate vector
+storage nor invoke Tcl callbacks. Arithmetic results are not checked for
+finiteness; callers choose their own error policy. See <a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ComplexFromReal">
+<span class="target" id="rbc_vector_int_8h_1aaa96710eb8fbfb376ff8fa61ffef8cb3"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComplexFromReal</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ComplexFromReal" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Promote a real scalar without allocation. </p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Real component copied into the result. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex value with the supplied real component and zero imaginary component. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ComplexIsZero">
+<span class="target" id="rbc_vector_int_8h_1a8547a0760683eabe15f8a51e9658f050"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComplexIsZero</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ComplexIsZero" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test both components for exact zero. </p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Scalar tested by value; signed zeros compare equal. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero only when both components equal zero; NaNs do not compare equal. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ComplexAdd">
+<span class="target" id="rbc_vector_int_8h_1a733985758703e3816fa86c5415a8309d"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComplexAdd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ComplexAdd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a complex sum without Tcl callbacks. </p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – <strong>[in]</strong> Left operand passed by value. </p></li>
+<li><p><strong>b</strong> – <strong>[in]</strong> Right operand passed by value. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex sum a+b; overflow, underflow and nonfinite results are not reported as errors. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ComplexSub">
+<span class="target" id="rbc_vector_int_8h_1a7e4c00cf1ac3592b37c40e7c0075af46"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComplexSub</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ComplexSub" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a complex difference without Tcl callbacks. </p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – <strong>[in]</strong> Left operand passed by value. </p></li>
+<li><p><strong>b</strong> – <strong>[in]</strong> Right operand passed by value. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex difference a-b; overflow, underflow and nonfinite results are not reported as errors. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ComplexMul">
+<span class="target" id="rbc_vector_int_8h_1a8cb6ea28429d34d8638588d90b4857ff"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComplexMul</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ComplexMul" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a complex product without Tcl callbacks. </p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – <strong>[in]</strong> Left operand passed by value. </p></li>
+<li><p><strong>b</strong> – <strong>[in]</strong> Right operand passed by value. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex product a*b; overflow, underflow and nonfinite results are not reported as errors. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ComplexDiv">
+<span class="target" id="rbc_vector_int_8h_1ab63c05350b90fbb51c86ce559745c592"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComplexDiv</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ComplexDiv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a complex quotient without Tcl callbacks. </p>
+<p>
+Uses a ratio-based denominator to reduce avoidable overflow/underflow; it does not guarantee finite results. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – <strong>[in]</strong> Left operand passed by value. </p></li>
+<li><p><strong>b</strong> – <strong>[in]</strong> Right operand passed by value. Caller must reject an exactly zero divisor. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex quotient a/b; overflow, underflow and nonfinite results are not reported as errors. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorValueAsComplex">
+<span class="target" id="rbc_vector_int_8h_1a046910a58e808cd2bf06b9d20498324d"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorValueAsComplex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorValueAsComplex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy one storage value with real-to-complex promotion. </p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Live real or complex source; no lifetime reference is acquired. </p></li>
+<li><p><strong>index</strong> – <strong>[in]</strong> Valid zero-based storage index supplied by the caller, independent of offset and selection. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Copied complex scalar; real sources receive zero imaginary part. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -373,6 +532,16 @@ Scans real storage in ascending index order, ignores NaNs and infinities, and ke
 <li><a class="reference internal" href="#c.Rbc_VectorSortIndex"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ReplicateValue"><code class="docutils literal notranslate"><span class="pre">Rbc_ReplicateValue()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_VectorUpdateRange"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateRange()</span></code></a></li>
+<li><a class="reference internal" href="#scalar-complex-helpers">Scalar complex helpers</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ComplexFromReal"><code class="docutils literal notranslate"><span class="pre">Rbc_ComplexFromReal()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ComplexIsZero"><code class="docutils literal notranslate"><span class="pre">Rbc_ComplexIsZero()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ComplexAdd"><code class="docutils literal notranslate"><span class="pre">Rbc_ComplexAdd()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ComplexSub"><code class="docutils literal notranslate"><span class="pre">Rbc_ComplexSub()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ComplexMul"><code class="docutils literal notranslate"><span class="pre">Rbc_ComplexMul()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ComplexDiv"><code class="docutils literal notranslate"><span class="pre">Rbc_ComplexDiv()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorValueAsComplex"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorValueAsComplex()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

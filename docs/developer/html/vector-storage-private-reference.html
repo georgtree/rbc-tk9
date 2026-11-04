@@ -237,119 +237,442 @@ Zeros both components for complex values. Bounds and capacity are caller precond
 <dt class="sig sig-object c" id="c.Rbc_VectorInit">
 <span class="target" id="group__vector__storage__private_1gafcf8c939be5a55fec201a257498f7c3b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorInit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Register the vector ensemble and standalone simplifier. </p>
-<p>Initializes the shared NaN value and obtains interpreter-local registry data. Creates rbc::vector, ensures its command namespace exists, then registers rbc::vector::simplify. Returns TCL_ERROR if namespace creation fails, otherwise TCL_OK. Registration is not transactional: an already installed ensemble is not removed on that error. Registry cleanup belongs to the interpreter associated-data delete procedure. </p>
+<p>
+Initializes the shared NaN value and obtains interpreter-local registry data. Creates rbc::vector, ensures its command namespace exists, then registers rbc::vector::simplify. Returns TCL_ERROR if namespace creation fails, otherwise TCL_OK. Registration is not transactional: an already installed ensemble is not removed on that error. Registry cleanup belongs to the interpreter associated-data delete procedure. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter receiving the ensemble and simplifier commands; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after registration, or TCL_ERROR on namespace-creation failure; earlier registration remains. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorRenameTrace">
 <span class="target" id="group__vector__storage__private_1ga26f1be30dc680661188192c164f194ba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorRenameTrace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">oldName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newName</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorRenameTrace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Record deletion during a command rename transaction. </p>
-<p>clientData points to a live caller-owned flag, set only for TCL_TRACE_DELETE. Ignores name strings and never dereferences the vector, which user command traces may already have destroyed. </p>
+<p>
+clientData points to a live caller-owned flag, set only for TCL_TRACE_DELETE. Ignores name strings and never dereferences the vector, which user command traces may already have destroyed. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Caller-owned int flag, valid until the temporary trace is removed; set on deletion. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Trace interpreter, unused here. </p></li>
+<li><p><strong>oldName</strong> – <strong>[in]</strong> Borrowed old command name, unused here. </p></li>
+<li><p><strong>newName</strong> – <strong>[in]</strong> Borrowed new name, possibly NULL for deletion; unused here. </p></li>
+<li><p><strong>flags</strong> – <strong>[in]</strong> Trace-event mask; only TCL_TRACE_DELETE changes the flag. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorRenameObjCmd">
 <span class="target" id="group__vector__storage__private_1gaf09fde47f21befb19fcb35cc5506558f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorRenameObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorRenameObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rename vector identity and its command without copying storage. </p>
-<p>Resolves a literal source name and an existing destination namespace, validates the destination tail, and rejects registry or command collisions. A canonical unchanged name succeeds immediately. If an instance command exists, invokes global ::rename with a temporary command trace to detect deletion and recursive rename, then verifies the surviving command name. Rechecks registry collision before moving the hash entry. Retains the same vector, storage, clients and mapped-array association; the array name is not changed. Returns the qualified destination name. User trace effects and an already completed command rename are not rolled back if a later check fails. </p>
+<p>
+Resolves a literal source name and an existing destination namespace, validates the destination tail, and rejects registry or command collisions. A canonical unchanged name succeeds immediately. If an instance command exists, invokes global ::rename with a temporary command trace to detect deletion and recursive rename, then verifies the surviving command name. Rechecks registry collision before moving the hash entry. Retains the same vector, storage, clients and mapped-array association; the array name is not changed. Returns the qualified destination name. User trace effects and an already completed command rename are not rolled back if a later check fails. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; literal old and new names at indices 2 and 3. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the qualified new name, otherwise TCL_ERROR; trace side effects are not undone. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.SimplifyDistance">
 <span class="target" id="group__vector__storage__private_1ga1067bc930e9087d61c3d94034d8fb3ba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SimplifyDistance</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">ax</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">ay</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">bx</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">by</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">px</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">py</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SimplifyDistance" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Measure distance from a finite point to a closed segment. </p>
-<p>Uses long-double differences, scaled projection and hypot rather than squaring raw coordinates. If initial differences overflow, halves operands before subtraction and restores the factor afterward. Handles coincident endpoints and projections beyond either endpoint. Returns nonnegative distance; a distance outside the platform long-double range may be infinite. Callers validate finite input coordinates. </p>
+<p>
+Uses long-double differences, scaled projection and hypot rather than squaring raw coordinates. If initial differences overflow, halves operands before subtraction and restores the factor afterward. Handles coincident endpoints and projections beyond either endpoint. Returns nonnegative distance; a distance outside the platform long-double range may be infinite. Callers validate finite input coordinates. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> – <strong>[in]</strong> Finite first segment endpoint X coordinate. </p></li>
+<li><p><strong>ay</strong> – <strong>[in]</strong> Finite first segment endpoint Y coordinate. </p></li>
+<li><p><strong>bx</strong> – <strong>[in]</strong> Finite second segment endpoint X coordinate. </p></li>
+<li><p><strong>by</strong> – <strong>[in]</strong> Finite second segment endpoint Y coordinate. </p></li>
+<li><p><strong>px</strong> – <strong>[in]</strong> Finite query point X coordinate. </p></li>
+<li><p><strong>py</strong> – <strong>[in]</strong> Finite query point Y coordinate. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonnegative point-to-segment distance; may overflow the platform long-double range. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.SimplifyDeleted">
 <span class="target" id="group__vector__storage__private_1ga85636be6848283570df642c77fa31fc0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SimplifyDeleted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorNotify" title="Rbc_VectorNotify"><span class="n"><span class="pre">Rbc_VectorNotify</span></span></a><span class="w"> </span><span class="n"><span class="pre">notify</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SimplifyDeleted" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invalidate a temporary destination ID on vector destruction. </p>
-<p>clientData addresses a live caller-owned ID slot. Destruction clears the slot before the server frees remaining client records; update notifications leave it unchanged. Does not free the ID itself or access a destroyed vector. </p>
+<p>
+clientData addresses a live caller-owned ID slot. Destruction clears the slot before the server frees remaining client records; update notifications leave it unchanged. Does not free the ID itself or access a destroyed vector. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning notification interpreter, unused here. </p></li>
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Caller-owned <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1af00ee250213139f9049fda52db682fcf"><span class="std std-ref">Rbc_VectorId</span></a> slot, valid for the observer’s lifetime. </p></li>
+<li><p><strong>notify</strong> – <strong>[in]</strong> Notification kind; DESTROY clears the slot without freeing the server-owned client record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.SimplifyFlush">
 <span class="target" id="group__vector__storage__private_1ga42bf0213bf5a28afa86e6ede876488d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SimplifyFlush</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SimplifyFlush" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh a simplified destination mapped array after commit. </p>
-<p>Uses a temporary observer ID whose deletion callback clears the caller slot. Copies the array name before unsetting and re-fetches the server after unset and sentinel write, restoring the trace only while the server survives with the same name. Skips absent IDs, disabled flushing and unmapped vectors. Trace side effects are not rolled back. </p>
+<p>
+Uses a temporary observer ID whose deletion callback clears the caller slot. Copies the array name before unsetting and re-fetches the server after unset and sentinel write, restoring the trace only while the server survives with the same name. Skips absent IDs, disabled flushing and unmapped vectors. Trace side effects are not rolled back. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>idPtr</strong> – <strong>[inout]</strong> Required caller-owned observer-ID slot, possibly containing NULL; destruction callbacks clear it. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorSimplifyObjCmd">
 <span class="target" id="group__vector__storage__private_1gae7529237080063a91019a91aec1629e9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorSimplifyObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorSimplifyObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Simplify paired whole real vectors with staged output storage. </p>
-<p>Requires finite coordinates, finite nonnegative tolerance, equal input lengths and distinct writable existing destinations. Inputs may alias outputs. Iterative closed-segment Douglas-Peucker subdivision computes both outputs before mutation. Validation/allocation failures leave destinations unchanged. Commit installs both arrays before releasing old storage, flushing arrays or notifying observers. Temporary IDs track destination deletion during callbacks. Preserves identity and offsets, returns retained count, and does not roll back post-commit callback side effects. </p>
+<p>
+Requires finite coordinates, finite nonnegative tolerance, equal input lengths and distinct writable existing destinations. Inputs may alias outputs. Iterative closed-segment Douglas-Peucker subdivision computes both outputs before mutation. Validation/allocation failures leave destinations unchanged. Commit installs both arrays before releasing old storage, flushing arrays or notifying observers. Temporary IDs track destination deletion during callbacks. Preserves identity and offsets, returns retained count, and does not roll back post-commit callback side effects. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Six standalone arguments: command, x, y, destX, destY, tolerance. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the retained point count, otherwise TCL_ERROR before successful completion. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorSimplifyOp">
 <span class="target" id="group__vector__storage__private_1ga895ac03bcbbad455c88f7abdeb1fcfbb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorSimplifyOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorSimplifyOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Adapt ensemble syntax to the standalone simplify command. </p>
-<p>Borrows arguments and removes the ensemble command word by shifting the vector and count. The shared implementation performs arity checking, validation, allocation and commit; no Tcl arguments or vectors are copied by this adapter. </p>
+<p>
+Borrows arguments and removes the ensemble command word by shifting the vector and count. The shared implementation performs arity checking, validation, allocation and commit; no Tcl arguments or vectors are copied by this adapter. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Seven full ensemble arguments; forwards objv+1 and objc-1 to the standalone handler. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The standalone simplifier status without additional copying or cleanup. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorObjCmd">
 <span class="target" id="group__vector__storage__private_1gaaeeb6f6f5fc43927b38c85d1d946eee8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate and dispatch the vector ensemble operation. </p>
-<p>Uses the typed command table to check name and arity before calling the selected handler. Borrows interpreter data and arguments, returning the handler status. Does not itself create vectors or implement transaction rollback. </p>
+<p>
+Uses the typed command table to check name and arity before calling the selected handler. Borrows interpreter data and arguments, returning the handler status. Does not itself create vectors or implement transaction rollback. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments: command at index 0, operation at index 1. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The selected handler status, or TCL_ERROR for operation/arity failure. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ParseBool">
 <span class="target" id="group__vector__storage__private_1ga48cd74b0d3e6f1f51eb9ffc77183baf7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseBool</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseBool" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Consume one boolean creation-option argument. </p>
-<p>Returns one consumed argument or minus one with a diagnostic. Uses the borrowed clientData option name for a missing-value error. Writes the destination integer only after successful conversion; does not retain the Tcl object. </p>
+<p>
+Returns one consumed argument or minus one with a diagnostic. Uses the borrowed clientData option name for a missing-value error. Writes the destination integer only after successful conversion; does not retain the Tcl object. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed NUL-terminated option-name string used for missing-value diagnostics. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of remaining option-value arguments. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed value slice, with the option value at index zero. </p></li>
+<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Required int receiving the converted boolean, changed only on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ParseVectorLength">
 <span class="target" id="group__vector__storage__private_1gaf519c068998b6ce0723aac98c6ac3c28"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseVectorLength</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseVectorLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Consume one Tcl_Size creation-option argument. </p>
-<p>Returns one on success or minus one on missing/invalid input. Writes only after conversion. This parses a size integer, not the full vector length policy; caller checks allowed ranges and allocation limits. </p>
+<p>
+Returns one on success or minus one on missing/invalid input. Writes only after conversion. This parses a size integer, not the full vector length policy; caller checks allowed ranges and allocation limits. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed NUL-terminated option-name string used for missing-value diagnostics. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of remaining option-value arguments. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed value slice, with the option value at index zero. </p></li>
+<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Required Tcl_Size receiving the parsed integer, changed only on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetSizeFromString">
 <span class="target" id="group__vector__storage__private_1ga03bc39b397395680164527440dda854e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSizeFromString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetSizeFromString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a NUL-terminated string to Tcl_Size. </p>
-<p>Owns a temporary retained Tcl object for conversion and releases it on either outcome. Returns the conversion status; does not evaluate an expression or validate vector-specific length limits. </p>
+<p>
+Owns a temporary retained Tcl object for conversion and releases it on either outcome. Returns the conversion status; does not evaluate an expression or validate vector-specific length limits. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated integer spelling, copied into a temporary Tcl object. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required Tcl_Size output; consume only on successful conversion. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK or TCL_ERROR from Tcl integer conversion. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ParseVectorType">
 <span class="target" id="group__vector__storage__private_1ga639752cd445d810cd667b6b9f89427a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseVectorType</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseVectorType" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Consume an explicit real or complex creation type. </p>
-<p>Accepts exact lowercase names only. On success stores type and marks specified, distinguishing explicit selection from the caller default. Returns one consumed argument, or minus one without changing option state on error. </p>
+<p>
+Accepts exact lowercase names only. On success stores type and marks specified, distinguishing explicit selection from the caller default. Returns one consumed argument, or minus one without changing option state on error. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed NUL-terminated option-name string used for missing-value diagnostics. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of remaining option-value arguments. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed value slice, with the option value at index zero. </p></li>
+<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Required VectorTypeOption receiving the type and specified flag, changed only on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorCreateObjCmd">
 <span class="target" id="group__vector__storage__private_1ga2c90d7e45f208dc5ccfdb2a860bd5cff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorCreateObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorCreateObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse vector creation options and process names sequentially. </p>
-<p>Borrows ensemble arguments and owns the parsed name array, work string and result object. Prechecks existing candidate vectors for read-only state before processing names. Exact registered names take precedence over legacy numeric size/range suffixes; -literal disables suffix interpretation. Explicit type changes are rejected. Real names without parentheses receive default array mappings; complex or parenthesized names do not. Positive requested lengths resize storage; zero does not truncate an existing vector. Retains each returned vector and interpreter across resize and publication, checks liveness, and returns the last qualified name. Later failures do not roll back earlier creations, reconfiguration or callback effects. </p>
+<p>
+Borrows ensemble arguments and owns the parsed name array, work string and result object. Prechecks existing candidate vectors for read-only state before processing names. Exact registered names take precedence over legacy numeric size/range suffixes; -literal disables suffix interpretation. Explicit type changes are rejected. Real names without parentheses receive default array mappings; complex or parenthesized names do not. Positive requested lengths resize storage; zero does not truncate an existing vector. Retains each returned vector and interpreter across resize and publication, checks liveness, and returns the last qualified name. Later failures do not roll back earlier creations, reconfiguration or callback effects. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; names and creation options start at index 2. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the final qualified name, otherwise TCL_ERROR; earlier creations remain. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorDestroyObjCmd">
 <span class="target" id="group__vector__storage__private_1ga4360193cb04400c7ff968b801d71bc13"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorDestroyObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorDestroyObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy named vectors in argument order. </p>
-<p>Uses the range-aware lookup helper, then destroys the entire returned vector, not only its selected interval. Stops on the first lookup error; earlier destruction and observer side effects remain. No names is a successful no-op. Read-only state protects data mutation, not destruction. Lookup and destruction may run callbacks; this handler does not stage or retain all targets in advance. </p>
+<p>
+Uses the range-aware lookup helper, then destroys the entire returned vector, not only its selected interval. Stops on the first lookup error; earlier destruction and observer side effects remain. No names is a successful no-op. Read-only state protects data mutation, not destruction. Lookup and destruction may run callbacks; this handler does not stage or retain all targets in advance. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; references to destroy start at index 2. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after all requested destructions, otherwise TCL_ERROR; earlier destructions remain. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorExprObjCmd">
 <span class="target" id="group__vector__storage__private_1ga9d9e44aba952e2c08f24e9e11afe0fe7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorExprObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorExprObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate an expression as Tcl values or a newly named vector. </p>
-<p>Without -name delegates directly to Rbc_ExprVector. Named output resolves an existing destination namespace and rejects vector or command collisions before evaluation and again afterward. Evaluates once into an owned temporary, creates an unmapped vector of the resulting type, and transfers its storage without Tcl-list conversion. A final <code class="docutils literal notranslate"><span class="pre">#auto</span></code> component requests generated naming. Returns the qualified new name; never overwrites an existing vector. Frees the temporary and work strings on every exit. Expression callback side effects are not rolled back. </p>
+<p>
+Without -name delegates directly to Rbc_ExprVector. Named output resolves an existing destination namespace and rejects vector or command collisions before evaluation and again afterward. Evaluates once into an owned temporary, creates an unmapped vector of the resulting type, and transfers its storage without Tcl-list conversion. A final <code class="docutils literal notranslate"><span class="pre">#auto</span></code> component requests generated naming. Returns the qualified new name; never overwrites an existing vector. Frees the temporary and work strings on every exit. Expression callback side effects are not rolled back. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Unused ensemble registry pointer; the handler obtains registry data from interp. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning evaluation interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Three for list output, or five for named output; other counts are rejected. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Full ensemble array: expression at index 2, or -name, name, expression at indices 2 through 4. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with copied values or the new qualified name, otherwise TCL_ERROR; evaluation side effects remain. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorNamesObjCmd">
 <span class="target" id="group__vector__storage__private_1gacfa31e04160a9a67faedef2eb7546430"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorNamesObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorNamesObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>List registered vector names with an optional glob filter. </p>
-<p>Walks the interpreter vector hash table, appending fully qualified keys to a new Tcl list. Matching uses Tcl_StringMatch on the full name. Order follows hash traversal and is not sorted. Does not enumerate Tcl aliases, instance command spellings or mapped arrays, and does not invoke vector observers. </p>
+<p>
+Walks the interpreter vector hash table, appending fully qualified keys to a new Tcl list. Matching uses Tcl_StringMatch on the full name. Order follows hash traversal and is not sorted. Does not enumerate Tcl aliases, instance command spellings or mapped arrays, and does not invoke vector observers. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; optional glob pattern at index 2. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with a list of qualified registry names in hash traversal order. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">

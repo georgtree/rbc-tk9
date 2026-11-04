@@ -19,6 +19,12 @@
 
 /**
  * @brief Allocate checked FFT or generator workspace.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] count Positive number of elements; zero and negative counts are rejected.
+ * @param[in] elementSize Nonzero byte width of one element, guaranteed by the caller.
+ * @return Owned uninitialized Tcl allocation to release with ckfree, or NULL on failure.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup fft_internals
  *
  * Requires a nonzero elementSize and a positive count. Rejects byte-count
@@ -42,6 +48,11 @@ static void *FftAllocate(Tcl_Interp *interp, Tcl_Size count, size_t elementSize)
 
 /**
  * @brief Transform a power-of-two complex array in place.
+ * @param[in,out] data Array of length complex values, overwritten by the transform.
+ * @param[in] roots Read-only length/2 twiddle factors with the transform's sign; NULL is allowed for length one.
+ * @param[in] length Positive power-of-two count, already validated by the caller.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup fft_internals
  *
  * The caller supplies a nonempty power-of-two length and length/2 roots
@@ -99,6 +110,13 @@ static void FftTransform(Rbc_Complex *data, const Rbc_Complex *roots, Tcl_Size l
 
 /**
  * @brief Resolve an existing whole-vector operand.
+ * @param[in] dataPtr Live owning registry and interpreter used for range-aware lookup.
+ * @param[in] nameObj Borrowed vector-reference object, valid throughout lookup.
+ * @param[out] vPtrPtr Required borrowed-record output, unchanged on failure; no preservation reference is
+ *     acquired.
+ * @return TCL_OK for a complete-vector selection, otherwise TCL_ERROR.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup fft_internals
  *
  * Uses the caller namespace through Rbc_VectorLookupName and rejects a selected
@@ -123,6 +141,14 @@ static int FftVector(VectorInterpData *dataPtr, Tcl_Obj *nameObj, VectorObject *
 
 /**
  * @brief Install completed storage without crossing a callback boundary.
+ * @param[in,out] vPtr Live writable destination with numeric type matching data.
+ * @param[in] data Owned independent Tcl-allocated buffer transferred to vPtr; must not alias its old storage.
+ * @param[in] length Nonnegative used count and capacity in typed values.
+ * @param[out] oldDataPtr Required output receiving detached old storage; caller releases it according to
+ *     oldFreeProcPtr.
+ * @param[out] oldFreeProcPtr Required output receiving the detached storage's release policy.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup fft_internals
  *
  * Requires a writable destination of the correct type and an owned Tcl-allocated
@@ -148,6 +174,14 @@ static void FftInstall(VectorObject *vPtr, void *data, Tcl_Size length,
 
 /**
  * @brief Commit one complex or one/two real output buffers.
+ * @param[in] interp Owning interpreter shared by the destinations; see @ref rbc_interp_argument.
+ * @param[in] dest Array of count distinct live writable destinations, validated before entry.
+ * @param[in] data Array of count independent completed Tcl allocations, all consumed during installation.
+ * @param[in] count Exactly one or two outputs, matching the fixed local bookkeeping arrays.
+ * @param[in] length Common used count and capacity in values for every output buffer.
+ * @return TCL_OK with name snapshots in the interpreter result; callback changes are not rolled back.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup fft_internals
  *
  * count must be one or two; destinations must be distinct, alive, writable and
@@ -417,6 +451,13 @@ error:
 
 /**
  * @brief Transfer a completed real generator buffer to its vector.
+ * @param[in,out] vPtr Live writable real destination, already validated by the caller.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] data Completed independent Tcl-allocated real buffer, consumed by the commit.
+ * @param[in] length Number of valid finite values in data and resulting destination capacity.
+ * @return TCL_OK with the destination name captured before commit callbacks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup fft_internals
  *
  * The caller has checked real type, writability, length and finite values.

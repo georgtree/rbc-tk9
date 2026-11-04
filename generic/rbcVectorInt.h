@@ -528,12 +528,61 @@ double Rbc_VecMin(Rbc_Vector *vecPtr);
  * clear cache-invalid flags, allocate storage or send notifications.
  */
 double Rbc_VecMax(Rbc_Vector *vecPtr);
+/**
+ * @brief Promote a real scalar without allocation.
+ * @param[in] value Real component copied into the result.
+ * @return Complex value with the supplied real component and zero imaginary component.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_Complex Rbc_ComplexFromReal(double value);
+/**
+ * @brief Test both components for exact zero.
+ * @param[in] value Scalar tested by value; signed zeros compare equal.
+ * @return Nonzero only when both components equal zero; NaNs do not compare equal.
+ * @see @ref rbc_calling_conventions
+ */
 int Rbc_ComplexIsZero(Rbc_Complex value);
+/**
+ * @brief Compute a complex sum without Tcl callbacks.
+ * @param[in] a Left operand passed by value.
+ * @param[in] b Right operand passed by value.
+ * @return Complex sum a+b; overflow, underflow and nonfinite results are not reported as errors.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_Complex Rbc_ComplexAdd(Rbc_Complex a, Rbc_Complex b);
+/**
+ * @brief Compute a complex difference without Tcl callbacks.
+ * @param[in] a Left operand passed by value.
+ * @param[in] b Right operand passed by value.
+ * @return Complex difference a-b; overflow, underflow and nonfinite results are not reported as errors.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_Complex Rbc_ComplexSub(Rbc_Complex a, Rbc_Complex b);
+/**
+ * @brief Compute a complex product without Tcl callbacks.
+ * @param[in] a Left operand passed by value.
+ * @param[in] b Right operand passed by value.
+ * @return Complex product a*b; overflow, underflow and nonfinite results are not reported as errors.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_Complex Rbc_ComplexMul(Rbc_Complex a, Rbc_Complex b);
+/**
+ * @brief Compute a complex quotient without Tcl callbacks.
+ * @param[in] a Left operand passed by value.
+ * @param[in] b Right operand passed by value. Caller must reject an exactly zero divisor.
+ * @return Complex quotient a/b; overflow, underflow and nonfinite results are not reported as errors.
+ * @see @ref rbc_calling_conventions
+ *
+ * Uses a ratio-based denominator to reduce avoidable overflow/underflow; it does not guarantee finite results.
+ */
 Rbc_Complex Rbc_ComplexDiv(Rbc_Complex a, Rbc_Complex b);
+/**
+ * @brief Copy one storage value with real-to-complex promotion.
+ * @param[in] vPtr Live real or complex source; no lifetime reference is acquired.
+ * @param[in] index Valid zero-based storage index supplied by the caller, independent of offset and selection.
+ * @return Copied complex scalar; real sources receive zero imaginary part.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_Complex Rbc_VectorValueAsComplex(VectorObject *vPtr, Tcl_Size index);
 /**
  * Evaluate an expression once into an owned, unregistered vector temporary.

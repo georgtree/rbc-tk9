@@ -334,6 +334,11 @@ static void ZeroVectorElements(Rbc_VectorType type, VectorData data, Tcl_Size fi
 /**
  * @ingroup vector_storage_private
  * @brief Register the vector ensemble and standalone simplifier.
+ * @param[in] interp Owning interpreter receiving the ensemble and simplifier commands; see @ref
+ *     rbc_interp_argument.
+ * @return TCL_OK after registration, or TCL_ERROR on namespace-creation failure; earlier registration remains.
+ * @see @ref rbc_calling_conventions
+ *
  * Initializes the shared NaN value and obtains interpreter-local registry data. Creates rbc::vector,
  * ensures its command namespace exists, then registers rbc::vector::simplify. Returns TCL_ERROR if
  * namespace creation fails, otherwise TCL_OK. Registration is not transactional: an already installed
@@ -358,6 +363,13 @@ int Rbc_VectorInit(Tcl_Interp *interp) {
 /**
  * @ingroup vector_storage_private
  * @brief Record deletion during a command rename transaction.
+ * @param[in,out] clientData Caller-owned int flag, valid until the temporary trace is removed; set on deletion.
+ * @param[in] interp Trace interpreter, unused here.
+ * @param[in] oldName Borrowed old command name, unused here.
+ * @param[in] newName Borrowed new name, possibly NULL for deletion; unused here.
+ * @param[in] flags Trace-event mask; only TCL_TRACE_DELETE changes the flag.
+ * @see @ref rbc_calling_conventions
+ *
  * clientData points to a live caller-owned flag, set only for TCL_TRACE_DELETE. Ignores name strings
  * and never dereferences the vector, which user command traces may already have destroyed.
  */
@@ -375,6 +387,15 @@ static void VectorRenameTrace(ClientData clientData, Tcl_Interp *interp, const c
 /**
  * @ingroup vector_storage_private
  * @brief Rename vector identity and its command without copying storage.
+ * @param[in] clientData Borrowed interpreter-owned VectorInterpData registry, valid throughout the call.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks
+ *     its own.
+ * @param[in] objv Borrowed array. Full ensemble arguments; literal old and new names at indices 2 and 3.
+ * @return TCL_OK with the qualified new name, otherwise TCL_ERROR; trace side effects are not undone.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_calling_conventions
+ *
  * Resolves a literal source name and an existing destination namespace, validates the destination
  * tail, and rejects registry or command collisions. A canonical unchanged name succeeds immediately.
  * If an instance command exists, invokes global ::rename with a temporary command trace to detect
@@ -498,6 +519,15 @@ done:
 /**
  * @ingroup vector_storage_private
  * @brief Measure distance from a finite point to a closed segment.
+ * @param[in] ax Finite first segment endpoint X coordinate.
+ * @param[in] ay Finite first segment endpoint Y coordinate.
+ * @param[in] bx Finite second segment endpoint X coordinate.
+ * @param[in] by Finite second segment endpoint Y coordinate.
+ * @param[in] px Finite query point X coordinate.
+ * @param[in] py Finite query point Y coordinate.
+ * @return Nonnegative point-to-segment distance; may overflow the platform long-double range.
+ * @see @ref rbc_calling_conventions
+ *
  * Uses long-double differences, scaled projection and hypot rather than squaring raw coordinates. If
  * initial differences overflow, halves operands before subtraction and restores the factor afterward.
  * Handles coincident endpoints and projections beyond either endpoint. Returns nonnegative distance; a
@@ -543,6 +573,11 @@ static long double SimplifyDistance(double ax, double ay, double bx, double by, 
 /**
  * @ingroup vector_storage_private
  * @brief Invalidate a temporary destination ID on vector destruction.
+ * @param[in] interp Owning notification interpreter, unused here.
+ * @param[in,out] clientData Caller-owned Rbc_VectorId slot, valid for the observer's lifetime.
+ * @param[in] notify Notification kind; DESTROY clears the slot without freeing the server-owned client record.
+ * @see @ref rbc_calling_conventions
+ *
  * clientData addresses a live caller-owned ID slot. Destruction clears the slot before the server
  * frees remaining client records; update notifications leave it unchanged. Does not free the ID itself
  * or access a destroyed vector.
@@ -559,6 +594,10 @@ static void SimplifyDeleted(Tcl_Interp *interp, ClientData clientData, Rbc_Vecto
 /**
  * @ingroup vector_storage_private
  * @brief Refresh a simplified destination mapped array after commit.
+ * @param[in,out] idPtr Required caller-owned observer-ID slot, possibly containing NULL; destruction callbacks
+ *     clear it.
+ * @see @ref rbc_calling_conventions
+ *
  * Uses a temporary observer ID whose deletion callback clears the caller slot. Copies the array name
  * before unsetting and re-fetches the server after unset and sentinel write, restoring the trace only
  * while the server survives with the same name. Skips absent IDs, disabled flushing and unmapped
@@ -594,6 +633,15 @@ static void SimplifyFlush(Rbc_VectorId *idPtr) {
 /**
  * @ingroup vector_storage_private
  * @brief Simplify paired whole real vectors with staged output storage.
+ * @param[in] clientData Borrowed interpreter-owned VectorInterpData registry, valid throughout the call.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks
+ *     its own.
+ * @param[in] objv Borrowed array. Six standalone arguments: command, x, y, destX, destY, tolerance.
+ * @return TCL_OK with the retained point count, otherwise TCL_ERROR before successful completion.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_calling_conventions
+ *
  * Requires finite coordinates, finite nonnegative tolerance, equal input lengths and distinct writable
  * existing destinations. Inputs may alias outputs. Iterative closed-segment Douglas-Peucker
  * subdivision computes both outputs before mutation. Validation/allocation failures leave destinations
@@ -762,6 +810,16 @@ error:
 /**
  * @ingroup vector_storage_private
  * @brief Adapt ensemble syntax to the standalone simplify command.
+ * @param[in] clientData Borrowed interpreter-owned VectorInterpData registry, valid throughout the call.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks
+ *     its own.
+ * @param[in] objv Borrowed array. Seven full ensemble arguments; forwards objv+1 and objc-1 to the standalone
+ *     handler.
+ * @return The standalone simplifier status without additional copying or cleanup.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_calling_conventions
+ *
  * Borrows arguments and removes the ensemble command word by shifting the vector and count. The shared
  * implementation performs arity checking, validation, allocation and commit; no Tcl arguments or
  * vectors are copied by this adapter.
@@ -781,6 +839,15 @@ static const VectorOpSpec vectorOpCmd[] = {{{"create", 2, 0, "?vecName? ?switche
 /**
  * @ingroup vector_storage_private
  * @brief Validate and dispatch the vector ensemble operation.
+ * @param[in] clientData Borrowed interpreter-owned VectorInterpData registry, valid throughout the call.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks
+ *     its own.
+ * @param[in] objv Borrowed array. Full ensemble arguments: command at index 0, operation at index 1.
+ * @return The selected handler status, or TCL_ERROR for operation/arity failure.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_calling_conventions
+ *
  * Uses the typed command table to check name and arity before calling the selected handler. Borrows
  * interpreter data and arguments, returning the handler status. Does not itself create vectors or
  * implement transaction rollback.
@@ -798,6 +865,14 @@ static int VectorObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
 /**
  * @ingroup vector_storage_private
  * @brief Consume one boolean creation-option argument.
+ * @param[in] clientData Borrowed NUL-terminated option-name string used for missing-value diagnostics.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Number of remaining option-value arguments.
+ * @param[in] objv Borrowed value slice, with the option value at index zero.
+ * @param[out] dstPtr Required int receiving the converted boolean, changed only on success.
+ * @return One consumed value, or -1 on error; this is not a Tcl status code.
+ * @see @ref rbc_calling_conventions
+ *
  * Returns one consumed argument or minus one with a diagnostic. Uses the borrowed clientData option
  * name for a missing-value error. Writes the destination integer only after successful conversion;
  * does not retain the Tcl object.
@@ -823,6 +898,14 @@ static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, T
 /**
  * @ingroup vector_storage_private
  * @brief Consume one Tcl_Size creation-option argument.
+ * @param[in] clientData Borrowed NUL-terminated option-name string used for missing-value diagnostics.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Number of remaining option-value arguments.
+ * @param[in] objv Borrowed value slice, with the option value at index zero.
+ * @param[out] dstPtr Required Tcl_Size receiving the parsed integer, changed only on success.
+ * @return One consumed value, or -1 on error; this is not a Tcl status code.
+ * @see @ref rbc_calling_conventions
+ *
  * Returns one on success or minus one on missing/invalid input. Writes only after conversion. This
  * parses a size integer, not the full vector length policy; caller checks allowed ranges and
  * allocation limits.
@@ -847,6 +930,12 @@ static Tcl_Size ParseVectorLength(void *clientData, Tcl_Interp *interp, Tcl_Size
 /**
  * @ingroup vector_storage_private
  * @brief Convert a NUL-terminated string to Tcl_Size.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] string Borrowed NUL-terminated integer spelling, copied into a temporary Tcl object.
+ * @param[out] valuePtr Required Tcl_Size output; consume only on successful conversion.
+ * @return TCL_OK or TCL_ERROR from Tcl integer conversion.
+ * @see @ref rbc_calling_conventions
+ *
  * Owns a temporary retained Tcl object for conversion and releases it on either outcome. Returns the
  * conversion status; does not evaluate an expression or validate vector-specific length limits.
  */
@@ -897,6 +986,14 @@ typedef struct {
 /**
  * @ingroup vector_storage_private
  * @brief Consume an explicit real or complex creation type.
+ * @param[in] clientData Borrowed NUL-terminated option-name string used for missing-value diagnostics.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Number of remaining option-value arguments.
+ * @param[in] objv Borrowed value slice, with the option value at index zero.
+ * @param[out] dstPtr Required VectorTypeOption receiving the type and specified flag, changed only on success.
+ * @return One consumed value, or -1 on error; this is not a Tcl status code.
+ * @see @ref rbc_calling_conventions
+ *
  * Accepts exact lowercase names only. On success stores type and marks specified, distinguishing
  * explicit selection from the caller default. Returns one consumed argument, or minus one without
  * changing option state on error.
@@ -929,6 +1026,15 @@ static Tcl_Size ParseVectorType(void *clientData, Tcl_Interp *interp, Tcl_Size o
 /**
  * @ingroup vector_storage_private
  * @brief Parse vector creation options and process names sequentially.
+ * @param[in] clientData Borrowed interpreter-owned VectorInterpData registry, valid throughout the call.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks
+ *     its own.
+ * @param[in] objv Borrowed array. Full ensemble arguments; names and creation options start at index 2.
+ * @return TCL_OK with the final qualified name, otherwise TCL_ERROR; earlier creations remain.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_calling_conventions
+ *
  * Borrows ensemble arguments and owns the parsed name array, work string and result object. Prechecks
  * existing candidate vectors for read-only state before processing names. Exact registered names take
  * precedence over legacy numeric size/range suffixes; -literal disables suffix interpretation.
@@ -1201,6 +1307,15 @@ error:
 /**
  * @ingroup vector_storage_private
  * @brief Destroy named vectors in argument order.
+ * @param[in] clientData Borrowed interpreter-owned VectorInterpData registry, valid throughout the call.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks
+ *     its own.
+ * @param[in] objv Borrowed array. Full ensemble arguments; references to destroy start at index 2.
+ * @return TCL_OK after all requested destructions, otherwise TCL_ERROR; earlier destructions remain.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_calling_conventions
+ *
  * Uses the range-aware lookup helper, then destroys the entire returned vector, not only its selected
  * interval. Stops on the first lookup error; earlier destruction and observer side effects remain. No
  * names is a successful no-op. Read-only state protects data mutation, not destruction. Lookup and
@@ -1224,6 +1339,14 @@ static int VectorDestroyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Si
 /**
  * @ingroup vector_storage_private
  * @brief Evaluate an expression as Tcl values or a newly named vector.
+ * @param[in] clientData Unused ensemble registry pointer; the handler obtains registry data from interp.
+ * @param[in] interp Owning evaluation interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Three for list output, or five for named output; other counts are rejected.
+ * @param[in] objv Full ensemble array: expression at index 2, or -name, name, expression at indices 2 through 4.
+ * @return TCL_OK with copied values or the new qualified name, otherwise TCL_ERROR; evaluation side effects
+ *     remain.
+ * @see @ref rbc_calling_conventions
+ *
  * Without -name delegates directly to Rbc_ExprVector. Named output resolves an existing destination
  * namespace and rejects vector or command collisions before evaluation and again afterward. Evaluates
  * once into an owned temporary, creates an unmapped vector of the resulting type, and transfers its
@@ -1303,6 +1426,15 @@ done:
 /**
  * @ingroup vector_storage_private
  * @brief List registered vector names with an optional glob filter.
+ * @param[in] clientData Borrowed interpreter-owned VectorInterpData registry, valid throughout the call.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks
+ *     its own.
+ * @param[in] objv Borrowed array. Full ensemble arguments; optional glob pattern at index 2.
+ * @return TCL_OK with a list of qualified registry names in hash traversal order.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_calling_conventions
+ *
  * Walks the interpreter vector hash table, appending fully qualified keys to a new Tcl list. Matching
  * uses Tcl_StringMatch on the full name. Order follows hash traversal and is not sorted. Does not
  * enumerate Tcl aliases, instance command spellings or mapped arrays, and does not invoke vector

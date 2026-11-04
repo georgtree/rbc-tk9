@@ -122,6 +122,27 @@ conversion. They reuse capacity where possible and fill prepared storage before
 committing it and releasing the old allocation. Cache flushing and notification
 skip destroyed identities and preserve the command result.</p>
 </section>
+<section id="scalar-helper-contracts">
+<h2>Scalar helper contracts<a class="headerlink" href="#scalar-helper-contracts" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="vector-numeric-reference.html#c.GetArithmeticScalar" title="GetArithmeticScalar"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetArithmeticScalar()</span></code></a> distinguishes an explicit pair from a scalar
+before calling <a class="reference internal" href="vector-access-reference.html#c.Rbc_GetComplex" title="Rbc_GetComplex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetComplex()</span></code></a>. Its complex flag describes the input
+syntax, even if the imaginary component is zero; the flag is not evidence
+that conversion succeeded. Conversion can execute Tcl and partially write
+its output, so callers must inspect the status before using the value.</p>
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexAdd" title="Rbc_ComplexAdd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexAdd()</span></code></a>, <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexSub" title="Rbc_ComplexSub"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexSub()</span></code></a> and
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexMul" title="Rbc_ComplexMul"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexMul()</span></code></a> perform ordinary double arithmetic on copied values.
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexDiv" title="Rbc_ComplexDiv"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexDiv()</span></code></a> uses a ratio-based denominator to reduce avoidable
+intermediate overflow and underflow. It requires the caller to reject zero
+and does not report nonfinite results. <a class="reference internal" href="vector-numeric-reference.html#c.ComplexArithmetic" title="ComplexArithmetic"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexArithmetic()</span></code></a> adds the
+zero-divisor error check for the instance arithmetic path. These are distinct
+contracts, not interchangeable error-reporting interfaces.</p>
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexFromReal" title="Rbc_ComplexFromReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexFromReal()</span></code></a> supplies a zero imaginary component, while
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorValueAsComplex" title="Rbc_VectorValueAsComplex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorValueAsComplex()</span></code></a> copies one caller-validated storage index
+and promotes real storage if necessary. Neither helper changes a vector’s
+type or transfers ownership. <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexIsZero" title="Rbc_ComplexIsZero"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexIsZero()</span></code></a> tests exact zero in
+both components; it is not a magnitude tolerance test. The declarations are
+collected in <a class="reference internal" href="vector-access-reference.html"><span class="doc">Vector access C reference</span></a>.</p>
+</section>
 </section>
 
 
@@ -139,6 +160,7 @@ skip destroyed identities and preserve the command result.</p>
 <li><a class="reference internal" href="#ranges-and-searches">Ranges and searches</a></li>
 <li><a class="reference internal" href="#normalization-and-random-values">Normalization and random values</a></li>
 <li><a class="reference internal" href="#sequence-length-and-endpoint-policy">Sequence length and endpoint policy</a></li>
+<li><a class="reference internal" href="#scalar-helper-contracts">Scalar helper contracts</a></li>
 </ul>
 </li>
 </ul>

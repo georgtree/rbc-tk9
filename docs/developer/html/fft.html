@@ -166,16 +166,16 @@ layers:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FftAllocate</span></code> / <code class="docutils literal notranslate"><span class="pre">FftVector</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="fft-reference.html#c.FftAllocate" title="FftAllocate"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftAllocate()</span></code></a> / <a class="reference internal" href="fft-reference.html#c.FftVector" title="FftVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftVector()</span></code></a></p></td>
 <td><p>Nonzero element size; live interpreter data</p></td>
 <td><p>Allocation is owned by caller; lookup returns a borrowed record and may
 change its selected range</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FftTransform</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="fft-reference.html#c.FftTransform" title="FftTransform"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftTransform()</span></code></a></p></td>
 <td><p>Positive power-of-two length, complete roots, pre-scaled inverse input</p></td>
 <td><p>Overwrites scratch data; caller checks all components for finiteness</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FftInstall</span></code> / <code class="docutils literal notranslate"><span class="pre">FftCommit</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="fft-reference.html#c.FftInstall" title="FftInstall"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftInstall()</span></code></a> / <a class="reference internal" href="fft-reference.html#c.FftCommit" title="FftCommit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftCommit()</span></code></a></p></td>
 <td><p>One or two distinct, writable, correctly typed destinations; complete
 Tcl-allocated buffers</p></td>
 <td><p>Transfers ownership and commits before callbacks; no numerical rollback</p></td>
@@ -187,6 +187,27 @@ multi-vector transaction API. <a class="reference internal" href="fft-reference.
 not an additional validation layer. New callers must establish the same
 preconditions as the current command handlers rather than relying on commit
 to discover invalid lengths, destination aliases or read-only vectors.</p>
+</section>
+<section id="count-and-ownership-conventions">
+<h2>Count and ownership conventions<a class="headerlink" href="#count-and-ownership-conventions" title="Link to this heading">¶</a></h2>
+<p>FFT lengths and capacities count <strong>typed values</strong>, not bytes.
+<a class="reference internal" href="fft-reference.html#c.FftAllocate" title="FftAllocate"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftAllocate()</span></code></a> alone takes a separate byte stride. The transform
+kernel consumes N complex values and N/2 roots, with no roots needed for
+N=1. It does not normalize inverse output itself: inverse input is scaled
+before the call.</p>
+<p>The pointer returned by <a class="reference internal" href="fft-reference.html#c.FftVector" title="FftVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftVector()</span></code></a> is borrowed. By contrast,
+<a class="reference internal" href="fft-reference.html#c.FftAllocate" title="FftAllocate"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftAllocate()</span></code></a> returns caller-owned storage. <a class="reference internal" href="fft-reference.html#c.FftInstall" title="FftInstall"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftInstall()</span></code></a>
+transfers an independent completed allocation to the vector and returns
+its detached old pointer and release policy. <a class="reference internal" href="fft-reference.html#c.FftCommit" title="FftCommit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftCommit()</span></code></a> consumes
+all supplied output allocations before running release or notification
+callbacks. The buffer arrays themselves remain caller-owned; transferring
+their entries does not clear those entries. Callers must not free them after
+commit, even if a callback destroys an output.</p>
+<p><a class="reference internal" href="fft-reference.html#c.FftStoreReal" title="FftStoreReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftStoreReal()</span></code></a> supplies the same ownership transfer for a single
+real generator. None of these commit helpers validates its caller’s
+preconditions or provides rollback after callbacks. The parameter contracts
+in <a class="reference internal" href="fft-reference.html"><span class="doc">FFT and generator C reference</span></a> distinguish borrowed records, consumed buffers, and
+old-storage outputs explicitly.</p>
 </section>
 </section>
 
@@ -207,6 +228,7 @@ to discover invalid lengths, destination aliases or read-only vectors.</p>
 <li><a class="reference internal" href="#callback-lifetime-and-reentry">Callback lifetime and reentry</a></li>
 <li><a class="reference internal" href="#frequency-and-window-generators">Frequency and window generators</a></li>
 <li><a class="reference internal" href="#internal-helper-boundaries">Internal helper boundaries</a></li>
+<li><a class="reference internal" href="#count-and-ownership-conventions">Count and ownership conventions</a></li>
 </ul>
 </li>
 </ul>

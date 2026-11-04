@@ -59,14 +59,51 @@ logical state. See <a class="reference internal" href="calling-conventions.html"
 <dt class="sig sig-object c" id="c.GetArithmeticScalar">
 <span class="target" id="group__vector__numeric__paths_1ga9e62f7c28d2265de5a1e29f77295d236"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetArithmeticScalar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">isComplexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetArithmeticScalar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Distinguish an explicit complex pair before scalar expression parsing. </p>
-<p>Marks a two-item Tcl list as complex even if the imaginary part is zero, then delegates conversion to Rbc_GetComplex. Thus a pair such as {3 -4} is not treated as the arithmetic expression 3-4. Returns a Tcl status; conversion may execute Tcl and partially populate the output on failure. </p>
+<p>
+Marks a two-item Tcl list as complex even if the imaginary part is zero, then delegates conversion to Rbc_GetComplex. Thus a pair such as {3 -4} is not treated as the arithmetic expression 3-4. Returns a Tcl status; conversion may execute Tcl and partially populate the output on failure. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Evaluation interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed scalar or pair kept alive through component evaluation. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required complex output; may be partially written on conversion failure. </p></li>
+<li><p><strong>isComplexPtr</strong> – <strong>[out]</strong> Required flag, set from pair syntax before conversion, not from the imaginary value. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on conversion, otherwise TCL_ERROR; consume valuePtr only on success. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexArithmetic">
 <span class="target" id="group__vector__numeric__paths_1ga5f8318a1fe7ffeea093d255cf1a9e131"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexArithmetic</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">operator</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">b</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexArithmetic" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply one supported arithmetic operator to two complex scalars. </p>
-<p>Accepts +, -, * and /. Returns TCL_ERROR with divide-by-zero diagnostic for an exactly zero complex divisor; otherwise writes resultPtr and returns TCL_OK. An unsupported internal operator panics. Does not invoke callbacks. </p>
+<p>
+Accepts +, -, * and /. Returns TCL_ERROR with divide-by-zero diagnostic for an exactly zero complex divisor; otherwise writes resultPtr and returns TCL_OK. An unsupported internal operator panics. Does not invoke callbacks. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>operator</strong> – <strong>[in]</strong> Character code for +, -, * or /. </p></li>
+<li><p><strong>a</strong> – <strong>[in]</strong> Left operand copied by value. </p></li>
+<li><p><strong>b</strong> – <strong>[in]</strong> Right operand; a zero divisor is rejected for division. </p></li>
+<li><p><strong>resultPtr</strong> – <strong>[out]</strong> Required result output, unchanged for rejected division by zero. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after arithmetic, or TCL_ERROR for zero division; finiteness is not guaranteed. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -189,7 +226,25 @@ Parses both external indices and traverses forward or backward according to thei
 <dt class="sig sig-object c" id="c.ComplexSearchOp">
 <span class="target" id="group__vector__numeric__paths_1ga92208c5679c1f04b19b45f4ad2225b5b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSearchOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSearchOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Search for a complex value by matching both scalar components. </p>
-<p>Accepts one target only; interval search is rejected. Uses InRange separately for real and imaginary equality. Returns external indices with checked positive offset addition, or pairs with -value. Target conversion may run Tcl; rechecks receiver lifetime before scanning its current storage without further callbacks. Returns a Tcl status. </p>
+<p>
+Accepts one target only; interval search is rejected. Uses InRange separately for real and imaginary equality. Returns external indices with checked positive offset addition, or pairs with -value. Target conversion may run Tcl; rechecks receiver lifetime before scanning its current storage without further callbacks. Returns a Tcl status. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Live complex receiver retained by the instance dispatcher with its interpreter. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning evaluation interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Full command argument count inherited from the delegating handler. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command array. Optional -value at index 2, then exactly one complex target; two-bound searches fail. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; conversion callbacks can have independent side effects. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -225,14 +280,53 @@ Returns external indices including the offset, or values with -value. One bound 
 <dt class="sig sig-object c" id="c.GetComplexSequenceComponentLength">
 <span class="target" id="group__vector__numeric__paths_1ga0ad702195c292ad25fc85286b60ac039"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetComplexSequenceComponentLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">componentName</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">start</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">finish</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">step</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">hasLengthPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lengthPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetComplexSequenceComponentLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Derive one component’s finite, representable sequence count. </p>
-<p>Initializes hasLengthPtr false and lengthPtr zero. Rejects nonfinite bounds or step. Zero step is accepted only for equal bounds and leaves the component unconstrained. Otherwise sets hasLengthPtr true and computes trunc((finish-start)/step)+1, clamping nonpositive counts to zero and rejecting excessive counts before integer conversion. Returns a Tcl status. </p>
+<p>
+Initializes hasLengthPtr false and lengthPtr zero. Rejects nonfinite bounds or step. Zero step is accepted only for equal bounds and leaves the component unconstrained. Otherwise sets hasLengthPtr true and computes trunc((finish-start)/step)+1, clamping nonpositive counts to zero and rejecting excessive counts before integer conversion. Returns a Tcl status. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>componentName</strong> – <strong>[in]</strong> Borrowed component label used in zero-step diagnostics. </p></li>
+<li><p><strong>start</strong> – <strong>[in]</strong> First component value, required finite. </p></li>
+<li><p><strong>finish</strong> – <strong>[in]</strong> Last requested component bound, required finite. </p></li>
+<li><p><strong>step</strong> – <strong>[in]</strong> Component increment, required finite; zero is allowed only for constant bounds. </p></li>
+<li><p><strong>hasLengthPtr</strong> – <strong>[out]</strong> Required constraint flag, initialized false; may change before a later size error. </p></li>
+<li><p><strong>lengthPtr</strong> – <strong>[out]</strong> Required count output, initialized zero; consume both outputs only on TCL_OK. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with an optional count constraint, otherwise TCL_ERROR. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexSeqOp">
 <span class="target" id="group__vector__numeric__paths_1ga4ab6558ece666d9a49f5791bd5db94f1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSeqOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSeqOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Generate a complex progression with compatible component lengths. </p>
-<p>Defaults step to 1+0i. Numeric finish requires each varying component to imply the same count; a zero-step constant component imposes no count. Both constant components with zero step cannot determine a numeric-finish count. Literal end instead uses current length and permits a zero step. Positive counts resize, fill each component and flush/notify; zero count is a no-op. Rechecks lifetime and writability after argument conversion. Fills prepared storage before committing and releasing the old allocation. Returns a Tcl status. </p>
+<p>
+Defaults step to 1+0i. Numeric finish requires each varying component to imply the same count; a zero-step constant component imposes no count. Both constant components with zero step cannot determine a numeric-finish count. Literal end instead uses current length and permits a zero step. Positive counts resize, fill each component and flush/notify; zero count is a no-op. Rechecks lifetime and writability after argument conversion. Fills prepared storage before committing and releasing the old allocation. Returns a Tcl status. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Live complex receiver retained by the instance dispatcher with its interpreter. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning evaluation interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Full command argument count inherited from the delegating handler. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command array. Start at index 2, finish or end at index 3, and optional step at index 4. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; conversion callbacks can have independent side effects. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -268,7 +362,24 @@ Defaults step to one. Literal end fills the current length; numeric finish uses 
 <dt class="sig sig-object c" id="c.InRange">
 <span class="target" id="group__vector__numeric__paths_1gafd78e07752ebf9229112caceffca8292"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InRange</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test scalar membership using the legacy search tolerance. </p>
-<p>When max-min is below DBL_EPSILON, compares absolute distance from max strictly below DBL_EPSILON. Otherwise accepts normalized positions at least -DBL_EPSILON and less than one plus DBL_EPSILON. Does not reorder bounds, check finiteness, allocate storage or invoke Tcl. Returns a Boolean integer. </p>
+<p>
+When max-min is below DBL_EPSILON, compares absolute distance from max strictly below DBL_EPSILON. Otherwise accepts normalized positions at least -DBL_EPSILON and less than one plus DBL_EPSILON. Does not reorder bounds, check finiteness, allocate storage or invoke Tcl. Returns a Boolean integer. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Candidate scalar. </p></li>
+<li><p><strong>min</strong> – <strong>[in]</strong> Lower bound as supplied; not reordered or checked for finiteness. </p></li>
+<li><p><strong>max</strong> – <strong>[in]</strong> Upper bound as supplied; used as the equality target for a near-zero or negative range. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero for membership under the legacy tolerance rule, zero otherwise. </p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
