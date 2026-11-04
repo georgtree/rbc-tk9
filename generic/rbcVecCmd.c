@@ -738,6 +738,9 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {
 /**
  * @ingroup vector_command_paths
  * @brief Test whether an instance handler accepts complex vectors.
+ * @param[in] proc Handler identity to test against the complex-operation allowlist; never invoked here.
+ * @return Nonzero for an allowed handler, zero otherwise.
+ *
  *
  * Compare handler pointers against the explicit complex-operation allowlist.
  * Aliases sharing a handler inherit its eligibility. This is a dispatch gate,
@@ -755,6 +758,13 @@ static int ComplexOpSupported(RbcVectorCmdOp *proc) {
 /**
  * @ingroup vector_command_paths
  * @brief Validate and dispatch one vector instance operation.
+ * @param[in] clientData Live VectorObject owned by the instance command; retained while its handler runs.
+ * @param[in] interp Owning interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Full Tcl command argument count, including command and operation names.
+ * @param[in] objv Borrowed argument array; objv[0] is the command and objv[1] selects the operation.
+ * @return Handler status on successful dispatch; TCL_ERROR for dispatch, type or protection errors.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
  *
  * clientData is the live receiver. Resolve operation spelling and arity before
  * checking complex support, then reject protected receiver writes according to
@@ -817,6 +827,13 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
 /**
  * @ingroup vector_command_paths
  * @brief Query or set reversible vector data protection.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2 for a query, or 3 to set protection.
+ * @param[in] objv Borrowed full command argument array. Optional objv[2] is the new Tcl boolean.
+ * @return TCL_OK with the current protection boolean, or TCL_ERROR for invalid boolean input.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
  *
  * With objv[2], parse a Tcl boolean before setting the flag; invalid input
  * leaves the flag unchanged. Return the current boolean state for both forms.
@@ -840,6 +857,14 @@ static int ReadOnlyOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
 /**
  * @ingroup vector_command_paths
  * @brief Return the receiver numeric type without converting storage.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. No arguments after the operation name; this handler does
+ *     not inspect the array.
+ * @return TCL_OK with real or complex; an invalid internal type is a fatal invariant violation.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
  *
  * Return real or complex as a Tcl string. Requires a live receiver and performs
  * no mutation, cache flush or client notification. An unrecognized internal type
@@ -867,6 +892,15 @@ static int TypeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
 
 /**
  * @brief Append vector ranges or Tcl lists in argument order.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc At least 3.
+ * @param[in] objv Borrowed full command argument array. Entries from objv[2] are vector references or Tcl lists,
+ *     processed in order.
+ * @return TCL_OK after all appends, or TCL_ERROR; earlier successful arguments remain committed.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_command_paths
  *
  * Vector lookup precedes list conversion. Earlier arguments remain appended
@@ -914,6 +948,15 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /**
  * @brief Return element-wise arithmetic as a Tcl list without assigning it.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 3; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. objv[1] selects +, -, * or /; objv[2] is a vector
+ *     reference or scalar operand.
+ * @return TCL_OK with a list of copied arithmetic results, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_numeric_paths
  *
  * Resolves a vector operand before scalar conversion. A vector selection must
@@ -1180,6 +1223,15 @@ static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
 }
 /**
  * @brief Read native-format channel scalars into vector storage.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc At least 3.
+ * @param[in] objv Borrowed full command argument array. objv[2] names the channel; later entries contain the
+ *     optional count and binary-input switches.
+ * @return TCL_OK with the logical value count read, or TCL_ERROR; earlier complete chunks may remain committed.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_command_paths
  *
  * Retains a readable channel, temporarily sets binary translation, and restores
@@ -1442,6 +1494,14 @@ cleanup:
 /**
  * @ingroup vector_command_paths
  * @brief Flush the mapped-array cache without emptying vector storage.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. No arguments after the operation name; this handler does
+ *     not inspect the array.
+ * @return TCL_OK after requesting cache flushing; lower-level variable errors are not propagated.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
  *
  * Delegate to Rbc_VectorFlushCache even when automatic flushing is disabled.
  * Read-only vectors are accepted because this is not a numerical write. The
@@ -1457,6 +1517,15 @@ static int ClearOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 
 /**
  * @brief Delete selected values by bitmap compaction, or destroy the receiver.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc At least 3 through normal dispatch; the internal two-argument branch destroys the receiver.
+ * @param[in] objv Borrowed full command argument array. Entries from objv[2] are inclusive index/range selections
+ *     to remove.
+ * @return TCL_OK after compaction or internal destruction, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * With no indices, destroys the vector. Otherwise parses inclusive ranges into
@@ -1560,6 +1629,14 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /**
  * @brief Copy the receiver into a named destination.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 3; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. objv[2] is the literal output vector name.
+ * @return TCL_OK after copying or a self-copy no-op, otherwise TCL_ERROR; publication may fail after commit.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * Creates a missing destination with the source type; skips the receiver itself.
@@ -1605,6 +1682,14 @@ done:
 /**
  * @ingroup vector_command_paths
  * @brief Evaluate an expression into the existing receiver, then publish.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 3; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. objv[2] is the vector expression assigned to the existing
+ *     receiver.
+ * @return TCL_OK after assignment and publication, otherwise TCL_ERROR; no result vector is created.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
  *
  * Pass objv[2] to Rbc_ExprVector with the receiver as destination. Evaluation
  * uses temporary result storage and validates destination survival, writability
@@ -1624,6 +1709,15 @@ static int ExprOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
 
 /**
  * @brief Read an inclusive selection or fill it with a scalar value.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 3 to read, or 4 to assign.
+ * @param[in] objv Borrowed full command argument array. objv[2] is the index/range; optional objv[3] is the real
+ *     scalar or complex pair to replicate.
+ * @return TCL_OK with a copied list for reads or the original value object for writes; TCL_ERROR on failure.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * Reads return a Tcl list, including one-element selections. Writes convert a
@@ -1720,6 +1814,14 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 
 /**
  * @brief Query or resize the receiver and return its resulting length.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2 to query, or 3 to resize.
+ * @param[in] objv Borrowed full command argument array. Optional objv[2] is the new nonnegative logical length.
+ * @return TCL_OK with the queried or requested length, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * Accepts a nonnegative Tcl_Size, reuses capacity or prepares larger storage,
@@ -1757,6 +1859,15 @@ static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /**
  * @brief Interleave equal-length, same-type source selections into the receiver.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc At least 3.
+ * @param[in] objv Borrowed full command argument array. Entries from objv[2] are same-type vector references with
+ *     equal selected lengths.
+ * @return TCL_OK after interleaving and publication, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * Resolves sources and saves their first indices, then builds the complete
@@ -1918,6 +2029,15 @@ cleanup:
 
 /**
  * @brief Normalize real values by the cached source minimum and range.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2 for list output, or 3 for vector output.
+ * @param[in] objv Borrowed full command argument array. Optional objv[2] is a literal real destination name; no
+ *     destination means a copied Tcl list.
+ * @return TCL_OK with a list or after output publication, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_numeric_paths
  *
  * Computes (value-min)/(max-min) after refreshing source extrema. Without a
@@ -1973,6 +2093,15 @@ static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
 
 /**
  * @brief Query or assign the external numeric index offset.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2 to query, or 3 to assign.
+ * @param[in] objv Borrowed full command argument array. Optional objv[2] is the new external Tcl_Size index
+ *     offset.
+ * @return TCL_OK with the current offset, or TCL_ERROR for conversion failure.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * Parses a Tcl_Size and returns the current offset as an integer. Does not move
@@ -1993,6 +2122,15 @@ static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /**
  * @brief Insert evenly spaced values between neighboring source values.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 4; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. objv[2] names the destination; objv[3] is the positive
+ *     number of inserted values per interval.
+ * @return TCL_OK after output publication, otherwise TCL_ERROR; output mapping can fail after commit.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * Requires integer density at least one. For nonempty length N, output length
@@ -2125,6 +2263,15 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
 
 /**
  * @brief Replace existing values with samples from the shared random generator.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. No arguments after the operation name; this handler does
+ *     not inspect the array.
+ * @return TCL_OK after replacing existing values and requesting publication.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_numeric_paths
  *
  * Keeps length and type. Real entries receive one Rbc_RandomDouble sample;
@@ -2161,6 +2308,15 @@ static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /**
  * @brief Return an inclusive interval of copied Tcl values.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 4; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. objv[2] and objv[3] are inclusive first and last index
+ *     expressions.
+ * @return TCL_OK with copied values, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_numeric_paths
  *
  * Parses both external indices and traverses forward or backward according to
@@ -2273,6 +2429,15 @@ static int ComplexSearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc
 
 /**
  * @brief Find real values in a tolerant interval or delegate complex matching.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 3 to 5, subject to the optional flag and target count.
+ * @param[in] objv Borrowed full command argument array. Optional -value at objv[2] requests values; remaining
+ *     arguments specify one target or two real bounds.
+ * @return TCL_OK with matching external indices or values, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_numeric_paths
  *
  * Returns external indices including the offset, or values with -value. One
@@ -2513,6 +2678,15 @@ static int ComplexSeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, T
 
 /**
  * @brief Generate a real arithmetic progression or delegate complex generation.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 4 or 5.
+ * @param[in] objv Borrowed full command argument array. objv[2] is start; objv[3] is finish or end; optional
+ *     objv[4] is step.
+ * @return TCL_OK after generation or a zero-count no-op, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_numeric_paths
  *
  * Defaults step to one. Literal end fills the current length; numeric finish
@@ -2614,6 +2788,15 @@ static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
 
 /**
  * @brief Replace values from a vector range or Tcl list.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 3; validated by the dispatcher.
+ * @param[in] objv Borrowed full command argument array. objv[2] is a vector reference or a Tcl list of replacement
+ *     values.
+ * @return TCL_OK after replacement and publication, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_command_paths
  *
  * Stages vector ranges (including self-copy) or converted list values before
@@ -2669,6 +2852,15 @@ static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
 
 /**
  * @brief Sort real values and apply their permutation to companion vectors.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc At least 2.
+ * @param[in] objv Borrowed full command argument array. Optional -reverse starts at objv[2]; following entries are
+ *     companion vector references.
+ * @return TCL_OK after applying the permutation and publication, otherwise TCL_ERROR.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_command_paths
  *
  * Retains resolved destination identities and validates all keys before any
@@ -2812,6 +3004,15 @@ lookupError:
 
 /**
  * @brief Append round-robin source subsequences to named destinations.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc At least 2; no destinations is a successful no-op.
+ * @param[in] objv Borrowed full command argument array. Entries from objv[2] are literal destination names
+ *     receiving round-robin source subsequences.
+ * @return TCL_OK after appending and publishing all outputs, otherwise TCL_ERROR; earlier commits remain.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
+ *
  * @ingroup vector_edit_paths
  *
  * Requires source length divisible by destination count; no destinations is a
@@ -2891,6 +3092,14 @@ done:
 /**
  * @ingroup vector_command_paths
  * @brief Query, replace or remove the receiver mapped-array association.
+ * @param[in,out] vPtr Receiver retained by the dispatcher; this handler's contract specifies any mutation.
+ * @param[in] interp Owning interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc 2 to query, or 3 to replace/remove the mapping.
+ * @param[in] objv Borrowed full command argument array. Optional objv[2] is the array name; an empty string
+ *     requests unmapping.
+ * @return TCL_OK with the stored mapping name when present, or TCL_ERROR from mapping.
+ * @see @ref rbc_command_arguments
+ * @see @ref rbc_callback_lifetimes
  *
  * With objv[2], delegate to Rbc_VectorMapVariable and propagate its error.
  * An empty name removes the mapping; it does not rename the vector command.

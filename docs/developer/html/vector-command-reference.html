@@ -459,35 +459,134 @@ Allocates storage and retains a private outer Tcl list representation before eva
 <dt class="sig sig-object c" id="c.rbcVectorCommands.ComplexOpSupported">
 <span class="target" id="group__vector__command__paths_1gab3d3471f6f734e267eaa26f123c342df"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexOpSupported</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">RbcVectorCmdOp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ComplexOpSupported" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test whether an instance handler accepts complex vectors. </p>
-<p>Compare handler pointers against the explicit complex-operation allowlist. Aliases sharing a handler inherit its eligibility. This is a dispatch gate, not type validation for operands or output vectors. Adding a handler requires reviewing this list separately from the operation table and write checks. </p>
+<p>
+Compare handler pointers against the explicit complex-operation allowlist. Aliases sharing a handler inherit its eligibility. This is a dispatch gate, not type validation for operands or output vectors. Adding a handler requires reviewing this list separately from the operation table and write checks. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proc</strong> – <strong>[in]</strong> Handler identity to test against the complex-operation allowlist; never invoked here. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero for an allowed handler, zero otherwise.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.Rbc_VectorInstanceObjCmd">
 <span class="target" id="group__vector__command__paths_1gaeb83239bb22af9edfec808d154ac1771"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorInstanceObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.Rbc_VectorInstanceObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate and dispatch one vector instance operation. </p>
-<p>clientData is the live receiver. Resolve operation spelling and arity before checking complex support, then reject protected receiver writes according to the handler and argument count. Source-only operations check destinations in their own handlers. Reset the shared inclusive selection to the whole vector only after these checks succeed. Preserve the interpreter and receiver while calling the handler, release both, and return its status. Preservation retains the record, not storage after destruction; handlers must revalidate after callbacks. Rejected dispatch does not reset a prior selection. </p>
+<p>
+clientData is the live receiver. Resolve operation spelling and arity before checking complex support, then reject protected receiver writes according to the handler and argument count. Source-only operations check destinations in their own handlers. Reset the shared inclusive selection to the whole vector only after these checks succeed. Preserve the interpreter and receiver while calling the handler, release both, and return its status. Preservation retains the record, not storage after destruction; handlers must revalidate after callbacks. Rejected dispatch does not reset a prior selection. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Live VectorObject owned by the instance command; retained while its handler runs. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Full Tcl command argument count, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument array; objv[0] is the command and objv[1] selects the operation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Handler status on successful dispatch; TCL_ERROR for dispatch, type or protection errors. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.ReadOnlyOp">
 <span class="target" id="group__vector__command__paths_1gadd04ae25aa85256513a9dc0233f8a06f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadOnlyOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ReadOnlyOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or set reversible vector data protection. </p>
-<p>With objv[2], parse a Tcl boolean before setting the flag; invalid input leaves the flag unchanged. Return the current boolean state for both forms. Changing protection does not change values, length or type, flush the array, or notify clients. Unlocking is allowed; this is not a lifetime/ownership lock. The dispatcher preserves the live receiver for this handler. </p>
+<p>
+With objv[2], parse a Tcl boolean before setting the flag; invalid input leaves the flag unchanged. Return the current boolean state for both forms. Changing protection does not change values, length or type, flush the array, or notify clients. Unlocking is allowed; this is not a lifetime/ownership lock. The dispatcher preserves the live receiver for this handler. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> 2 for a query, or 3 to set protection. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the new Tcl boolean. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the current protection boolean, or TCL_ERROR for invalid boolean input. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.TypeOp">
 <span class="target" id="group__vector__command__paths_1ga2641e33a8b3066438ef6d6069671f714"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.TypeOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the receiver numeric type without converting storage. </p>
-<p>Return real or complex as a Tcl string. Requires a live receiver and performs no mutation, cache flush or client notification. An unrecognized internal type is an invariant violation handled by Tcl_Panic, not a user conversion error. </p>
+<p>
+Return real or complex as a Tcl string. Requires a live receiver and performs no mutation, cache flush or client notification. An unrecognized internal type is an invariant violation handled by Tcl_Panic, not a user conversion error. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> 2; validated by the dispatcher. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. No arguments after the operation name; this handler does not inspect the array. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with real or complex; an invalid internal type is a fatal invariant violation. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.AppendOp">
 <span class="target" id="group__vector__command__paths_1ga2e7e0565d97e44376e1e9aee4681adca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.AppendOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append vector ranges or Tcl lists in argument order. </p>
-<p>Vector lookup precedes list conversion. Earlier arguments remain appended if a later argument fails. Reports the appended range when length grew, including the error path; otherwise successful calls report a full update. Flushes the mapped cache when configured. Notification may execute callbacks. </p>
+<p>
+Vector lookup precedes list conversion. Earlier arguments remain appended if a later argument fails. Reports the appended range when length grew, including the error path; otherwise successful calls report a full update. Flushes the mapped cache when configured. Notification may execute callbacks. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> At least 3. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are vector references or Tcl lists, processed in order. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after all appends, or TCL_ERROR; earlier successful arguments remain committed. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -508,42 +607,174 @@ Allocates storage and retains a private outer Tcl list representation before eva
 <dt class="sig sig-object c" id="c.rbcVectorCommands.BinreadOp">
 <span class="target" id="group__vector__command__paths_1gac4f505724683035261de2ae3da36aae2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BinreadOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.BinreadOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read native-format channel scalars into vector storage. </p>
-<p>Retains a readable channel, temporarily sets binary translation, and restores the saved translation if the caller has not closed the channel. Real values use one scalar, complex values two interleaved scalars. A positive count performs one read; zero reads chunks until EOF or a zero-byte read. Rejects incomplete values rather than buffering partial records. Completed chunks remain on error and trigger cache flushing/notification while preserving the original error state. Success reports logical value count. Checks destination lifetime/read-only state and channel registration after reflected reads. The dispatcher retains the vector. </p>
+<p>
+Retains a readable channel, temporarily sets binary translation, and restores the saved translation if the caller has not closed the channel. Real values use one scalar, complex values two interleaved scalars. A positive count performs one read; zero reads chunks until EOF or a zero-byte read. Rejects incomplete values rather than buffering partial records. Completed chunks remain on error and trigger cache flushing/notification while preserving the original error state. Success reports logical value count. Checks destination lifetime/read-only state and channel registration after reflected reads. The dispatcher retains the vector. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> At least 3. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] names the channel; later entries contain the optional count and binary-input switches. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the logical value count read, or TCL_ERROR; earlier complete chunks may remain committed. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.ClearOp">
 <span class="target" id="group__vector__command__paths_1ga2feff3fe9439c818cae4c3f6c4ac98d0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClearOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ClearOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Flush the mapped-array cache without emptying vector storage. </p>
-<p>Delegate to Rbc_VectorFlushCache even when automatic flushing is disabled. Read-only vectors are accepted because this is not a numerical write. The helper may invoke user variable traces, whose side effects are not undone. Return TCL_OK after the void helper; do not access the receiver afterward or claim that cache recreation errors are propagated. No value notification is requested by this handler. </p>
+<p>
+Delegate to Rbc_VectorFlushCache even when automatic flushing is disabled. Read-only vectors are accepted because this is not a numerical write. The helper may invoke user variable traces, whose side effects are not undone. Return TCL_OK after the void helper; do not access the receiver afterward or claim that cache recreation errors are propagated. No value notification is requested by this handler. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> 2; validated by the dispatcher. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. No arguments after the operation name; this handler does not inspect the array. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after requesting cache flushing; lower-level variable errors are not propagated. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.ExprOp">
 <span class="target" id="group__vector__command__paths_1ga2a87984b9d6bc45e4dd0de6d2b4b655f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ExprOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ExprOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate an expression into the existing receiver, then publish. </p>
-<p>Pass objv[2] to Rbc_ExprVector with the receiver as destination. Evaluation uses temporary result storage and validates destination survival, writability and compatible result type before assignment. Propagate an evaluation or assignment error without calling NotifyCommandWrite. On success, request a full update through that callback-aware helper and return TCL_OK. This path does not create a named result vector or return its values as a Tcl list; expression and notification callback side effects remain observable. </p>
+<p>
+Pass objv[2] to Rbc_ExprVector with the receiver as destination. Evaluation uses temporary result storage and validates destination survival, writability and compatible result type before assignment. Propagate an evaluation or assignment error without calling NotifyCommandWrite. On success, request a full update through that callback-aware helper and return TCL_OK. This path does not create a named result vector or return its values as a Tcl list; expression and notification callback side effects remain observable. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> 3; validated by the dispatcher. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is the vector expression assigned to the existing receiver. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after assignment and publication, otherwise TCL_ERROR; no result vector is created. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.SetOp">
 <span class="target" id="group__vector__command__paths_1gaa61fd39e30e3fab73b9e4153a06ed4ea"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.SetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace values from a vector range or Tcl list. </p>
-<p>Stages vector ranges (including self-copy) or converted list values before replacing storage. Failed conversion does not write destination data. Tcl callbacks retain their own side effects. Flushes/notifies only a still-live committed object; callbacks cannot redirect the operation by recreating a name. </p>
+<p>
+Stages vector ranges (including self-copy) or converted list values before replacing storage. Failed conversion does not write destination data. Tcl callbacks retain their own side effects. Flushes/notifies only a still-live committed object; callbacks cannot redirect the operation by recreating a name. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> 3; validated by the dispatcher. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is a vector reference or a Tcl list of replacement values. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after replacement and publication, otherwise TCL_ERROR. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.SortOp">
 <span class="target" id="group__vector__command__paths_1ga11c9c3ac266bba0b62d09c950cda6542"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SortOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.SortOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sort real values and apply their permutation to companion vectors. </p>
-<p>Retains resolved destination identities and validates all keys before any write. Reuses one scratch array to apply the permutation without callbacks; only then flushes and notifies surviving objects. Notifications may alter or destroy committed vectors, but never expose a partially applied permutation. </p>
+<p>
+Retains resolved destination identities and validates all keys before any write. Reuses one scratch array to apply the permutation without callbacks; only then flushes and notifies surviving objects. Notifications may alter or destroy committed vectors, but never expose a partially applied permutation. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> At least 2. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional -reverse starts at objv[2]; following entries are companion vector references. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after applying the permutation and publication, otherwise TCL_ERROR. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.VariableOp">
 <span class="target" id="group__vector__command__paths_1gad37c1a984ab8b9354fcdfab853f96add"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VariableOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.VariableOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query, replace or remove the receiver mapped-array association. </p>
-<p>With objv[2], delegate to Rbc_VectorMapVariable and propagate its error. An empty name removes the mapping; it does not rename the vector command. On success, copy the stored array name into the Tcl result when non-NULL; otherwise do not explicitly set a result. The name is the stored mapping spelling, not a newly qualified command name. Read-only and complex receivers are supported. Mapping can invoke traces and is not a rollback transaction. </p>
+<p>
+With objv[2], delegate to Rbc_VectorMapVariable and propagate its error. An empty name removes the mapping; it does not rename the vector command. On success, copy the stored array name into the Tcl result when non-NULL; otherwise do not explicitly set a result. The name is the stored mapping spelling, not a newly qualified command name. Read-only and complex receivers are supported. Mapping can invoke traces and is not a rollback transaction. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> 2 to query, or 3 to replace/remove the mapping. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the array name; an empty string requests unmapping. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the stored mapping name when present, or TCL_ERROR from mapping. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">

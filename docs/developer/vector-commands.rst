@@ -19,6 +19,19 @@ It preserves the receiver and interpreter during the handler. This retains the
 record, not its destroyed storage: each handler still needs lifetime checks
 after callback-capable work.
 
+The handler receives the **full** argument array: ``objv[0]`` is the vector
+command, ``objv[1]`` the operation, and operation-specific input starts at
+``objv[2]``. The dispatcher does not shift this array. This differs from
+:c:func:`ConvertCommandList <rbcVectorCommands.ConvertCommandList>`, whose
+arguments contain only values. See :doc:`calling-conventions` for borrowed
+Tcl argument lifetimes. Each handler reference specifies its accepted count
+and the meaning of the remaining positions.
+
+Handler return status and interpreter result are separate contracts. Query
+handlers explicitly set their results; successful mutation handlers do not
+uniformly return a name, length or value list. A successful status also does
+not promise that callbacks left the committed data unchanged.
+
 Mutation, array-cache flushing and client notification are separate steps.
 A helper that changes storage does not necessarily perform all three. Immediate
 notifications and Tcl variable traces are callback boundaries; numerical
@@ -36,12 +49,13 @@ Unsupported complex operations are rejected before the read-only check.
 Dispatch errors leave the previous selection unchanged; accepted operations
 start with the complete receiver selected.
 
-``type`` reports ``real`` or ``complex`` and never changes storage type.
-``readonly`` returns the current boolean, optionally changing it after boolean
+:c:func:`TypeOp <rbcVectorCommands.TypeOp>` reports ``real`` or ``complex`` and never changes storage type.
+:c:func:`ReadOnlyOp <rbcVectorCommands.ReadOnlyOp>` returns the current boolean, optionally changing it after boolean
 conversion succeeds. It is reversible and emits no value-change notification.
 The flag protects data writes, not command renaming, mapping or lifecycle.
 
-``clear`` means **clear the mapped-array cache**, not empty the vector. It is
+:c:func:`ClearOp <rbcVectorCommands.ClearOp>` implements ``clear``,
+meaning **clear the mapped-array cache**, not empty the vector. It is
 allowed for protected vectors and explicitly flushes even when automatic
 flushing is disabled. The cache normally retains only its ``end`` entry after
 recreation; subsequent reads materialize values again. User unset/write traces
@@ -49,7 +63,7 @@ may run during flushing, and their side effects can include data changes,
 remapping or destruction. The handler returns TCL_OK after the void helper and
 does not report lower-level cache recreation status.
 
-``variable`` queries the stored mapping name, or delegates replacement/removal
+:c:func:`VariableOp <rbcVectorCommands.VariableOp>` queries the stored mapping name, or delegates replacement/removal
 to :c:func:`Rbc_VectorMapVariable`. An empty argument removes the association; it does not
 rename the vector command or discard numerical storage. The returned mapping
 spelling need not be a fully qualified command name. Array names reject
@@ -57,7 +71,7 @@ parentheses before removing an old mapping, although literal vector command
 names may contain them. For later mapping failures, the old array is not
 restored. See :doc:`vector-access` for trace ownership and lifetime boundaries.
 
-Instance ``expr`` assigns to the existing receiver. Evaluation creates a
+:c:func:`ExprOp <rbcVectorCommands.ExprOp>` assigns to the existing receiver. Evaluation creates a
 temporary result and checks that the original destination survives and remains
 writable before copying compatible data. A real result can populate a complex
 destination with zero imaginary parts; a complex result cannot change a real
@@ -70,14 +84,14 @@ named vector; see :doc:`expression-engine` for the evaluator contracts.
 Append and replacement
 ----------------------
 
-``append`` tries each argument as a vector reference before treating it as a
+:c:func:`AppendOp <rbcVectorCommands.AppendOp>` tries each argument as a vector reference before treating it as a
 list. Vector append requires matching types and permits self-append. List
 conversion stages every value before changing destination storage. Failed
 conversion or a read-only check cannot leave an appended prefix of that list.
 Earlier successful arguments remain appended if a later argument fails, and
 the handler still notifies clients about those earlier changes.
 
-``set`` also prefers vector references. It stages vector ranges, including
+:c:func:`SetOp <rbcVectorCommands.SetOp>` also prefers vector references. It stages vector ranges, including
 self-copy, and transfers completed list storage into the destination. Failed
 list conversion does not resize or overwrite destination values. Callback
 side effects are not rolled back: a callback may edit the vector, and append
@@ -104,7 +118,7 @@ lexicographically, and a heap sort constructs the permutation. Sorting is not
 stable and does not define a total ordering for NaNs. Complex keys are rejected.
 An empty successful sort still returns an allocation so NULL denotes failure.
 
-The sort command resolves and retains all destination objects, validates them,
+:c:func:`SortOp <rbcVectorCommands.SortOp>` resolves and retains all destination objects, validates them,
 and allocates the permutation and one reusable scratch array. It applies every
 permutation before invoking any variable trace or observer. This avoids a full
 output allocation per vector. Callbacks see all sorted data; later callbacks
@@ -114,7 +128,8 @@ are skipped rather than resolving a replacement with the same name.
 Binary channel input
 --------------------
 
-``binread`` retains a readable Tcl channel for the duration of the command. Formats select supported native C
+:c:func:`BinreadOp <rbcVectorCommands.BinreadOp>` retains a readable Tcl channel
+for the duration of the command. Formats select supported native C
 scalar types by family and byte width; bytes are converted to doubles. This is
 not a platform-independent file format, and large integers may lose precision.
 Real vectors consume one scalar per value; complex vectors consume interleaved

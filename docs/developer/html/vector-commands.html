@@ -58,6 +58,17 @@ It resets the receiver’s selection to the full vector before calling a handler
 It preserves the receiver and interpreter during the handler. This retains the
 record, not its destroyed storage: each handler still needs lifetime checks
 after callback-capable work.</p>
+<p>The handler receives the <strong>full</strong> argument array: <code class="docutils literal notranslate"><span class="pre">objv[0]</span></code> is the vector
+command, <code class="docutils literal notranslate"><span class="pre">objv[1]</span></code> the operation, and operation-specific input starts at
+<code class="docutils literal notranslate"><span class="pre">objv[2]</span></code>. The dispatcher does not shift this array. This differs from
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a>, whose
+arguments contain only values. See <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> for borrowed
+Tcl argument lifetimes. Each handler reference specifies its accepted count
+and the meaning of the remaining positions.</p>
+<p>Handler return status and interpreter result are separate contracts. Query
+handlers explicitly set their results; successful mutation handlers do not
+uniformly return a name, length or value list. A successful status also does
+not promise that callbacks left the committed data unchanged.</p>
 <p>Mutation, array-cache flushing and client notification are separate steps.
 A helper that changes storage does not necessarily perform all three. Immediate
 notifications and Tcl variable traces are callback boundaries; numerical
@@ -73,25 +84,26 @@ while operations writing other vectors must validate those destinations.
 Unsupported complex operations are rejected before the read-only check.
 Dispatch errors leave the previous selection unchanged; accepted operations
 start with the complete receiver selected.</p>
-<p><code class="docutils literal notranslate"><span class="pre">type</span></code> reports <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code> and never changes storage type.
-<code class="docutils literal notranslate"><span class="pre">readonly</span></code> returns the current boolean, optionally changing it after boolean
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.TypeOp" title="rbcVectorCommands.TypeOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">TypeOp</span></code></a> reports <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code> and never changes storage type.
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ReadOnlyOp" title="rbcVectorCommands.ReadOnlyOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadOnlyOp</span></code></a> returns the current boolean, optionally changing it after boolean
 conversion succeeds. It is reversible and emits no value-change notification.
 The flag protects data writes, not command renaming, mapping or lifecycle.</p>
-<p><code class="docutils literal notranslate"><span class="pre">clear</span></code> means <strong>clear the mapped-array cache</strong>, not empty the vector. It is
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ClearOp" title="rbcVectorCommands.ClearOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClearOp</span></code></a> implements <code class="docutils literal notranslate"><span class="pre">clear</span></code>,
+meaning <strong>clear the mapped-array cache</strong>, not empty the vector. It is
 allowed for protected vectors and explicitly flushes even when automatic
 flushing is disabled. The cache normally retains only its <code class="docutils literal notranslate"><span class="pre">end</span></code> entry after
 recreation; subsequent reads materialize values again. User unset/write traces
 may run during flushing, and their side effects can include data changes,
 remapping or destruction. The handler returns TCL_OK after the void helper and
 does not report lower-level cache recreation status.</p>
-<p><code class="docutils literal notranslate"><span class="pre">variable</span></code> queries the stored mapping name, or delegates replacement/removal
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.VariableOp" title="rbcVectorCommands.VariableOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">VariableOp</span></code></a> queries the stored mapping name, or delegates replacement/removal
 to <a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorMapVariable" title="Rbc_VectorMapVariable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable()</span></code></a>. An empty argument removes the association; it does not
 rename the vector command or discard numerical storage. The returned mapping
 spelling need not be a fully qualified command name. Array names reject
 parentheses before removing an old mapping, although literal vector command
 names may contain them. For later mapping failures, the old array is not
 restored. See <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a> for trace ownership and lifetime boundaries.</p>
-<p>Instance <code class="docutils literal notranslate"><span class="pre">expr</span></code> assigns to the existing receiver. Evaluation creates a
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ExprOp" title="rbcVectorCommands.ExprOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ExprOp</span></code></a> assigns to the existing receiver. Evaluation creates a
 temporary result and checks that the original destination survives and remains
 writable before copying compatible data. A real result can populate a complex
 destination with zero imaginary parts; a complex result cannot change a real
@@ -103,13 +115,13 @@ named vector; see <a class="reference internal" href="expression-engine.html"><s
 </section>
 <section id="append-and-replacement">
 <h2>Append and replacement<a class="headerlink" href="#append-and-replacement" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">append</span></code> tries each argument as a vector reference before treating it as a
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendOp" title="rbcVectorCommands.AppendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendOp</span></code></a> tries each argument as a vector reference before treating it as a
 list. Vector append requires matching types and permits self-append. List
 conversion stages every value before changing destination storage. Failed
 conversion or a read-only check cannot leave an appended prefix of that list.
 Earlier successful arguments remain appended if a later argument fails, and
 the handler still notifies clients about those earlier changes.</p>
-<p><code class="docutils literal notranslate"><span class="pre">set</span></code> also prefers vector references. It stages vector ranges, including
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SetOp" title="rbcVectorCommands.SetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetOp</span></code></a> also prefers vector references. It stages vector ranges, including
 self-copy, and transfers completed list storage into the destination. Failed
 list conversion does not resize or overwrite destination values. Callback
 side effects are not rolled back: a callback may edit the vector, and append
@@ -132,7 +144,7 @@ provide valid corresponding storage in every key vector. Keys are compared
 lexicographically, and a heap sort constructs the permutation. Sorting is not
 stable and does not define a total ordering for NaNs. Complex keys are rejected.
 An empty successful sort still returns an allocation so NULL denotes failure.</p>
-<p>The sort command resolves and retains all destination objects, validates them,
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortOp" title="rbcVectorCommands.SortOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortOp</span></code></a> resolves and retains all destination objects, validates them,
 and allocates the permutation and one reusable scratch array. It applies every
 permutation before invoking any variable trace or observer. This avoids a full
 output allocation per vector. Callbacks see all sorted data; later callbacks
@@ -141,7 +153,8 @@ are skipped rather than resolving a replacement with the same name.</p>
 </section>
 <section id="binary-channel-input">
 <h2>Binary channel input<a class="headerlink" href="#binary-channel-input" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">binread</span></code> retains a readable Tcl channel for the duration of the command. Formats select supported native C
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.BinreadOp" title="rbcVectorCommands.BinreadOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">BinreadOp</span></code></a> retains a readable Tcl channel
+for the duration of the command. Formats select supported native C
 scalar types by family and byte width; bytes are converted to doubles. This is
 not a platform-independent file format, and large integers may lose precision.
 Real vectors consume one scalar per value; complex vectors consume interleaved
