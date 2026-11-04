@@ -84,7 +84,7 @@ list of numbers into a vector. Substitution-result conversion retains the Tcl
 result object before clearing the interpreter result, protecting the string
 while conversion itself may report an error.
 
-Bracket scanning uses ``Tcl_ParseCommand`` to find the real closing bracket
+:c:func:`ParseBracketScript` uses ``Tcl_ParseCommand`` to find the real closing bracket
 rather than searching for the next literal ``]``. Token evaluation follows Tcl's
 quote/brace rules. These helpers do not independently retain the interpreter or
 its registry across arbitrary destructive callbacks. In particular, ordinary
@@ -96,7 +96,7 @@ Temporary storage and type changes
 
 Only evaluator temporaries may change numeric type. They have no registry entry,
 command or mapped array. :c:func:`SetExpressionVectorType` discards their old storage;
-promotion instead allocates complex capacity, copies used real values with zero
+:c:func:`PromoteExpressionVectorToComplex` instead allocates complex capacity, copies used real values with zero
 imaginary parts and then releases the old allocation. These operations do not
 change named-vector type or send client notifications.
 
@@ -107,13 +107,13 @@ retain the vector through destructive reentry. Ordinary evaluator allocations
 are dynamic storage with no user release callback; do not reuse these helpers
 as a general named-vector commit API.
 
-Complex binary arithmetic promotes the left temporary and broadcasts a
-length-one operand; other lengths must agree. Boolean operators build a separate
+:c:func:`ApplyComplexBinaryOperator` promotes the left temporary and broadcasts a
+length-one operand; other lengths must agree. :c:func:`ApplyComplexBooleanOperator` builds a separate
 real result before replacing the left storage. Equality compares both components
 exactly; logical truth is nonzero in either component. Ordering and modulus are
 not supported by the complex operator dispatcher.
 
-Shift operators rotate values rather than shift integer bits. A count must be a
+:c:func:`RotateExpressionVector` rotates values rather than shift integer bits. A count must be a
 scalar with zero imaginary part. Positive finite counts are reduced modulo the
 length and truncated; nonpositive counts retain the historical no-op behavior.
 Length zero or one returns before finite-count validation. Rotation uses a hold
@@ -151,7 +151,7 @@ remaining in the result. Reducer adapters check ``errno`` but can defer finite
 validation to that final pass. :c:func:`MathError` reads ``errno``; callers relying on
 it must reset it before the operation.
 
-The ``map`` adapter differs from these C math adapters. It retains each command
+:c:func:`MapVector` differs from these C math adapters. It retains each command
 prefix word, allocates an independent result, validates every returned scalar or
 pair, and attaches an element index to callback errors. Prefix substitutions run
 once, numeric argument evaluation follows, and only then do per-element calls
@@ -175,3 +175,73 @@ These expressions both return ``{{9.0 6.0}}``::
 A two-element pair still explicitly establishes complex type, including a pair
 whose imaginary component is zero. This rule concerns evaluator temporaries;
 it does not permit changing the type of an existing named vector.
+
+Parser argument and completion contracts
+-----------------------------------------
+
+The parser receives a live writable expression buffer and caller-owned
+``Value``/``ParseInfo`` records. Their pointers are borrowed for the call;
+returning a value does not transfer ownership of those records. The caller
+must release the vector temporary on both success and failure. In particular,
+Tcl substitutions can have lasting side effects even when parsing fails.
+
+.. list-table:: Cursor and result conventions
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Helper
+     - Input position
+     - Result/cursor rule
+   * - :c:func:`ParseBracketScript` / :c:func:`ParseBracketValue`
+     - Immediately after the opening bracket.
+     - Cursor follows the closing bracket once found, even if evaluation later fails.
+   * - :c:func:`ParseQuotedValue` / :c:func:`ParseBracedValue`
+     - At the opening quote or brace.
+     - Parsing may write the end cursor before substitution or numeric conversion fails.
+   * - :c:func:`ParseMapPrefix`
+     - At the prefix, optionally preceded by whitespace.
+     - Success advances the cursor and returns one retained Tcl object reference.
+   * - :c:func:`ParseMathFunction`
+     - At a possible function name in writable expression storage.
+     - TCL_RETURN means no recognized function; it is an internal lookup sentinel.
+   * - :c:func:`NextValue`
+     - At the next operand in shared parser state.
+     - The terminating token is already scanned; the cursor is not rewound.
+
+:c:func:`ParseBracketScript` propagates the script's completion code unchanged.
+:c:func:`MapVector`, by contrast, converts unsupported callback completion
+codes into map errors. A helper's non-OK return therefore must be interpreted
+according to that helper's contract. A written cursor or populated temporary
+is not proof of successful completion.
+
+:c:func:`ParseSubstitutionResult` takes a temporary Tcl reference before
+clearing the interpreter result, then calls :c:func:`ParseString`. This protects
+the substitution text from result replacement; it does not retain arbitrary
+vectors named by that text. :c:func:`ParseMapPrefix` transfers one retained
+reference to its caller, while :c:func:`MapVector` separately retains the
+individual prefix words used for repeated evaluation.
+
+Adapter data and temporary failure states
+------------------------------------------
+
+``clientData`` is a function pointer for :c:func:`ComponentFunc`,
+:c:func:`ScalarFunc` and :c:func:`VectorFunc`. It is a paired-function descriptor
+for :c:func:`ComplexComponentFunc`, :c:func:`ComplexRealFunc`,
+:c:func:`ComplexScalarFunc` and :c:func:`ComplexRealScalarFunc`. These adapters
+borrow their dispatch data; none frees it. The precise type is recorded in
+each parameter contract in :doc:`expression-engine-reference`.
+
+Temporary mutation does not imply rollback. :c:func:`ComponentFunc` stores
+an element before checking its arithmetic result; an error can leave earlier
+values changed. :c:func:`ComplexRealFunc` instead prepares a separate real
+buffer and installs it after validation. :c:func:`CopyExpressionVector` can
+clear or retype the temporary before duplication fails. The enclosing evaluator
+discards failed temporaries rather than promising a uniform state for them.
+Named-vector assignment remains a separate operation through
+:c:func:`CopyExpressionResult` and :c:func:`Rbc_ExprVector`.
+
+:c:func:`SetMathError` installs the result and structured error code but does
+not itself return an error status. :c:func:`MathError` classifies the supplied
+value together with the current ``errno``. Callers must both set the intended
+completion status and apply the appropriate finite-result check; these are
+separate responsibilities.

@@ -45,6 +45,11 @@
 <h1>Vector expression C reference<a class="headerlink" href="#vector-expression-c-reference" title="Link to this heading">¶</a></h1>
 <p>These are private interfaces in <code class="docutils literal notranslate"><span class="pre">rbcVectorInt.h</span></code>, not installed stubs entries.
 See <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a> for temporary ownership and Tcl callback boundaries.</p>
+<p>The caller keeps the interpreter and vector subsystem alive across Tcl
+substitutions and map callbacks. A successful evaluated temporary is owned by
+the caller and released with <a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorFree" title="Rbc_VectorFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorFree()</span></code></a>; a destination passed to
+assignment remains caller-owned. The internal helpers described in
+<a class="reference internal" href="expression-engine-reference.html"><span class="doc">Expression engine internal C reference</span></a> do not replace these entry-point contracts.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorEvaluate">
 <span class="target" id="rbc_vector_int_8h_1a53db4be24d8e6c3446ceb80a0bb540bf"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorEvaluate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorEvaluate" title="Link to this definition">¶</a><br /></dt>

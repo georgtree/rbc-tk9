@@ -169,3 +169,25 @@ Most scalar kernels return numbers rather than Tcl statuses. The adapters check
 its final values again. A successful internal arithmetic dispatch alone is not
 a promise of a finite result. Rounding operates independently on complex
 components and uses half-away-from-zero; it does not round magnitude or phase.
+
+Scalar ownership and dispatch
+-----------------------------
+
+Component kernels receive their numeric input by value. For example,
+:c:func:`ComplexReal` and :c:func:`ComplexImag` extract copied components,
+:c:func:`ComplexConj` returns a copied conjugate, and :c:func:`ComplexAbs`
+uses the magnitude of both components. They acquire no vector or Tcl-object
+references and cannot publish a vector change themselves.
+
+:c:func:`Identity` and :c:func:`Zero` supply the real-input branches of paired
+adapters. :c:func:`Arg` uses the phase of a real value; :c:func:`ComplexArg`
+uses both components. :c:func:`ComplexCeil`, :c:func:`ComplexFloor` and
+:c:func:`ComplexRound` operate independently on the two components. Their
+scalar nature does not imply an error-reporting or finite-output guarantee:
+the adapter and final evaluator apply those policies.
+
+:c:func:`Random` ignores its input and advances the shared random generator
+once. :c:func:`ComplexRandom` draws independent real and imaginary components,
+advancing it twice. These scalar signatures therefore describe value passing,
+not purity. :c:func:`ComplexValueIsFinite` provides the separate test that both
+components are finite.

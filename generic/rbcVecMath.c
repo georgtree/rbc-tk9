@@ -245,6 +245,13 @@ static MathFunction mathFunctions[] = {
 
 /**
  * @brief Check a temporary-array allocation size.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] count Nonnegative logical element count; negative values are rejected.
+ * @param[in] elementSize Nonzero element width in bytes, guaranteed by the caller.
+ * @param[out] byteCountPtr Required byte-count output, unchanged on failure.
+ * @return TCL_OK with the product, otherwise TCL_ERROR; no allocation occurs.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Requires nonzero elementSize. Rejects negative count and size_t multiplication overflow with a Tcl
@@ -265,6 +272,12 @@ static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementS
 
 /**
  * @brief Check the byte count for real expression storage.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] count Logical double count, subject to nonnegative/overflow validation.
+ * @param[out] byteCountPtr Required output, unchanged on failure.
+ * @return TCL_OK with the byte count, otherwise TCL_ERROR.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Delegates to GetArrayByteCount with sizeof(double); output remains untouched on validation failure.
@@ -275,6 +288,13 @@ static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *b
 
 /**
  * @brief Convert a scalar shift into a bounded rotation offset.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] scalar Requested rotation count; nonpositive values are a no-op.
+ * @param[in] length Nonnegative used length supplied by the caller; lengths at most one bypass finite validation.
+ * @param[out] offsetPtr Required offset output, initialized zero before validation.
+ * @return TCL_OK with a bounded offset, or TCL_ERROR for a nonfinite count when length exceeds one.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Initializes the output to zero. Length zero or one returns before finite validation. Otherwise
@@ -308,6 +328,13 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
 
 /**
  * @brief Rotate real or complex temporary storage in place.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @param[in] operator LEFT_SHIFT or RIGHT_SHIFT token, guaranteed by the caller.
+ * @param[in] scalar Requested rotation count passed through GetRotationOffset.
+ * @return TCL_OK after rotation or a no-op, otherwise TCL_ERROR before storage mutation.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Requires LEFT_SHIFT or RIGHT_SHIFT and an evaluator-owned vector. Allocates a hold buffer for the
@@ -369,6 +396,10 @@ static int RotateExpressionVector(Tcl_Interp *interp, VectorObject *vPtr, int op
 
 /**
  * @brief Release a temporary allocation according to its current policy.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * No metadata is cleared; caller must not use the released pointer afterward.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Static storage is borrowed, dynamic storage uses ckfree, and a custom policy is invoked directly.
@@ -387,6 +418,10 @@ static void FreeExpressionData(VectorObject *vPtr) {
 
 /**
  * @brief Release and clear an expression temporary's storage metadata.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * Caller guarantees that a custom storage release cannot destroy or reenter this temporary.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Resets data, length, capacity, selection and freeProc after FreeExpressionData. Leaves type and
@@ -405,6 +440,10 @@ static void ReleaseExpressionStorage(VectorObject *vPtr) {
 
 /**
  * @brief Discard storage when changing an unregistered temporary's type.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @param[in] type Desired real or complex type; a change discards the existing values.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Same type is a no-op. A change asserts no registry entry, command or mapped array, releases old
@@ -426,6 +465,11 @@ static void SetExpressionVectorType(VectorObject *vPtr, Rbc_VectorType type) {
 
 /**
  * @brief Copy a selected source into an evaluator temporary of matching type.
+ * @param[in,out] destPtr Detached destination temporary; may be cleared or retyped even on failure.
+ * @param[in] srcPtr Live source with a valid inclusive selection, kept alive through synchronous copying.
+ * @return TCL_OK after typed duplication, otherwise TCL_ERROR; no named output is published.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Changes the destination temporary's type before private duplication. The caller retains the source
@@ -439,6 +483,10 @@ static int CopyExpressionVector(VectorObject *destPtr, VectorObject *srcPtr) {
 
 /**
  * @brief Promote a real temporary while preserving length and capacity.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK after promotion or for already-complex input; TCL_ERROR on size/allocation failure.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Allocates complex capacity, copies used real values with zero imaginary parts and then releases old
@@ -480,6 +528,11 @@ static int PromoteExpressionVectorToComplex(VectorObject *vPtr) {
 
 /**
  * @brief Replace an expression temporary with one real value.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @param[in] value Double copied into the single-element result; finiteness is not checked.
+ * @return TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Sets real type, resizes to one and stores the value. Returns Tcl status without checking finiteness;
@@ -496,6 +549,11 @@ static int SetExpressionRealScalar(VectorObject *vPtr, double value) {
 
 /**
  * @brief Replace an expression temporary with one complex value.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @param[in] value Complex pair copied into the single-element result; finiteness is not checked.
+ * @return TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Sets complex type, resizes to one and stores the pair. Returns Tcl status; does not publish a named-
@@ -512,6 +570,14 @@ static int SetExpressionComplexScalar(VectorObject *vPtr, Rbc_Complex value) {
 
 /**
  * @brief Compute one supported complex arithmetic operation.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] operator PLUS, MINUS, MULT, DIVIDE or EXPONENT token; others report an error.
+ * @param[in] a Left scalar operand, copied by value.
+ * @param[in] b Right scalar operand, copied by value.
+ * @param[out] resultPtr Required result output; consume only on TCL_OK, which does not guarantee finiteness.
+ * @return TCL_OK after arithmetic, otherwise TCL_ERROR for an unsupported operator or domain failure.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Handles addition, subtraction, multiplication, division and power. Rejects zero divisor and
@@ -546,6 +612,11 @@ static int ApplyComplexBinaryValue(Tcl_Interp *interp, int operator, Rbc_Complex
 
 /**
  * @brief Replace a complex temporary with real boolean negation values.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK with real boolean values, otherwise TCL_ERROR before replacing storage. Input must be complex.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Allocates a separate real array and computes exact complex-zero tests before releasing the input.
@@ -587,6 +658,13 @@ static int ApplyComplexNotOperator(Tcl_Interp *interp, VectorObject *vPtr) {
 
 /**
  * @brief Compute broadcast complex equality or logical results as real values.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] operator EQUAL, NEQ, AND or OR.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @param[in] v2Ptr Live right operand temporary; scalar broadcasting and shape rules depend on the operator.
+ * @return TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Requires EQUAL, NEQ, AND or OR. Length-one operands broadcast; other lengths must match. Computes
@@ -684,6 +762,13 @@ static int ApplyComplexBooleanOperator(Tcl_Interp *interp, int operator, VectorO
 
 /**
  * @brief Validate a real-valued scalar count and rotate the left temporary.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] operator LEFT_SHIFT or RIGHT_SHIFT.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @param[in] v2Ptr Live right operand temporary; scalar broadcasting and shape rules depend on the operator.
+ * @return TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Requires a length-one right operand. A complex scalar with zero imaginary part is accepted; nonzero
@@ -710,6 +795,13 @@ static int ApplyComplexShiftOperator(Tcl_Interp *interp, int operator, VectorObj
 
 /**
  * @brief Dispatch complex arithmetic, boolean or rotation operations.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] operator An expression binary token; unsupported ordering/modulus operators are rejected.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @param[in] v2Ptr Live right operand temporary; scalar broadcasting and shape rules depend on the operator.
+ * @return TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Either operand may be real. Arithmetic promotes the left temporary and broadcasts scalars, otherwise
@@ -808,6 +900,10 @@ static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorOb
 
 /**
  * @brief Test finiteness of both complex components.
+ * @param[in] value Complex value whose two components are tested.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Returns true only if both real and imaginary values are finite. Does not inspect errno or set a Tcl
@@ -893,6 +989,10 @@ static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIn
 
 /**
  * @brief Find the first finite real value in the selected interval.
+ * @param[in] vPtr Live real vector with a caller-validated inclusive first/last selection.
+ * @return First finite storage index in the selection, or -1 when none exists.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Requires valid real storage and first/last bounds. Returns its storage index or -1. Does not alter
@@ -911,6 +1011,11 @@ static Tcl_Size First(VectorObject *vPtr) {
 
 /**
  * @brief Find the next finite real value after a current index.
+ * @param[in] vPtr Live real vector with a caller-validated inclusive selection.
+ * @param[in] current Previous storage index; scanning starts at current+1 through last.
+ * @return Next finite storage index, or -1 when no later finite value exists.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Scans through last inclusive, returning a storage index or -1. Requires valid real storage and a
@@ -953,6 +1058,10 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Draw one real random value, ignoring the input value.
+ * @param[in] value Ignored real input; the shared random state advances.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Delegates to Rbc_RandomDouble and advances its random state. Invocation count is controlled by the
@@ -965,6 +1074,10 @@ static double Random(double value) {
 
 /**
  * @brief Draw independent real and imaginary random components.
+ * @param[in] value Ignored complex input; the shared random state advances twice.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginary order. Uses the
@@ -1466,6 +1579,10 @@ static double Nonzeros(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Return a real component unchanged.
+ * @param[in] value Real component returned unchanged.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Used by real branches of component adapters. Does not validate finiteness or normalize signed zero.
@@ -1474,6 +1591,10 @@ static double Identity(double value) { return value; }
 
 /**
  * @brief Return real zero regardless of the input.
+ * @param[in] value Ignored real component.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Supplies the imaginary-part adapter for real input. Finite-input iteration belongs to the enclosing
@@ -1487,6 +1608,10 @@ static double Zero(double value) {
 
 /**
  * @brief Return the phase of a real value in radians.
+ * @param[in] value Real component whose phase is requested.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses atan2 with positive zero as the imaginary argument. Branch and signed-zero behavior follow that
@@ -1496,6 +1621,10 @@ static double Arg(double value) { return atan2(0.0, value); }
 
 /**
  * @brief Return a complex value's Euclidean magnitude.
+ * @param[in] value Complex value whose magnitude is requested.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses hypot to avoid unnecessary overflow in intermediate squares. The magnitude itself can exceed
@@ -1505,6 +1634,10 @@ static double ComplexAbs(Rbc_Complex value) { return hypot(value.real, value.ima
 
 /**
  * @brief Return complex phase in radians.
+ * @param[in] value Complex value whose phase is requested.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses atan2(imag, real), including its branch and signed-zero behavior. Does not alter the value or
@@ -1514,6 +1647,10 @@ static double ComplexArg(Rbc_Complex value) { return atan2(value.imag, value.rea
 
 /**
  * @brief Extract the real component.
+ * @param[in] value Complex value whose real component is copied.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns the stored double directly; validation is the adapter's responsibility.
@@ -1522,6 +1659,10 @@ static double ComplexReal(Rbc_Complex value) { return value.real; }
 
 /**
  * @brief Extract the imaginary component.
+ * @param[in] value Complex value whose imaginary component is copied.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns the stored double directly; validation is the adapter's responsibility.
@@ -1530,6 +1671,10 @@ static double ComplexImag(Rbc_Complex value) { return value.imag; }
 
 /**
  * @brief Return the complex conjugate.
+ * @param[in] value Complex value to conjugate.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Negates only the imaginary component, including its sign bit for zero. Does not allocate or validate
@@ -2175,6 +2320,10 @@ static double ComplexNonzeros(VectorObject *vPtr) {
 
 /**
  * @brief Apply ceil independently to both complex components.
+ * @param[in] value Complex value to round upward componentwise.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Does not round magnitude or phase. The adapter validates errno and finite results.
@@ -2187,6 +2336,10 @@ static Rbc_Complex ComplexCeil(Rbc_Complex value) {
 
 /**
  * @brief Apply floor independently to both complex components.
+ * @param[in] value Complex value to round downward componentwise.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Does not round magnitude or phase. The adapter validates errno and finite results.
@@ -2199,6 +2352,10 @@ static Rbc_Complex ComplexFloor(Rbc_Complex value) {
 
 /**
  * @brief Round both components halfway away from zero.
+ * @param[in] value Complex value to round componentwise.
+ * The scalar is passed by value; no vector storage or ownership is transferred.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Delegates each component to Round. Does not change a complex temporary into real storage.
@@ -2340,6 +2497,12 @@ static double Round(double value) {
 
 /**
  * @brief Copy an evaluated temporary into a fixed-type destination.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] destPtr Live writable fixed-type destination; caller protects lifetime across storage release.
+ * @param[in] srcPtr Evaluated source temporary with a valid selected interval, kept alive through copying.
+ * @return TCL_OK after copying, or TCL_ERROR for incompatible types or resize/copy failure.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Matching types delegate to private duplication. Real results can populate a complex destination with
@@ -2375,6 +2538,11 @@ static int CopyExpressionResult(Tcl_Interp *interp, VectorObject *destPtr, Vecto
 
 /**
  * @brief Record destruction of the original assignment destination.
+ * @param[in] interp Notification interpreter, unused here.
+ * @param[in,out] clientData Caller-owned int destruction flag, valid for the temporary observer's lifetime.
+ * @param[in] notify Notification kind; only RBC_VECTOR_NOTIFY_DESTROY sets the flag.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * clientData points to the caller's live stack flag. Only DESTROY sets it. The destruction path
@@ -2468,6 +2636,14 @@ done:
 
 /**
  * @brief Evaluate the complete writable expression into a caller-owned temporary.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] string NUL-terminated writable expression buffer, valid through evaluation; delimiters are
+ *     restored.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return TCL_OK with a complete finite result, otherwise a non-OK evaluation status; side effects remain.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Initializes parser state, calls NextValue and requires END. Rejects nonfinite components in the
@@ -2518,6 +2694,15 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
 
 /**
  * @brief Evaluate one precedence-delimited expression into an existing temporary.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] parsePtr Live parser state borrowing the writable expression; updated through the scanned
+ *     terminator.
+ * @param[in] prec Precedence cutoff; -1 accepts a complete expression up to a delimiter.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return TCL_OK for the parsed subexpression, otherwise a non-OK status; temporary contents may be partial.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Owns a second operand temporary for this recursive invocation and frees it on every exit. Stops at
@@ -2945,6 +3130,12 @@ error:
 
 /**
  * @brief Set an arithmetic message and structured Tcl error code.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] className Borrowed NUL-terminated arithmetic error class, copied into the error-code list.
+ * @param[in] messageObj Message object retained by the Tcl result and error code; a new reference-count-zero
+ *     object is valid.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Installs messageObj as result and as the third element of the ARITH/class/message error-code list.
@@ -2965,6 +3156,10 @@ static void SetMathError(Tcl_Interp *interp, const char *className, Tcl_Obj *mes
 
 /**
  * @brief Classify a floating-point failure using errno and the value.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] value Failed arithmetic value, interpreted together with the current errno; errno is not reset here.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Reports DOMAIN for EDOM or NaN, UNDERFLOW/OVERFLOW for ERANGE or infinity, otherwise UNKNOWN. Reads
@@ -3002,6 +3197,12 @@ static void MathError(Tcl_Interp *interp, double value) {
 
 /**
  * @brief Convert a retained Tcl result into an expression value.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return Conversion status after clearing and parsing the retained interpreter result.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Increments the result object reference before clearing the interpreter result, so conversion cannot
@@ -3028,6 +3229,12 @@ static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr) {
 
 /**
  * @brief Locate a matching close bracket and evaluate the enclosed Tcl script.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] string NUL-terminated buffer starting immediately after the opening bracket.
+ * @param[out] termPtr Required borrowed cursor output after the closing bracket; may be set before script failure.
+ * @return Parsing error or the unchanged Tcl_EvalEx completion code, not necessarily only TCL_OK/TCL_ERROR.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Input begins after the opening bracket. Uses Tcl_ParseCommand repeatedly to respect command syntax,
@@ -3075,6 +3282,15 @@ static int ParseBracketScript(Tcl_Interp *interp, const char *string, const char
 
 /**
  * @brief Evaluate bracketed Tcl and convert its result to numeric storage.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] string NUL-terminated token buffer starting immediately after the opening bracket.
+ * @param[out] termPtr Required borrowed cursor after the matching delimiter; may be written before later
+ *     evaluation failure.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Delegates bracket parsing/evaluation and then ParseSubstitutionResult. Non-OK Tcl completion
@@ -3090,6 +3306,15 @@ static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char 
 
 /**
  * @brief Parse and evaluate a quoted Tcl token sequence.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] string NUL-terminated token buffer starting at the opening double quote.
+ * @param[out] termPtr Required borrowed cursor after the matching delimiter; may be written before later
+ *     evaluation failure.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Input includes the opening quote. Uses Tcl parsing/substitution rules, releases parse storage after
@@ -3114,6 +3339,15 @@ static int ParseQuotedValue(Tcl_Interp *interp, const char *string, const char *
 
 /**
  * @brief Parse a braced Tcl value and convert it to expression storage.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] string NUL-terminated token buffer starting at the opening brace.
+ * @param[out] termPtr Required borrowed cursor after the matching delimiter; may be written before later
+ *     evaluation failure.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Input includes the opening brace. Uses Tcl_ParseBraces and evaluates its tokens, preserving brace
@@ -3138,6 +3372,13 @@ static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char *
 
 /**
  * @brief Scan one operator, delimiter or numeric/vector value.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] parsePtr Parser cursor and token state borrowing a live writable expression buffer.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return TCL_OK after scanning; VALUE fills the temporary, while operators/delimiters need not change it.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Advances nextPtr and records token; VALUE fills the supplied temporary. Bare numbers use
@@ -3358,6 +3599,14 @@ static double Fmod(double x, double y) {
 
 /**
  * @brief Interpret substitution text as a scalar, complex pair or vector reference.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] string Borrowed NUL-terminated substitution text, kept valid through conversion and lookup.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return TCL_OK with copied scalar/pair/vector values, otherwise TCL_ERROR; arbitrary numeric lists are not
+ *     vectors.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Tries a fully consumed strtod number, then a two-element complex list, then a fully consumed
@@ -3419,6 +3668,12 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
 
 /**
  * @brief Parse and retain one Tcl command-prefix value.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] nextPtr Required cursor into a live expression buffer, advanced after successful prefix parsing.
+ * @return Tcl object with one retained reference, released by the caller with Tcl_DecrRefCount, or NULL on
+ *     failure.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Accepts braces, quotes, variable or bracket substitution, or a bare word ending at
@@ -3471,6 +3726,13 @@ static Tcl_Obj *ParseMapPrefix(Tcl_Interp *interp, const char **nextPtr) {
 
 /**
  * @brief Apply a Tcl command prefix to every value of a detached temporary.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] prefix Borrowed nonempty Tcl command-prefix list, kept alive through extraction of its words.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK after replacing the temporary with complete finite callback results, otherwise TCL_ERROR.
+ * Callback side effects remain; callback completion codes other than TCL_OK are converted to errors.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Retains individual prefix words against recursive shimmering and appends one real or complex-pair
@@ -3586,6 +3848,13 @@ done:
 
 /**
  * @brief Parse map(prefix, expression) before invoking element callbacks.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] parsePtr Parser positioned after map's opening parenthesis; success leaves token VALUE.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return TCL_OK after argument evaluation and mapping, otherwise TCL_ERROR.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Retains the parsed prefix while evaluating the complete second argument. Requires comma and closing
@@ -3627,6 +3896,16 @@ done:
 
 /**
  * @brief Try function syntax before falling back to vector-name parsing.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] start Writable expression span starting at a candidate function name; temporary NUL edits are
+ *     restored.
+ * @param[in,out] parsePtr Live parser state; success advances past the function argument and sets token VALUE.
+ * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
+ *     outcome.
+ * @return TCL_OK for a completed function, TCL_RETURN for no recognized function, or TCL_ERROR on evaluation
+ *     failure.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Requires a writable input string: temporarily replaces the opening parenthesis with NUL during
@@ -3687,6 +3966,14 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
 
 /**
  * @brief Apply a real component function to finite selected values.
+ * @param[in] clientData Borrowed ComponentProc function pointer, valid throughout synchronous dispatch; never
+ *     freed here.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
+ *     finite checks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Rejects complex input, resets errno and walks First/Next. Writes each result before errno/finite
@@ -3721,6 +4008,14 @@ static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject
 
 /**
  * @brief Apply paired real/complex component implementations.
+ * @param[in] clientData Borrowed ComplexComponentFunction descriptor, valid throughout synchronous dispatch; never
+ *     freed here.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
+ *     finite checks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Real input delegates to ComponentFunc. Complex input visits all used values, resets errno for each
@@ -3769,6 +4064,14 @@ static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, Vecto
 
 /**
  * @brief Reduce a real temporary to one real value.
+ * @param[in] clientData Borrowed ScalarProc function pointer, valid throughout synchronous dispatch; never freed
+ *     here.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
+ *     finite checks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Rejects complex input, computes the scalar before resizing and checks errno. Stores one value on
@@ -3798,6 +4101,14 @@ static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
 
 /**
  * @brief Reduce a real or complex temporary while retaining its type.
+ * @param[in] clientData Borrowed ComplexScalarFunction descriptor, valid throughout synchronous dispatch; never
+ *     freed here.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
+ *     finite checks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Selects the corresponding reducer, computes before resizing to one, and reports errno failures. A
@@ -3855,6 +4166,14 @@ static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorOb
 
 /**
  * @brief Reduce either numeric type to one real result.
+ * @param[in] clientData Borrowed ComplexRealScalarFunction descriptor, valid throughout synchronous dispatch;
+ *     never freed here.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
+ *     finite checks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Computes the reduction before any type change or release, checks errno, then uses
@@ -3886,6 +4205,14 @@ static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, Vect
 
 /**
  * @brief Invoke a real-only whole-vector function adapter.
+ * @param[in] clientData Borrowed VectorProc function pointer, valid throughout synchronous dispatch; never freed
+ *     here.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
+ *     finite checks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Rejects complex input and returns the selected function's Tcl status. The function owns its
@@ -3902,6 +4229,14 @@ static int VectorFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
 
 /**
  * @brief Convert component results from complex input into real temporary storage.
+ * @param[in] clientData Borrowed ComplexRealFunction descriptor, valid throughout synchronous dispatch; never
+ *     freed here.
+ * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
+ * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
+ *     finite checks.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Real input delegates to ComponentFunc. Complex input allocates real capacity and validates each

@@ -209,6 +209,25 @@ its final values again. A successful internal arithmetic dispatch alone is not
 a promise of a finite result. Rounding operates independently on complex
 components and uses half-away-from-zero; it does not round magnitude or phase.</p>
 </section>
+<section id="scalar-ownership-and-dispatch">
+<h2>Scalar ownership and dispatch<a class="headerlink" href="#scalar-ownership-and-dispatch" title="Link to this heading">¶</a></h2>
+<p>Component kernels receive their numeric input by value. For example,
+<a class="reference internal" href="expression-numerics-reference.html#c.ComplexReal" title="ComplexReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexReal()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexImag" title="ComplexImag"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexImag()</span></code></a> extract copied components,
+<a class="reference internal" href="expression-numerics-reference.html#c.ComplexConj" title="ComplexConj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexConj()</span></code></a> returns a copied conjugate, and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexAbs" title="ComplexAbs"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAbs()</span></code></a>
+uses the magnitude of both components. They acquire no vector or Tcl-object
+references and cannot publish a vector change themselves.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Identity" title="Identity"><code class="xref c c-func docutils literal notranslate"><span class="pre">Identity()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Zero" title="Zero"><code class="xref c c-func docutils literal notranslate"><span class="pre">Zero()</span></code></a> supply the real-input branches of paired
+adapters. <a class="reference internal" href="expression-numerics-reference.html#c.Arg" title="Arg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Arg()</span></code></a> uses the phase of a real value; <a class="reference internal" href="expression-numerics-reference.html#c.ComplexArg" title="ComplexArg"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexArg()</span></code></a>
+uses both components. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexCeil" title="ComplexCeil"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexCeil()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexFloor" title="ComplexFloor"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexFloor()</span></code></a> and
+<a class="reference internal" href="expression-numerics-reference.html#c.ComplexRound" title="ComplexRound"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRound()</span></code></a> operate independently on the two components. Their
+scalar nature does not imply an error-reporting or finite-output guarantee:
+the adapter and final evaluator apply those policies.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Random" title="Random"><code class="xref c c-func docutils literal notranslate"><span class="pre">Random()</span></code></a> ignores its input and advances the shared random generator
+once. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexRandom" title="ComplexRandom"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRandom()</span></code></a> draws independent real and imaginary components,
+advancing it twice. These scalar signatures therefore describe value passing,
+not purity. <a class="reference internal" href="expression-engine-reference.html#c.ComplexValueIsFinite" title="ComplexValueIsFinite"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexValueIsFinite()</span></code></a> provides the separate test that both
+components are finite.</p>
+</section>
 </section>
 
 
@@ -227,6 +246,7 @@ components and uses half-away-from-zero; it does not round magnitude or phase.</
 <li><a class="reference internal" href="#real-order-statistics-and-normalization">Real order statistics and normalization</a></li>
 <li><a class="reference internal" href="#higher-moments-and-compatibility">Higher moments and compatibility</a></li>
 <li><a class="reference internal" href="#complex-elementary-functions">Complex elementary functions</a></li>
+<li><a class="reference internal" href="#scalar-ownership-and-dispatch">Scalar ownership and dispatch</a></li>
 </ul>
 </li>
 </ul>

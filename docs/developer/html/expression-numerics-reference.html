@@ -46,6 +46,11 @@
 <p>These private reducers and scalar kernels implement the expression adapters.
 They are not installed C API entry points. See <a class="reference internal" href="expression-numerics.html"><span class="doc">Expression reductions and scalar kernels</span></a> for
 sample selection, formulas, ownership and compatibility caveats.</p>
+<p>Scalar kernel arguments are copied values, while selection helpers borrow a
+live real vector. Neither form acquires vector ownership. Parameter contracts
+state the input interpretation; the surrounding adapters control error and
+finite-value handling. See <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> and
+<a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__expression__numerics"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Expression</span> <span class="pre">numerical</span> <span class="pre">kernels</span></span></dt>
@@ -56,14 +61,38 @@ sample selection, formulas, ownership and compatibility caveats.</p>
 <dt class="sig sig-object c" id="c.Random">
 <span class="target" id="group__expression__numerics_1gaf0c6ed26e281dc843e13dff3e7dbef45"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Random</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Random" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw one real random value, ignoring the input value. </p>
-<p>Delegates to Rbc_RandomDouble and advances its random state. Invocation count is controlled by the component adapter; this helper does not seed or create an independent generator. </p>
+<p>
+Delegates to Rbc_RandomDouble and advances its random state. Invocation count is controlled by the component adapter; this helper does not seed or create an independent generator. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Ignored real input; the shared random state advances. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexRandom">
 <span class="target" id="group__expression__numerics_1ga3ba9a695f9d900f5c9ccb36836a091e5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexRandom</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexRandom" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw independent real and imaginary random components. </p>
-<p>Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginary order. Uses the shared random helper, not a vector-owned generator. </p>
+<p>
+Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginary order. Uses the shared random helper, not a vector-owned generator. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Ignored complex input; the shared random state advances twice. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -182,56 +211,152 @@ sample selection, formulas, ownership and compatibility caveats.</p>
 <dt class="sig sig-object c" id="c.Identity">
 <span class="target" id="group__expression__numerics_1gaadbb95828eae47534c3c2a735ff0dd85"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Identity</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Identity" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a real component unchanged. </p>
-<p>Used by real branches of component adapters. Does not validate finiteness or normalize signed zero. </p>
+<p>
+Used by real branches of component adapters. Does not validate finiteness or normalize signed zero. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Real component returned unchanged. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Zero">
 <span class="target" id="group__expression__numerics_1ga9f80f330400030c86e93554e7b49e7a7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Zero</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Zero" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return real zero regardless of the input. </p>
-<p>Supplies the imaginary-part adapter for real input. Finite-input iteration belongs to the enclosing adapter. </p>
+<p>
+Supplies the imaginary-part adapter for real input. Finite-input iteration belongs to the enclosing adapter. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Ignored real component. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Arg">
 <span class="target" id="group__expression__numerics_1ga35479ab1156fe7d291e468f2031b6b2a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Arg</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Arg" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the phase of a real value in radians. </p>
-<p>Uses atan2 with positive zero as the imaginary argument. Branch and signed-zero behavior follow that libm call, rather than a hand-coded sign test. </p>
+<p>
+Uses atan2 with positive zero as the imaginary argument. Branch and signed-zero behavior follow that libm call, rather than a hand-coded sign test. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Real component whose phase is requested. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexAbs">
 <span class="target" id="group__expression__numerics_1ga17adbce60251a029fb61779e50f05cb3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAbs</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAbs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a complex value’s Euclidean magnitude. </p>
-<p>Uses hypot to avoid unnecessary overflow in intermediate squares. The magnitude itself can exceed the finite double range. </p>
+<p>
+Uses hypot to avoid unnecessary overflow in intermediate squares. The magnitude itself can exceed the finite double range. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose magnitude is requested. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexArg">
 <span class="target" id="group__expression__numerics_1ga317cdf2cf750e48de1a51ed4075fe626"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexArg</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexArg" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return complex phase in radians. </p>
-<p>Uses atan2(imag, real), including its branch and signed-zero behavior. Does not alter the value or report a Tcl status. </p>
+<p>
+Uses atan2(imag, real), including its branch and signed-zero behavior. Does not alter the value or report a Tcl status. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose phase is requested. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexReal">
 <span class="target" id="group__expression__numerics_1gaea5905dba1a335376392593bac46a4b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexReal</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexReal" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Extract the real component. </p>
-<p>Returns the stored double directly; validation is the adapter’s responsibility. </p>
+<p>
+Returns the stored double directly; validation is the adapter’s responsibility. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose real component is copied. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexImag">
 <span class="target" id="group__expression__numerics_1ga9b0692329096714c7110300ffb68ec9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexImag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexImag" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Extract the imaginary component. </p>
-<p>Returns the stored double directly; validation is the adapter’s responsibility. </p>
+<p>
+Returns the stored double directly; validation is the adapter’s responsibility. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose imaginary component is copied. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexConj">
 <span class="target" id="group__expression__numerics_1ga985bcb10237bef66e1ad885be9ae3645"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexConj</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexConj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the complex conjugate. </p>
-<p>Negates only the imaginary component, including its sign bit for zero. Does not allocate or validate the pair. </p>
+<p>
+Negates only the imaginary component, including its sign bit for zero. Does not allocate or validate the pair. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to conjugate. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -385,21 +510,57 @@ sample selection, formulas, ownership and compatibility caveats.</p>
 <dt class="sig sig-object c" id="c.ComplexCeil">
 <span class="target" id="group__expression__numerics_1gabdac4fc98d978a85032d2582782fe2c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexCeil</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexCeil" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply ceil independently to both complex components. </p>
-<p>Does not round magnitude or phase. The adapter validates errno and finite results. </p>
+<p>
+Does not round magnitude or phase. The adapter validates errno and finite results. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round upward componentwise. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexFloor">
 <span class="target" id="group__expression__numerics_1gaf1ba41dc0b268862808f0efdd4193149"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexFloor</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexFloor" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply floor independently to both complex components. </p>
-<p>Does not round magnitude or phase. The adapter validates errno and finite results. </p>
+<p>
+Does not round magnitude or phase. The adapter validates errno and finite results. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round downward componentwise. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexRound">
 <span class="target" id="group__expression__numerics_1gaa105844b94e758a1cd935a8c4b90b50c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexRound</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexRound" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round both components halfway away from zero. </p>
-<p>Delegates each component to Round. Does not change a complex temporary into real storage. </p>
+<p>
+Delegates each component to Round. Does not change a complex temporary into real storage. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round componentwise. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
