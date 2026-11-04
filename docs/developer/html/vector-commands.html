@@ -194,6 +194,70 @@ vector notification. The range-aware lookup used by destroy is different:
 returns a borrowed pointer, and does not retain a vector for its caller.</p>
 </section>
 </section>
+<section id="shared-command-helper-ownership">
+<h2>Shared command-helper ownership<a class="headerlink" href="#shared-command-helper-ownership" title="Link to this heading">¶</a></h2>
+<p>The common helpers separate storage preparation, commit and publication. Their
+callers retain the vector and interpreter; the helpers’ liveness checks cannot
+make an unretained pointer safe. <code class="docutils literal notranslate"><span class="pre">CheckCommandRange</span></code> validates each endpoint
+against current length but does not establish ordering or writability.</p>
+<p><code class="docutils literal notranslate"><span class="pre">PrepareCommandWrite</span></code> reuses sufficient capacity and grows geometrically when
+necessary, copying the current logical prefix. <code class="docutils literal notranslate"><span class="pre">PrepareCommandResize</span></code> instead
+recomputes capacity from the explicit-resize policy, including zero capacity
+at zero length and smaller allocations after substantial shrink. Neither helper
+initializes added values or releases the old allocation. A prepared pointer may
+still be the vector’s current storage, so an abandoned preparation must not
+unconditionally free it. Callers must supply nonnegative requested lengths.</p>
+<p><code class="docutils literal notranslate"><span class="pre">AllocateCommandData</span></code> always returns independent uninitialized storage, with
+a one-byte allocation for an empty result. <code class="docutils literal notranslate"><span class="pre">ConvertCommandList</span></code> instead uses
+NULL for an empty successful conversion and retains a private outer Tcl list
+while converting its elements. Neither helper installs destination metadata.
+Conversion failure frees staged storage; effects of conversion callbacks remain.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code> installs data, dimensions, whole-vector selection and
+invalid extrema before releasing detached old storage. Reused storage keeps its
+release procedure; a new pointer becomes dynamically owned. Custom release
+callbacks see the committed vector, may change or destroy it, and cannot be
+followed by unchecked storage access. The helper preserves interpreter state
+across release and does not notify observers.</p>
+<p><code class="docutils literal notranslate"><span class="pre">NotifyCommandWrite</span></code> performs enabled cache flushing, rechecks liveness and
+publishes either a full update or a suffix beginning at the supplied index.
+The suffix ends at the current length after flushing. It preserves command
+results and error options, but does not freeze the vector against trace or
+observer side effects.</p>
+<section id="output-identity-and-partial-creation">
+<h3>Output identity and partial creation<a class="headerlink" href="#output-identity-and-partial-creation" title="Link to this heading">¶</a></h3>
+<p>Output names are qualified in the current namespace before lookup. A missing
+local output therefore does not reuse a same-named global vector. Existing
+outputs must have matching type and be writable; resolving them does not
+replace their commands or remap their variables. New outputs are initially
+created without a mapped array so mapping traces cannot observe unfinished data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">GetCommandOutputs</span></code> first checks existing destinations, then collects
+preserved identities and creates missing outputs. This is not an all-or-nothing
+creation transaction: a later failure releases references and temporary records
+but does not destroy earlier new vectors. Duplicate output names can represent
+multiple references to the same object; handlers decide whether that aliasing
+is permitted for their operation.</p>
+<p>After data commit, <code class="docutils literal notranslate"><span class="pre">PublishCommandOutput</span></code> adds a default array mapping only
+for new real vectors whose names contain no opening parenthesis. It publishes
+the retained identity rather than finding a possibly different vector by name.
+Mapping errors remain errors after commit; successful mapping and notification
+do not roll back callback effects. <code class="docutils literal notranslate"><span class="pre">ReleaseCommandOutputs</span></code> releases the
+preservation references and record array, not the vectors themselves.</p>
+</section>
+<section id="permutation-mechanics">
+<h3>Permutation mechanics<a class="headerlink" href="#permutation-mechanics" title="Link to this heading">¶</a></h3>
+<p>The sort helpers operate on an index array. The first vector’s inclusive
+selection determines the initial storage indices, and every key vector must
+support those same indices. The allocation helper checks numeric types and
+allocation sizes, but does not validate all key lengths for its callers.</p>
+<p>The comparator examines keys lexicographically. Equal comparisons advance to
+the next key; a NaN also advances because both ordered comparisons are false.
+No original-index tie-breaker is added. Heap sorting therefore remains unstable
+and does not define a total ordering for NaNs. It uses constant auxiliary
+storage beyond the permutation and O(n log n) comparisons, each potentially
+examining every key. The numerical vectors remain untouched until a command
+handler applies the resulting permutation.</p>
+</section>
+</section>
 </section>
 
 
@@ -215,6 +279,11 @@ returns a borrowed pointer, and does not retain a vector for its caller.</p>
 <li><a class="reference internal" href="#creation-and-reuse">Creation and reuse</a></li>
 <li><a class="reference internal" href="#named-expression-results">Named expression results</a></li>
 <li><a class="reference internal" href="#rename-destruction-and-enumeration">Rename, destruction and enumeration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shared-command-helper-ownership">Shared command-helper ownership</a><ul>
+<li><a class="reference internal" href="#output-identity-and-partial-creation">Output identity and partial creation</a></li>
+<li><a class="reference internal" href="#permutation-mechanics">Permutation mechanics</a></li>
 </ul>
 </li>
 </ul>

@@ -237,20 +237,41 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="vector-commands.html#sorting">Sorting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-commands.html#binary-channel-input">Binary channel input</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-commands.html#vector-ensemble-and-registry-operations">Vector ensemble and registry operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-commands.html#shared-command-helper-ownership">Shared command-helper ownership</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vector-command-reference.html">Vector command C reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.AppendOp"><code class="docutils literal notranslate"><span class="pre">AppendOp()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.ParseFormat"><code class="docutils literal notranslate"><span class="pre">ParseFormat()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.ParseAt"><code class="docutils literal notranslate"><span class="pre">ParseAt()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.BinreadOp"><code class="docutils literal notranslate"><span class="pre">BinreadOp()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.SetOp"><code class="docutils literal notranslate"><span class="pre">SetOp()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.SortOp"><code class="docutils literal notranslate"><span class="pre">SortOp()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.AppendVector"><code class="docutils literal notranslate"><span class="pre">AppendVector()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.AppendList"><code class="docutils literal notranslate"><span class="pre">AppendList()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.CopyValues"><code class="docutils literal notranslate"><span class="pre">CopyValues()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.CopyComplexValues"><code class="docutils literal notranslate"><span class="pre">CopyComplexValues()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.CopyList"><code class="docutils literal notranslate"><span class="pre">CopyList()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AddVectorSizes"><code class="docutils literal notranslate"><span class="pre">AddVectorSizes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.MultiplyVectorSizes"><code class="docutils literal notranslate"><span class="pre">MultiplyVectorSizes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.GetArrayByteCount"><code class="docutils literal notranslate"><span class="pre">GetArrayByteCount()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CheckCommandSource"><code class="docutils literal notranslate"><span class="pre">CheckCommandSource()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CheckCommandDestination"><code class="docutils literal notranslate"><span class="pre">CheckCommandDestination()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandWrite"><code class="docutils literal notranslate"><span class="pre">PrepareCommandWrite()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandResize"><code class="docutils literal notranslate"><span class="pre">PrepareCommandResize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite"><code class="docutils literal notranslate"><span class="pre">FinishCommandWrite()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.NotifyCommandWrite"><code class="docutils literal notranslate"><span class="pre">NotifyCommandWrite()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CheckCommandRange"><code class="docutils literal notranslate"><span class="pre">CheckCommandRange()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CommandOutputName"><code class="docutils literal notranslate"><span class="pre">CommandOutputName()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.GetCommandOutput"><code class="docutils literal notranslate"><span class="pre">GetCommandOutput()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ReleaseCommandOutputs"><code class="docutils literal notranslate"><span class="pre">ReleaseCommandOutputs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.GetCommandOutputs"><code class="docutils literal notranslate"><span class="pre">GetCommandOutputs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PublishCommandOutput"><code class="docutils literal notranslate"><span class="pre">PublishCommandOutput()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AllocateCommandData"><code class="docutils literal notranslate"><span class="pre">AllocateCommandData()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList"><code class="docutils literal notranslate"><span class="pre">ConvertCommandList()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendOp"><code class="docutils literal notranslate"><span class="pre">AppendOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseFormat"><code class="docutils literal notranslate"><span class="pre">ParseFormat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseAt"><code class="docutils literal notranslate"><span class="pre">ParseAt()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.BinreadOp"><code class="docutils literal notranslate"><span class="pre">BinreadOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SetOp"><code class="docutils literal notranslate"><span class="pre">SetOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortOp"><code class="docutils literal notranslate"><span class="pre">SortOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendVector"><code class="docutils literal notranslate"><span class="pre">AppendVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendList"><code class="docutils literal notranslate"><span class="pre">AppendList()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyValues"><code class="docutils literal notranslate"><span class="pre">CopyValues()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyComplexValues"><code class="docutils literal notranslate"><span class="pre">CopyComplexValues()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyList"><code class="docutils literal notranslate"><span class="pre">CopyList()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CompareVectorIndices"><code class="docutils literal notranslate"><span class="pre">CompareVectorIndices()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SiftVectorIndices"><code class="docutils literal notranslate"><span class="pre">SiftVectorIndices()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortVectorIndices"><code class="docutils literal notranslate"><span class="pre">SortVectorIndices()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
