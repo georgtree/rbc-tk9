@@ -10,7 +10,8 @@ for storage ownership and client notifications.
 Dispatch and mutation boundaries
 --------------------------------
 
-The instance dispatcher checks operation spelling and arity, rejects operations
+:c:func:`Rbc_VectorInstanceObjCmd <rbcVectorCommands.Rbc_VectorInstanceObjCmd>`
+checks operation spelling and arity, rejects operations
 unsupported for complex vectors, and checks read-only state for operations
 that write their receiver. Output operations must check their own destinations.
 It resets the receiver's selection to the full vector before calling a handler.
@@ -61,7 +62,7 @@ temporary result and checks that the original destination survives and remains
 writable before copying compatible data. A real result can populate a complex
 destination with zero imaginary parts; a complex result cannot change a real
 destination's type. On success the handler requests a full notification through
-NotifyCommandWrite. On evaluation/assignment failure it returns the error
+:c:func:`NotifyCommandWrite <rbcVectorCommands.NotifyCommandWrite>`. On evaluation/assignment failure it returns the error
 without that publication step. Neither case rolls back Tcl callback effects.
 This differs from ensemble expression forms that return a list or create a
 named vector; see :doc:`expression-engine` for the evaluator contracts.
@@ -220,7 +221,36 @@ returns a borrowed pointer, and does not retain a vector for its caller.
 Shared command-helper ownership
 -------------------------------
 
-The common helpers separate storage preparation, commit and publication. Their
+The common helpers separate storage preparation, commit and publication.
+A successful preparation alone does not change the vector's metadata or
+publish data. The ownership transition depends on the helper:
+
+.. list-table:: Storage returned by command helpers
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Helper
+     - Successful result
+     - Caller responsibility
+   * - :c:func:`PrepareCommandWrite <rbcVectorCommands.PrepareCommandWrite>`
+       / :c:func:`PrepareCommandResize <rbcVectorCommands.PrepareCommandResize>`
+     - Current borrowed pointer, independent allocation, or NULL for a zero-capacity resize.
+     - Initialize required values; commit or release only independently allocated storage.
+   * - :c:func:`AllocateCommandData <rbcVectorCommands.AllocateCommandData>`
+     - Independent, uninitialized allocation, including for zero values.
+     - Release with ``ckfree`` or transfer at commit.
+   * - :c:func:`ConvertCommandList <rbcVectorCommands.ConvertCommandList>`
+     - Independent converted values; NULL for an empty list.
+     - Release non-NULL storage or transfer at commit.
+   * - :c:func:`FinishCommandWrite <rbcVectorCommands.FinishCommandWrite>`
+     - Completed storage installed in the vector; no output allocation is returned.
+     - Do not free transferred storage. Recheck liveness before further vector access.
+
+Failed preparation does not establish a usable output contract: output fields
+may have been written before failure. In particular, a prepared current pointer
+is borrowed and cannot be freed as abandoned staging storage. These helpers
+are synchronous; holding a prepared pointer across unrelated Tcl evaluation
+requires separate protection against storage replacement. Their
 callers retain the vector and interpreter; the helpers' liveness checks cannot
 make an unretained pointer safe. :c:func:`CheckCommandRange <rbcVectorCommands.CheckCommandRange>` validates each endpoint
 against current length but does not establish ordering or writability.
@@ -283,9 +313,13 @@ selection determines the initial storage indices, and every key vector must
 support those same indices. The allocation helper checks numeric types and
 allocation sizes, but does not validate all key lengths for its callers.
 
-The comparator examines keys lexicographically. Equal comparisons advance to
+:c:func:`CompareVectorIndices <rbcVectorCommands.CompareVectorIndices>` examines
+keys lexicographically. Equal comparisons advance to
 the next key; a NaN also advances because both ordered comparisons are false.
-No original-index tie-breaker is added. Heap sorting therefore remains unstable
+No original-index tie-breaker is added.
+:c:func:`SortVectorIndices <rbcVectorCommands.SortVectorIndices>` uses
+:c:func:`SiftVectorIndices <rbcVectorCommands.SiftVectorIndices>` to repair the heap.
+Sorting therefore remains unstable
 and does not define a total ordering for NaNs. It uses constant auxiliary
 storage beyond the permutation and O(n log n) comparisons, each potentially
 examining every key. The numerical vectors remain untouched until a command

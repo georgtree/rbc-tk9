@@ -50,7 +50,8 @@ contracts, <a class="reference internal" href="vector-access.html"><span class="
 for storage ownership and client notifications.</p>
 <section id="dispatch-and-mutation-boundaries">
 <h2>Dispatch and mutation boundaries<a class="headerlink" href="#dispatch-and-mutation-boundaries" title="Link to this heading">¶</a></h2>
-<p>The instance dispatcher checks operation spelling and arity, rejects operations
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.Rbc_VectorInstanceObjCmd" title="rbcVectorCommands.Rbc_VectorInstanceObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstanceObjCmd</span></code></a>
+checks operation spelling and arity, rejects operations
 unsupported for complex vectors, and checks read-only state for operations
 that write their receiver. Output operations must check their own destinations.
 It resets the receiver’s selection to the full vector before calling a handler.
@@ -95,7 +96,7 @@ temporary result and checks that the original destination survives and remains
 writable before copying compatible data. A real result can populate a complex
 destination with zero imaginary parts; a complex result cannot change a real
 destination’s type. On success the handler requests a full notification through
-NotifyCommandWrite. On evaluation/assignment failure it returns the error
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.NotifyCommandWrite" title="rbcVectorCommands.NotifyCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyCommandWrite</span></code></a>. On evaluation/assignment failure it returns the error
 without that publication step. Neither case rolls back Tcl callback effects.
 This differs from ensemble expression forms that return a list or create a
 named vector; see <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for the evaluator contracts.</p>
@@ -234,7 +235,47 @@ returns a borrowed pointer, and does not retain a vector for its caller.</p>
 </section>
 <section id="shared-command-helper-ownership">
 <h2>Shared command-helper ownership<a class="headerlink" href="#shared-command-helper-ownership" title="Link to this heading">¶</a></h2>
-<p>The common helpers separate storage preparation, commit and publication. Their
+<p>The common helpers separate storage preparation, commit and publication.
+A successful preparation alone does not change the vector’s metadata or
+publish data. The ownership transition depends on the helper:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Storage returned by command helpers</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helper</p></th>
+<th class="head"><p>Successful result</p></th>
+<th class="head"><p>Caller responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandWrite" title="rbcVectorCommands.PrepareCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandWrite</span></code></a>
+/ <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandResize" title="rbcVectorCommands.PrepareCommandResize"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandResize</span></code></a></p></td>
+<td><p>Current borrowed pointer, independent allocation, or NULL for a zero-capacity resize.</p></td>
+<td><p>Initialize required values; commit or release only independently allocated storage.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AllocateCommandData" title="rbcVectorCommands.AllocateCommandData"><code class="xref c c-func docutils literal notranslate"><span class="pre">AllocateCommandData</span></code></a></p></td>
+<td><p>Independent, uninitialized allocation, including for zero values.</p></td>
+<td><p>Release with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code> or transfer at commit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a></p></td>
+<td><p>Independent converted values; NULL for an empty list.</p></td>
+<td><p>Release non-NULL storage or transfer at commit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite" title="rbcVectorCommands.FinishCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code></a></p></td>
+<td><p>Completed storage installed in the vector; no output allocation is returned.</p></td>
+<td><p>Do not free transferred storage. Recheck liveness before further vector access.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Failed preparation does not establish a usable output contract: output fields
+may have been written before failure. In particular, a prepared current pointer
+is borrowed and cannot be freed as abandoned staging storage. These helpers
+are synchronous; holding a prepared pointer across unrelated Tcl evaluation
+requires separate protection against storage replacement. Their
 callers retain the vector and interpreter; the helpers’ liveness checks cannot
 make an unretained pointer safe. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CheckCommandRange" title="rbcVectorCommands.CheckCommandRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">CheckCommandRange</span></code></a> validates each endpoint
 against current length but does not establish ordering or writability.</p>
@@ -287,9 +328,13 @@ preservation references and record array, not the vectors themselves.</p>
 selection determines the initial storage indices, and every key vector must
 support those same indices. The allocation helper checks numeric types and
 allocation sizes, but does not validate all key lengths for its callers.</p>
-<p>The comparator examines keys lexicographically. Equal comparisons advance to
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CompareVectorIndices" title="rbcVectorCommands.CompareVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">CompareVectorIndices</span></code></a> examines
+keys lexicographically. Equal comparisons advance to
 the next key; a NaN also advances because both ordered comparisons are false.
-No original-index tie-breaker is added. Heap sorting therefore remains unstable
+No original-index tie-breaker is added.
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortVectorIndices" title="rbcVectorCommands.SortVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortVectorIndices</span></code></a> uses
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SiftVectorIndices" title="rbcVectorCommands.SiftVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SiftVectorIndices</span></code></a> to repair the heap.
+Sorting therefore remains unstable
 and does not define a total ordering for NaNs. It uses constant auxiliary
 storage beyond the permutation and O(n log n) comparisons, each potentially
 examining every key. The numerical vectors remain untouched until a command

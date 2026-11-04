@@ -37,6 +37,13 @@
 /**
  * @ingroup vector_command_paths
  * @brief Add two nonnegative logical sizes without signed overflow.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] a Nonnegative first logical count.
+ * @param[in] b Nonnegative second logical count.
+ * @param[out] resultPtr Required sum output, unchanged on failure.
+ * @return TCL_OK with the sum, or TCL_ERROR for negative operands or overflow.
+ * @see @ref rbc_calling_conventions
+ *
  * Returns TCL_ERROR with a diagnostic for negative operands or a sum above TCL_SIZE_MAX; leaves the
  * output unchanged on failure. Otherwise writes the sum and returns TCL_OK. Does not allocate or
  * execute Tcl.
@@ -53,6 +60,13 @@ static int AddVectorSizes(Tcl_Interp *interp, Tcl_Size a, Tcl_Size b, Tcl_Size *
 /**
  * @ingroup vector_command_paths
  * @brief Multiply nonnegative logical sizes with overflow checking.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] a Nonnegative first factor, including zero.
+ * @param[in] b Nonnegative second factor, including zero.
+ * @param[out] resultPtr Required product output, unchanged on failure.
+ * @return TCL_OK with the product, or TCL_ERROR for negative operands or overflow.
+ * @see @ref rbc_calling_conventions
+ *
  * Accepts zero operands, rejects negative operands and products above TCL_SIZE_MAX, and writes the
  * result only on success. Returns a Tcl status with a diagnostic on failure; no allocation or
  * callbacks occur.
@@ -69,6 +83,13 @@ static int MultiplyVectorSizes(Tcl_Interp *interp, Tcl_Size a, Tcl_Size b, Tcl_S
 /**
  * @ingroup vector_command_paths
  * @brief Convert a logical count to a checked allocation byte count.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] count Logical element count; negative counts are rejected.
+ * @param[in] elementSize Nonzero size of one element in bytes, supplied by the caller.
+ * @param[out] byteCountPtr Required byte-count output, unchanged on failure.
+ * @return TCL_OK with count times elementSize, or TCL_ERROR if it cannot be represented.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires a nonzero elementSize and writable output pointer. Rejects negative counts and
  * multiplication exceeding SIZE_MAX. Writes the product only on success and returns a Tcl status. Does
  * not allocate storage.
@@ -85,6 +106,10 @@ static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementS
 /**
  * @ingroup vector_command_paths
  * @brief Check logical liveness of a caller-retained vector.
+ * @param[in] vPtr Valid caller-retained record with a caller-retained owning interpreter.
+ * @return TCL_OK if both owners remain logically live; otherwise TCL_ERROR with RBC VECTOR DESTROYED.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires a valid preserved record and interpreter. Rejects vector destruction or interpreter
  * deletion with RBC VECTOR DESTROYED. Does not retain the object itself, check a selection or validate
  * numerical storage contents.
@@ -101,6 +126,10 @@ static int CheckCommandSource(VectorObject *vPtr) {
 /**
  * @ingroup vector_command_paths
  * @brief Check a retained destination for liveness and writability.
+ * @param[in] vPtr Valid caller-retained destination and owning interpreter.
+ * @return TCL_OK if live and writable, otherwise TCL_ERROR with a diagnostic.
+ * @see @ref rbc_calling_conventions
+ *
  * First delegates to CheckCommandSource, then enforces the vector read-only flag. Returns a Tcl
  * status. Does not allocate, resize or publish changes; the caller maintains preservation references.
  */
@@ -112,6 +141,13 @@ static int CheckCommandDestination(VectorObject *vPtr) {
 /**
  * @ingroup vector_command_paths
  * @brief Prepare reusable or enlarged storage without releasing old data.
+ * @param[in] vPtr Live destination, with record and interpreter retained by the caller.
+ * @param[in] length Nonnegative requested used count, validated by the caller.
+ * @param[out] dataPtr Required prepared-storage output; consume only on TCL_OK. May alias current storage.
+ * @param[out] sizePtr Required prepared capacity in values, written on success.
+ * @return TCL_OK with reused storage or an owned allocation; TCL_ERROR on protection or allocation failure.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires a nonnegative requested length and a retained destination/interpreter. Checks writability,
  * reuses existing capacity when sufficient, otherwise grows geometrically with overflow checks and
  * copies the existing logical prefix. Does not initialize the added tail or change metadata. On
@@ -156,6 +192,13 @@ static int PrepareCommandWrite(VectorObject *vPtr, Tcl_Size length, VectorData *
 /**
  * @ingroup vector_command_paths
  * @brief Prepare storage using the explicit-resize capacity policy.
+ * @param[in] vPtr Live destination, with record and interpreter retained by the caller.
+ * @param[in] length Nonnegative requested used count, validated by the caller.
+ * @param[out] dataPtr Required prepared-storage output; consume only on TCL_OK. May alias current storage.
+ * @param[out] sizePtr Required capacity output; may be written before allocation failure.
+ * @return TCL_OK with reused storage, an owned allocation or NULL for zero capacity; otherwise TCL_ERROR.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires a nonnegative length and a retained destination/interpreter. Checks writability and
  * computes capacity from DEF_ARRAY_SIZE, with zero capacity for zero length. Reuses matching capacity
  * or allocates and copies the retained prefix. Does not zero newly added values, install metadata or
@@ -194,6 +237,12 @@ static int PrepareCommandResize(VectorObject *vPtr, Tcl_Size length, VectorData 
 /**
  * @ingroup vector_command_paths
  * @brief Install completed storage before releasing the old allocation.
+ * @param[in,out] vPtr Caller-retained destination, already validated as writable before commit.
+ * @param[in] data Completed typed storage, either the current pointer or Tcl-allocated storage to transfer.
+ * @param[in] length Valid nonnegative used count, no greater than size.
+ * @param[in] size Valid capacity in values for data; NULL storage requires zero capacity.
+ * @see @ref rbc_calling_conventions
+ *
  * Caller validates dimensions, prepares all values and retains vector/interpreter. Installs data,
  * length, capacity, whole-vector selection and invalid extrema. A changed pointer acquires TCL_DYNAMIC
  * ownership; an unchanged pointer keeps its existing release procedure. Releases detached old storage
@@ -229,6 +278,11 @@ static void FinishCommandWrite(VectorObject *vPtr, VectorData data, Tcl_Size len
 /**
  * @ingroup vector_command_paths
  * @brief Flush and publish a committed write while preserving command state.
+ * @param[in,out] vPtr Caller-retained vector and interpreter; logically destroyed owners are skipped.
+ * @param[in] first First changed zero-based storage index for a suffix, or -1 for a full update.
+ *     Out-of-range indices also request a full update after cache flushing.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires caller-retained vector/interpreter. Skips destroyed owners, flushes an enabled mapped
  * cache, then checks liveness again before notification. A valid nonnegative first reports first
  * through the current final index; all other values report a full update. Restores the saved
@@ -255,6 +309,12 @@ static void NotifyCommandWrite(VectorObject *vPtr, Tcl_Size first) {
 /**
  * @ingroup vector_command_paths
  * @brief Check two saved indices against current live storage bounds.
+ * @param[in] vPtr Caller-retained vector and interpreter whose current length is checked.
+ * @param[in] first Saved zero-based storage index, required to lie within current used storage.
+ * @param[in] last Saved inclusive endpoint, independently checked against current used storage.
+ * @return TCL_OK when both indices remain in bounds, otherwise TCL_ERROR; ordering is not checked.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires a retained record. Rejects dead owners or either endpoint outside zero through length minus
  * one, reporting RBC VECTOR RANGE for invalid bounds. Does not check endpoint ordering, writability or
  * whether values changed since the indices were captured.
@@ -272,6 +332,12 @@ static int CheckCommandRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) 
 /**
  * @ingroup vector_command_paths
  * @brief Qualify an output name in the current namespace.
+ * @param[in] interp Interpreter providing the current namespace; see @ref rbc_interp_argument.
+ * @param[in] name NUL-terminated output name, absolute or relative to the current namespace.
+ * @param[out] buffer Caller-owned DString initialized here; release with Tcl_DStringFree after using the result.
+ * @return Qualified name borrowed from buffer, invalidated by its modification or release.
+ * @see @ref rbc_calling_conventions
+ *
  * Initializes and fills the caller DString, preserving absolute names and prefixing relative names
  * with the current namespace. Returns borrowed DString storage for the caller to free. Does not
  * resolve namespaces, interpret selections or validate the name.
@@ -289,6 +355,12 @@ static const char *CommandOutputName(Tcl_Interp *interp, const char *name, Tcl_D
 /**
  * @ingroup vector_command_paths
  * @brief Resolve or create a retained same-type command destination.
+ * @param[in] source Caller-retained source supplying the interpreter and required numeric type.
+ * @param[in] name NUL-terminated literal destination name, qualified in the current namespace.
+ * @param[out] isNewPtr Required creation flag; consume only after a non-NULL return.
+ * @return Preserved destination record, released with Tcl_Release by the caller, or NULL on error.
+ * @see @ref rbc_calling_conventions
+ *
  * Qualifies the name in the current namespace, so a relative output does not fall back to a global
  * vector. Existing outputs must be writable and match the source type; their commands and mapped
  * arrays are retained. Missing outputs are created without array mapping. Returns a preserved vector
@@ -329,6 +401,10 @@ typedef struct {
 /**
  * @ingroup vector_command_paths
  * @brief Release an output-record array and its preservation references.
+ * @param[in] outputs Owned array from GetCommandOutputs, consumed and freed by this call.
+ * @param[in] count Number of initialized slots, each owning a preservation reference when non-NULL.
+ * @see @ref rbc_calling_conventions
+ *
  * Releases every non-NULL vector slot, then frees the owned array. Requires count initialized slots,
  * which may include repeated identities with separate references. Does not destroy newly created
  * vectors or roll back their data.
@@ -344,6 +420,12 @@ static void ReleaseCommandOutputs(CommandOutput *outputs, Tcl_Size count) {
 /**
  * @ingroup vector_command_paths
  * @brief Precheck existing destinations then collect retained output identities.
+ * @param[in] source Caller-retained source supplying the interpreter and required output type.
+ * @param[in] count Nonnegative number of output names and returned slots.
+ * @param[in] names Borrowed array of count Tcl name objects, kept valid during collection.
+ * @return Owned array with preserved output records, or NULL on failure. Release with ReleaseCommandOutputs.
+ * @see @ref rbc_calling_conventions
+ *
  * Allocates zero-initialized output records after checking the byte count. First validates existing
  * literal destinations for type and writability, then resolves or creates each output. On failure
  * releases collected references and the record array; already created vectors remain. Returns an owned
@@ -388,6 +470,11 @@ static CommandOutput *GetCommandOutputs(VectorObject *source, Tcl_Size count, Tc
 /**
  * @ingroup vector_command_paths
  * @brief Map and notify a completed output without resolving its name again.
+ * @param[in,out] dest Caller-retained destination with completed data already installed.
+ * @param[in] isNew Nonzero if this operation created dest and should consider default array mapping.
+ * @return TCL_OK after publication or if already destroyed; TCL_ERROR for mapping failure after commit.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires a retained destination/interpreter and already committed data. A destroyed owner is treated
  * as successfully committed. New real vectors without parentheses receive their default mapped array;
  * existing outputs and complex or parenthesized names do not get a new mapping. Mapping failure
@@ -414,6 +501,12 @@ static int PublishCommandOutput(VectorObject *dest, int isNew) {
 /**
  * @ingroup vector_command_paths
  * @brief Allocate uninitialized typed staging storage.
+ * @param[in] vPtr Live vector supplying numeric type and diagnostic interpreter; storage is not changed.
+ * @param[in] length Nonnegative number of typed values to allocate; negative values are rejected.
+ * @param[out] dataPtr Required storage output; consume only on TCL_OK and release with ckfree unless transferred.
+ * @return TCL_OK with an owned non-NULL allocation, including length zero; TCL_ERROR on failure.
+ * @see @ref rbc_calling_conventions
+ *
  * Checks byte-count overflow and attempts an owned allocation, reserving one byte for an empty result
  * so NULL denotes failure. Returns a Tcl status. Does not modify vector metadata, check writability or
  * invoke callbacks. The caller frees the allocation or transfers it at commit.
@@ -433,6 +526,13 @@ static int AllocateCommandData(VectorObject *vPtr, Tcl_Size length, VectorData *
 /**
  * @ingroup vector_command_paths
  * @brief Convert a complete argument list into owned typed staging storage.
+ * @param[in] vPtr Caller-retained destination and interpreter supplying type and protection state.
+ * @param[in] objc Nonnegative number of values to convert; this is not a full command argument count.
+ * @param[in] objv Borrowed array of objc value objects; no command name or operation prefix is present.
+ * @param[out] dataPtr Required owned-storage output, initialized to NULL and reset to NULL on failure.
+ * @return TCL_OK with staged data, or NULL data for zero values; TCL_ERROR on conversion or protection failure.
+ * @see @ref rbc_calling_conventions
+ *
  * Allocates storage and retains a private outer Tcl list representation before evaluating values. Each
  * successful conversion is followed by a destination liveness/writability check. Failure frees staging
  * storage and resets its pointer to NULL. Success returns owned data, or NULL for an empty list. Does
@@ -3259,6 +3359,13 @@ Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
 /**
  * @ingroup vector_command_paths
  * @brief Compare two storage indices lexicographically across real keys.
+ * @param[in] vectorArr Array of live real key vectors, in primary-to-secondary order.
+ * @param[in] nVectors Number of key vectors; every key must contain both requested storage indices.
+ * @param[in] i1 First zero-based storage index to compare.
+ * @param[in] i2 Second zero-based storage index to compare.
+ * @return -1, 0 or 1 according to the first ordered unequal key; NaN comparisons advance to the next key.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires valid indices in every key vector. Returns -1 or 1 at the first unequal comparable key,
  * otherwise zero. A NaN comparison falls through to the next key because neither less-than nor
  * greater-than succeeds. Does not break ties by original index or invoke callbacks.
@@ -3285,6 +3392,13 @@ static int CompareVectorIndices(VectorObject *const *vectorArr, Tcl_Size nVector
 /**
  * @ingroup vector_command_paths
  * @brief Restore a max heap within an inclusive permutation boundary.
+ * @param[in,out] indexArr Permutation containing valid storage indices for all real key vectors.
+ * @param[in] start Nonnegative root position in the permutation; child subtrees must already be heaps.
+ * @param[in] end Inclusive final heap position, not a storage index; end <= start performs no work.
+ * @param[in] vectorArr Borrowed array of stable real key vectors covering every referenced storage index.
+ * @param[in] nVectors Number of key vectors in primary-to-secondary order.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires child subtrees below start already to be heaps and valid key storage for each permutation
  * entry. Moves the root down by comparing children through CompareVectorIndices. The root bound
  * prevents overflow in twice-root-plus-one arithmetic. Does nothing when end is not above start;
@@ -3329,6 +3443,12 @@ static void SiftVectorIndices(Tcl_Size *indexArr, Tcl_Size start, Tcl_Size end, 
 /**
  * @ingroup vector_command_paths
  * @brief Heap-sort an existing index array in ascending key order.
+ * @param[in,out] indexArr Permutation array with length entries, rearranged in place without moving vector values.
+ * @param[in] length Nonnegative permutation length; fewer than two entries require no work.
+ * @param[in] vectorArr Borrowed array of stable real key vectors covering every referenced storage index.
+ * @param[in] nVectors Number of key vectors in primary-to-secondary order.
+ * @see @ref rbc_calling_conventions
+ *
  * Heapifies the permutation, then moves successive maxima to the end and repairs the remaining heap.
  * Uses constant auxiliary storage and O(length log length) comparisons, each examining up to nVectors
  * keys. Requires stable valid real key storage for the call. Does not move vector values, invoke Tcl
