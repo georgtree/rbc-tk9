@@ -683,6 +683,11 @@ static int AxisRotatedSize(double value) {
 /**
  * @ingroup axis_ranges
  * @brief Store endpoints and cached normalization factors.
+ * @param[in,out] rangePtr Caller-owned range record whose endpoints, range and scale are replaced.
+ * @param[in] min Lower endpoint in axis space; not sorted or validated here.
+ * @param[in] max Upper endpoint in axis space; logarithmic ranges use exponents.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Stores min/max unchanged, computes their difference and substitutes a unit range when its absolute
  * value is below DBL_EPSILON. Stores the reciprocal as scale. Does not sort or validate endpoints; an
@@ -701,6 +706,10 @@ static void SetAxisRange(AxisRange *rangePtr, double min, double max) {
 /**
  * @ingroup axis_ranges
  * @brief Normalize a coordinate against a prepared axis range.
+ * @param[in] rangePtr Borrowed prepared range with consistent endpoints and cached range/scale.
+ * @param[in] value Axis-space coordinate, already logarithmically converted when needed.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Uses cached range/scale for finite spans. For an overflowed span, halves endpoints and the value
  * before division; returns NAN when the half-span is invalid or zero. Does not clip to 0..1 or apply
@@ -733,6 +742,10 @@ static double NormalizeAxisValue(const AxisRange *rangePtr, double value) {
 /**
  * @ingroup axis_ranges
  * @brief Reconstruct an axis-space value from a normalized coordinate.
+ * @param[in] rangePtr Borrowed prepared range.
+ * @param[in] norm Normalized fraction; values outside [0,1] request extrapolation rather than clipping.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Uses cached range and minimum for finite spans, or a half-scaled endpoint interpolation for
  * overflowed spans. Does not clamp the normalized coordinate. Extrapolation may produce nonfinite
@@ -753,6 +766,10 @@ static double InterpolateAxisValue(const AxisRange *rangePtr, double norm) {
 /**
  * @ingroup axis_ranges
  * @brief Convert a base-ten exponent within the supported normal-double interval.
+ * @param[in] exponent Base-ten exponent to convert; supported bounds are log10(DBL_MIN) through
+ *     log10(DBL_MAX).
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Rejects nonfinite exponents and those outside log10(DBL_MIN)..log10(DBL_MAX) with NAN. Returns exact
  * DBL_MIN/DBL_MAX at the endpoints to avoid power rounding across them. Otherwise requires a finite
@@ -790,6 +807,11 @@ static double LogAxisValue(double exponent) {
 /**
  * @ingroup axis_ranges
  * @brief Map an already converted axis-space value horizontally.
+ * @param[in] graphPtr Borrowed graph with current layout and mapping scales.
+ * @param[in] axisPtr Borrowed axis with a prepared axisRange and live owning track, if any.
+ * @param[in] value Already converted axis-space value; logarithmic axes require an exponent, not raw data.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Normalizes, rejects nonfinite normalized values and applies descending reversal. Uses the owning
  * track world rectangle when present, otherwise graph horizontal range/offset. Track spans have a one-
@@ -812,6 +834,11 @@ static double MapHorizontalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double
 /**
  * @ingroup axis_ranges
  * @brief Map an already converted axis-space value vertically.
+ * @param[in] graphPtr Borrowed graph with current layout and mapping scales.
+ * @param[in] axisPtr Borrowed axis with a prepared axisRange and live owning track, if any.
+ * @param[in] value Already converted axis-space value; logarithmic axes require an exponent, not raw data.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Normalizes, rejects nonfinite normalized values and applies descending reversal and downward screen
  * Y direction. Uses the owning track world rectangle or graph vertical range/offset. Track spans have
@@ -835,6 +862,12 @@ static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double v
 /**
  * @ingroup axis_ranges
  * @brief Construct a positive logarithmic interval around one value.
+ * @param[in] value Raw positive data value around which to form a range; invalid inputs select fallback
+ *     bounds.
+ * @param[out] minPtr Required separate output for the positive raw-data lower limit.
+ * @param[out] maxPtr Required separate output for the positive raw-data upper limit.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Invalid or nonpositive input selects 0.001..1.0. Otherwise chooses roughly one decade centred on the
  * value, shifting the interval at supported exponent endpoints, and converts it with LogAxisValue.
@@ -872,6 +905,10 @@ static void MakeLogRange(double value, double *minPtr, double *maxPtr) {
 /**
  * @ingroup axis_ranges
  * @brief Test a finite coordinate against a prepared range.
+ * @param[in] x Axis-space coordinate to test, not unconverted logarithmic data.
+ * @param[in] rangePtr Borrowed prepared range; not modified despite the non-const pointer type.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Normalizes the coordinate, rejects nonfinite results and applies DBL_EPSILON tolerance around the
  * unit interval. Uses axis-space coordinates, which are exponents for logarithmic axes; does not
@@ -893,6 +930,10 @@ static int InRange(double x, AxisRange *rangePtr) {
 /**
  * @ingroup axis_ranges
  * @brief Resolve logical axis identity into screen orientation.
+ * @param[in] graphPtr Borrowed graph supplying inversion state.
+ * @param[in] axisPtr Borrowed axis supplying its logical class identity.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Compares the logical Y class with graph inversion. Borrows graph and axis; does not modify their
  * class or layout.
@@ -2677,6 +2718,11 @@ static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *tr
 /**
  * @ingroup axis_ranges
  * @brief Invert horizontal mapping into a logical data value.
+ * @param[in] graphPtr Borrowed graph with current layout and mapping scales.
+ * @param[in] axisPtr Borrowed axis with a prepared axisRange and live owning track, if any.
+ * @param[in] x Horizontal widget coordinate; off-plot positions are extrapolated.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Normalizes against the full owning-track world extent or graph horizontal scale, reverses descending
  * direction and interpolates axis space. Converts logarithmic exponents through LogAxisValue.
@@ -2703,6 +2749,11 @@ static double InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
 /**
  * @ingroup axis_ranges
  * @brief Invert vertical mapping into a logical data value.
+ * @param[in] graphPtr Borrowed graph with current layout and mapping scales.
+ * @param[in] axisPtr Borrowed axis with a prepared axisRange and live owning track, if any.
+ * @param[in] y Vertical widget coordinate increasing downward; off-plot positions are extrapolated.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Normalizes against the full owning-track world extent or graph vertical scale, reverses descending
  * direction and accounts for downward screen Y. Interpolates axis space and converts logarithmic
@@ -2787,6 +2838,11 @@ Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *axesPtr) {
 /**
  * @ingroup axis_ranges
  * @brief Accumulate an element extent into an axis data range.
+ * @param[in,out] axisPtr Live axis whose initialized valueRange endpoints accumulate the extent.
+ * @param[in] min Contributing raw-data lower bound.
+ * @param[in] max Contributing raw-data upper bound; cached range/scale are not recomputed here.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Expands valueRange endpoints by comparison only; does not validate the extent, recompute cached
  * range/scale or apply requested limits. Rbc_ResetAxes initializes the accumulation sentinels before
@@ -3896,6 +3952,11 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
 /**
  * @ingroup axis_layout_control
  * @brief Constrain a normalized scrolling offset using canvas-style rules.
+ * @param[in] offset Finite normalized start position established by the caller.
+ * @param[in] windowSize Finite view/world size ratio; values greater than one allow the world to move within
+ *     the view.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * For views no larger than the world, constrains the offset to 0..1-windowSize. Larger views permit
  * the world to move within the window. Returns the adjusted offset without validating finiteness;

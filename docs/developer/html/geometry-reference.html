@@ -48,51 +48,160 @@
 <dt class="sig sig-object c" id="c.Rbc_GetClosestPointOnSegment">
 <span class="target" id="rbc_int_8h_1ae3ee65cc23aaf85a96649b3e61414c57"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetClosestPointOnSegment</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">closestPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetClosestPointOnSegment" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the clamped nearest point on a finite segment and return distance. </p>
-<p>Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of length at most DBL_EPSILON use p. Invalid inputs or rejected intermediate arithmetic return DBL_MAX without writing the result. The final hypot may still overflow for extreme finite coordinates; this is not a Tcl error API. </p>
+<p>
+Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of length at most DBL_EPSILON use p. Invalid inputs or rejected intermediate arithmetic return DBL_MAX without writing the result. The final hypot may still overflow for extreme finite coordinates; this is not a Tcl error API. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed finite query point in the same coordinate system as the segment. </p></li>
+<li><p><strong>p</strong> – <strong>[in]</strong> Borrowed finite first endpoint. </p></li>
+<li><p><strong>q</strong> – <strong>[in]</strong> Borrowed finite second endpoint. </p></li>
+<li><p><strong>closestPtr</strong> – <strong>[out]</strong> Required caller-owned nearest-point output; rejected inputs/intermediates leave it unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_LineRectClip">
 <span class="target" id="rbc_int_8h_1a1511c89b7d6bb72ef57d004e710f8b6f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clippedPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_LineRectClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clip a segment to inclusive extents using Liang-Barsky parameters. </p>
-<p>Requires finite, ordered extents and finite endpoints. Returns false for invalid/disjoint input, leaving output untouched. On success, writes the clipped segment if clippedPtr is non-NULL; NULL requests visibility only. Input endpoints are not modified when output storage is separate. </p>
+<p>
+Requires finite, ordered extents and finite endpoints. Returns false for invalid/disjoint input, leaving output untouched. On success, writes the clipped segment if clippedPtr is non-NULL; NULL requests visibility only. Input endpoints are not modified when output storage is separate. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed finite ordered clipping bounds; zero width or height is allowed. </p></li>
+<li><p><strong>p</strong> – <strong>[in]</strong> Borrowed finite first endpoint. </p></li>
+<li><p><strong>q</strong> – <strong>[in]</strong> Borrowed finite second endpoint. </p></li>
+<li><p><strong>clippedPtr</strong> – <strong>[out]</strong> Optional clipped segment; NULL requests a visibility test. Rejection leaves separate output untouched. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PolyRectClip">
 <span class="target" id="rbc_int_8h_1a5bdb410a00134922673d1a220c7ff34e"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PolyRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">inputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nInputPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">outputCapacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PolyRectClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clip a polygon into a separate caller-owned output array. </p>
-<p>Input contains exactly nInputPts vertices; the closing edge is implicit. Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is explicitly closed by repeating its first vertex. outputCapacity counts all available Point2D entries, including closure. Returns the output count, or zero for empty/invalid input or insufficient capacity. Capacity failure can leave partial output; discard it. Input and output must not overlap. </p>
+<p>
+Input contains exactly nInputPts vertices; the closing edge is implicit. Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is explicitly closed by repeating its first vertex. outputCapacity counts all available Point2D entries, including closure. Returns the output count, or zero for empty/invalid input or insufficient capacity. Capacity failure can leave partial output; discard it. Input and output must not overlap. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed finite ordered bounds; right and bottom are expanded by one coordinate unit internally. </p></li>
+<li><p><strong>inputPts</strong> – <strong>[in]</strong> Borrowed source vertices, disjoint from output; no repeated closing vertex is required. </p></li>
+<li><p><strong>nInputPts</strong> – <strong>[in]</strong> Number of accessible source vertices, positive for nonempty output. </p></li>
+<li><p><strong>outputPts</strong> – <strong>[out]</strong> Caller-owned output buffer; failure may leave a prefix that must be discarded. </p></li>
+<li><p><strong>outputCapacity</strong> – <strong>[in]</strong> Number of available Point2D slots including the repeated closing vertex. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PointInPolygon">
 <span class="target" id="rbc_int_8h_1a7a8fb13b3169d12bd06f01db14829e49"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test polygon membership by an even-odd horizontal ray crossing. </p>
-<p>Requires at least three finite vertices and a finite sample; invalid input returns false. The closing edge is implicit. Half-open crossing comparisons do not promise that every point on an edge is inside. Does not modify input. </p>
+<p>
+Requires at least three finite vertices and a finite sample; invalid input returns false. The closing edge is implicit. Half-open crossing comparisons do not promise that every point on an edge is inside. Does not modify input. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed finite query point in the polygon coordinate system. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed finite polygon vertices; the closing edge is implicit. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible vertices, at least three for membership/enclosure tests. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RegionInPolygon">
 <span class="target" id="rbc_int_8h_1ad4388d434f0ddc9a267b255b3698fd9c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RegionInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RegionInPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test polygon enclosure by, or overlap with, a rectangle. </p>
-<p>With enclosed nonzero, every polygon vertex must be inside inclusive extents; this means the rectangle encloses the polygon, not the reverse. Otherwise test edge intersection and then rectangle-inside-polygon containment. Invalid extents or fewer than three finite vertices return false. </p>
+<p>
+With enclosed nonzero, every polygon vertex must be inside inclusive extents; this means the rectangle encloses the polygon, not the reverse. Otherwise test edge intersection and then rectangle-inside-polygon containment. Invalid extents or fewer than three finite vertices return false. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed finite ordered query rectangle. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed finite polygon vertices; the closing edge is implicit. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible vertices, at least three for membership/enclosure tests. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero tests whether the rectangle encloses the polygon; zero tests overlap or containment. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PointInSegments">
 <span class="target" id="rbc_int_8h_1ad3b0785a3149d16d69209a8b69e3ca65"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInSegments</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">halo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return true if any segment is strictly closer than halo to the sample. </p>
-<p>Requires a finite positive halo; zero or invalid halo, no segments or an invalid sample returns false. Uses clamped segment distance, including degenerate segments. Does not acquire or modify the borrowed arrays. </p>
+<p>
+Requires a finite positive halo; zero or invalid halo, no segments or an invalid sample returns false. Uses clamped segment distance, including degenerate segments. Does not acquire or modify the borrowed arrays. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed finite query point. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed array of accessible segment records. </p></li>
+<li><p><strong>nSegments</strong> – <strong>[in]</strong> Number of segment records; zero or negative counts return false. </p></li>
+<li><p><strong>halo</strong> – <strong>[in]</strong> Finite positive strict distance threshold in the input coordinate units; zero never matches. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SimplifyLine">
 <span class="target" id="rbc_int_8h_1a453a31f16f9ffb4bc05e962caae197b7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SimplifyLine</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">low</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">high</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">tolerance</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SimplifyLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return retained original indices for an inclusive input interval. </p>
-<p>Caller supplies valid finite points through high and space for high-low+1 indices; no array lengths are supplied or checked here. Use a finite, nonnegative tolerance in the same coordinate units as input. The algorithm measures distance to the infinite endpoint line, or to the endpoint when endpoints coincide. Retains interval endpoints in input order, splitting only when squared distance exceeds squared tolerance. Returns zero on rejected bounds/allocation failure; discard any partial output. Input is borrowed and unchanged; temporary stack storage is released before return. </p>
+<p>
+Caller supplies valid finite points through high and space for high-low+1 indices; no array lengths are supplied or checked here. Use a finite, nonnegative tolerance in the same coordinate units as input. The algorithm measures distance to the infinite endpoint line, or to the endpoint when endpoints coincide. Retains interval endpoints in input order, splitting only when squared distance exceeds squared tolerance. Returns zero on rejected bounds/allocation failure; discard any partial output. Input is borrowed and unchanged; temporary stack storage is released before return. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origPts</strong> – <strong>[in]</strong> Borrowed finite point array accessible through high; no length argument validates that capacity. </p></li>
+<li><p><strong>low</strong> – <strong>[in]</strong> Inclusive first original index, nonnegative. </p></li>
+<li><p><strong>high</strong> – <strong>[in]</strong> Inclusive final original index, at least low. </p></li>
+<li><p><strong>tolerance</strong> – <strong>[in]</strong> Finite nonnegative distance tolerance in the same units as the points. </p></li>
+<li><p><strong>indices</strong> – <strong>[out]</strong> Caller-owned room for high-low+1 original indices; discard partial output when the returned count is zero. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
+<p>Parameter directions follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Inputs remain borrowed;
+output buffers belong to the caller. Counts, distances and booleans have distinct
+completion conventions, summarized in <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a>.</p>
 <section id="implementation-helpers">
 <h2>Implementation helpers<a class="headerlink" href="#implementation-helpers" title="Link to this heading">¶</a></h2>
 <dl>
@@ -105,36 +214,106 @@
 <dt class="sig sig-object c" id="c.IsFinitePoint">
 <span class="target" id="group__geometry__internals_1gad7ef01e31d78aa6ba2fedfaa4f884055"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsFinitePoint</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsFinitePoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test a point pointer and both coordinates. </p>
-<p>Returns FALSE for NULL or either non-finite coordinate; otherwise TRUE. No allocation, mutation or coordinate transformation. </p>
+<p>
+Returns FALSE for NULL or either non-finite coordinate; otherwise TRUE. No allocation, mutation or coordinate transformation. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pointPtr</strong> – <strong>[in]</strong> Borrowed point to test; NULL is accepted as an invalid input. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.IsValidExtents">
 <span class="target" id="group__geometry__internals_1gac361265550a8ce6655f627e144f6b8c1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsValidExtents</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsValidExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test finite ordered rectangular extents. </p>
-<p>Requires left &lt;= right and top &lt;= bottom after checking all coordinates. NULL or non-finite bounds return FALSE; zero width/height is accepted. Does not normalize reversed bounds or apply pixel-area expansion. </p>
+<p>
+Requires left &lt;= right and top &lt;= bottom after checking all coordinates. NULL or non-finite bounds return FALSE; zero width/height is accepted. Does not normalize reversed bounds or apply pixel-area expansion. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed rectangle to test; NULL, reversed or nonfinite bounds are rejected. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ClipTest">
 <span class="target" id="group__geometry__internals_1gaaedc01c8d3570d77dc0ff465a36d69e1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipTest</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">ds</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">dr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">t1</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">t2</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClipTest" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intersect a Liang-Barsky parameter interval with one boundary. </p>
-<p>Caller supplies initialized t1/t2, normally 0/1. Negative ds can raise the entry parameter; positive ds can lower the exit parameter. A parallel edge (ds zero) rejects only when dr is negative. Returns boolean; this call leaves parameters untouched when it rejects, but earlier successful boundary calls may already have narrowed them. No allocation or independent finite checks. </p>
+<p>
+Caller supplies initialized t1/t2, normally 0/1. Negative ds can raise the entry parameter; positive ds can lower the exit parameter. A parallel edge (ds zero) rejects only when dr is negative. Returns boolean; this call leaves parameters untouched when it rejects, but earlier successful boundary calls may already have narrowed them. No allocation or independent finite checks. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ds</strong> – <strong>[in]</strong> Signed segment-direction coefficient for one clipping boundary. </p></li>
+<li><p><strong>dr</strong> – <strong>[in]</strong> Signed boundary distance in the same coordinate units as ds. </p></li>
+<li><p><strong>t1</strong> – <strong>[inout]</strong> Required initialized entry fraction, normally zero before the first boundary. </p></li>
+<li><p><strong>t2</strong> – <strong>[inout]</strong> Required initialized exit fraction, normally one; this call changes neither fraction on rejection. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.AppendClipVertex">
 <span class="target" id="group__geometry__internals_1ga44deaa9fc4fec698228031deeaca816b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendClipVertex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">capacity</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">countPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendClipVertex" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append one vertex when the caller-provided buffer has room. </p>
-<p>Requires a valid countPtr; rejects NULL points, negative count or count at or above capacity without changing storage/count. On success writes X/Y and increments count. Does not test coordinate finiteness or suppress duplicates. The clipper must discard the whole polygon on a failed append. </p>
+<p>
+Requires a valid countPtr; rejects NULL points, negative count or count at or above capacity without changing storage/count. On success writes X/Y and increments count. Does not test coordinate finiteness or suppress duplicates. The clipper must discard the whole polygon on a failed append. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> – <strong>[out]</strong> Caller-owned output buffer; only the entry at the old count is written on success. </p></li>
+<li><p><strong>capacity</strong> – <strong>[in]</strong> Number of available Point2D slots, not bytes. </p></li>
+<li><p><strong>countPtr</strong> – <strong>[inout]</strong> Required current vertex count; incremented once on success and retained on failure. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> X coordinate to append without finite validation. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Y coordinate to append without finite validation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindSplit">
 <span class="target" id="group__geometry__internals_1gaacf3858388b533684b93e04a0a15dcb1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindSplit</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">i</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">j</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">split</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindSplit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first farthest interior point for line simplification. </p>
-<p>Requires valid source indices and caller storage for split. Returns maximum squared distance and writes its original source index; ties keep the first. Uses distance to the infinite endpoint line, not the bounded segment. If the endpoint distance is at most DBL_EPSILON, measures from the first endpoint.</p>
+<p>
+Requires valid source indices and caller storage for split. Returns maximum squared distance and writes its original source index; ties keep the first. Uses distance to the infinite endpoint line, not the bounded segment. If the endpoint distance is at most DBL_EPSILON, measures from the first endpoint.<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <p>NULL split returns -1. Otherwise initializes split to -1, also returning -1 for invalid pointers/ranges or no interior point. Does not know array capacity or validate every coordinate; extreme intermediate arithmetic may overflow. No allocation or input mutation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed source array accessible through j; caller validates finite coordinates and capacity. </p></li>
+<li><p><strong>i</strong> – <strong>[in]</strong> Original index of the left endpoint, nonnegative. </p></li>
+<li><p><strong>j</strong> – <strong>[in]</strong> Original index of the right endpoint; a split requires at least one interior point. </p></li>
+<li><p><strong>split</strong> – <strong>[out]</strong> Original index of the first farthest interior point; initialized to -1. NULL causes a -1 distance result. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

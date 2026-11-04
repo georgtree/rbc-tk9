@@ -5,6 +5,11 @@ These private helpers borrow their graph, axes and track records. Callers
 prepare current layout and retain the records throughout the operation.
 See :doc:`mapping` for coordinate conventions and scoped viewport usage.
 
+Parameter directions use :doc:`calling-conventions`. Raw data, axis-space
+coordinates, normalized fractions and widget pixels are distinct inputs; the
+helper-stage table in :doc:`mapping` links the internal range implementations
+in :doc:`axis-reference`.
+
 Data and screen coordinates
 ---------------------------
 

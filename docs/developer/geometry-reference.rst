@@ -17,6 +17,10 @@ These declarations remain in ``rbcInt.h``. See :doc:`geometry` for conventions.
 
 .. doxygenfunction:: Rbc_SimplifyLine
 
+Parameter directions follow :doc:`calling-conventions`. Inputs remain borrowed;
+output buffers belong to the caller. Counts, distances and booleans have distinct
+completion conventions, summarized in :doc:`geometry`.
+
 Implementation helpers
 ----------------------
 

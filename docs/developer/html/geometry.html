@@ -65,18 +65,18 @@ Command-facing callers retain validation and diagnostic responsibilities.</p>
 </section>
 <section id="hit-testing">
 <h2>Hit testing<a class="headerlink" href="#hit-testing" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetClosestPointOnSegment</span></code> projects onto the segment direction and clamps
+<p><a class="reference internal" href="geometry-reference.html#c.Rbc_GetClosestPointOnSegment" title="Rbc_GetClosestPointOnSegment"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetClosestPointOnSegment()</span></code></a> projects onto the segment direction and clamps
 to its endpoints. A segment whose length is at most <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> uses its
 first endpoint. It writes the closest point and returns Euclidean distance.
 Rejected inputs/intermediates return <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> without writing the result;
 the final distance calculation can still overflow for extreme finite values.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_PointInSegments</span></code> accepts a finite positive halo and tests <code class="docutils literal notranslate"><span class="pre">distance</span> <span class="pre">&lt;</span>
+<p><a class="reference internal" href="geometry-reference.html#c.Rbc_PointInSegments" title="Rbc_PointInSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PointInSegments()</span></code></a> accepts a finite positive halo and tests <code class="docutils literal notranslate"><span class="pre">distance</span> <span class="pre">&lt;</span>
 <span class="pre">halo</span></code>, not &lt;=. An exact hit with halo zero therefore does not match.
-<code class="docutils literal notranslate"><span class="pre">Rbc_PointInPolygon</span></code> uses even-odd ray crossings and closes the last vertex
+<a class="reference internal" href="geometry-reference.html#c.Rbc_PointInPolygon" title="Rbc_PointInPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PointInPolygon()</span></code></a> uses even-odd ray crossings and closes the last vertex
 back to the first. Its half-open edge comparisons avoid double-counting vertices,
 but do not establish a universal inclusive-boundary policy. Use a separate
 segment-distance test when a boundary tolerance is required.</p>
-<p>Despite its name, <code class="docutils literal notranslate"><span class="pre">Rbc_RegionInPolygon</span></code> with <code class="docutils literal notranslate"><span class="pre">enclosed</span></code> true checks that the
+<p>Despite its name, <a class="reference internal" href="geometry-reference.html#c.Rbc_RegionInPolygon" title="Rbc_RegionInPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RegionInPolygon()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">enclosed</span></code> true checks that the
 rectangle encloses every polygon vertex. With <code class="docutils literal notranslate"><span class="pre">enclosed</span></code> false it tests all
 polygon edges against the rectangle, then tests the rectangle’s top-left corner
 inside the polygon. That final check handles a rectangle wholly inside a polygon
@@ -84,10 +84,10 @@ without any edge crossing.</p>
 </section>
 <section id="line-and-polygon-clipping-differ">
 <h2>Line and polygon clipping differ<a class="headerlink" href="#line-and-polygon-clipping-differ" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_LineRectClip</span></code> uses Liang-Barsky clipping against the supplied bounds.
+<p><a class="reference internal" href="geometry-reference.html#c.Rbc_LineRectClip" title="Rbc_LineRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LineRectClip()</span></code></a> uses Liang-Barsky clipping against the supplied bounds.
 Its output pointer may be NULL for visibility testing. With separate output
 storage, endpoints remain unchanged; rejected input leaves output untouched.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_PolyRectClip</span></code> preserves a historical pixel-area convention: left/top are
+<p><a class="reference internal" href="geometry-reference.html#c.Rbc_PolyRectClip" title="Rbc_PolyRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PolyRectClip()</span></code></a> preserves a historical pixel-area convention: left/top are
 used directly, while right/bottom are expanded by one coordinate unit. It also
 perturbs zero edge deltas by <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> internally. It is therefore not an
 interchangeable polygon version of the line clipper for arbitrary mathematical
@@ -109,7 +109,7 @@ replacement for clipping the rendered primitive.</p>
 </section>
 <section id="simplification-and-original-indices">
 <h2>Simplification and original indices<a class="headerlink" href="#simplification-and-original-indices" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_SimplifyLine</span></code> implements iterative Douglas-Peucker subdivision using a
+<p><a class="reference internal" href="geometry-reference.html#c.Rbc_SimplifyLine" title="Rbc_SimplifyLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SimplifyLine()</span></code></a> implements iterative Douglas-Peucker subdivision using a
 temporary stack. The input interval is inclusive, and output entries are original
 indices, not copied points or offsets relative to <code class="docutils literal notranslate"><span class="pre">low</span></code>. The first and last
 points are retained; a single-point interval returns its sole index.</p>
@@ -128,32 +128,83 @@ capacity guard.</p>
 original indices is useful to callers, but the helper itself knows nothing about
 element picking, gaps, vector notifications or renderer batches. Those policies
 belong to element/vector code.</p>
-<p>See <a class="reference internal" href="geometry-reference.html"><span class="doc">Geometry C reference</span></a> for the seven function contracts. This chapter
+<p>See <a class="reference internal" href="geometry-reference.html"><span class="doc">Geometry C reference</span></a> for entry-point and private-helper contracts. This chapter
 records the existing boundary and numerical conventions without changing them.</p>
 </section>
 <section id="private-validation-and-subdivision">
 <h2>Private validation and subdivision<a class="headerlink" href="#private-validation-and-subdivision" title="Link to this heading">¶</a></h2>
 <p>The internal helpers are included in <a class="reference internal" href="geometry-reference.html"><span class="doc">Geometry C reference</span></a>. They deliberately
-have narrower contracts than command-level validation. <code class="docutils literal notranslate"><span class="pre">IsFinitePoint</span></code> tests
-a pointer and two coordinates; <code class="docutils literal notranslate"><span class="pre">IsValidExtents</span></code> accepts finite ordered bounds,
+have narrower contracts than command-level validation. <a class="reference internal" href="geometry-reference.html#c.IsFinitePoint" title="IsFinitePoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">IsFinitePoint()</span></code></a> tests
+a pointer and two coordinates; <a class="reference internal" href="geometry-reference.html#c.IsValidExtents" title="IsValidExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">IsValidExtents()</span></code></a> accepts finite ordered bounds,
 including degenerate rectangles. Neither applies mapping, padding or rounding.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ClipTest</span></code> progressively narrows the parametric interval of the line clipper.
+<p><a class="reference internal" href="geometry-reference.html#c.ClipTest" title="ClipTest"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipTest()</span></code></a> progressively narrows the parametric interval of the line clipper.
 A single rejected boundary test leaves its input interval unchanged, but earlier
-successful boundary tests may already have modified it. <code class="docutils literal notranslate"><span class="pre">Rbc_LineRectClip</span></code>
+successful boundary tests may already have modified it. <a class="reference internal" href="geometry-reference.html#c.Rbc_LineRectClip" title="Rbc_LineRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LineRectClip()</span></code></a>
 keeps those parameters local and writes output only after all boundaries pass.
 Do not interpret that outer guarantee as a general rollback feature of the
 private helper.</p>
-<p><code class="docutils literal notranslate"><span class="pre">AppendClipVertex</span></code> checks only storage and count capacity, then writes one
+<p><a class="reference internal" href="geometry-reference.html#c.AppendClipVertex" title="AppendClipVertex"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendClipVertex()</span></code></a> checks only storage and count capacity, then writes one
 vertex. It neither rejects non-finite coordinates nor removes duplicates.
 Successful appends are not rolled back when a later append fails. Consequently,
 the caller must discard the entire polygon on the clipper’s zero result.</p>
-<p><code class="docutils literal notranslate"><span class="pre">FindSplit</span></code> returns squared distance and an original source index. Equal
+<p><a class="reference internal" href="geometry-reference.html#c.FindSplit" title="FindSplit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindSplit()</span></code></a> returns squared distance and an original source index. Equal
 maximum distances retain the first interior point encountered. Invalid ranges
 or no interior point return -1, with the output index initialized to -1 when
 its pointer is supplied. The helper does not know array capacity or guarantee
 finite intermediate arithmetic. The outer simplifier compares squared values,
 so replacing this with a bounded-segment distance or a different tie rule would
 change existing results even if the new code looked mathematically similar.</p>
+</section>
+<section id="output-capacity-and-completion-contracts">
+<h2>Output capacity and completion contracts<a class="headerlink" href="#output-capacity-and-completion-contracts" title="Link to this heading">¶</a></h2>
+<p>All capacities are numbers of records, not bytes.
+<a class="reference internal" href="geometry-reference.html#c.Rbc_PolyRectClip" title="Rbc_PolyRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PolyRectClip()</span></code></a> checks <code class="docutils literal notranslate"><span class="pre">outputCapacity</span></code> on each append but cannot
+verify the actual allocation behind that number. Its count includes closure:
+a caller must not append another closing point without reserving another slot.
+<a class="reference internal" href="geometry-reference.html#c.Rbc_SimplifyLine" title="Rbc_SimplifyLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SimplifyLine()</span></code></a> has no capacity argument at all; the caller must
+provide room for every input index in the inclusive interval. Neither function
+returns newly allocated output or transfers ownership of the input array.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Interpreting results</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Result and output policy</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="geometry-reference.html#c.Rbc_GetClosestPointOnSegment" title="Rbc_GetClosestPointOnSegment"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetClosestPointOnSegment()</span></code></a></p></td>
+<td><p>Returns a distance, using <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> for rejected inputs/intermediates.
+The final distance can overflow after the nearest point was written.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="geometry-reference.html#c.Rbc_LineRectClip" title="Rbc_LineRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LineRectClip()</span></code></a></p></td>
+<td><p>Boolean visibility; optional separate output is written only on success.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="geometry-reference.html#c.Rbc_PolyRectClip" title="Rbc_PolyRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PolyRectClip()</span></code></a></p></td>
+<td><p>Returned vertex count includes closure. Zero means no usable polygon,
+including capacity failure after partial writes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="geometry-reference.html#c.Rbc_SimplifyLine" title="Rbc_SimplifyLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SimplifyLine()</span></code></a></p></td>
+<td><p>Returned count of original indices. Zero means discard the output.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="geometry-reference.html#c.FindSplit" title="FindSplit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindSplit()</span></code></a></p></td>
+<td><p>Returns squared distance and writes an original index, not an offset
+relative to the left endpoint. A negative result indicates no split.</p></td>
+</tr>
+</tbody>
+</table>
+<p>These numeric and boolean results are not Tcl statuses: zero is success for
+<code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> but does not describe a successful clip or simplification here.
+The helpers do not set an interpreter result. Command callers translate failure
+into their own diagnostics or fallback policy.</p>
+<p>Use disjoint input/output arrays unless the specific helper explicitly permits
+aliasing. In particular, a segment-output pointer is not an in-place endpoint
+update interface: retaining separate output preserves the documented input
+contract. Geometry clipping also does not establish a renderer clip region;
+see <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for stroke, cap and border containment.</p>
 </section>
 </section>
 
@@ -173,6 +224,7 @@ change existing results even if the new code looked mathematically similar.</p>
 <li><a class="reference internal" href="#line-and-polygon-clipping-differ">Line and polygon clipping differ</a></li>
 <li><a class="reference internal" href="#simplification-and-original-indices">Simplification and original indices</a></li>
 <li><a class="reference internal" href="#private-validation-and-subdivision">Private validation and subdivision</a></li>
+<li><a class="reference internal" href="#output-capacity-and-completion-contracts">Output capacity and completion contracts</a></li>
 </ul>
 </li>
 </ul>

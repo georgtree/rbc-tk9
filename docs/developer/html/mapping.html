@@ -52,7 +52,7 @@ contracts and <a class="reference internal" href="rendering.html"><span class="d
 <p>Registry ownership and command dispatch are described in <a class="reference internal" href="axes.html"><span class="doc">Axis ownership and commands</span></a>.</p>
 <section id="preparing-geometry">
 <h2>Preparing geometry<a class="headerlink" href="#preparing-geometry" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_LayoutGraph</span></code> performs pending work in dependency order:</p>
+<p><a class="reference internal" href="graph-reference.html#c.Rbc_LayoutGraph" title="Rbc_LayoutGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LayoutGraph()</span></code></a> performs pending work in dependency order:</p>
 <ol class="arabic simple">
 <li><p>Reset axis ranges when <code class="docutils literal notranslate"><span class="pre">RESET_AXES</span></code> is set.</p></li>
 <li><p>Lay out margins when <code class="docutils literal notranslate"><span class="pre">LAYOUT_NEEDED</span></code> is set, checking whether a label
@@ -64,8 +64,8 @@ then map elements, markers, the grid and local legends.</p></li>
 not run layout on behalf of their callers. Successful layout can leave mapping
 pending when the plot is too small. Do not draw or pick stale axis geometry
 just because a previous layout existed. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the
-callback lifetime rules and the existing <code class="docutils literal notranslate"><span class="pre">Rbc_LayoutGraph</span></code> contract.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResetAxes</span></code> initializes data limits, asks visible contributing elements
+callback lifetime rules and the existing <a class="reference internal" href="graph-reference.html#c.Rbc_LayoutGraph" title="Rbc_LayoutGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LayoutGraph()</span></code></a> contract.</p>
+<p><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetAxes()</span></code> initializes data limits, asks visible contributing elements
 for extents and accumulates those extents into their selected X and Y axes.
 Bar frequency and stack state are prepared before collecting extents. Requested
 limits, scrolling limits and linear or logarithmic scaling then determine the
@@ -79,8 +79,8 @@ prepared mapping range.</p>
 </section>
 <section id="coordinate-conventions">
 <h2>Coordinate conventions<a class="headerlink" href="#coordinate-conventions" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_HMap</span></code> maps one data value in the horizontal screen direction;
-<code class="docutils literal notranslate"><span class="pre">Rbc_VMap</span></code> maps one in the vertical direction. They reject nonfinite inputs
+<p><a class="reference internal" href="mapping-reference.html#c.Rbc_HMap" title="Rbc_HMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_HMap()</span></code></a> maps one data value in the horizontal screen direction;
+<a class="reference internal" href="mapping-reference.html#c.Rbc_VMap" title="Rbc_VMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VMap()</span></code></a> maps one in the vertical direction. They reject nonfinite inputs
 and nonpositive logarithmic inputs with <code class="docutils literal notranslate"><span class="pre">NAN</span></code>. After logarithmic conversion
 when required, they normalize through the prepared axis range. Descending
 axes reverse the normalized fraction.</p>
@@ -93,7 +93,7 @@ is <span class="math notranslate nohighlight">\(x = o_x + u r_x\)</span>, while 
 increasing downward. The implementation also handles ranges whose subtraction
 overflows using half-scaled arithmetic; avoid duplicating the simple formula
 in a component and losing that protection.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_Map2D</span></code> chooses which helper receives each logical axis:</p>
+<p><a class="reference internal" href="mapping-reference.html#c.Rbc_Map2D" title="Rbc_Map2D"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Map2D()</span></code></a> chooses which helper receives each logical axis:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Orientation</p></th>
@@ -113,7 +113,7 @@ in a component and losing that protection.</p>
 </tbody>
 </table>
 <p>Inversion does not exchange the logical identity of the axes.
-<code class="docutils literal notranslate"><span class="pre">Rbc_InvMap2D</span></code> reverses this mapping and returns logical X/Y values. It
+<a class="reference internal" href="mapping-reference.html#c.Rbc_InvMap2D" title="Rbc_InvMap2D"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InvMap2D()</span></code></a> reverses this mapping and returns logical X/Y values. It
 extrapolates outside plot bounds rather than clipping them. Its logarithmic
 conversion checks the supported <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code> to <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> interval and may
 return <code class="docutils literal notranslate"><span class="pre">NAN</span></code>. Consumers must check finiteness before converting coordinates
@@ -141,7 +141,7 @@ geometry does not replace the identity used by closest-point queries.</p>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_LayoutTracks</span></code> distributes fitted tracks using minima and weights.
+<p><a class="reference internal" href="mapping-reference.html#c.Rbc_LayoutTracks" title="Rbc_LayoutTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LayoutTracks()</span></code></a> distributes fitted tracks using minima and weights.
 With track scrolling enabled, requested sizes and minima establish the full
 extent and the scroll offset positions it within the viewport. Inverted
 graphs stack tracks horizontally. Track-owned axes map against the full world
@@ -199,6 +199,69 @@ and independent renderer clipping. Export tests need resized output followed
 by restored screen transforms and geometry. A visually plausible image alone
 does not prove that picking, inverse transforms and cached layout agree.</p>
 </section>
+<section id="axis-space-helper-contracts">
+<h2>Axis-space helper contracts<a class="headerlink" href="#axis-space-helper-contracts" title="Link to this heading">¶</a></h2>
+<p>The public mapping entry points accept data values, but the numerical helpers
+beneath them operate in <strong>axis space</strong>. For a logarithmic axis that means
+base-ten exponents. Passing raw logarithmic data to an axis-space helper skips
+a required conversion; applying a logarithm twice is equally incorrect.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Mapping stages</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 38.0%" />
+<col style="width: 62.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helper</p></th>
+<th class="head"><p>Input and responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.GetDataLimits" title="rbcGrAxisRanges.GetDataLimits"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetDataLimits</span></code></a></p></td>
+<td><p>Accumulates raw element bounds into <code class="docutils literal notranslate"><span class="pre">valueRange</span></code> endpoints only.
+It does not refresh cached range/scale or apply requested limits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.SetAxisRange" title="rbcGrAxisRanges.SetAxisRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetAxisRange</span></code></a></p></td>
+<td><p>Stores axis-space endpoints and cached range/scale without sorting or
+validating them; tiny spans use a unit cached range.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.NormalizeAxisValue" title="rbcGrAxisRanges.NormalizeAxisValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NormalizeAxisValue</span></code></a></p></td>
+<td><p>Converts axis-space values to normalized fractions, without direction
+reversal, logarithms or clipping.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.MapHorizontalAxisCoordinate" title="rbcGrAxisRanges.MapHorizontalAxisCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapHorizontalAxisCoordinate</span></code></a> and
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.MapVerticalAxisCoordinate" title="rbcGrAxisRanges.MapVerticalAxisCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapVerticalAxisCoordinate</span></code></a></p></td>
+<td><p>Apply axis direction and graph/track world geometry to already-converted
+values. The vertical helper also accounts for downward screen Y.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.InvHMap" title="rbcGrAxisRanges.InvHMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">InvHMap</span></code></a> and
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.InvVMap" title="rbcGrAxisRanges.InvVMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">InvVMap</span></code></a></p></td>
+<td><p>Reverse screen scaling and direction, interpolate axis space, then
+convert logarithmic exponents back to raw data.</p></td>
+</tr>
+</tbody>
+</table>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.InterpolateAxisValue" title="rbcGrAxisRanges.InterpolateAxisValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">InterpolateAxisValue</span></code></a> accepts
+fractions outside <code class="docutils literal notranslate"><span class="pre">[0,1]</span></code>; it extrapolates rather than clips.
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.InRange" title="rbcGrAxisRanges.InRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">InRange</span></code></a> is the separate finite-range test
+with its small normalized tolerance.
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.AxisIsHorizontal" title="rbcGrAxisRanges.AxisIsHorizontal"><code class="xref c c-func docutils literal notranslate"><span class="pre">AxisIsHorizontal</span></code></a> combines logical
+axis identity with inversion; it does not change ownership or the axis class.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.LogAxisValue" title="rbcGrAxisRanges.LogAxisValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">LogAxisValue</span></code></a> supports normal positive
+doubles from <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code> through <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> and rejects exponents outside that
+interval with <code class="docutils literal notranslate"><span class="pre">NAN</span></code>. It deliberately does not promise subnormal results.
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.MakeLogRange" title="rbcGrAxisRanges.MakeLogRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">MakeLogRange</span></code></a> accepts a raw data value
+and writes two raw positive limits; it is not an exponent-output routine.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.AdjustViewport" title="rbcGrAxisLayoutControl.AdjustViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">AdjustViewport</span></code></a> operates on
+a normalized offset and view/world size ratio. When the view exceeds the world,
+its allowed offsets differ from the usual <code class="docutils literal notranslate"><span class="pre">0..1-windowSize</span></code> interval. Callers
+establish finite valid scroll state first; this helper does not validate axes
+or refresh geometry.</p>
+<p>All these routines borrow their graph/axis records and perform no Tcl evaluation.
+Their low-level nature does not make stale layout safe: callers must prepare
+layout first, check nonfinite results before integer conversion, then apply
+geometry and renderer clipping at their respective boundaries.</p>
+</section>
 </section>
 
 
@@ -217,6 +280,7 @@ does not prove that picking, inverse transforms and cached layout agree.</p>
 <li><a class="reference internal" href="#full-tracks-and-visible-tracks">Full tracks and visible tracks</a></li>
 <li><a class="reference internal" href="#temporary-export-layouts">Temporary export layouts</a></li>
 <li><a class="reference internal" href="#useful-regression-coverage">Useful regression coverage</a></li>
+<li><a class="reference internal" href="#axis-space-helper-contracts">Axis-space helper contracts</a></li>
 </ul>
 </li>
 </ul>

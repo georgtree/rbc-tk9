@@ -462,6 +462,13 @@ Tcl_Size Rbc_NaturalParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, 
 int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 /**
  * @brief Find the clamped nearest point on a finite segment and return distance.
+ * @param[in] samplePtr Borrowed finite query point in the same coordinate system as the segment.
+ * @param[in] p Borrowed finite first endpoint.
+ * @param[in] q Borrowed finite second endpoint.
+ * @param[out] closestPtr Required caller-owned nearest-point output; rejected inputs/intermediates leave it
+ *     unchanged.
+ * @see @ref rbc_calling_conventions
+ *
  * Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of
  * length at most DBL_EPSILON use p. Invalid inputs or rejected intermediate
  * arithmetic return DBL_MAX without writing the result. The final hypot may
@@ -470,6 +477,13 @@ int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2
 double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, const Point2D *q, Point2D *closestPtr);
 /**
  * @brief Clip a segment to inclusive extents using Liang-Barsky parameters.
+ * @param[in] extsPtr Borrowed finite ordered clipping bounds; zero width or height is allowed.
+ * @param[in] p Borrowed finite first endpoint.
+ * @param[in] q Borrowed finite second endpoint.
+ * @param[out] clippedPtr Optional clipped segment; NULL requests a visibility test. Rejection leaves separate
+ *     output untouched.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires finite, ordered extents and finite endpoints. Returns false for
  * invalid/disjoint input, leaving output untouched. On success, writes the
  * clipped segment if clippedPtr is non-NULL; NULL requests visibility only.
@@ -478,6 +492,14 @@ double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, 
 int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *q, Segment2D *clippedPtr);
 /**
  * @brief Clip a polygon into a separate caller-owned output array.
+ * @param[in] extsPtr Borrowed finite ordered bounds; right and bottom are expanded by one coordinate unit
+ *     internally.
+ * @param[in] inputPts Borrowed source vertices, disjoint from output; no repeated closing vertex is required.
+ * @param[in] nInputPts Number of accessible source vertices, positive for nonempty output.
+ * @param[out] outputPts Caller-owned output buffer; failure may leave a prefix that must be discarded.
+ * @param[in] outputCapacity Number of available Point2D slots including the repeated closing vertex.
+ * @see @ref rbc_calling_conventions
+ *
  * Input contains exactly nInputPts vertices; the closing edge is implicit.
  * Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is
  * explicitly closed by repeating its first vertex. outputCapacity counts all
@@ -489,6 +511,11 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *inputPts, Tcl
                           Tcl_Size outputCapacity);
 /**
  * @brief Test polygon membership by an even-odd horizontal ray crossing.
+ * @param[in] samplePtr Borrowed finite query point in the polygon coordinate system.
+ * @param[in] points Borrowed finite polygon vertices; the closing edge is implicit.
+ * @param[in] nPoints Number of accessible vertices, at least three for membership/enclosure tests.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires at least three finite vertices and a finite sample; invalid input
  * returns false. The closing edge is implicit. Half-open crossing comparisons
  * do not promise that every point on an edge is inside. Does not modify input.
@@ -496,6 +523,13 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *inputPts, Tcl
 int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size nPoints);
 /**
  * @brief Test polygon enclosure by, or overlap with, a rectangle.
+ * @param[in] extsPtr Borrowed finite ordered query rectangle.
+ * @param[in] points Borrowed finite polygon vertices; the closing edge is implicit.
+ * @param[in] nPoints Number of accessible vertices, at least three for membership/enclosure tests.
+ * @param[in] enclosed Nonzero tests whether the rectangle encloses the polygon; zero tests overlap or
+ *     containment.
+ * @see @ref rbc_calling_conventions
+ *
  * With enclosed nonzero, every polygon vertex must be inside inclusive extents;
  * this means the rectangle encloses the polygon, not the reverse. Otherwise
  * test edge intersection and then rectangle-inside-polygon containment.
@@ -504,6 +538,12 @@ int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size
 int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, int enclosed);
 /**
  * @brief Return true if any segment is strictly closer than halo to the sample.
+ * @param[in] samplePtr Borrowed finite query point.
+ * @param[in] segments Borrowed array of accessible segment records.
+ * @param[in] nSegments Number of segment records; zero or negative counts return false.
+ * @param[in] halo Finite positive strict distance threshold in the input coordinate units; zero never matches.
+ * @see @ref rbc_calling_conventions
+ *
  * Requires a finite positive halo; zero or invalid halo, no segments or an
  * invalid sample returns false. Uses clamped segment distance, including
  * degenerate segments. Does not acquire or modify the borrowed arrays.
@@ -511,6 +551,15 @@ int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Siz
 int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl_Size nSegments, double halo);
 /**
  * @brief Return retained original indices for an inclusive input interval.
+ * @param[in] origPts Borrowed finite point array accessible through high; no length argument validates that
+ *     capacity.
+ * @param[in] low Inclusive first original index, nonnegative.
+ * @param[in] high Inclusive final original index, at least low.
+ * @param[in] tolerance Finite nonnegative distance tolerance in the same units as the points.
+ * @param[out] indices Caller-owned room for high-low+1 original indices; discard partial output when the
+ *     returned count is zero.
+ * @see @ref rbc_calling_conventions
+ *
  * Caller supplies valid finite points through high and space for high-low+1
  * indices; no array lengths are supplied or checked here. Use a finite,
  * nonnegative tolerance in the same coordinate units as input. The algorithm

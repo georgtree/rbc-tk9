@@ -12,7 +12,7 @@ Registry ownership and command dispatch are described in :doc:`axes`.
 Preparing geometry
 ------------------
 
-``Rbc_LayoutGraph`` performs pending work in dependency order:
+:c:func:`Rbc_LayoutGraph` performs pending work in dependency order:
 
 1. Reset axis ranges when ``RESET_AXES`` is set.
 2. Lay out margins when ``LAYOUT_NEEDED`` is set, checking whether a label
@@ -24,9 +24,9 @@ These stages are distinct from painting. The low-level coordinate helpers do
 not run layout on behalf of their callers. Successful layout can leave mapping
 pending when the plot is too small. Do not draw or pick stale axis geometry
 just because a previous layout existed. See :doc:`graph-lifecycle` for the
-callback lifetime rules and the existing ``Rbc_LayoutGraph`` contract.
+callback lifetime rules and the existing :c:func:`Rbc_LayoutGraph` contract.
 
-``Rbc_ResetAxes`` initializes data limits, asks visible contributing elements
+:c:func:`Rbc_ResetAxes` initializes data limits, asks visible contributing elements
 for extents and accumulates those extents into their selected X and Y axes.
 Bar frequency and stack state are prepared before collecting extents. Requested
 limits, scrolling limits and linear or logarithmic scaling then determine the
@@ -42,8 +42,8 @@ prepared mapping range.
 Coordinate conventions
 ----------------------
 
-``Rbc_HMap`` maps one data value in the horizontal screen direction;
-``Rbc_VMap`` maps one in the vertical direction. They reject nonfinite inputs
+:c:func:`Rbc_HMap` maps one data value in the horizontal screen direction;
+:c:func:`Rbc_VMap` maps one in the vertical direction. They reject nonfinite inputs
 and nonpositive logarithmic inputs with ``NAN``. After logarithmic conversion
 when required, they normalize through the prepared axis range. Descending
 axes reverse the normalized fraction.
@@ -61,7 +61,7 @@ increasing downward. The implementation also handles ranges whose subtraction
 overflows using half-scaled arithmetic; avoid duplicating the simple formula
 in a component and losing that protection.
 
-``Rbc_Map2D`` chooses which helper receives each logical axis:
+:c:func:`Rbc_Map2D` chooses which helper receives each logical axis:
 
 .. list-table::
    :header-rows: 1
@@ -77,7 +77,7 @@ in a component and losing that protection.
      - X data through the X axis
 
 Inversion does not exchange the logical identity of the axes.
-``Rbc_InvMap2D`` reverses this mapping and returns logical X/Y values. It
+:c:func:`Rbc_InvMap2D` reverses this mapping and returns logical X/Y values. It
 extrapolates outside plot bounds rather than clipping them. Its logarithmic
 conversion checks the supported ``DBL_MIN`` to ``DBL_MAX`` interval and may
 return ``NAN``. Consumers must check finiteness before converting coordinates
@@ -103,7 +103,7 @@ Each track has two rectangles, both expressed in widget-coordinate space:
    * - ``left``, ``right``, ``top``, ``bottom``
      - Intersection of that extent with the graph's plot viewport.
 
-``Rbc_LayoutTracks`` distributes fitted tracks using minima and weights.
+:c:func:`Rbc_LayoutTracks` distributes fitted tracks using minima and weights.
 With track scrolling enabled, requested sizes and minima establish the full
 extent and the scroll offset positions it within the viewport. Inverted
 graphs stack tracks horizontally. Track-owned axes map against the full world
@@ -168,3 +168,59 @@ Track tests should include partial scrolling, reordering, local-axis transforms
 and independent renderer clipping. Export tests need resized output followed
 by restored screen transforms and geometry. A visually plausible image alone
 does not prove that picking, inverse transforms and cached layout agree.
+
+Axis-space helper contracts
+---------------------------
+
+The public mapping entry points accept data values, but the numerical helpers
+beneath them operate in **axis space**. For a logarithmic axis that means
+base-ten exponents. Passing raw logarithmic data to an axis-space helper skips
+a required conversion; applying a logarithm twice is equally incorrect.
+
+.. list-table:: Mapping stages
+   :header-rows: 1
+   :widths: 38 62
+
+   * - Helper
+     - Input and responsibility
+   * - :c:func:`GetDataLimits <rbcGrAxisRanges.GetDataLimits>`
+     - Accumulates raw element bounds into ``valueRange`` endpoints only.
+       It does not refresh cached range/scale or apply requested limits.
+   * - :c:func:`SetAxisRange <rbcGrAxisRanges.SetAxisRange>`
+     - Stores axis-space endpoints and cached range/scale without sorting or
+       validating them; tiny spans use a unit cached range.
+   * - :c:func:`NormalizeAxisValue <rbcGrAxisRanges.NormalizeAxisValue>`
+     - Converts axis-space values to normalized fractions, without direction
+       reversal, logarithms or clipping.
+   * - :c:func:`MapHorizontalAxisCoordinate <rbcGrAxisRanges.MapHorizontalAxisCoordinate>` and
+       :c:func:`MapVerticalAxisCoordinate <rbcGrAxisRanges.MapVerticalAxisCoordinate>`
+     - Apply axis direction and graph/track world geometry to already-converted
+       values. The vertical helper also accounts for downward screen Y.
+   * - :c:func:`InvHMap <rbcGrAxisRanges.InvHMap>` and
+       :c:func:`InvVMap <rbcGrAxisRanges.InvVMap>`
+     - Reverse screen scaling and direction, interpolate axis space, then
+       convert logarithmic exponents back to raw data.
+
+:c:func:`InterpolateAxisValue <rbcGrAxisRanges.InterpolateAxisValue>` accepts
+fractions outside ``[0,1]``; it extrapolates rather than clips.
+:c:func:`InRange <rbcGrAxisRanges.InRange>` is the separate finite-range test
+with its small normalized tolerance.
+:c:func:`AxisIsHorizontal <rbcGrAxisRanges.AxisIsHorizontal>` combines logical
+axis identity with inversion; it does not change ownership or the axis class.
+
+:c:func:`LogAxisValue <rbcGrAxisRanges.LogAxisValue>` supports normal positive
+doubles from ``DBL_MIN`` through ``DBL_MAX`` and rejects exponents outside that
+interval with ``NAN``. It deliberately does not promise subnormal results.
+:c:func:`MakeLogRange <rbcGrAxisRanges.MakeLogRange>` accepts a raw data value
+and writes two raw positive limits; it is not an exponent-output routine.
+
+:c:func:`AdjustViewport <rbcGrAxisLayoutControl.AdjustViewport>` operates on
+a normalized offset and view/world size ratio. When the view exceeds the world,
+its allowed offsets differ from the usual ``0..1-windowSize`` interval. Callers
+establish finite valid scroll state first; this helper does not validate axes
+or refresh geometry.
+
+All these routines borrow their graph/axis records and perform no Tcl evaluation.
+Their low-level nature does not make stale layout safe: callers must prepare
+layout first, check nonfinite results before integer conversion, then apply
+geometry and renderer clipping at their respective boundaries.

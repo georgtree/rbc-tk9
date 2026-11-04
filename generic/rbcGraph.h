@@ -656,28 +656,32 @@ int Rbc_CreateCrosshairs(Graph *graphPtr);
 int Rbc_CreateGrid(Graph *graphPtr);
 /**
  * @brief Map a data value to a horizontal widget coordinate.
- * @param graphPtr Borrowed graph with current ranges and layout.
- * @param axisPtr Borrowed axis selecting the range, log scale and direction.
- * @param x Data value, before logarithmic conversion.
+ * @param[in] graphPtr Borrowed graph with current ranges and layout.
+ * @param[in] axisPtr Borrowed axis selecting the range, log scale and direction.
+ * @param[in] x Data value, before logarithmic conversion.
  * @return Double-precision pixel coordinate, or NAN for nonfinite input,
  * invalid logarithmic input or failed normalization.
  *
  * Uses the owning track's full world extent when the axis has a track;
  * otherwise uses the graph offset and range. Does not clip, round, update
  * layout, or execute Tcl. Descending direction is applied after normalization.
+ *
+ * @see @ref rbc_calling_conventions
  */
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 /**
  * @brief Map a data value to a vertical widget coordinate.
- * @param graphPtr Borrowed graph with current ranges and layout.
- * @param axisPtr Borrowed axis selecting the range, log scale and direction.
- * @param y Data value, before logarithmic conversion.
+ * @param[in] graphPtr Borrowed graph with current ranges and layout.
+ * @param[in] axisPtr Borrowed axis selecting the range, log scale and direction.
+ * @param[in] y Data value, before logarithmic conversion.
  * @return Double-precision pixel coordinate, or NAN for nonfinite input,
  * invalid logarithmic input or failed normalization.
  *
  * Uses the owning track's full world extent when the axis has a track;
  * otherwise uses the graph offset and range. Does not clip, round, update
  * layout, or execute Tcl. Descending direction is applied after normalization.
+ *
+ * @see @ref rbc_calling_conventions
  */
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
 
@@ -685,29 +689,33 @@ int Rbc_PointInLegend(Graph *graphPtr, int x, int y);
 
 /**
  * @brief Map widget pixels back to logical data coordinates.
- * @param graphPtr Borrowed graph with current ranges and layout.
- * @param x Horizontal widget coordinate.
- * @param y Vertical widget coordinate.
- * @param pairPtr Borrowed pair containing non-NULL X and Y axes.
+ * @param[in] graphPtr Borrowed graph with current ranges and layout.
+ * @param[in] x Horizontal widget coordinate.
+ * @param[in] y Vertical widget coordinate.
+ * @param[in] pairPtr Borrowed pair containing non-NULL X and Y axes.
  * @return Point2D in data coordinates, undoing inversion and axis direction.
  *
  * Coordinates outside the plot are extrapolated rather than clipped. Log
  * conversion returns NAN outside the supported DBL_MIN to DBL_MAX interval.
  * The caller must check results for finiteness. Does not update layout or
  * execute Tcl, and does not acquire ownership of graph or axes.
+ *
+ * @see @ref rbc_calling_conventions
  */
 Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 /**
  * @brief Map a data-coordinate pair to widget pixels without clipping.
- * @param graphPtr Borrowed graph with current ranges and layout.
- * @param x X data value.
- * @param y Y data value.
- * @param pairPtr Borrowed pair containing non-NULL X and Y axes.
+ * @param[in] graphPtr Borrowed graph with current ranges and layout.
+ * @param[in] x X data value.
+ * @param[in] y Y data value.
+ * @param[in] pairPtr Borrowed pair containing non-NULL X and Y axes.
  * @return Point2D in widget coordinates; invalid components may be NAN.
  *
  * Inversion swaps which screen direction receives each logical axis. Axis
  * ownership selects track geometry without entering a temporary track scope.
  * Does not update layout, round coordinates, or execute Tcl.
+ *
+ * @see @ref rbc_calling_conventions
  */
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);

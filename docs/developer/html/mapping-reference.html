@@ -46,6 +46,10 @@
 <p>These private helpers borrow their graph, axes and track records. Callers
 prepare current layout and retain the records throughout the operation.
 See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for coordinate conventions and scoped viewport usage.</p>
+<p>Parameter directions use <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Raw data, axis-space
+coordinates, normalized fractions and widget pixels are distinct inputs; the
+helper-stage table in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> links the internal range implementations
+in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>.</p>
 <section id="data-and-screen-coordinates">
 <h2>Data and screen coordinates<a class="headerlink" href="#data-and-screen-coordinates" title="Link to this heading">¶</a></h2>
 <dl class="c function">
@@ -53,13 +57,18 @@ See <a class="reference internal" href="mapping.html"><span class="doc">Axes, ma
 <span class="target" id="rbc_graph_8h_1a8065b6b87dd14dea8df1a2709c0dc446"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_HMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_HMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a data value to a horizontal widget coordinate. </p>
 <p>
-Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization. </p>
+Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization.</p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
-<li><p><strong>axisPtr</strong> – Borrowed axis selecting the range, log scale and direction. </p></li>
-<li><p><strong>x</strong> – Data value, before logarithmic conversion. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis selecting the range, log scale and direction. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Data value, before logarithmic conversion. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -73,13 +82,18 @@ Uses the owning track’s full world extent when the axis has a track; otherwise
 <span class="target" id="rbc_graph_8h_1af2a90839ca45b465bee79c1a78972183"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a data value to a vertical widget coordinate. </p>
 <p>
-Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization. </p>
+Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization.</p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
-<li><p><strong>axisPtr</strong> – Borrowed axis selecting the range, log scale and direction. </p></li>
-<li><p><strong>y</strong> – Data value, before logarithmic conversion. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis selecting the range, log scale and direction. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Data value, before logarithmic conversion. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -93,14 +107,19 @@ Uses the owning track’s full world extent when the axis has a track; otherwise
 <span class="target" id="rbc_graph_8h_1a61a32fddd6eb3758265a637296b2ce80"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Map2D</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Map2D" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a data-coordinate pair to widget pixels without clipping. </p>
 <p>
-Inversion swaps which screen direction receives each logical axis. Axis ownership selects track geometry without entering a temporary track scope. Does not update layout, round coordinates, or execute Tcl. </p>
+Inversion swaps which screen direction receives each logical axis. Axis ownership selects track geometry without entering a temporary track scope. Does not update layout, round coordinates, or execute Tcl.</p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
-<li><p><strong>x</strong> – X data value. </p></li>
-<li><p><strong>y</strong> – Y data value. </p></li>
-<li><p><strong>pairPtr</strong> – Borrowed pair containing non-NULL X and Y axes. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> X data value. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Y data value. </p></li>
+<li><p><strong>pairPtr</strong> – <strong>[in]</strong> Borrowed pair containing non-NULL X and Y axes. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -114,14 +133,19 @@ Inversion swaps which screen direction receives each logical axis. Axis ownershi
 <span class="target" id="rbc_graph_8h_1a170f8ac33216c3bab39f182295c10766"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InvMap2D</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InvMap2D" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map widget pixels back to logical data coordinates. </p>
 <p>
-Coordinates outside the plot are extrapolated rather than clipped. Log conversion returns NAN outside the supported DBL_MIN to DBL_MAX interval. The caller must check results for finiteness. Does not update layout or execute Tcl, and does not acquire ownership of graph or axes. </p>
+Coordinates outside the plot are extrapolated rather than clipped. Log conversion returns NAN outside the supported DBL_MIN to DBL_MAX interval. The caller must check results for finiteness. Does not update layout or execute Tcl, and does not acquire ownership of graph or axes.</p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
-<li><p><strong>x</strong> – Horizontal widget coordinate. </p></li>
-<li><p><strong>y</strong> – Vertical widget coordinate. </p></li>
-<li><p><strong>pairPtr</strong> – Borrowed pair containing non-NULL X and Y axes. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal widget coordinate. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical widget coordinate. </p></li>
+<li><p><strong>pairPtr</strong> – <strong>[in]</strong> Borrowed pair containing non-NULL X and Y axes. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

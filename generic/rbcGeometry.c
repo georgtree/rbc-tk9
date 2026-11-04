@@ -19,6 +19,9 @@
 
 /**
  * @brief Test a point pointer and both coordinates.
+ * @param[in] pointPtr Borrowed point to test; NULL is accepted as an invalid input.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup geometry_internals
  *
  * Returns FALSE for NULL or either non-finite coordinate; otherwise TRUE.
@@ -30,6 +33,9 @@ static int IsFinitePoint(const Point2D *pointPtr) {
 
 /**
  * @brief Test finite ordered rectangular extents.
+ * @param[in] extsPtr Borrowed rectangle to test; NULL, reversed or nonfinite bounds are rejected.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup geometry_internals
  *
  * Requires left <= right and top <= bottom after checking all coordinates.
@@ -204,6 +210,13 @@ int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Siz
 
 /**
  * @brief Intersect a Liang-Barsky parameter interval with one boundary.
+ * @param[in] ds Signed segment-direction coefficient for one clipping boundary.
+ * @param[in] dr Signed boundary distance in the same coordinate units as ds.
+ * @param[in,out] t1 Required initialized entry fraction, normally zero before the first boundary.
+ * @param[in,out] t2 Required initialized exit fraction, normally one; this call changes neither fraction on
+ *     rejection.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup geometry_internals
  *
  * Caller supplies initialized t1/t2, normally 0/1. Negative ds can raise the
@@ -271,6 +284,13 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
 
 /**
  * @brief Append one vertex when the caller-provided buffer has room.
+ * @param[out] points Caller-owned output buffer; only the entry at the old count is written on success.
+ * @param[in] capacity Number of available Point2D slots, not bytes.
+ * @param[in,out] countPtr Required current vertex count; incremented once on success and retained on failure.
+ * @param[in] x X coordinate to append without finite validation.
+ * @param[in] y Y coordinate to append without finite validation.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup geometry_internals
  *
  * Requires a valid countPtr; rejects NULL points, negative count or count at
@@ -414,6 +434,14 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *points, Tcl_S
 
 /**
  * @brief Find the first farthest interior point for line simplification.
+ * @param[in] points Borrowed source array accessible through j; caller validates finite coordinates and
+ *     capacity.
+ * @param[in] i Original index of the left endpoint, nonnegative.
+ * @param[in] j Original index of the right endpoint; a split requires at least one interior point.
+ * @param[out] split Original index of the first farthest interior point; initialized to -1. NULL causes a -1
+ *     distance result.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup geometry_internals
  *
  * Requires valid source indices and caller storage for split. Returns maximum
