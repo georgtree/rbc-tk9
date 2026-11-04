@@ -71,7 +71,7 @@ were self-contained public C APIs would bypass them.</p>
 <code class="docutils literal notranslate"><span class="pre">-length</span> <span class="pre">auto</span></code> rounds up with an overflow check; an explicit length must be a
 positive power of two at least as large as the input. Extra values are zeros.
 Padding is explicit and never truncates data.</p>
-<p><code class="docutils literal notranslate"><span class="pre">FftTransform</span></code> first applies a bit-reversal permutation, then iterative
+<p><a class="reference internal" href="fft-reference.html#c.FftTransform" title="FftTransform"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftTransform()</span></code></a> first applies a bit-reversal permutation, then iterative
 butterflies of widths 2 through N. The last-width check prevents integer
 overflow when doubling the stage width. A length-one transform returns without
 using a roots table. The kernel assumes valid power-of-two storage and performs
@@ -84,7 +84,7 @@ There is no amplitude, window-gain or PSD normalization in this module.</p>
 </section>
 <section id="workspace-and-commit-sequence">
 <h2>Workspace and commit sequence<a class="headerlink" href="#workspace-and-commit-sequence" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">FftAllocate</span></code> checks positive counts and byte-size overflow before attempted
+<p><a class="reference internal" href="fft-reference.html#c.FftAllocate" title="FftAllocate"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftAllocate()</span></code></a> checks positive counts and byte-size overflow before attempted
 allocation. A transform allocates N complex values and, except for N=1, N/2
 complex roots. Split output additionally allocates two N-double arrays.
 Roots are released before those split arrays are allocated. Workspace is
@@ -94,7 +94,7 @@ scratch data, then checks every output component. For split output it extracts
 both complete real arrays before committing either one. Allocation, validation
 or arithmetic failure releases temporary storage and leaves destination data
 unchanged.</p>
-<p><code class="docutils literal notranslate"><span class="pre">FftInstall</span></code> saves the old pointer and release policy, installs the new
+<p><a class="reference internal" href="fft-reference.html#c.FftInstall" title="FftInstall"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftInstall()</span></code></a> saves the old pointer and release policy, installs the new
 <code class="docutils literal notranslate"><span class="pre">TCL_DYNAMIC</span></code> allocation, sets length and capacity to N and resets the selected
 range. It invalidates extrema and their indices and marks the range dirty.
 It does not allocate, release the old storage, flush an array cache or notify
@@ -110,14 +110,14 @@ one. See <a class="reference internal" href="vectors.html"><span class="doc">Vec
 </section>
 <section id="callback-lifetime-and-reentry">
 <h2>Callback lifetime and reentry<a class="headerlink" href="#callback-lifetime-and-reentry" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">FftCommit</span></code> preserves every destination record and the interpreter before
+<p><a class="reference internal" href="fft-reference.html#c.FftCommit" title="FftCommit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftCommit()</span></code></a> preserves every destination record and the interpreter before
 releasing old storage. It installs all output buffers first, then releases each
 saved old buffer exactly once, even if an earlier release callback deletes an
 output. Destruction frees the new storage normally; preservation retains only
 the record needed to test its destruction state.</p>
 <p>Destroyed destinations are skipped before cache flushing and checked again
 before client notification. Interpreter deletion stops further updates.
-<code class="docutils literal notranslate"><span class="pre">Rbc_VectorFlushCache</span></code> also preserves its record and copies the mapped name,
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorFlushCache" title="Rbc_VectorFlushCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorFlushCache()</span></code></a> also preserves its record and copies the mapped name,
 then rechecks destruction and the current mapping after user unset/write traces.
 It does not restore an old mapping when a callback remaps the vector.</p>
 <p>Callbacks can destroy themselves or another destination, recreate the same
@@ -144,7 +144,7 @@ centre gives matching symmetric coefficients; sine-squared forms reduce
 cancellation near endpoints. Coefficients are unscaled and are not multiplied
 into another vector by this operation.</p>
 <p>Both generators stage complete real arrays, then transfer ownership through
-<code class="docutils literal notranslate"><span class="pre">FftStoreReal</span></code> and the same installation helper. They preserve identity and
+<a class="reference internal" href="fft-reference.html#c.FftStoreReal" title="FftStoreReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftStoreReal()</span></code></a> and the same installation helper. They preserve identity and
 type while replacing length, capacity and storage. Source expressions can
 apply windows or further scaling separately; see <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a>.</p>
 </section>
@@ -182,8 +182,8 @@ Tcl-allocated buffers</p></td>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">FftCommit</span></code> has fixed storage for two destinations. It is not a general
-multi-vector transaction API. <code class="docutils literal notranslate"><span class="pre">FftStoreReal</span></code> is its single-real-output adapter,
+<p><a class="reference internal" href="fft-reference.html#c.FftCommit" title="FftCommit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftCommit()</span></code></a> has fixed storage for two destinations. It is not a general
+multi-vector transaction API. <a class="reference internal" href="fft-reference.html#c.FftStoreReal" title="FftStoreReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">FftStoreReal()</span></code></a> is its single-real-output adapter,
 not an additional validation layer. New callers must establish the same
 preconditions as the current command handlers rather than relying on commit
 to discover invalid lengths, destination aliases or read-only vectors.</p>

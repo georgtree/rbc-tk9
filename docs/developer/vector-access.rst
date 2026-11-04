@@ -9,7 +9,7 @@ are collected in :doc:`vector-access-reference`.
 Names and selections
 --------------------
 
-``Rbc_VectorParseElement`` looks for the longest existing vector name at a
+:c:func:`Rbc_VectorParseElement` looks for the longest existing vector name at a
 balanced-parenthesis boundary. This lets a name such as ``v(out)`` coexist with
 range syntax: ``v(out)(1:20)`` selects a range from that vector. Without an
 ``endPtr`` the whole argument must be consumed; expression parsing supplies an
@@ -47,7 +47,7 @@ and element unsets. Whole-array unsets instead unmap the array and may destroy
 the vector according to its ownership setting.
 
 Array names cannot contain parentheses, even though vector command names can.
-``Rbc_VectorMapVariable`` removes the old mapping before establishing the new
+:c:func:`Rbc_VectorMapVariable` removes the old mapping before establishing the new
 one; failure does not restore the old array. Mapping and public cache flushing
 preserve the vector/interpreter across variable traces and check for destruction
 or reentrant remapping before reinstalling RBC's trace. This local protection
@@ -91,14 +91,14 @@ result. No public C signature or stub-table entry changes.
 Value objects
 -------------
 
-``Rbc_GetDouble`` first tries direct Tcl conversion, then expression evaluation.
-``Rbc_GetComplex`` accepts a two-item list or a scalar with imaginary part zero.
+:c:func:`Rbc_GetDouble` first tries direct Tcl conversion, then expression evaluation.
+:c:func:`Rbc_GetComplex` accepts a two-item list or a scalar with imaginary part zero.
 The pair conversion can write its real component before imaginary conversion
 fails. Neither helper establishes an atomic vector update or retains a vector.
 
 The output helpers return new reference-count-zero Tcl objects containing copied
 values: doubles for real storage and two-double lists for complex storage.
-They do not validate storage bounds. ``Rbc_GetValues`` uses an inclusive interval
+They do not validate storage bounds. :c:func:`Rbc_GetValues` uses an inclusive interval
 and returns an empty list for a reversed interval.
 
 Index parsing branches and caller obligations
@@ -145,26 +145,26 @@ state they require after callback-capable parsing.
 Finite extrema and low-level writes
 -----------------------------------
 
-``Rbc_VectorUpdateRange`` scans the whole real vector, independently of its
+:c:func:`Rbc_VectorUpdateRange` scans the whole real vector, independently of its
 selection or external offset. It ignores both infinities and NaNs, keeps the
 first storage index for tied minima/maxima, and clears ``UPDATE_RANGE`` after
 installing the cache. Empty and entirely nonfinite vectors use NaN bounds and
 indices of -1. Complex vectors use that same cache representation rather than
 ordering complex values.
 
-``Rbc_VectorGetRange`` rejects complex vectors without writing its outputs.
+:c:func:`Rbc_VectorGetRange` rejects complex vectors without writing its outputs.
 For real vectors it recomputes only an invalid cache and returns the bounds;
 NaN bounds for an empty/nonfinite vector are a successful result. Both output
 pointers are required. Neither helper publishes an update.
 
-``Rbc_ReplicateValue`` is deliberately a low-level real-storage loop. Its caller
+:c:func:`Rbc_ReplicateValue` is deliberately a low-level real-storage loop. Its caller
 must validate type, writability and bounds, then invalidate or maintain extrema
 and publish the change. It does not perform these steps itself. Likewise,
-``Rbc_GetValues`` copies a validated inclusive storage interval into independent
+:c:func:`Rbc_GetValues` copies a validated inclusive storage interval into independent
 Tcl values; it neither applies the external offset nor alters selection.
 
-A full ``Rbc_VectorUpdateClients`` invalidates extrema before scheduling a
-notification. ``Rbc_VectorUpdateClientsRange`` instead attempts to maintain
+A full :c:func:`Rbc_VectorUpdateClients` invalidates extrema before scheduling a
+notification. :c:func:`Rbc_VectorUpdateClientsRange` instead attempts to maintain
 real extrema from the changed interval. It can do this when the previous
 extrema were not overwritten and the old cache is valid; otherwise the next
 range query must scan the whole vector. Invalid notification bounds become a

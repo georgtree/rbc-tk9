@@ -49,7 +49,7 @@ remapping or destruction. The handler returns TCL_OK after the void helper and
 does not report lower-level cache recreation status.
 
 ``variable`` queries the stored mapping name, or delegates replacement/removal
-to Rbc_VectorMapVariable. An empty argument removes the association; it does not
+to :c:func:`Rbc_VectorMapVariable`. An empty argument removes the association; it does not
 rename the vector command or discard numerical storage. The returned mapping
 spelling need not be a fully qualified command name. Array names reject
 parentheses before removing an old mapping, although literal vector command
@@ -96,7 +96,7 @@ are described separately in :doc:`vector-access`.
 Sorting
 -------
 
-``Rbc_VectorSortIndex`` builds an owned array of indices without moving values.
+:c:func:`Rbc_VectorSortIndex` builds an owned array of indices without moving values.
 The first vector's selected interval determines the indices; callers must
 provide valid corresponding storage in every key vector. Keys are compared
 lexicographically, and a heap sort constructs the permutation. Sorting is not
@@ -153,7 +153,7 @@ each handler owns its own mutation and callback policy. See
 Creation and reuse
 ~~~~~~~~~~~~~~~~~~
 
-``VectorCreateObjCmd`` collects names and options, then prechecks existing
+:c:func:`VectorCreateObjCmd` collects names and options, then prechecks existing
 candidate vectors for read-only state. This is not a transaction across the
 whole argument list: subsequent names, size specifications, command collisions
 or mapping failures can fail after earlier vectors were successfully processed.
@@ -171,7 +171,7 @@ Default array mapping is requested only for real vectors whose names contain
 no opening parenthesis. Complex vectors and parenthesized names require an
 explicit separate array name to request mapping. Absence of a mapping request
 must not be confused with unmapping an existing array. Command and mapping
-setup are delegated to ``Rbc_VectorCreate``; reusing a vector can execute
+setup are delegated to :c:func:`Rbc_VectorCreate`; reusing a vector can execute
 command-deletion and variable traces. The handler retains the returned object
 across resizing and publication, then checks that it still exists before
 reading its name. Existing-vector changes publish a full update.
@@ -179,7 +179,7 @@ reading its name. Existing-vector changes publish a full update.
 Named expression results
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Ordinary ``expr`` returns Tcl values through ``Rbc_ExprVector``. With ``-name``,
+Ordinary ``expr`` returns Tcl values through :c:func:`Rbc_ExprVector`. With ``-name``,
 the handler resolves the destination namespace, checks for collisions and
 evaluates once into a temporary vector. It checks collisions again because
 expression callbacks may have created the requested target. A final ``#auto``
@@ -214,7 +214,7 @@ Names enumerates registry keys, not Tcl command aliases or array variables.
 The optional Tcl glob pattern matches the fully qualified key, and results
 follow hash-table order rather than sorted order. Enumeration performs no
 vector notification. The range-aware lookup used by destroy is different:
-``Rbc_VectorLookupName`` can change a selection and evaluate index expressions,
+:c:func:`Rbc_VectorLookupName` can change a selection and evaluate index expressions,
 returns a borrowed pointer, and does not retain a vector for its caller.
 
 Shared command-helper ownership
@@ -222,31 +222,31 @@ Shared command-helper ownership
 
 The common helpers separate storage preparation, commit and publication. Their
 callers retain the vector and interpreter; the helpers' liveness checks cannot
-make an unretained pointer safe. ``CheckCommandRange`` validates each endpoint
+make an unretained pointer safe. :c:func:`CheckCommandRange <rbcVectorCommands.CheckCommandRange>` validates each endpoint
 against current length but does not establish ordering or writability.
 
-``PrepareCommandWrite`` reuses sufficient capacity and grows geometrically when
-necessary, copying the current logical prefix. ``PrepareCommandResize`` instead
+:c:func:`PrepareCommandWrite <rbcVectorCommands.PrepareCommandWrite>` reuses sufficient capacity and grows geometrically when
+necessary, copying the current logical prefix. :c:func:`PrepareCommandResize <rbcVectorCommands.PrepareCommandResize>` instead
 recomputes capacity from the explicit-resize policy, including zero capacity
 at zero length and smaller allocations after substantial shrink. Neither helper
 initializes added values or releases the old allocation. A prepared pointer may
 still be the vector's current storage, so an abandoned preparation must not
 unconditionally free it. Callers must supply nonnegative requested lengths.
 
-``AllocateCommandData`` always returns independent uninitialized storage, with
-a one-byte allocation for an empty result. ``ConvertCommandList`` instead uses
+:c:func:`AllocateCommandData <rbcVectorCommands.AllocateCommandData>` always returns independent uninitialized storage, with
+a one-byte allocation for an empty result. :c:func:`ConvertCommandList <rbcVectorCommands.ConvertCommandList>` instead uses
 NULL for an empty successful conversion and retains a private outer Tcl list
 while converting its elements. Neither helper installs destination metadata.
 Conversion failure frees staged storage; effects of conversion callbacks remain.
 
-``FinishCommandWrite`` installs data, dimensions, whole-vector selection and
+:c:func:`FinishCommandWrite <rbcVectorCommands.FinishCommandWrite>` installs data, dimensions, whole-vector selection and
 invalid extrema before releasing detached old storage. Reused storage keeps its
 release procedure; a new pointer becomes dynamically owned. Custom release
 callbacks see the committed vector, may change or destroy it, and cannot be
 followed by unchecked storage access. The helper preserves interpreter state
 across release and does not notify observers.
 
-``NotifyCommandWrite`` performs enabled cache flushing, rechecks liveness and
+:c:func:`NotifyCommandWrite <rbcVectorCommands.NotifyCommandWrite>` performs enabled cache flushing, rechecks liveness and
 publishes either a full update or a suffix beginning at the supplied index.
 The suffix ends at the current length after flushing. It preserves command
 results and error options, but does not freeze the vector against trace or
@@ -261,18 +261,18 @@ outputs must have matching type and be writable; resolving them does not
 replace their commands or remap their variables. New outputs are initially
 created without a mapped array so mapping traces cannot observe unfinished data.
 
-``GetCommandOutputs`` first checks existing destinations, then collects
+:c:func:`GetCommandOutputs <rbcVectorCommands.GetCommandOutputs>` first checks existing destinations, then collects
 preserved identities and creates missing outputs. This is not an all-or-nothing
 creation transaction: a later failure releases references and temporary records
 but does not destroy earlier new vectors. Duplicate output names can represent
 multiple references to the same object; handlers decide whether that aliasing
 is permitted for their operation.
 
-After data commit, ``PublishCommandOutput`` adds a default array mapping only
+After data commit, :c:func:`PublishCommandOutput <rbcVectorCommands.PublishCommandOutput>` adds a default array mapping only
 for new real vectors whose names contain no opening parenthesis. It publishes
 the retained identity rather than finding a possibly different vector by name.
 Mapping errors remain errors after commit; successful mapping and notification
-do not roll back callback effects. ``ReleaseCommandOutputs`` releases the
+do not roll back callback effects. :c:func:`ReleaseCommandOutputs <rbcVectorCommands.ReleaseCommandOutputs>` releases the
 preservation references and record array, not the vectors themselves.
 
 Permutation mechanics

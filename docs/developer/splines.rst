@@ -92,7 +92,7 @@ looking up, creating or resizing the output. Output aliasing an input is safe
 for numerical computation because source storage is no longer needed then.
 
 An existing output must have the required type and be writable. A missing output
-is created without an array mapping initially. ``SplineStoreResult`` allocates
+is created without an array mapping initially. :c:func:`SplineStoreResult` allocates
 and fills the final numeric buffer before changing the destination, then installs
 its pointer, length and capacity together. No resize notification exposes an
 intermediate output. Source data, output generation and allocation failures
@@ -145,26 +145,26 @@ valid and whether to allocate a non-NULL sentinel. Source validation checks
 both coordinates; Cartesian query validation checks only X because Y will be
 replaced. These checks are intentionally different.
 
-Quadratic preparation runs ``QuadSlopes`` once, then ``QuadSelect`` combines
+Quadratic preparation runs :c:func:`QuadSlopes` once, then :c:func:`QuadSelect` combines
 case selection and ten-parameter generation for each needed source interval.
-``QuadEval`` caches only the most recently selected interval. Arbitrarily
+:c:func:`QuadEval` caches only the most recently selected interval. Arbitrarily
 ordered queries remain supported, but switching intervals rebuilds that small
 parameter set. Its status is not boolean: 0 means interpolation only, 1 means
 at least one extrapolation, and 2 means an internal lookup failure. The public
 wrapper accepts 0 and 1 and performs a final finite-coordinate check.
 
 The historical parametric cubic construction differs from the Cartesian
-natural cubic. ``CubicSlopes`` limits the scaled right-hand-side norm to 8.5
+natural cubic. :c:func:`CubicSlopes` limits the scaled right-hand-side norm to 8.5
 before solving; for an open path it copies the adjacent solved second
 derivatives to the endpoints. It does **not** impose the zero endpoint second
-derivatives used by ``Rbc_NaturalSpline``. The existing natural-parametric
+derivatives used by :c:func:`Rbc_NaturalSpline`. The existing natural-parametric
 operation name is retained, but should not be taken as a promise that these
 two kernels generate identical curves. Changing this construction would change
 existing smoothing and interpolation results.
 
-``SolveCubic1`` overwrites a symmetric cyclic tridiagonal matrix with factors.
-``SolveCubic2`` solves the X and Y right-hand sides together using those factors;
-it does not validate its results. ``CubicSlopes`` checks the solved derivatives
+:c:func:`SolveCubic1` overwrites a symmetric cyclic tridiagonal matrix with factors.
+:c:func:`SolveCubic2` solves the X and Y right-hand sides together using those factors;
+it does not validate its results. :c:func:`CubicSlopes` checks the solved derivatives
 and owns both coefficient and matrix allocations. Only the first N-1 ``t``
 entries of an N-point coefficient array are interval lengths.
 

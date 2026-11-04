@@ -106,7 +106,7 @@ length and capacity are zero. Growth allocates storage; there is no inline array
 Real storage contains doubles; complex storage contains <code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span></code> records
 with separate real and imaginary doubles. Length and capacity count values,
 not bytes or individual complex components.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData</span></code> return borrowed storage, or NULL
+<p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorData" title="Rbc_VectorData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorData()</span></code></a> and <a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorComplexData" title="Rbc_VectorComplexData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code></a> return borrowed storage, or NULL
 for the wrong type. NULL can also represent an empty vector, so query type and
 length rather than using the pointer alone as a type test. Reacquire pointers
 after resize/reset and before using data following callbacks or Tcl evaluation.
@@ -114,13 +114,13 @@ The vector record itself becomes invalid on destruction.</p>
 <p>Registered names are borrowed hash-key strings. Rename retains vector identity
 and observer connections, but invalidates a cached name pointer. Obtain the
 current name again or keep an owned copy. The mapped array name is a separate
-property. Real vectors created through <code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType</span></code> receive the
+property. Real vectors created through <a class="reference internal" href="vector-storage-reference.html#c.Rbc_CreateVectorWithType" title="Rbc_CreateVectorWithType"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType()</span></code></a> receive the
 traditional automatic array mapping unless their names contain <code class="docutils literal notranslate"><span class="pre">(</span></code>; complex
 vectors do not receive that automatic mapping.</p>
 </section>
 <section id="storage-replacement-versus-in-place-modification">
 <h2>Storage replacement versus in-place modification<a class="headerlink" href="#storage-replacement-versus-in-place-modification" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> replace the storage contract
+<p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_ResetVector" title="Rbc_ResetVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetVector()</span></code></a> and <a class="reference internal" href="vector-storage-reference.html#c.Rbc_ResetComplexVector" title="Rbc_ResetComplexVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector()</span></code></a> replace the storage contract
 without changing vector type. The replacement includes pointer, length,
 capacity and release policy. The real reset rejects complex vectors and vice
 versa. Validation includes writability, nonnegative sizes, length not exceeding
@@ -175,7 +175,7 @@ a live borrowed vector:</p>
 <span class="cm">/* Do not keep values across subsequent vector operations or callbacks. */</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> reports a full/unknown change. Its ranged counterpart uses
+<p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorChanged" title="Rbc_VectorChanged"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorChanged()</span></code></a> reports a full/unknown change. Its ranged counterpart uses
 inclusive zero-based storage indices, independent of the Tcl vector index
 offset. Invalid intervals conservatively become full updates. Both public
 reporting functions flush the mapped-array cache when configured to do so.
@@ -186,9 +186,9 @@ performing the write, when rejecting it is still possible.</p>
 <section id="read-only-state">
 <h2>Read-only state<a class="headerlink" href="#read-only-state" title="Link to this heading">¶</a></h2>
 <p>Read-only protects data mutations; it is not a lifetime lock or a security
-boundary. <code class="docutils literal notranslate"><span class="pre">Rbc_VectorSetReadOnly</span></code> changes the flag without changing storage,
+boundary. <a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorSetReadOnly" title="Rbc_VectorSetReadOnly"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorSetReadOnly()</span></code></a> changes the flag without changing storage,
 identity or observer connections and without sending a value-change notification.
-Renaming and destruction remain possible. <code class="docutils literal notranslate"><span class="pre">Rbc_VectorCheckWritable</span></code> reports
+Renaming and destruction remain possible. <a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorCheckWritable" title="Rbc_VectorCheckWritable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorCheckWritable()</span></code></a> reports
 <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">VECTOR</span> <span class="pre">READONLY</span></code> when protection is active.</p>
 <p>A native pointer write cannot be intercepted. Producers must check writability
 before changing borrowed storage, and validate all output vectors before any

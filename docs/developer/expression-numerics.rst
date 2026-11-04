@@ -10,7 +10,7 @@ and limitations; it does not change numerical conventions.
 Selection, finite samples and ownership
 ---------------------------------------
 
-Most real reductions traverse ``first..last`` using ``First`` and ``Next``, which
+Most real reductions traverse ``first..last`` using :c:func:`First` and :c:func:`Next`, which
 skip nonfinite values. Complex reductions traverse the same interval and accept
 a sample only when both components are finite. Dropping one component alone
 would change the sample population and is not how these reducers work.
@@ -22,7 +22,7 @@ indexing uses full length after requesting a sort index for the selection.
 Those order-statistic helpers therefore require a full-length selection. They
 must not be reused directly for an arbitrary private slice without adjustment.
 
-Reducers borrow storage and do not publish notifications. ``Sort`` and ``Norm``
+Reducers borrow storage and do not publish notifications. :c:func:`Sort` and :c:func:`Norm`
 mutate detached expression values; sorting allocates an index and temporary value
 buffer, whereas normalization rewrites the full buffer in place. Component
 kernels accept/return numeric values and own no vector or Tcl object. Random
@@ -124,7 +124,7 @@ symmetric samples and reverses sign under reflection. Empty or zero-variance
 input returns NaN internally and becomes an expression domain error; no partial
 result is assigned to a named destination.
 
-``Skewness`` scales finite samples by their maximum absolute value before
+:c:func:`Skewness` scales finite samples by their maximum absolute value before
 computing the mean and central moments. This avoids cubing raw magnitudes and
 keeps moment accumulation bounded for extreme finite values. It performs three
 linear scans and allocates no numerical buffer. Like the other real reducers,

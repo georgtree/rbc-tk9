@@ -51,7 +51,7 @@ in <a class="reference internal" href="expression-engine.html"><span class="doc"
 and limitations; it does not change numerical conventions.</p>
 <section id="selection-finite-samples-and-ownership">
 <h2>Selection, finite samples and ownership<a class="headerlink" href="#selection-finite-samples-and-ownership" title="Link to this heading">¶</a></h2>
-<p>Most real reductions traverse <code class="docutils literal notranslate"><span class="pre">first..last</span></code> using <code class="docutils literal notranslate"><span class="pre">First</span></code> and <code class="docutils literal notranslate"><span class="pre">Next</span></code>, which
+<p>Most real reductions traverse <code class="docutils literal notranslate"><span class="pre">first..last</span></code> using <a class="reference internal" href="expression-engine-reference.html#c.First" title="First"><code class="xref c c-func docutils literal notranslate"><span class="pre">First()</span></code></a> and <a class="reference internal" href="expression-engine-reference.html#c.Next" title="Next"><code class="xref c c-func docutils literal notranslate"><span class="pre">Next()</span></code></a>, which
 skip nonfinite values. Complex reductions traverse the same interval and accept
 a sample only when both components are finite. Dropping one component alone
 would change the sample population and is not how these reducers work.</p>
@@ -61,7 +61,7 @@ rule: extrema and normalization scan the full length, while median/quartile
 indexing uses full length after requesting a sort index for the selection.
 Those order-statistic helpers therefore require a full-length selection. They
 must not be reused directly for an arbitrary private slice without adjustment.</p>
-<p>Reducers borrow storage and do not publish notifications. <code class="docutils literal notranslate"><span class="pre">Sort</span></code> and <code class="docutils literal notranslate"><span class="pre">Norm</span></code>
+<p>Reducers borrow storage and do not publish notifications. <a class="reference internal" href="expression-numerics-reference.html#c.Sort" title="Sort"><code class="xref c c-func docutils literal notranslate"><span class="pre">Sort()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Norm" title="Norm"><code class="xref c c-func docutils literal notranslate"><span class="pre">Norm()</span></code></a>
 mutate detached expression values; sorting allocates an index and temporary value
 buffer, whereas normalization rewrites the full buffer in place. Component
 kernels accept/return numeric values and own no vector or Tcl object. Random
@@ -169,7 +169,7 @@ function uses signed population central moments, with no bias correction:
 symmetric samples and reverses sign under reflection. Empty or zero-variance
 input returns NaN internally and becomes an expression domain error; no partial
 result is assigned to a named destination.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Skewness</span></code> scales finite samples by their maximum absolute value before
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Skewness" title="Skewness"><code class="xref c c-func docutils literal notranslate"><span class="pre">Skewness()</span></code></a> scales finite samples by their maximum absolute value before
 computing the mean and central moments. This avoids cubing raw magnitudes and
 keeps moment accumulation bounded for extreme finite values. It performs three
 linear scans and allocates no numerical buffer. Like the other real reducers,

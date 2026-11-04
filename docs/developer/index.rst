@@ -19,7 +19,8 @@ Start with :doc:`architecture` and :doc:`calling-conventions`, or select a
 subsystem below. Existing chapter filenames and C reference pages remain stable.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+   :titlesonly:
 
    manual-foundations
    manual-vectors

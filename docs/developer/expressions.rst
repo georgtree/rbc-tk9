@@ -32,17 +32,17 @@ Entry points and result ownership
 A scalar is a vector of length one inside the evaluator. List output still
 uses a list for one value; complex values are two-element real/imaginary pairs.
 There is no registered command or array for an expression temporary.
-``Rbc_VectorFree`` releases temporaries on all exit paths. An internal caller
-of ``Rbc_VectorEvaluate`` owns the returned record until it frees it or
+:c:func:`Rbc_VectorFree` releases temporaries on all exit paths. An internal caller
+of :c:func:`Rbc_VectorEvaluate` owns the returned record until it frees it or
 explicitly transfers its storage.
 
 Parsing and input snapshots
 ---------------------------
 
 ``ParseInfo`` tracks the input buffer, scan position and current token.
-``NextValue`` performs precedence-based evaluation; ``NextToken`` handles
+:c:func:`NextValue` performs precedence-based evaluation; :c:func:`NextToken` handles
 numeric literals, vector references, operators and Tcl substitutions.
-``EvaluateExpression`` checks that the entire expression was consumed and
+:c:func:`EvaluateExpression` checks that the entire expression was consumed and
 rejects non-finite components in the final result.
 
 Vector references are copied into expression storage when encountered. A
@@ -60,8 +60,8 @@ Callers keep the interpreter and its vector state alive during evaluation.
 Real and complex temporaries
 ----------------------------
 
-``SetExpressionVectorType`` is restricted to unnamed, unmapped temporaries.
-It releases old storage when changing type. ``CopyExpressionVector`` sets the
+:c:func:`SetExpressionVectorType` is restricted to unnamed, unmapped temporaries.
+It releases old storage when changing type. :c:func:`CopyExpressionVector` sets the
 temporary's type before duplication; promotion to complex allocates complex
 storage and copies real components with zero imaginary parts.
 
@@ -73,7 +73,7 @@ implementation detail, not permission to change a named vector's type.
 Assignment and named creation
 -----------------------------
 
-For an existing destination, ``Rbc_ExprVector`` checks writability before any
+For an existing destination, :c:func:`Rbc_ExprVector` checks writability before any
 expression evaluation. It attaches a temporary observer to detect destruction
 while substitutions or map callbacks execute. On successful evaluation it
 checks that the original destination survived and is still writable, then
@@ -109,7 +109,7 @@ The comma and closing parenthesis are required. Prefix substitutions run once
 in the caller's frame. Each invocation appends one argument: a real number or
 a single Tcl list containing the complex pair.
 
-``MapVector`` retains its own references to the prefix words, so recursive Tcl
+:c:func:`MapVector` retains its own references to the prefix words, so recursive Tcl
 evaluation cannot invalidate the argument array by changing the prefix object's
 internal representation. It builds results in separate temporary storage.
 Each return value must be a finite number or a pair of finite numbers. A pair

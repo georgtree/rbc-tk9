@@ -35,7 +35,7 @@ Input must be nonempty. By default its length must already be a power of two.
 positive power of two at least as large as the input. Extra values are zeros.
 Padding is explicit and never truncates data.
 
-``FftTransform`` first applies a bit-reversal permutation, then iterative
+:c:func:`FftTransform` first applies a bit-reversal permutation, then iterative
 butterflies of widths 2 through N. The last-width check prevents integer
 overflow when doubling the stage width. A length-one transform returns without
 using a roots table. The kernel assumes valid power-of-two storage and performs
@@ -50,7 +50,7 @@ There is no amplitude, window-gain or PSD normalization in this module.
 Workspace and commit sequence
 -----------------------------
 
-``FftAllocate`` checks positive counts and byte-size overflow before attempted
+:c:func:`FftAllocate` checks positive counts and byte-size overflow before attempted
 allocation. A transform allocates N complex values and, except for N=1, N/2
 complex roots. Split output additionally allocates two N-double arrays.
 Roots are released before those split arrays are allocated. Workspace is
@@ -62,7 +62,7 @@ both complete real arrays before committing either one. Allocation, validation
 or arithmetic failure releases temporary storage and leaves destination data
 unchanged.
 
-``FftInstall`` saves the old pointer and release policy, installs the new
+:c:func:`FftInstall` saves the old pointer and release policy, installs the new
 ``TCL_DYNAMIC`` allocation, sets length and capacity to N and resets the selected
 range. It invalidates extrema and their indices and marks the range dirty.
 It does not allocate, release the old storage, flush an array cache or notify
@@ -80,7 +80,7 @@ one. See :doc:`vectors` for storage contracts and notification policies.
 Callback lifetime and reentry
 -----------------------------
 
-``FftCommit`` preserves every destination record and the interpreter before
+:c:func:`FftCommit` preserves every destination record and the interpreter before
 releasing old storage. It installs all output buffers first, then releases each
 saved old buffer exactly once, even if an earlier release callback deletes an
 output. Destruction frees the new storage normally; preservation retains only
@@ -88,7 +88,7 @@ the record needed to test its destruction state.
 
 Destroyed destinations are skipped before cache flushing and checked again
 before client notification. Interpreter deletion stops further updates.
-``Rbc_VectorFlushCache`` also preserves its record and copies the mapped name,
+:c:func:`Rbc_VectorFlushCache` also preserves its record and copies the mapped name,
 then rechecks destruction and the current mapping after user unset/write traces.
 It does not restore an old mapping when a callback remaps the vector.
 
@@ -119,7 +119,7 @@ cancellation near endpoints. Coefficients are unscaled and are not multiplied
 into another vector by this operation.
 
 Both generators stage complete real arrays, then transfer ownership through
-``FftStoreReal`` and the same installation helper. They preserve identity and
+:c:func:`FftStoreReal` and the same installation helper. They preserve identity and
 type while replacing length, capacity and storage. Source expressions can
 apply windows or further scaling separately; see :doc:`expressions`.
 
@@ -149,8 +149,8 @@ layers:
        Tcl-allocated buffers
      - Transfers ownership and commits before callbacks; no numerical rollback
 
-``FftCommit`` has fixed storage for two destinations. It is not a general
-multi-vector transaction API. ``FftStoreReal`` is its single-real-output adapter,
+:c:func:`FftCommit` has fixed storage for two destinations. It is not a general
+multi-vector transaction API. :c:func:`FftStoreReal` is its single-real-output adapter,
 not an additional validation layer. New callers must establish the same
 preconditions as the current command handlers rather than relying on commit
 to discover invalid lengths, destination aliases or read-only vectors.

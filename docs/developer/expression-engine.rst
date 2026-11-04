@@ -16,7 +16,7 @@ complete writable expression string and stores ``nextPtr`` plus the last scanned
 token. A token describes characters immediately before ``nextPtr``; returning
 from a recursive value parse does not rewind the terminating operator.
 
-``NextValue`` allocates a second operand temporary for each invocation. It first
+:c:func:`NextValue` allocates a second operand temporary for each invocation. It first
 handles an ordinary value, parenthesized expression or unary operator, then
 recursively obtains right operands while their operators have greater precedence
 than the caller's limit. It stops at the end, comma, closing parenthesis or an
@@ -39,11 +39,11 @@ those Tcl side effects.
 Token recognition and substitutions
 ------------------------------------
 
-``NextToken`` tries an unsigned-leading numeric token first; leading ``+`` and
+:c:func:`NextToken` tries an unsigned-leading numeric token first; leading ``+`` and
 ``-`` remain operator tokens. It recognizes punctuation/operators directly.
 Other text first tries a known function call, then a vector/range reference.
 An unknown function name returns the internal sentinel ``TCL_RETURN`` from
-``ParseMathFunction`` so vector parsing can try the same text. It does not mean
+:c:func:`ParseMathFunction` so vector parsing can try the same text. It does not mean
 a Tcl script executed ``return``.
 
 Function syntax requires the opening parenthesis immediately after the scanned
@@ -64,21 +64,21 @@ parenthesis. ``map`` has its own two-argument parser.
      - Explicit real scalar setter
    * - Variable
      - ``Tcl_ParseVar``; traces may run
-     - ``ParseString``
+     - :c:func:`ParseString`
    * - Bracketed script
      - Find closing bracket with Tcl parser, then evaluate script
-     - Retained result through ``ParseString``
+     - Retained result through :c:func:`ParseString`
    * - Quoted value
      - Tcl quoted tokens and substitutions
-     - Retained result through ``ParseString``
+     - Retained result through :c:func:`ParseString`
    * - Braced value
      - Tcl brace token rules
-     - Retained result through ``ParseString``
+     - Retained result through :c:func:`ParseString`
    * - Vector/range
      - Registry and index lookup
      - Copy selected values into temporary storage
 
-``ParseString`` accepts a completely consumed number, a two-element complex
+:c:func:`ParseString` accepts a completely consumed number, a two-element complex
 pair, or a completely consumed vector reference. It does not turn an arbitrary
 list of numbers into a vector. Substitution-result conversion retains the Tcl
 result object before clearing the interpreter result, protecting the string
@@ -95,12 +95,12 @@ Temporary storage and type changes
 -----------------------------------
 
 Only evaluator temporaries may change numeric type. They have no registry entry,
-command or mapped array. ``SetExpressionVectorType`` discards their old storage;
+command or mapped array. :c:func:`SetExpressionVectorType` discards their old storage;
 promotion instead allocates complex capacity, copies used real values with zero
 imaginary parts and then releases the old allocation. These operations do not
 change named-vector type or send client notifications.
 
-``FreeExpressionData`` and ``ReleaseExpressionStorage`` are deliberately small
+:c:func:`FreeExpressionData` and :c:func:`ReleaseExpressionStorage` are deliberately small
 private helpers. They rely on exclusive temporary ownership. Unlike the public
 reset APIs, they do not install new metadata before a custom release callback or
 retain the vector through destructive reentry. Ordinary evaluator allocations
@@ -132,23 +132,23 @@ or whole-vector procedure. The adapter controls type handling and storage:
 
    * - Adapter
      - Contract
-   * - ``ComponentFunc`` / ``ComplexComponentFunc``
+   * - :c:func:`ComponentFunc` / :c:func:`ComplexComponentFunc`
      - Transform values in place; errors can leave earlier temporary values changed.
-   * - ``ComplexRealFunc``
+   * - :c:func:`ComplexRealFunc`
      - Complex input is converted into a separate real buffer, installed after validation.
-   * - ``ScalarFunc`` / ``ComplexScalarFunc``
+   * - :c:func:`ScalarFunc` / :c:func:`ComplexScalarFunc`
      - Compute a reduction before resizing to one; retain the supported input type.
-   * - ``ComplexRealScalarFunc``
+   * - :c:func:`ComplexRealScalarFunc`
      - Compute before releasing/retyping, then store one real result.
-   * - ``VectorFunc``
+   * - :c:func:`VectorFunc`
      - Reject complex input and delegate the whole-vector mutation policy.
 
-Real component iteration uses ``First``/``Next`` to skip nonfinite values within
+Real component iteration uses :c:func:`First`/:c:func:`Next` to skip nonfinite values within
 the selected interval. Complex component iteration visits the full used length.
 Those are different internal policies, not interchangeable loops. The final
-``EvaluateExpression`` pass rejects any nonfinite real or imaginary component
+:c:func:`EvaluateExpression` pass rejects any nonfinite real or imaginary component
 remaining in the result. Reducer adapters check ``errno`` but can defer finite
-validation to that final pass. ``MathError`` reads ``errno``; callers relying on
+validation to that final pass. :c:func:`MathError` reads ``errno``; callers relying on
 it must reset it before the operation.
 
 The ``map`` adapter differs from these C math adapters. It retains each command
@@ -160,10 +160,10 @@ begin. See :doc:`expressions` for its completion-code and promotion rules.
 Scalar conversion and operand reuse
 ------------------------------------
 
-``NextValue`` reuses its right-operand temporary between operations. Each parsed
+:c:func:`NextValue` reuses its right-operand temporary between operations. Each parsed
 value must therefore establish its own type, rather than relying on the type
-left by a preceding operand. The numeric branch of ``ParseString`` uses
-``SetExpressionRealScalar``, just like bare numeric tokens. A preceding complex
+left by a preceding operand. The numeric branch of :c:func:`ParseString` uses
+:c:func:`SetExpressionRealScalar`, just like bare numeric tokens. A preceding complex
 operand cannot contribute a stale imaginary component to a later real scalar.
 
 Braces, quotes, variables and command substitutions all use this conversion.

@@ -49,7 +49,7 @@ indices; they do not create independent slice objects. Their private contracts
 are collected in <a class="reference internal" href="vector-access-reference.html"><span class="doc">Vector access C reference</span></a>.</p>
 <section id="names-and-selections">
 <h2>Names and selections<a class="headerlink" href="#names-and-selections" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorParseElement</span></code> looks for the longest existing vector name at a
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorParseElement" title="Rbc_VectorParseElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorParseElement()</span></code></a> looks for the longest existing vector name at a
 balanced-parenthesis boundary. This lets a name such as <code class="docutils literal notranslate"><span class="pre">v(out)</span></code> coexist with
 range syntax: <code class="docutils literal notranslate"><span class="pre">v(out)(1:20)</span></code> selects a range from that vector. Without an
 <code class="docutils literal notranslate"><span class="pre">endPtr</span></code> the whole argument must be consumed; expression parsing supplies an
@@ -82,7 +82,7 @@ because subsequent source indices shift. Read-only state blocks data writes
 and element unsets. Whole-array unsets instead unmap the array and may destroy
 the vector according to its ownership setting.</p>
 <p>Array names cannot contain parentheses, even though vector command names can.
-<code class="docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable</span></code> removes the old mapping before establishing the new
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorMapVariable" title="Rbc_VectorMapVariable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable()</span></code></a> removes the old mapping before establishing the new
 one; failure does not restore the old array. Mapping and public cache flushing
 preserve the vector/interpreter across variable traces and check for destruction
 or reentrant remapping before reinstalling RBC’s trace. This local protection
@@ -120,13 +120,13 @@ result. No public C signature or stub-table entry changes.</p>
 </section>
 <section id="value-objects">
 <h2>Value objects<a class="headerlink" href="#value-objects" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetDouble</span></code> first tries direct Tcl conversion, then expression evaluation.
-<code class="docutils literal notranslate"><span class="pre">Rbc_GetComplex</span></code> accepts a two-item list or a scalar with imaginary part zero.
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_GetDouble" title="Rbc_GetDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetDouble()</span></code></a> first tries direct Tcl conversion, then expression evaluation.
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_GetComplex" title="Rbc_GetComplex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetComplex()</span></code></a> accepts a two-item list or a scalar with imaginary part zero.
 The pair conversion can write its real component before imaginary conversion
 fails. Neither helper establishes an atomic vector update or retains a vector.</p>
 <p>The output helpers return new reference-count-zero Tcl objects containing copied
 values: doubles for real storage and two-double lists for complex storage.
-They do not validate storage bounds. <code class="docutils literal notranslate"><span class="pre">Rbc_GetValues</span></code> uses an inclusive interval
+They do not validate storage bounds. <a class="reference internal" href="vector-access-reference.html#c.Rbc_GetValues" title="Rbc_GetValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetValues()</span></code></a> uses an inclusive interval
 and returns an empty list for a reversed interval.</p>
 </section>
 <section id="index-parsing-branches-and-caller-obligations">
@@ -169,23 +169,23 @@ state they require after callback-capable parsing.</p>
 </section>
 <section id="finite-extrema-and-low-level-writes">
 <h2>Finite extrema and low-level writes<a class="headerlink" href="#finite-extrema-and-low-level-writes" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateRange</span></code> scans the whole real vector, independently of its
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorUpdateRange" title="Rbc_VectorUpdateRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorUpdateRange()</span></code></a> scans the whole real vector, independently of its
 selection or external offset. It ignores both infinities and NaNs, keeps the
 first storage index for tied minima/maxima, and clears <code class="docutils literal notranslate"><span class="pre">UPDATE_RANGE</span></code> after
 installing the cache. Empty and entirely nonfinite vectors use NaN bounds and
 indices of -1. Complex vectors use that same cache representation rather than
 ordering complex values.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetRange</span></code> rejects complex vectors without writing its outputs.
+<p><a class="reference internal" href="vector-reference.html#c.Rbc_VectorGetRange" title="Rbc_VectorGetRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetRange()</span></code></a> rejects complex vectors without writing its outputs.
 For real vectors it recomputes only an invalid cache and returns the bounds;
 NaN bounds for an empty/nonfinite vector are a successful result. Both output
 pointers are required. Neither helper publishes an update.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ReplicateValue</span></code> is deliberately a low-level real-storage loop. Its caller
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ReplicateValue" title="Rbc_ReplicateValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReplicateValue()</span></code></a> is deliberately a low-level real-storage loop. Its caller
 must validate type, writability and bounds, then invalidate or maintain extrema
 and publish the change. It does not perform these steps itself. Likewise,
-<code class="docutils literal notranslate"><span class="pre">Rbc_GetValues</span></code> copies a validated inclusive storage interval into independent
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_GetValues" title="Rbc_GetValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetValues()</span></code></a> copies a validated inclusive storage interval into independent
 Tcl values; it neither applies the external offset nor alters selection.</p>
-<p>A full <code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClients</span></code> invalidates extrema before scheduling a
-notification. <code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClientsRange</span></code> instead attempts to maintain
+<p>A full <a class="reference internal" href="vector-reference.html#c.Rbc_VectorUpdateClients" title="Rbc_VectorUpdateClients"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClients()</span></code></a> invalidates extrema before scheduling a
+notification. <a class="reference internal" href="vector-reference.html#c.Rbc_VectorUpdateClientsRange" title="Rbc_VectorUpdateClientsRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClientsRange()</span></code></a> instead attempts to maintain
 real extrema from the changed interval. It can do this when the previous
 extrema were not overwritten and the old cache is valid; otherwise the next
 range query must scan the whole vector. Invalid notification bounds become a

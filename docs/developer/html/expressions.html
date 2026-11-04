@@ -81,16 +81,16 @@ clients.</p></td>
 <p>A scalar is a vector of length one inside the evaluator. List output still
 uses a list for one value; complex values are two-element real/imaginary pairs.
 There is no registered command or array for an expression temporary.
-<code class="docutils literal notranslate"><span class="pre">Rbc_VectorFree</span></code> releases temporaries on all exit paths. An internal caller
-of <code class="docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate</span></code> owns the returned record until it frees it or
+<a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorFree" title="Rbc_VectorFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorFree()</span></code></a> releases temporaries on all exit paths. An internal caller
+of <a class="reference internal" href="expression-reference.html#c.Rbc_VectorEvaluate" title="Rbc_VectorEvaluate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a> owns the returned record until it frees it or
 explicitly transfers its storage.</p>
 </section>
 <section id="parsing-and-input-snapshots">
 <h2>Parsing and input snapshots<a class="headerlink" href="#parsing-and-input-snapshots" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code> tracks the input buffer, scan position and current token.
-<code class="docutils literal notranslate"><span class="pre">NextValue</span></code> performs precedence-based evaluation; <code class="docutils literal notranslate"><span class="pre">NextToken</span></code> handles
+<a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> performs precedence-based evaluation; <a class="reference internal" href="expression-engine-reference.html#c.NextToken" title="NextToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextToken()</span></code></a> handles
 numeric literals, vector references, operators and Tcl substitutions.
-<code class="docutils literal notranslate"><span class="pre">EvaluateExpression</span></code> checks that the entire expression was consumed and
+<a class="reference internal" href="expression-engine-reference.html#c.EvaluateExpression" title="EvaluateExpression"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvaluateExpression()</span></code></a> checks that the entire expression was consumed and
 rejects non-finite components in the final result.</p>
 <p>Vector references are copied into expression storage when encountered. A
 selected vector range is copied through the same duplication helper. Later
@@ -105,8 +105,8 @@ Callers keep the interpreter and its vector state alive during evaluation.</p>
 </section>
 <section id="real-and-complex-temporaries">
 <h2>Real and complex temporaries<a class="headerlink" href="#real-and-complex-temporaries" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">SetExpressionVectorType</span></code> is restricted to unnamed, unmapped temporaries.
-It releases old storage when changing type. <code class="docutils literal notranslate"><span class="pre">CopyExpressionVector</span></code> sets the
+<p><a class="reference internal" href="expression-engine-reference.html#c.SetExpressionVectorType" title="SetExpressionVectorType"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetExpressionVectorType()</span></code></a> is restricted to unnamed, unmapped temporaries.
+It releases old storage when changing type. <a class="reference internal" href="expression-engine-reference.html#c.CopyExpressionVector" title="CopyExpressionVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyExpressionVector()</span></code></a> sets the
 temporary’s type before duplication; promotion to complex allocates complex
 storage and copies real components with zero imaginary parts.</p>
 <p>Ordinary elementwise binary arithmetic broadcasts a length-one operand;
@@ -116,7 +116,7 @@ implementation detail, not permission to change a named vector’s type.</p>
 </section>
 <section id="assignment-and-named-creation">
 <h2>Assignment and named creation<a class="headerlink" href="#assignment-and-named-creation" title="Link to this heading">¶</a></h2>
-<p>For an existing destination, <code class="docutils literal notranslate"><span class="pre">Rbc_ExprVector</span></code> checks writability before any
+<p>For an existing destination, <a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> checks writability before any
 expression evaluation. It attaches a temporary observer to detect destruction
 while substitutions or map callbacks execute. On successful evaluation it
 checks that the original destination survived and is still writable, then
@@ -147,7 +147,7 @@ then evaluates the numeric argument before calling the prefix once per value.
 The comma and closing parenthesis are required. Prefix substitutions run once
 in the caller’s frame. Each invocation appends one argument: a real number or
 a single Tcl list containing the complex pair.</p>
-<p><code class="docutils literal notranslate"><span class="pre">MapVector</span></code> retains its own references to the prefix words, so recursive Tcl
+<p><a class="reference internal" href="expression-engine-reference.html#c.MapVector" title="MapVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapVector()</span></code></a> retains its own references to the prefix words, so recursive Tcl
 evaluation cannot invalidate the argument array by changing the prefix object’s
 internal representation. It builds results in separate temporary storage.
 Each return value must be a finite number or a pair of finite numbers. A pair

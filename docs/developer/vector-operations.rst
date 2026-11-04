@@ -17,7 +17,7 @@ Retaining a record does not retain its numeric storage after destruction.
 Handlers therefore check lifetime, writability and relevant bounds after
 expressions that can execute Tcl.
 
-Prepared data is filled before ``FinishCommandWrite`` installs it and releases
+Prepared data is filled before :c:func:`FinishCommandWrite <rbcVectorCommands.FinishCommandWrite>` installs it and releases
 old storage. A custom free procedure therefore sees complete data. Ordinary
 indexed writes keep their existing fast path; resizing generators and append
 paths reuse capacity when possible. Population and normalization stage a full
@@ -38,7 +38,7 @@ the write loop, so they cannot invalidate a destination still awaiting a write.
 Indexed access and deletion
 ---------------------------
 
-``IndexOp`` uses the shared inclusive selection parser. Reading returns a Tcl
+:c:func:`IndexOp` uses the shared inclusive selection parser. Reading returns a Tcl
 list, even for one selected value. Writing converts one real or complex value
 and replicates it through the selection, returning the original Tcl input
 object. The append index may extend storage by one element but cannot be read.
@@ -68,13 +68,13 @@ a new lifecycle-locking policy.
 Length and offset
 -----------------
 
-``LengthOp`` parses a nonnegative Tcl-sized integer, prepares storage while
+:c:func:`LengthOp` parses a nonnegative Tcl-sized integer, prepares storage while
 retaining the existing allocation when its capacity matches the requested size
 class, and zero-fills new entries before commit. Substantial shrinking releases
 excess capacity, and length zero releases storage. It returns the requested length, including when a post-commit callback
 destroys the vector. Notification does not overwrite that result.
 
-``OffsetOp`` changes external numeric indexing without moving values. Both query
+:c:func:`OffsetOp` changes external numeric indexing without moving values. Both query
 and setter return the current offset. The setter does not flush mapped array
 entries or notify clients, although it is classified as a receiver mutation
 for the read-only check. Offsets are metadata, not an address displacement of
@@ -103,14 +103,14 @@ Copying, interleaving and splitting
      - Insert linear intermediate values
      - Build the complete output before resolving its destination
 
-``DupOp`` skips a destination that is the receiver itself. Other destinations
+:c:func:`DupOp` skips a destination that is the receiver itself. Other destinations
 inherit the source numeric type when created, and existing types must be
 compatible. The command table permits one destination. No callback occurs
 between output resolution and completing the copy; the source therefore needs
 no extra snapshot. Outputs use the current namespace, matching creation semantics
 rather than falling back to a same-named global vector.
 
-``MergeOp`` saves the selected first index of each source, requires matching
+:c:func:`MergeOp` saves the selected first index of each source, requires matching
 types and selected lengths, and stages values in source-argument order. For
 sources ``{a0 a1}`` and ``{b0 b1}``, the result is ``{a0 b0 a1 b1}``. Ordinary
 self-merge works because staging precedes destination replacement. Each resolved
@@ -118,7 +118,7 @@ source record is retained, and all saved ranges are validated again after the
 last source lookup. A callback destroying or shrinking an earlier source causes
 an error before destination data is modified.
 
-``SplitOp`` requires divisibility of source length by the number of destinations.
+:c:func:`SplitOp` requires divisibility of source length by the number of destinations.
 Destination zero receives source positions 0, K, 2K, and so on for K destinations;
 the next receives 1, K+1, 2K+1. Existing destination values are retained and the
 subsequence is appended. The full source is snapshotted before destination
@@ -137,7 +137,7 @@ containing parentheses.
 Population and source aliasing
 ------------------------------
 
-``PopulateOp`` takes an integer density D of at least one, meaning D inserted
+:c:func:`PopulateOp` takes an integer density D of at least one, meaning D inserted
 values between neighboring samples. For N greater than zero, the output has
 ``(N-1)*(D+1)+1`` values. Empty input gives empty output; one input value stays
 one value. Count arithmetic is checked before allocation.
@@ -152,7 +152,7 @@ Paired-vector simplification
 ----------------------------
 
 The standalone ``rbc::vector::simplify`` command and the vector ensemble
-``simplify`` operation share ``VectorSimplifyObjCmd``. The ensemble adapter
+``simplify`` operation share :c:func:`VectorSimplifyObjCmd`. The ensemble adapter
 only shifts arguments. This algorithm operates on whole existing real vectors
 in data coordinates; it is separate from screen-space line decimation and the
 mapped-polyline helper described in :doc:`geometry`.
@@ -203,8 +203,8 @@ only half of the initial commit. Subsequent callback mutations are permitted and
 are not undone. The returned count describes the computed simplification, not a
 promise that callbacks left both vectors at that length.
 
-Temporary observer IDs use ``SimplifyDeleted`` to clear their local slots when a
-destination is destroyed. ``SimplifyFlush`` snapshots the mapped-array name and
+Temporary observer IDs use :c:func:`SimplifyDeleted` to clear their local slots when a
+destination is destroyed. :c:func:`SimplifyFlush` snapshots the mapped-array name and
 re-fetches the server through the surviving ID after trace-producing operations.
 It does not find a replacement vector by name. Surviving destinations then
 receive full update notifications, and surviving temporary IDs are released.

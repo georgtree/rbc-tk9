@@ -56,7 +56,7 @@ Real storage contains doubles; complex storage contains ``Rbc_Complex`` records
 with separate real and imaginary doubles. Length and capacity count values,
 not bytes or individual complex components.
 
-``Rbc_VectorData`` and ``Rbc_VectorComplexData`` return borrowed storage, or NULL
+:c:func:`Rbc_VectorData` and :c:func:`Rbc_VectorComplexData` return borrowed storage, or NULL
 for the wrong type. NULL can also represent an empty vector, so query type and
 length rather than using the pointer alone as a type test. Reacquire pointers
 after resize/reset and before using data following callbacks or Tcl evaluation.
@@ -65,14 +65,14 @@ The vector record itself becomes invalid on destruction.
 Registered names are borrowed hash-key strings. Rename retains vector identity
 and observer connections, but invalidates a cached name pointer. Obtain the
 current name again or keep an owned copy. The mapped array name is a separate
-property. Real vectors created through ``Rbc_CreateVectorWithType`` receive the
+property. Real vectors created through :c:func:`Rbc_CreateVectorWithType` receive the
 traditional automatic array mapping unless their names contain ``(``; complex
 vectors do not receive that automatic mapping.
 
 Storage replacement versus in-place modification
 ------------------------------------------------
 
-``Rbc_ResetVector`` and ``Rbc_ResetComplexVector`` replace the storage contract
+:c:func:`Rbc_ResetVector` and :c:func:`Rbc_ResetComplexVector` replace the storage contract
 without changing vector type. The replacement includes pointer, length,
 capacity and release policy. The real reset rejects complex vectors and vice
 versa. Validation includes writability, nonnegative sizes, length not exceeding
@@ -120,7 +120,7 @@ a live borrowed vector:
    Rbc_VectorChangedRange(vecPtr, index, index);
    /* Do not keep values across subsequent vector operations or callbacks. */
 
-``Rbc_VectorChanged`` reports a full/unknown change. Its ranged counterpart uses
+:c:func:`Rbc_VectorChanged` reports a full/unknown change. Its ranged counterpart uses
 inclusive zero-based storage indices, independent of the Tcl vector index
 offset. Invalid intervals conservatively become full updates. Both public
 reporting functions flush the mapped-array cache when configured to do so.
@@ -132,9 +132,9 @@ Read-only state
 ---------------
 
 Read-only protects data mutations; it is not a lifetime lock or a security
-boundary. ``Rbc_VectorSetReadOnly`` changes the flag without changing storage,
+boundary. :c:func:`Rbc_VectorSetReadOnly` changes the flag without changing storage,
 identity or observer connections and without sending a value-change notification.
-Renaming and destruction remain possible. ``Rbc_VectorCheckWritable`` reports
+Renaming and destruction remain possible. :c:func:`Rbc_VectorCheckWritable` reports
 ``RBC VECTOR READONLY`` when protection is active.
 
 A native pointer write cannot be intercepted. Producers must check writability

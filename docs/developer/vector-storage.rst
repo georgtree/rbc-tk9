@@ -13,9 +13,9 @@ Public versus private entry points
 
 ``generic/rbc.decls`` defines the public stub slots. The creation, lookup,
 resize/reset, data access, change-reporting and read-only APIs reviewed here
-are public entries. ``Rbc_CreateVector2`` and names beginning with
-``Rbc_VectorNew``, ``Rbc_VectorCreate``, ``Rbc_VectorChangeLength`` and
-``Rbc_VectorDuplicate`` are private implementation helpers; similar spelling
+are public entries. :c:func:`Rbc_CreateVector2` and names beginning with
+:c:func:`Rbc_VectorNew`, :c:func:`Rbc_VectorCreate`, :c:func:`Rbc_VectorChangeLength` and
+:c:func:`Rbc_VectorDuplicate` are private implementation helpers; similar spelling
 does not make them interchangeable with installed APIs.
 
 Include ``rbc.h`` and initialize the appropriate RBC stubs interface as described
@@ -27,13 +27,13 @@ not by themselves establish public stub availability.
 Registry and creation
 ---------------------
 
-``Rbc_VectorGetInterpData`` lazily creates interpreter-associated registry,
+:c:func:`Rbc_VectorGetInterpData` lazily creates interpreter-associated registry,
 math-function and special-index tables. It does not install Tcl commands. A
-private ``Rbc_VectorNew`` allocates an unregistered empty record with no numeric
+private :c:func:`Rbc_VectorNew` allocates an unregistered empty record with no numeric
 storage, idle notification policy, invalid extrema and an empty observer chain.
-A caller using it as a temporary releases it with ``Rbc_VectorFree``.
+A caller using it as a temporary releases it with :c:func:`Rbc_VectorFree`.
 
-``Rbc_VectorCreate`` adds or reuses the registered identity, configures its
+:c:func:`Rbc_VectorCreate` adds or reuses the registered identity, configures its
 instance command and optionally maps an array. It qualifies creation names in
 the current namespace, requires existing vectors to be writable and type
 compatible, and rejects commands belonging to another object. Its ``#auto``
@@ -46,11 +46,11 @@ resizes the vector; zero does not clear an existing vector. New records start
 empty. Added values are zero-filled, while the retained prefix survives resizing.
 The optional output pointer is borrowed, not a new ownership reference.
 
-``Rbc_CreateVector`` selects real type. ``Rbc_CreateVectorWithType`` accepts real
+:c:func:`Rbc_CreateVector` selects real type. :c:func:`Rbc_CreateVectorWithType` accepts real
 or complex type and normally requests a same-named Tcl command. Automatic array
 mapping is requested for real names without ``(``; complex vectors and names
 containing parentheses do not get that automatic mapping. Explicit command and
-array names belong to the private ``Rbc_CreateVector2`` interface.
+array names belong to the private :c:func:`Rbc_CreateVector2` interface.
 
 Creation is not a transaction. Mapping can run Tcl traces before the initial
 positive-size resize, and a later allocation failure does not undo all earlier
@@ -62,8 +62,8 @@ them; that stronger ordering must not be inferred for public C creation.
 Lookup and borrowed views
 -------------------------
 
-``Rbc_VectorExists2`` tests a literal registry name. It does not accept a client
-ID or evaluate range syntax. ``Rbc_GetVector`` accepts a vector reference,
+:c:func:`Rbc_VectorExists2` tests a literal registry name. It does not accept a client
+ID or evaluate range syntax. :c:func:`Rbc_GetVector` accepts a vector reference,
 including a selected range, and refreshes invalid extrema before returning.
 Selection changes the original record's shared ``first``/``last`` fields; the
 returned pointer is not an independent slice and its public length remains the
@@ -75,17 +75,17 @@ full vector length. See :doc:`vector-access` for evaluating index expressions.
 
    * - Accessor
      - Meaning and lifetime
-   * - ``Rbc_NameOfVector``
+   * - :c:func:`Rbc_NameOfVector`
      - Current registered name; invalidated by rename or destruction
-   * - ``Rbc_VectorData``
+   * - :c:func:`Rbc_VectorData`
      - Real storage, or NULL for a complex vector
-   * - ``Rbc_VectorComplexData``
+   * - :c:func:`Rbc_VectorComplexData`
      - Complex storage, or NULL for a real vector
-   * - ``Rbc_VectorLength`` / ``Rbc_VectorSize``
+   * - :c:func:`Rbc_VectorLength` / :c:func:`Rbc_VectorSize`
      - Used length / capacity, both in values rather than bytes
-   * - ``Rbc_VectorGetType``
+   * - :c:func:`Rbc_VectorGetType`
      - Immutable real/complex storage type
-   * - ``Rbc_VectorDirty``
+   * - :c:func:`Rbc_VectorDirty`
      - Modification counter, not a boolean or pending-idle flag
 
 An empty vector can also have NULL storage. Query type and length separately.
@@ -97,18 +97,18 @@ does not advance it. It is not an object-lifetime token.
 Resizing, resetting and copying
 -------------------------------
 
-``Rbc_VectorChangeLength`` selects capacity by doubling from ``DEF_ARRAY_SIZE``
+:c:func:`Rbc_VectorChangeLength` selects capacity by doubling from ``DEF_ARRAY_SIZE``
 until the requested length fits, with overflow checks. Equal capacity reuses the
 allocation; otherwise it copies the retained prefix into new storage. It zeros
 added values and sets the shared selection to ``0..length-1``. Shrinking may
 release excess capacity, and zero length releases storage entirely.
 
 That private primitive invalidates extrema but does not flush the mapped cache or
-notify clients. The public ``Rbc_ResizeVector`` adds cache flushing and a full
+notify clients. The public :c:func:`Rbc_ResizeVector` adds cache flushing and a full
 update. Its failure path replaces the detailed resize message with a generic
 message; it is not a name-based lookup API and requires a live vector pointer.
 
-The two public reset functions share ``ResetVectorStorage`` after checking type.
+The two public reset functions share :c:func:`ResetVectorStorage` after checking type.
 Reset validates nonnegative length/capacity, ``length <= capacity`` and byte-count
 overflow. NULL data or zero capacity produces empty static storage after
 validation. ``TCL_VOLATILE`` allocates capacity-sized storage and copies only
@@ -122,7 +122,7 @@ lifetime of a borrowed pointer into the old allocation. Unlike resize, reset
 does not reset the private shared selection. Successful reset publishes a full
 change, but is not an appropriate substitute for announcing an in-place write.
 
-``Rbc_VectorDuplicate`` is a private resize/copy primitive, not the revised Tcl
+:c:func:`Rbc_VectorDuplicate` is a private resize/copy primitive, not the revised Tcl
 ``dup`` handler. It copies selected values and offset into an existing same-type
 destination without creating it or notifying clients. ``memmove`` handles
 buffer overlap, including a same-object selected subrange. Copying finishes
@@ -131,18 +131,18 @@ before old storage is released or callbacks can invalidate the source.
 Protection, publication and destruction
 ---------------------------------------
 
-``Rbc_VectorCheckWritable`` checks a live record's protection flag and reports
+:c:func:`Rbc_VectorCheckWritable` checks a live record's protection flag and reports
 ``RBC VECTOR READONLY``. It does not validate arbitrary or destroyed pointers.
 Check before a native write, and recheck after callbacks that might change
-protection. ``Rbc_VectorSetReadOnly`` normalizes its argument to a boolean and
+protection. :c:func:`Rbc_VectorSetReadOnly` normalizes its argument to a boolean and
 sends no value-change notification. Lifetime operations remain separate.
 
-``Rbc_VectorChanged`` and ``Rbc_VectorChangedRange`` publish already-completed
+:c:func:`Rbc_VectorChanged` and :c:func:`Rbc_VectorChangedRange` publish already-completed
 in-place writes without changing length or ownership. The ranged form uses
 inclusive storage indices independent of the external offset. Neither function
 checks writability; notification cannot retroactively authorize a write.
 
-``Rbc_FreeVector`` delegates to private destruction, which retains the record
+:c:func:`Rbc_FreeVector` delegates to private destruction, which retains the record
 and interpreter through callbacks and ignores recursive destruction. It deletes
 the command and mapping, removes registration, cancels pending idle delivery,
 and sends synchronous DESTROY with length zero. Registration has been removed
@@ -193,21 +193,21 @@ Post-callback checks and publication
 ------------------------------------
 
 A retained vector record can be logically destroyed while its memory remains
-available. ``VectorAlive`` checks that distinction and interpreter deletion;
-it is not a guard for arbitrary pointers. ``CheckResizedVector`` additionally
+available. :c:func:`VectorAlive` checks that distinction and interpreter deletion;
+it is not a guard for arbitrary pointers. :c:func:`CheckResizedVector` additionally
 checks writability, numeric storage identity, length, capacity and full-vector
 selection after a callback. These checks protect subsequent writes using saved
 bounds. They do not detect every mutation: a callback can change values while
 leaving the same storage layout in place.
 
 Storage release and change publication have separate roles. The completed
-replacement storage contract must be installed before ``ReleaseVectorStorage``
+replacement storage contract must be installed before :c:func:`ReleaseVectorStorage`
 invokes a custom free callback. Static storage is left alone and dynamic storage
 uses the allocator directly. Saving the Tcl interpreter state around custom
 release preserves the outer result, but the caller still owns lifetime protection
 and post-callback validity checks.
 
-``PublishVectorChange`` preserves the original vector and interpreter, optionally
+:c:func:`PublishVectorChange` preserves the original vector and interpreter, optionally
 flushes mapped-array cache, and rechecks logical liveness before notifying
 observers. It does not look up the name again: a callback-created vector with
 the same name is a different object. Interpreter result restoration does not
@@ -230,7 +230,7 @@ the interval after nested delivery returns the outer event's interval again.
 The vector's accumulating pending state and a client's currently delivered
 interval are therefore distinct records.
 
-``ScheduleVectorUpdate`` merges inclusive ranged intervals; a full update
+:c:func:`ScheduleVectorUpdate` merges inclusive ranged intervals; a full update
 supersedes them. Immediate policy delivers before the scheduling call returns,
 while idle policy keeps at most one queued notification. Disabled notification
 still increments the dirty generation. This helper does not maintain extrema:
@@ -255,7 +255,7 @@ all modified indices, not merely the subset that changed visibly on a graph.
 Variable-trace errors use Tcl object results
 --------------------------------------------
 
-``VectorTraceError`` returns a retained Tcl object through the historical
+:c:func:`VectorTraceError` returns a retained Tcl object through the historical
 ``char *`` trace callback signature. RBC registers these traces with
 ``TCL_TRACE_RESULT_OBJECT``; Tcl therefore treats the return value as an object,
 not a C string. Removing that registration flag or reusing the helper for a
@@ -271,23 +271,23 @@ requested current/global search flags. Returned vector pointers are borrowed,
 not retained client IDs, and lookup does not change the vector's index selection.
 Higher-level parsers decide when parentheses describe a literal name or a range.
 
-The name helpers have different contracts. ``BuildQualifiedName`` prefixes the
+The name helpers have different contracts. :c:func:`BuildQualifiedName` prefixes the
 current namespace unless the input already starts with a global qualifier;
-it does not check namespace existence. ``ParseQualifiedName`` finds the final
+it does not check namespace existence. :c:func:`ParseQualifiedName` finds the final
 separator and resolves an existing namespace, returning a tail pointer into the
 original string. Without a separator it reports no namespace, leaving search
-policy to the caller. ``GetQualifiedName`` joins a known namespace and a tail.
+policy to the caller. :c:func:`GetQualifiedName` joins a known namespace and a tail.
 Both construction helpers initialize caller-owned DStrings; their returned
 pointers expire when those strings are changed or freed.
 
 The instance command and mapped array are access surfaces, not the registry
-record itself. ``DeleteCommand`` clears the vector's token and disables its
+record itself. :c:func:`DeleteCommand` clears the vector's token and disables its
 instance deletion callback before deleting by token. This avoids deleting an
 unrelated same-name command in the caller namespace, but does not suppress all
 user command traces. The surrounding operation must still retain resources and
 check whether callbacks destroyed or changed them.
 
-``UnmapVariable`` detaches the old array name before unsetting the variable.
+:c:func:`UnmapVariable` detaches the old array name before unsetting the variable.
 User unset traces can then destroy or remap the vector without the helper later
 reading the old vector fields. The captured name remains owned locally until
 unset completes. Neither helper is a complete vector destructor, and neither

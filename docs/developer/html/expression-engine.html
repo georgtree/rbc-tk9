@@ -55,7 +55,7 @@ reduction formulas and scalar kernels, and
 complete writable expression string and stores <code class="docutils literal notranslate"><span class="pre">nextPtr</span></code> plus the last scanned
 token. A token describes characters immediately before <code class="docutils literal notranslate"><span class="pre">nextPtr</span></code>; returning
 from a recursive value parse does not rewind the terminating operator.</p>
-<p><code class="docutils literal notranslate"><span class="pre">NextValue</span></code> allocates a second operand temporary for each invocation. It first
+<p><a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> allocates a second operand temporary for each invocation. It first
 handles an ordinary value, parenthesized expression or unary operator, then
 recursively obtains right operands while their operators have greater precedence
 than the caller’s limit. It stops at the end, comma, closing parenthesis or an
@@ -75,11 +75,11 @@ those Tcl side effects.</p>
 </section>
 <section id="token-recognition-and-substitutions">
 <h2>Token recognition and substitutions<a class="headerlink" href="#token-recognition-and-substitutions" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">NextToken</span></code> tries an unsigned-leading numeric token first; leading <code class="docutils literal notranslate"><span class="pre">+</span></code> and
+<p><a class="reference internal" href="expression-engine-reference.html#c.NextToken" title="NextToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextToken()</span></code></a> tries an unsigned-leading numeric token first; leading <code class="docutils literal notranslate"><span class="pre">+</span></code> and
 <code class="docutils literal notranslate"><span class="pre">-</span></code> remain operator tokens. It recognizes punctuation/operators directly.
 Other text first tries a known function call, then a vector/range reference.
 An unknown function name returns the internal sentinel <code class="docutils literal notranslate"><span class="pre">TCL_RETURN</span></code> from
-<code class="docutils literal notranslate"><span class="pre">ParseMathFunction</span></code> so vector parsing can try the same text. It does not mean
+<a class="reference internal" href="expression-engine-reference.html#c.ParseMathFunction" title="ParseMathFunction"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseMathFunction()</span></code></a> so vector parsing can try the same text. It does not mean
 a Tcl script executed <code class="docutils literal notranslate"><span class="pre">return</span></code>.</p>
 <p>Function syntax requires the opening parenthesis immediately after the scanned
 name. Lookup temporarily changes it to NUL, then restores it. This is why the
@@ -106,19 +106,19 @@ parenthesis. <code class="docutils literal notranslate"><span class="pre">map</s
 </tr>
 <tr class="row-odd"><td><p>Variable</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Tcl_ParseVar</span></code>; traces may run</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+<td><p><a class="reference internal" href="expression-engine-reference.html#c.ParseString" title="ParseString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseString()</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><p>Bracketed script</p></td>
 <td><p>Find closing bracket with Tcl parser, then evaluate script</p></td>
-<td><p>Retained result through <code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+<td><p>Retained result through <a class="reference internal" href="expression-engine-reference.html#c.ParseString" title="ParseString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseString()</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Quoted value</p></td>
 <td><p>Tcl quoted tokens and substitutions</p></td>
-<td><p>Retained result through <code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+<td><p>Retained result through <a class="reference internal" href="expression-engine-reference.html#c.ParseString" title="ParseString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseString()</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><p>Braced value</p></td>
 <td><p>Tcl brace token rules</p></td>
-<td><p>Retained result through <code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+<td><p>Retained result through <a class="reference internal" href="expression-engine-reference.html#c.ParseString" title="ParseString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseString()</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Vector/range</p></td>
 <td><p>Registry and index lookup</p></td>
@@ -126,7 +126,7 @@ parenthesis. <code class="docutils literal notranslate"><span class="pre">map</s
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">ParseString</span></code> accepts a completely consumed number, a two-element complex
+<p><a class="reference internal" href="expression-engine-reference.html#c.ParseString" title="ParseString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseString()</span></code></a> accepts a completely consumed number, a two-element complex
 pair, or a completely consumed vector reference. It does not turn an arbitrary
 list of numbers into a vector. Substitution-result conversion retains the Tcl
 result object before clearing the interpreter result, protecting the string
@@ -141,11 +141,11 @@ Callers must obey the surrounding lifetime requirements.</p>
 <section id="temporary-storage-and-type-changes">
 <h2>Temporary storage and type changes<a class="headerlink" href="#temporary-storage-and-type-changes" title="Link to this heading">¶</a></h2>
 <p>Only evaluator temporaries may change numeric type. They have no registry entry,
-command or mapped array. <code class="docutils literal notranslate"><span class="pre">SetExpressionVectorType</span></code> discards their old storage;
+command or mapped array. <a class="reference internal" href="expression-engine-reference.html#c.SetExpressionVectorType" title="SetExpressionVectorType"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetExpressionVectorType()</span></code></a> discards their old storage;
 promotion instead allocates complex capacity, copies used real values with zero
 imaginary parts and then releases the old allocation. These operations do not
 change named-vector type or send client notifications.</p>
-<p><code class="docutils literal notranslate"><span class="pre">FreeExpressionData</span></code> and <code class="docutils literal notranslate"><span class="pre">ReleaseExpressionStorage</span></code> are deliberately small
+<p><a class="reference internal" href="expression-engine-reference.html#c.FreeExpressionData" title="FreeExpressionData"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeExpressionData()</span></code></a> and <a class="reference internal" href="expression-engine-reference.html#c.ReleaseExpressionStorage" title="ReleaseExpressionStorage"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReleaseExpressionStorage()</span></code></a> are deliberately small
 private helpers. They rely on exclusive temporary ownership. Unlike the public
 reset APIs, they do not install new metadata before a custom release callback or
 retain the vector through destructive reentry. Ordinary evaluator allocations
@@ -179,29 +179,29 @@ or whole-vector procedure. The adapter controls type handling and storage:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ComponentFunc</span></code> / <code class="docutils literal notranslate"><span class="pre">ComplexComponentFunc</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="expression-engine-reference.html#c.ComponentFunc" title="ComponentFunc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComponentFunc()</span></code></a> / <a class="reference internal" href="expression-engine-reference.html#c.ComplexComponentFunc" title="ComplexComponentFunc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexComponentFunc()</span></code></a></p></td>
 <td><p>Transform values in place; errors can leave earlier temporary values changed.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ComplexRealFunc</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="expression-engine-reference.html#c.ComplexRealFunc" title="ComplexRealFunc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRealFunc()</span></code></a></p></td>
 <td><p>Complex input is converted into a separate real buffer, installed after validation.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ScalarFunc</span></code> / <code class="docutils literal notranslate"><span class="pre">ComplexScalarFunc</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="expression-engine-reference.html#c.ScalarFunc" title="ScalarFunc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ScalarFunc()</span></code></a> / <a class="reference internal" href="expression-engine-reference.html#c.ComplexScalarFunc" title="ComplexScalarFunc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexScalarFunc()</span></code></a></p></td>
 <td><p>Compute a reduction before resizing to one; retain the supported input type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ComplexRealScalarFunc</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="expression-engine-reference.html#c.ComplexRealScalarFunc" title="ComplexRealScalarFunc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRealScalarFunc()</span></code></a></p></td>
 <td><p>Compute before releasing/retyping, then store one real result.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">VectorFunc</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="expression-engine-reference.html#c.VectorFunc" title="VectorFunc"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorFunc()</span></code></a></p></td>
 <td><p>Reject complex input and delegate the whole-vector mutation policy.</p></td>
 </tr>
 </tbody>
 </table>
-<p>Real component iteration uses <code class="docutils literal notranslate"><span class="pre">First</span></code>/<code class="docutils literal notranslate"><span class="pre">Next</span></code> to skip nonfinite values within
+<p>Real component iteration uses <a class="reference internal" href="expression-engine-reference.html#c.First" title="First"><code class="xref c c-func docutils literal notranslate"><span class="pre">First()</span></code></a>/<a class="reference internal" href="expression-engine-reference.html#c.Next" title="Next"><code class="xref c c-func docutils literal notranslate"><span class="pre">Next()</span></code></a> to skip nonfinite values within
 the selected interval. Complex component iteration visits the full used length.
 Those are different internal policies, not interchangeable loops. The final
-<code class="docutils literal notranslate"><span class="pre">EvaluateExpression</span></code> pass rejects any nonfinite real or imaginary component
+<a class="reference internal" href="expression-engine-reference.html#c.EvaluateExpression" title="EvaluateExpression"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvaluateExpression()</span></code></a> pass rejects any nonfinite real or imaginary component
 remaining in the result. Reducer adapters check <code class="docutils literal notranslate"><span class="pre">errno</span></code> but can defer finite
-validation to that final pass. <code class="docutils literal notranslate"><span class="pre">MathError</span></code> reads <code class="docutils literal notranslate"><span class="pre">errno</span></code>; callers relying on
+validation to that final pass. <a class="reference internal" href="expression-engine-reference.html#c.MathError" title="MathError"><code class="xref c c-func docutils literal notranslate"><span class="pre">MathError()</span></code></a> reads <code class="docutils literal notranslate"><span class="pre">errno</span></code>; callers relying on
 it must reset it before the operation.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">map</span></code> adapter differs from these C math adapters. It retains each command
 prefix word, allocates an independent result, validates every returned scalar or
@@ -211,10 +211,10 @@ begin. See <a class="reference internal" href="expressions.html"><span class="do
 </section>
 <section id="scalar-conversion-and-operand-reuse">
 <h2>Scalar conversion and operand reuse<a class="headerlink" href="#scalar-conversion-and-operand-reuse" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">NextValue</span></code> reuses its right-operand temporary between operations. Each parsed
+<p><a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> reuses its right-operand temporary between operations. Each parsed
 value must therefore establish its own type, rather than relying on the type
-left by a preceding operand. The numeric branch of <code class="docutils literal notranslate"><span class="pre">ParseString</span></code> uses
-<code class="docutils literal notranslate"><span class="pre">SetExpressionRealScalar</span></code>, just like bare numeric tokens. A preceding complex
+left by a preceding operand. The numeric branch of <a class="reference internal" href="expression-engine-reference.html#c.ParseString" title="ParseString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseString()</span></code></a> uses
+<a class="reference internal" href="expression-engine-reference.html#c.SetExpressionRealScalar" title="SetExpressionRealScalar"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetExpressionRealScalar()</span></code></a>, just like bare numeric tokens. A preceding complex
 operand cannot contribute a stale imaginary component to a later real scalar.</p>
 <p>Braces, quotes, variables and command substitutions all use this conversion.
 These expressions both return <code class="docutils literal notranslate"><span class="pre">{{9.0</span> <span class="pre">6.0}}</span></code>:</p>

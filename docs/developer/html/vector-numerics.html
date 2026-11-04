@@ -49,14 +49,14 @@ expression evaluator in <a class="reference internal" href="expressions.html"><s
 The callback ownership rules in <a class="reference internal" href="vector-operations.html"><span class="doc">Vector indexed edits and rearrangement</span></a> also apply here.</p>
 <section id="arithmetic-returns-values">
 <h2>Arithmetic returns values<a class="headerlink" href="#arithmetic-returns-values" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ArithOp</span></code> implements the instance arithmetic operators by constructing a Tcl
+<p><a class="reference internal" href="vector-numeric-reference.html#c.ArithOp" title="ArithOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ArithOp()</span></code></a> implements the instance arithmetic operators by constructing a Tcl
 list. It does not replace the receiver. A vector operand is resolved first and
 its selected length must match the receiver; otherwise the argument is converted
 to a scalar and broadcast over the receiver.</p>
 <p>A two-item Tcl list is explicitly a complex scalar. For example, <code class="docutils literal notranslate"><span class="pre">{3</span> <span class="pre">-4}</span></code>
 means 3-4i, not the expression 3-4. Complex operands produce pairs, including
 when their imaginary component is zero. Real-only arithmetic uses native double
-operators, whereas <code class="docutils literal notranslate"><span class="pre">ComplexArithmetic</span></code> explicitly reports division by an
+operators, whereas <a class="reference internal" href="vector-numeric-reference.html#c.ComplexArithmetic" title="ComplexArithmetic"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexArithmetic()</span></code></a> explicitly reports division by an
 exactly zero complex value. The paths do not impose identical exceptional-value
 policies. Operand evaluation can execute Tcl. Receiver lifetime is checked
 again afterward; arithmetic then reads current storage without further callbacks.
@@ -64,13 +64,13 @@ The result list is released on every error, including complex division by zero.<
 </section>
 <section id="ranges-and-searches">
 <h2>Ranges and searches<a class="headerlink" href="#ranges-and-searches" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">RangeOp</span></code> includes both endpoints and returns descending source order when
+<p><a class="reference internal" href="vector-numeric-reference.html#c.RangeOp" title="RangeOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">RangeOp()</span></code></a> includes both endpoints and returns descending source order when
 the first endpoint exceeds the last. This differs from the shared colon-range
 parser, which rejects reversed selections. Returned objects copy values and
 do not retain vector storage. Endpoints are evaluated in sequence; the first
 is revalidated after evaluating the second. A destroyed receiver, stale endpoint
 or append position produces an error before reading storage.</p>
-<p>Real <code class="docutils literal notranslate"><span class="pre">SearchOp</span></code> accepts one target or two interval bounds. It returns external
+<p>Real <a class="reference internal" href="vector-numeric-reference.html#c.SearchOp" title="SearchOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SearchOp()</span></code></a> accepts one target or two interval bounds. It returns external
 indices with the vector offset, or matching values with <code class="docutils literal notranslate"><span class="pre">-value</span></code>. Complex
 search accepts a single target and compares real and imaginary components
 separately; complex interval ordering is deliberately unsupported.</p>
@@ -85,22 +85,22 @@ empty result, regardless of conversion side effects on the interpreter result.</
 </section>
 <section id="normalization-and-random-values">
 <h2>Normalization and random values<a class="headerlink" href="#normalization-and-random-values" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">NormalizeOp</span></code> refreshes source extrema and computes
+<p><a class="reference internal" href="vector-numeric-reference.html#c.NormalizeOp" title="NormalizeOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">NormalizeOp()</span></code></a> refreshes source extrema and computes
 <code class="docutils literal notranslate"><span class="pre">(value-min)/(max-min)</span></code>. With no destination it returns a Tcl list. With a
 name it stages the full result before resolving a real destination and
 transferring completed storage. There is no explicit
 constant-vector or nonfinite-input policy in the handler: callers should not
 infer a special all-zero result for a zero range. Complex receivers are rejected
 by the instance dispatcher’s supported-operation check.</p>
-<p><code class="docutils literal notranslate"><span class="pre">RandomOp</span></code> preserves length and numeric type, replacing each component with
-<code class="docutils literal notranslate"><span class="pre">Rbc_RandomDouble</span></code>. Real vectors use one sample per value and complex vectors
+<p><a class="reference internal" href="vector-numeric-reference.html#c.RandomOp" title="RandomOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">RandomOp()</span></code></a> preserves length and numeric type, replacing each component with
+<a class="reference internal" href="utility-reference.html#c.Rbc_RandomDouble" title="Rbc_RandomDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a>. Real vectors use one sample per value and complex vectors
 two. The shared generator produces samples in [0,1) using the C library random
 state; it is not a cryptographic source or a generator owned by each vector.
 The handler flushes and reports a full update after filling storage.</p>
 </section>
 <section id="sequence-length-and-endpoint-policy">
 <h2>Sequence length and endpoint policy<a class="headerlink" href="#sequence-length-and-endpoint-policy" title="Link to this heading">¶</a></h2>
-<p>For real numeric bounds, <code class="docutils literal notranslate"><span class="pre">SeqOp</span></code> computes the count as
+<p>For real numeric bounds, <a class="reference internal" href="vector-numeric-reference.html#c.SeqOp" title="SeqOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SeqOp()</span></code></a> computes the count as
 <code class="docutils literal notranslate"><span class="pre">trunc((finish-start)/step)+1</span></code>. The truncation is toward zero, retaining the
 legacy calculation rather than applying floor or endpoint snapping. A
 nonpositive count leaves the old vector unchanged. Positive counts generate
@@ -112,7 +112,7 @@ different meaning: fill the existing length. It bypasses the numeric-bound
 count checks and allows a zero step. This distinction matters when documenting
 or changing validation; the two forms currently do not apply identical checks.</p>
 <p>Complex sequences use the default step 1+0i. Each varying component supplies a
-count through <code class="docutils literal notranslate"><span class="pre">GetComplexSequenceComponentLength</span></code>; when both vary, their
+count through <a class="reference internal" href="vector-numeric-reference.html#c.GetComplexSequenceComponentLength" title="GetComplexSequenceComponentLength"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetComplexSequenceComponentLength()</span></code></a>; when both vary, their
 counts must match. A constant component with zero step imposes no count, while
 zero step with unequal bounds is an error. If both components are constant with
 zero step, a numeric finish cannot determine a count and is rejected. Literal
