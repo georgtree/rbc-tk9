@@ -85,10 +85,10 @@ parameters are rejected before writing output.</p>
 </section>
 <section id="cartesian-kernels">
 <h2>Cartesian kernels<a class="headerlink" href="#cartesian-kernels" title="Link to this heading">¶</a></h2>
-<p>The natural cubic kernel builds a tridiagonal system with natural endpoint
+<p><a class="reference internal" href="spline-reference.html#c.Rbc_NaturalSpline" title="Rbc_NaturalSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NaturalSpline()</span></code></a> builds a tridiagonal system with natural endpoint
 conditions, then back-substitutes interval coefficients. It checks interval
 widths, divisions and intermediate coefficients for finite arithmetic. The
-quadratic kernel estimates knot slopes, selects a shape-preserving case for
+<a class="reference internal" href="spline-reference.html#c.Rbc_QuadraticSpline" title="Rbc_QuadraticSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_QuadraticSpline()</span></code></a> kernel estimates knot slopes, selects a shape-preserving case for
 each interval and reuses that case while successive queries remain in the
 same interval. Both use binary search for in-domain queries, preserve source
 knots exactly and extrapolate using the first or final interval outside the
@@ -101,7 +101,8 @@ storage and discard that storage on failure.</p>
 </section>
 <section id="parametric-paths">
 <h2>Parametric paths<a class="headerlink" href="#parametric-paths" title="Link to this heading">¶</a></h2>
-<p>The natural and quadratic Eval routines use Euclidean chord distances in the
+<p><a class="reference internal" href="spline-reference.html#c.Rbc_NaturalParametricSplineEval" title="Rbc_NaturalParametricSplineEval"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NaturalParametricSplineEval()</span></code></a> and
+<a class="reference internal" href="spline-reference.html#c.Rbc_QuadraticParametricSplineEval" title="Rbc_QuadraticParametricSplineEval"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_QuadraticParametricSplineEval()</span></code></a> use Euclidean chord distances in the
 supplied coordinate system. For graph smoothing these are already screen
 coordinates, so the metric is isotropic in pixels. Consecutive degenerate
 segments and non-finite or non-increasing accumulated lengths are rejected.
@@ -109,7 +110,7 @@ The quadratic path constructs independent coordinate splines on the same
 parameter; the natural path uses cubic coefficients. Exact source-knot queries
 are copied from the source. Both Eval routines stage complete coordinates and
 copy back only on success, preserving input parameters on failure.</p>
-<p>The uniform natural sampler is a different entry point. Its public wrapper
+<p><a class="reference internal" href="spline-reference.html#c.Rbc_NaturalParametricSpline" title="Rbc_NaturalParametricSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NaturalParametricSpline()</span></code></a> is the separate uniform sampler. Its public wrapper
 uses absolute extent spans as metric scales and clamps tiny or non-finite spans
 to FLT_EPSILON. Closed curves append the first point privately when necessary.
 The underlying sampler slightly undershoots the total parameter length to avoid
@@ -121,7 +122,7 @@ open curve, or the quadratic core sampled uniformly over its common chord
 parameter. It requires at least three source points and at least two output
 samples. It rejects consecutive duplicate points before computation; numerical
 checks inside the kernels can reject additional nearly degenerate cases.</p>
-<p>Catmull-Rom copies the source and repeats endpoints for its local cubic control
+<p><a class="reference internal" href="spline-reference.html#c.Rbc_CatromParametricSpline" title="Rbc_CatromParametricSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CatromParametricSpline()</span></code></a> copies the source and repeats endpoints for its local cubic control
 points. It validates all query parameters before evaluation, but arithmetic can
 still become non-finite after some outputs have been written. Its failure
 contract therefore differs from the two staged parametric Eval routines.</p>
@@ -174,7 +175,7 @@ rendering remain separate responsibilities; see <a class="reference internal" hr
 <p>The <a class="reference internal" href="spline-reference.html"><span class="doc">Spline C reference</span></a> now includes the internal validation, quadratic,
 cubic and command helpers. These are separate numerical and ownership layers;
 none of the interpolation kernels resolves vector names or invokes Tcl code.</p>
-<p>The byte-count helper accepts zero-length arrays and rejects overflow without
+<p><a class="reference internal" href="spline-reference.html#c.GetSplineArrayByteCount" title="GetSplineArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSplineArrayByteCount()</span></code></a> accepts zero-length arrays and rejects overflow without
 setting an interpreter message. Its callers decide whether zero queries are
 valid and whether to allocate a non-NULL sentinel. Source validation checks
 both coordinates; Cartesian query validation checks only X because Y will be
@@ -217,7 +218,7 @@ entries of an N-point coefficient array are interval lengths.</p>
 <tr class="row-odd"><td><p>Natural/quadratic parametric Eval</p></td>
 <td><p>Caller query parameters remain unchanged; coordinates are staged</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CubicEval</span></code> and uniform parametric cores</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="spline-reference.html#c.CubicEval" title="CubicEval"><code class="xref c c-func docutils literal notranslate"><span class="pre">CubicEval()</span></code></a> and uniform parametric cores</p></td>
 <td><p>Partial coordinates or temporary query parameters may remain; compare
 returned count with requested count</p></td>
 </tr>
@@ -235,6 +236,92 @@ postcommit callback changes are not rolled back</p></td>
 an entry point explicitly guarantees otherwise. The Tcl command supports vector
 aliasing by copying every input first; that command-level guarantee does not
 make each private array kernel safe for in-place use.</p>
+</section>
+<section id="choosing-and-calling-an-entry-point">
+<h2>Choosing and calling an entry point<a class="headerlink" href="#choosing-and-calling-an-entry-point" title="Link to this heading">¶</a></h2>
+<p>Do not interchange a query array and an output-only sample buffer merely because
+both use <code class="docutils literal notranslate"><span class="pre">Point2D</span></code>. The Cartesian kernels read X and write Y. The parametric
+Eval routines read an interval/fraction pair and replace both fields.
+<a class="reference internal" href="spline-reference.html#c.NaturalParametricSplineCore" title="NaturalParametricSplineCore"><code class="xref c c-func docutils literal notranslate"><span class="pre">NaturalParametricSplineCore()</span></code></a> and
+<a class="reference internal" href="spline-reference.html#c.QuadraticParametricSplineCore" title="QuadraticParametricSplineCore"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadraticParametricSplineCore()</span></code></a> instead generate their own query
+positions from a requested count. At the lower level,
+<a class="reference internal" href="spline-reference.html#c.CubicEvalPoint" title="CubicEvalPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">CubicEvalPoint()</span></code></a> takes a local <strong>chord distance</strong>, not the normalized
+fraction accepted by the Eval wrappers.</p>
+<p>The validation helpers match these distinctions:
+<a class="reference internal" href="spline-reference.html#c.SplinePointsAreFinite" title="SplinePointsAreFinite"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplinePointsAreFinite()</span></code></a> checks both coordinates,
+<a class="reference internal" href="spline-reference.html#c.SplinePointsHaveIncreasingX" title="SplinePointsHaveIncreasingX"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplinePointsHaveIncreasingX()</span></code></a> also checks strict source ordering, and
+<a class="reference internal" href="spline-reference.html#c.SplineEvaluationPointsAreFinite" title="SplineEvaluationPointsAreFinite"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplineEvaluationPointsAreFinite()</span></code></a> reads only Cartesian query X.
+None acquires ownership, allocates output, or supplies a Tcl diagnostic.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Completion values are not interchangeable</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 42.0%" />
+<col style="width: 58.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry or helper</p></th>
+<th class="head"><p>How to accept its result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="spline-reference.html#c.Rbc_NaturalSpline" title="Rbc_NaturalSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NaturalSpline()</span></code></a>, <a class="reference internal" href="spline-reference.html#c.Rbc_QuadraticSpline" title="Rbc_QuadraticSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_QuadraticSpline()</span></code></a>,
+parametric Eval wrappers and <a class="reference internal" href="spline-reference.html#c.SolveCubic1" title="SolveCubic1"><code class="xref c c-func docutils literal notranslate"><span class="pre">SolveCubic1()</span></code></a></p></td>
+<td><p>Boolean TRUE means success. FALSE may have helper-specific partial writes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="spline-reference.html#c.QuadEval" title="QuadEval"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadEval()</span></code></a></p></td>
+<td><p>Both 0 (interpolation) and 1 (extrapolation) are accepted; 2 is failure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="spline-reference.html#c.CubicEval" title="CubicEval"><code class="xref c c-func docutils literal notranslate"><span class="pre">CubicEval()</span></code></a>, <a class="reference internal" href="spline-reference.html#c.NaturalParametricSplineCore" title="NaturalParametricSplineCore"><code class="xref c c-func docutils literal notranslate"><span class="pre">NaturalParametricSplineCore()</span></code></a>,
+<a class="reference internal" href="spline-reference.html#c.QuadraticParametricSplineCore" title="QuadraticParametricSplineCore"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadraticParametricSplineCore()</span></code></a></p></td>
+<td><p>Compare the generated count with the requested count; do not use a
+boolean success test.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="spline-reference.html#c.CubicSlopes" title="CubicSlopes"><code class="xref c c-func docutils literal notranslate"><span class="pre">CubicSlopes()</span></code></a></p></td>
+<td><p>A non-NULL pointer is an owned coefficient allocation to release with
+<code class="docutils literal notranslate"><span class="pre">ckfree</span></code>; NULL indicates failure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="spline-reference.html#c.GetSplineArrayByteCount" title="GetSplineArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSplineArrayByteCount()</span></code></a>, <a class="reference internal" href="spline-reference.html#c.SplineStoreResult" title="SplineStoreResult"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplineStoreResult()</span></code></a></p></td>
+<td><p>Tcl status: <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> is zero. The size helper does not set diagnostics.</p></td>
+</tr>
+</tbody>
+</table>
+<p><a class="reference internal" href="spline-reference.html#c.Search" title="Search"><code class="xref c c-func docutils literal notranslate"><span class="pre">Search()</span></code></a> returns an exact-knot index or insertion position and writes
+a separate exact-match flag. Its index is neither a status nor a guaranteed
+left-interval index. <a class="reference internal" href="spline-reference.html#c.QuadEval" title="QuadEval"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadEval()</span></code></a> converts the insertion position to
+the adjacent source interval before calling <a class="reference internal" href="spline-reference.html#c.QuadSelect" title="QuadSelect"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadSelect()</span></code></a>.
+<a class="reference internal" href="spline-reference.html#c.QuadChoose" title="QuadChoose"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadChoose()</span></code></a> and <a class="reference internal" href="spline-reference.html#c.QuadCases" title="QuadCases"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadCases()</span></code></a> must agree on the same endpoints
+and slopes; <a class="reference internal" href="spline-reference.html#c.QuadSpline" title="QuadSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadSpline()</span></code></a> consumes that case and its ten-double buffer.
+<a class="reference internal" href="spline-reference.html#c.QuadGetImage" title="QuadGetImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadGetImage()</span></code></a> evaluates an individual blend without a finite check.</p>
+<p><a class="reference internal" href="spline-reference.html#c.CatromCoeffs" title="CatromCoeffs"><code class="xref c c-func docutils literal notranslate"><span class="pre">CatromCoeffs()</span></code></a> writes four distinct coefficient records from four
+control points. Those records contain twice the polynomial coefficients; the
+caller divides the evaluated polynomial by two. They are not interchangeable
+with the interval lengths and second derivatives returned by
+<a class="reference internal" href="spline-reference.html#c.CubicSlopes" title="CubicSlopes"><code class="xref c c-func docutils literal notranslate"><span class="pre">CubicSlopes()</span></code></a>.</p>
+</section>
+<section id="command-and-graph-boundaries">
+<h2>Command and graph boundaries<a class="headerlink" href="#command-and-graph-boundaries" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="spline-reference.html#c.SplineObjCmd" title="SplineObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplineObjCmd()</span></code></a> receives the complete Tcl argument array and validates
+operation arity. <a class="reference internal" href="spline-reference.html#c.ParametricSplineObjCmd" title="ParametricSplineObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParametricSplineObjCmd()</span></code></a> relies on that validation:
+its six words include the command name and <code class="docutils literal notranslate"><span class="pre">parametric</span></code> subcommand.
+<a class="reference internal" href="spline-reference.html#c.GetRealSplineVector" title="GetRealSplineVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetRealSplineVector()</span></code></a> and <a class="reference internal" href="spline-reference.html#c.GetComplexSplineVector" title="GetComplexSplineVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetComplexSplineVector()</span></code></a> return
+borrowed vector pointers. A pointer may already have been assigned when the
+type check fails; callers must check the status before using it. These lookups
+neither preserve the record nor check destination writability.</p>
+<p><a class="reference internal" href="spline-reference.html#c.SplineStoreResult" title="SplineStoreResult"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplineStoreResult()</span></code></a> is the mutation boundary. It copies completed
+points into a fresh numeric buffer, validates or creates a destination, and
+then installs all values before callbacks. A successful Tcl return does not
+promise that the destination still exists under its original name: callbacks
+may rename, destroy or modify it. <a class="reference internal" href="spline-reference.html#c.Rbc_SplineInit" title="Rbc_SplineInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SplineInit()</span></code></a> only registers the
+command and allocates no persistent interpolation workspace.</p>
+<p>Graph callers have a different result boundary:
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GenerateSpline" title="rbcGrLineConfiguration.GenerateSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateSpline</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GenerateParametricSpline" title="rbcGrLineConfiguration.GenerateParametricSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateParametricSpline</span></code></a>
+replace owned mapped point/index arrays only after successful interpolation.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.GenerateSplineRuns" title="rbcGrLineMapping.GenerateSplineRuns"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateSplineRuns</span></code></a> applies
+those generators separately to continuous runs and rebuilds break flags.
+These functions do not return a Tcl status or modify attached vector values.
+Their effective smoothing flag can change on failure; conversely, an early
+exit retaining that flag does not prove that any new samples were generated.</p>
 </section>
 </section>
 
@@ -255,6 +342,8 @@ make each private array kernel safe for in-place use.</p>
 <li><a class="reference internal" href="#tcl-vector-ownership">Tcl vector ownership</a></li>
 <li><a class="reference internal" href="#graph-smoothing">Graph smoothing</a></li>
 <li><a class="reference internal" href="#private-helper-contracts">Private helper contracts</a></li>
+<li><a class="reference internal" href="#choosing-and-calling-an-entry-point">Choosing and calling an entry point</a></li>
+<li><a class="reference internal" href="#command-and-graph-boundaries">Command and graph boundaries</a></li>
 </ul>
 </li>
 </ul>

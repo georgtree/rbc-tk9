@@ -5968,6 +5968,13 @@ static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
 /**
  * @ingroup line_configuration_smoothing
  * @brief Resample a continuous run as a function of mapped data X.
+ * @param[in] graphPtr Owning graph supplying current mapped plot bounds and orientation.
+ * @param[in,out] linePtr Owning line element; effective smooth may fall back to none, while reqSmooth is
+ *     retained.
+ * @param[in,out] mapPtr Nonempty owned mapped geometry with parallel source indices. Successful replacement
+ *     frees old arrays; failure retains them.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Requires a nonempty map with valid source indices and no internal breaks.
  * Natural/quadratic smoothing uses screen X normally or screen Y when inverted.
@@ -6261,6 +6268,13 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
 /**
  * @ingroup line_configuration_smoothing
  * @brief Resample a continuous run by source interval and local parameter.
+ * @param[in] graphPtr Owning graph supplying current mapped plot bounds and orientation.
+ * @param[in,out] linePtr Owning line element; effective smooth may fall back to none, while reqSmooth is
+ *     retained.
+ * @param[in,out] mapPtr Nonempty owned mapped geometry with parallel source indices. Successful replacement
+ *     frees old arrays; failure retains them.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Requires nonempty finite mapped geometry with parallel source indices and
  * no internal breaks. Retains knots and adds samples approximately every two
@@ -6512,6 +6526,15 @@ static int CopyMapRun(const MapInfo *srcPtr, Tcl_Size first, Tcl_Size length, Ma
 /**
  * @ingroup line_mapping_pipeline
  * @brief Smooth discontinuous geometry one continuous run at a time.
+ * @param[in] graphPtr Owning graph supplying current mapped plot bounds and orientation.
+ * @param[in,out] linePtr Owning line element; effective smooth may fall back to none, while reqSmooth is
+ *     retained.
+ * @param[in,out] mapPtr Nonempty owned mapped geometry with parallel source indices. Successful replacement
+ *     frees old arrays; failure retains them.
+ * @param[in] parametric Nonzero selects parametric generation for each continuous run; mapPtr must carry
+ *     breakBefore flags.
+ * @see @ref rbc_calling_conventions
+ *
  *
  * Requires a nonempty map with break flags. Copies each run, applies the
  * selected ordinary or parametric generator to runs of at least three points,

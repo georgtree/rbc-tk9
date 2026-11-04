@@ -16,6 +16,10 @@ See :doc:`splines` for parameter formats, failure behavior and graph integration
 
 .. doxygenfunction:: Rbc_CatromParametricSpline
 
+Parameter directions follow :doc:`calling-conventions`. Array capacities are
+caller obligations; counts describe used records, not byte sizes. The numerical
+entry points below do not acquire vector ownership or publish notifications.
+
 Implementation helpers
 ----------------------
 

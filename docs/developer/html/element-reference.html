@@ -1299,8 +1299,23 @@ The C namespace below only disambiguates documentation names.</p>
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.GenerateSplineRuns">
 <span class="target" id="group__line__mapping__pipeline_1ga224c067fd0102ef26e0f02965d97fff8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GenerateSplineRuns</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">parametric</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.GenerateSplineRuns" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Smooth discontinuous geometry one continuous run at a time. </p>
-<p>Requires a nonempty map with break flags. Copies each run, applies the selected ordinary or parametric generator to runs of at least three points, then concatenates results with new boundary flags. Individual generator fallbacks retain that run’s copied coordinates. Effective smoothing remains the requested mode if any run succeeds, otherwise PEN_SMOOTH_NONE.</p>
+<p>
+Requires a nonempty map with break flags. Copies each run, applies the selected ordinary or parametric generator to runs of at least three points, then concatenates results with new boundary flags. Individual generator fallbacks retain that run’s copied coordinates. Effective smoothing remains the requested mode if any run succeeds, otherwise PEN_SMOOTH_NONE.<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <p>Replaces original map arrays only after all combined storage is ready. Run-copy, size or combined-allocation failure frees temporary storage, retains the original map and sets effective smoothing to PEN_SMOOTH_NONE. Does not change reqSmooth or report an interpreter error. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Owning graph supplying current mapped plot bounds and orientation. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Owning line element; effective smooth may fall back to none, while reqSmooth is retained. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[inout]</strong> Nonempty owned mapped geometry with parallel source indices. Successful replacement frees old arrays; failure retains them. </p></li>
+<li><p><strong>parametric</strong> – <strong>[in]</strong> Nonzero selects parametric generation for each continuous run; mapPtr must carry breakBefore flags. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1790,16 +1805,44 @@ reference-impedance validation boundary. This namespace disambiguates private na
 <dt class="sig sig-object c" id="c.rbcGrLineConfiguration.GenerateSpline">
 <span class="target" id="group__line__configuration__smoothing_1gabfdeaefeb5868d14bb3ac79f9a3af7dc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GenerateSpline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.GenerateSpline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resample a continuous run as a function of mapped data X. </p>
-<p>Requires a nonempty map with valid source indices and no internal breaks. Natural/quadratic smoothing uses screen X normally or screen Y when inverted. Reflects decreasing abscissas into increasing canonical coordinates without reordering source indices. Retains every knot and adds visible pixel samples; inserted samples inherit the starting knot’s source index.</p>
+<p>
+Requires a nonempty map with valid source indices and no internal breaks. Natural/quadratic smoothing uses screen X normally or screen Y when inverted. Reflects decreasing abscissas into increasing canonical coordinates without reordering source indices. Retains every knot and adds visible pixel samples; inserted samples inherit the starting knot’s source index.<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <p>Commits replacement arrays only after interpolation succeeds. Size/allocation or evaluator failures preserve the input and set effective smoothing to none. Early exits for fewer than three points, nonmonotonic/equal abscissas, an invisible interval or empty screen span leave both input and effective mode unchanged. Thus the effective flag alone does not prove smoothing occurred. Does not alter reqSmooth or report Tcl errors; break handling belongs to GenerateSplineRuns. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Owning graph supplying current mapped plot bounds and orientation. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Owning line element; effective smooth may fall back to none, while reqSmooth is retained. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[inout]</strong> Nonempty owned mapped geometry with parallel source indices. Successful replacement frees old arrays; failure retains them. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineConfiguration.GenerateParametricSpline">
 <span class="target" id="group__line__configuration__smoothing_1gad04663de6a6a51e6733434655021d5b6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GenerateParametricSpline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineConfiguration.GenerateParametricSpline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resample a continuous run by source interval and local parameter. </p>
-<p>Requires nonempty finite mapped geometry with parallel source indices and no internal breaks. Retains knots and adds samples approximately every two pixels along visible portions of original straight segments. Evaluation parameters identify the source interval and its normalized position; inserted samples report the interval’s starting source index.</p>
+<p>
+Requires nonempty finite mapped geometry with parallel source indices and no internal breaks. Retains knots and adds samples approximately every two pixels along visible portions of original straight segments. Evaluation parameters identify the source interval and its normalized position; inserted samples report the interval’s starting source index.<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
 <p>Selects natural, quadratic or Catmull-Rom evaluation from effective smooth. Replaces point/index arrays only after successful evaluation. Size, allocation, capacity or evaluator failure frees candidates, retains original arrays and sets effective smoothing to none, leaving reqSmooth unchanged. Sample density uses the original segments, not an adaptive bound on the curved result. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Owning graph supplying current mapped plot bounds and orientation. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Owning line element; effective smooth may fall back to none, while reqSmooth is retained. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[inout]</strong> Nonempty owned mapped geometry with parallel source indices. Successful replacement frees old arrays; failure retains them. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
