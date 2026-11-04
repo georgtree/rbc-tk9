@@ -14,7 +14,7 @@ export orchestration, SVG primitive paint, bitmap-symbol reuse, text placement, 
 ownership, PDF/PostScript drawing primitives and shared export capture, crosshair presentation, XOR configuration and command-state transitions, legend ownership and layout, grid inheritance and transactional command dispatch,
 tick-list transactions and output, pen and
 palette ownership, named-pen dispatch and revival, palette staging and range defaults, marker lifecycle, element data and dispatch, shared configuration transactions and retained coordinate representations, element data observation, extrema and value-label formatting, axis and track mapping, axis-chain synchronization, sash geometry and viewport notification lifetimes, shared
-GC/window services, standalone window/photo command dispatch, EPS canvas parsing and preview
+GC/window services, standalone window/photo command dispatch, EPS canvas parsing, preview-byte and alpha conventions, hit-test boundaries and preview
 ownership, allocation and UID ownership, typed operation dispatch, shared value conversion and legacy option-adapter ownership, dictionary ordering, stdio and fatal diagnostics, numeric
 compatibility, and source-comment conventions.
 

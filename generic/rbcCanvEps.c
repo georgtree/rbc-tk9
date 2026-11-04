@@ -279,20 +279,11 @@ static int EpsToPostScript(Tcl_Interp *, Tk_Canvas, Tk_Item *, int);
 static int ReadPostScript(Tcl_Interp *, EpsItem *);
 static void AppendPsLine(Tcl_DString *, const char *);
 
-/*
- *----------------------------------------------------------------------
- *
- * SkipBlanks --
- *
- *      TODO: Description
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Locate the first non-whitespace byte in the current parser line.
+ * Returns a borrowed pointer into piPtr->line, possibly its terminating NUL. Uses unsigned-byte
+ * character classification and does not modify the buffer, read the stream or advance nextPtr.
  */
 static char *SkipBlanks(EpsParseInfo *piPtr) {
     char *s;
@@ -341,6 +332,14 @@ static int ReadPsLine(EpsParseInfo *piPtr) {
     return TRUE;
 }
 
+/**
+ * @ingroup eps_canvas
+ * @brief Retain a string chunk with exactly one required trailing newline.
+ * Appends the complete NUL-terminated input to an initialized caller-owned DString. Adds a newline
+ * only when the chunk is empty or lacks a final newline; existing content and multiple existing
+ * newlines are not normalized. Does not preserve byte identity for unterminated or size-limited source
+ * chunks.
+ */
 static void AppendPsLine(Tcl_DString *dStringPtr, const char *line) {
     size_t length;
 
@@ -355,22 +354,11 @@ static void AppendPsLine(Tcl_DString *dStringPtr, const char *line) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ReverseBits --
- *
- *      Convert a byte from a X image into PostScript image order.
- *      This requires not only the nybbles to be reversed but also
- *      their bit values.
- *
- * Results:
- *      The converted byte is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Reverse the order of all eight bits in one byte.
+ * Uses successive adjacent-bit, two-bit and nibble swaps. Returns the reversed byte without
+ * allocation, parser changes or host-endianness assumptions.
  */
 static unsigned char ReverseBits(unsigned char byte) {
     byte = ((byte >> 1) & 0x55) | ((byte << 1) & 0xaa);
@@ -379,27 +367,14 @@ static unsigned char ReverseBits(unsigned char byte) {
     return byte;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetHexValue --
- *
- *      Reads the next ASCII hex value from EPS preview image and
- *      converts it.
- *
- * Results:
- *      One of three Tcl return values is possible.
- *
- *      TCL_OK      the next byte was successfully parsed.
- *      TCL_ERROR   an error occurred processing the next hex value.
- *      TCL_RETURN  "%%EndPreview" line was detected.
- *
- *      The converted hex value is returned via "bytePtr".
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Consume the next two-digit EPSI preview byte.
+ * Uses nextPtr within the current line or reads another bounded chunk. New chunks must start with a
+ * percent sign; whitespace after that prefix and between byte pairs is skipped. Requires both hex
+ * digits in the same chunk. Returns TCL_OK and writes bytePtr only for a complete byte, TCL_RETURN for
+ * an EndPreview comment prefix, or TCL_ERROR for malformed/truncated input. Updates parser stream
+ * position and nextPtr on success; does not set a Tcl diagnostic.
  */
 static int GetHexValue(EpsParseInfo *piPtr, unsigned char *bytePtr) {
     register char *p;
@@ -447,22 +422,17 @@ static int GetHexValue(EpsParseInfo *piPtr, unsigned char *bytePtr) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ReadEPSI --
- *
- *      Reads the EPS preview image from the PostScript file, converting
- *      the image into a Rbc_ColorImage.  If an error occurs when parsing
- *      the preview, the preview is silently ignored.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Decode an optional one-bit or eight-bit EPSI preview.
+ * Requires the current line to contain the recognized BeginPreview header. Accepts positive dimensions
+ * through SHRT_MAX and depths 1 or 8; parses but does not enforce the declared line count. Allocates a
+ * zeroed image and consumes the required hex bytes. Eight-bit samples become opaque inverted grayscale
+ * in bottom-to-top row order. One-bit rows consume high bits first with byte padding per row; zero
+ * bits become opaque white and set bits retain the zeroed pixel. Installs the owned image and
+ * consumed-line metadata on success. Decode failure frees the temporary and clears line markers,
+ * without rewinding input or reporting a Tcl error. Caller supplies an item ready to receive preview
+ * ownership.
  */
 static void ReadEPSI(EpsItem *epsPtr, EpsParseInfo *piPtr) {
     Rbc_ColorImage image;
@@ -763,20 +733,14 @@ static void CloseEpsFile(EpsItem *epsPtr) {
 }
 
 #ifdef HAVE_TIFF_H
-/*
- *----------------------------------------------------------------------
- *
- * ReadTiffPreview --
- *
- *      TODO: Description
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Attempt preview decoding in the conditional TIFF implementation.
+ * Compiled only with HAVE_TIFF_H. Reads dimensions and RGBA pixels from the item TIFF handle, frees
+ * the temporary on decoder failure and installs it on success. The component-reordering step is
+ * unfinished; this function is not evidence of supported TIFF preview rendering. Does not close the
+ * TIFF handle or release a previous colorImage; callers would need to establish dimensions and
+ * ownership.
  */
 static void ReadTiffPreview(EpsItem *epsPtr) {
     unsigned int width, height;
@@ -933,24 +897,13 @@ static int CreateEps(Tcl_Interp *interp,    /* Interpreter for error reporting. 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * ImageChangedProc
- *
- *      The image is over-written each time the EPS item is resized.
- *      So we only worry if the image is deleted.
- *
- *      We always resample from the color image we saved when the
- *      photo image was specified (-image option).
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Notice deletion of a supplied EPS preview image.
+ * Ordinary image changes do not refresh the saved color snapshot. If the retained instance is absent
+ * or deleted, frees and clears the source name and schedules redraw of the item rectangle. Keeps the
+ * image instance token for later reconfiguration/teardown because Tk still visits it after its
+ * deletion callback returns. Does not release the snapshot or temporary display photo.
  */
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
@@ -966,6 +919,14 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
     }
 }
 
+/**
+ * @ingroup eps_canvas
+ * @brief Find a supplied option prefix among validated option-value pairs.
+ * Checks every option word with a following value against optionName, accepting a prefix no longer
+ * than the full name. Returns a Boolean without modifying arguments. Does not validate ambiguity,
+ * option syntax or values; ConfigureEps calls it after Tk configuration has validated the arguments. A
+ * trailing unmatched word is ignored by this helper.
+ */
 static int EpsOptionSpecified(Tcl_Size objc, Tcl_Obj *const objv[], const char *optionName) {
     Tcl_Size i;
     size_t optionNameLength;
@@ -1337,26 +1298,13 @@ static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * EpsToPoint --
- *
- *      Computes the distance from a given point to a given
- *      rectangle, in canvas units.
- *
- * Results:
- *      The return value is 0 if the point whose x and y coordinates
- *      are coordPtr[0] and coordPtr[1] is inside the EPS item.  If the
- *      point isn't inside the item then the return value is the
- *      distance from the point to the EPS item.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Measure point distance to the cached EPS item rectangle.
+ * Uses cached canvas bounds and hypot of horizontal/vertical separation. Returns zero inside or on any
+ * rectangle edge, including right and bottom. Does not inspect preview alpha, PostScript paths or
+ * relief borders, change the item or invoke callbacks.
  */
-/*ARGSUSED*/
 static double EpsToPoint(Tk_Canvas canvas, Tk_Item *itemPtr, double *coordArr) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
     double dx, dy;
@@ -1381,24 +1329,12 @@ static double EpsToPoint(Tk_Canvas canvas, Tk_Item *itemPtr, double *coordArr) {
     return hypot(dx, dy);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * EpsToArea --
- *
- *      This procedure is called to determine whether an item
- *      lies entirely inside, entirely outside, or overlapping
- *      a given rectangle.
- *
- * Results:
- *      -1 is returned if the item is entirely outside the area
- *      given by rectPtr, 0 if it overlaps, and 1 if it is entirely
- *      inside the given area.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Classify the EPS rectangle against a canvas query rectangle.
+ * Requires ordered query bounds. Returns -1 for disjoint rectangles, including edge-only contact, 1
+ * when the query contains the entire item, and 0 for partial overlap. Uses cached bounds without
+ * examining image pixels or modifying state.
  */
 static int EpsToArea(Tk_Canvas canvas, Tk_Item *itemPtr, double *area) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
@@ -1428,22 +1364,11 @@ static void ScaleEps(Tk_Canvas canvas, Tk_Item *itemPtr, double originX, double 
     ComputeEpsBbox(canvas, epsPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * TranslateEps --
- *
- *      This procedure is called to move an item by a given amount.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The position of the item is offset by (xDelta, yDelta), and
- *      the bounding box is updated in the generic part of the item
- *      structure.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Move the canvas anchor and recompute the cached item bounds.
+ * Adds deltaX/deltaY to the anchor, then calls ComputeEpsBbox. Does not change configured dimensions,
+ * resample preview pixels or request redraw itself; the canvas operation handles redisplay.
  */
 static void TranslateEps(Tk_Canvas canvas, Tk_Item *itemPtr, double deltaX, double deltaY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;

@@ -155,6 +155,51 @@ Use <a class="reference internal" href="image-compatibility.html"><span class="d
 on deletion followed by reconfiguration or teardown, without relying on process
 memory measurements. It runs separately from the ordinary suite.</p>
 </section>
+<section id="preview-byte-decoding-details">
+<h2>Preview-byte decoding details<a class="headerlink" href="#preview-byte-decoding-details" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GetHexValue</span></code> reads from the parser’s current cursor, requesting a new bounded
+chunk when necessary. Each new preview chunk must begin with <code class="docutils literal notranslate"><span class="pre">%</span></code>. Whitespace
+is skipped before each byte pair, but the two hexadecimal digits must occur in
+the same chunk. A matching <code class="docutils literal notranslate"><span class="pre">%%EndPreview</span></code> prefix returns <code class="docutils literal notranslate"><span class="pre">TCL_RETURN</span></code>;
+malformed text or premature EOF returns <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>. Only <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> supplies
+a decoded byte. These statuses are internal parser control, not Tcl script
+return codes propagated to the canvas command.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ReadEPSI</span></code> accepts dimensions from 1 through <code class="docutils literal notranslate"><span class="pre">SHRT_MAX</span></code> and depths of 1 or
+8 bits. The declared number of preview lines is parsed but not enforced.
+Decoding consumes the bytes needed for the dimensions; it does not separately
+require an end marker after the final pixel. A premature marker or malformed
+byte abandons the preview and frees its image. The stream is not rewound and
+preview failure does not itself become a Tcl error.</p>
+<p>The two legacy decode branches have different pixel conventions. Eight-bit
+samples are inverted to grayscale, assigned opaque alpha and written from the
+bottom row upward. One-bit rows are written from the top down, consume the
+high bit first and discard unused bits at each row boundary. A zero bit becomes
+opaque white; a set bit leaves the zero-initialized RGBA pixel, including zero
+alpha. This describes the current implementation, rather than a general
+bitmap conversion contract. Changes to preview appearance must test both depths,
+row orientation, padding and alpha explicitly.</p>
+<p>The conditional TIFF reader is unfinished: it calls <code class="docutils literal notranslate"><span class="pre">TIFFReadRGBAImage</span></code> but
+leaves component reordering as a placeholder. It is not called by the ordinary
+EPSI parsing path. Recording TIFF section offsets in a DOS EPS header does not
+provide a working TIFF preview pipeline.</p>
+</section>
+<section id="small-callback-and-geometry-contracts">
+<h2>Small callback and geometry contracts<a class="headerlink" href="#small-callback-and-geometry-contracts" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">EpsOptionSpecified</span></code> is a post-configuration detector, not an option parser.
+It scans option-value pairs and accepts option-name prefixes only after Tk’s
+configuration call succeeds. It does not independently enforce unique prefixes
+or reject malformed argument lists.</p>
+<p>The supplied-image change callback ignores ordinary pixel updates because
+rendering uses the retained snapshot. On image deletion it clears the source
+name and requests redraw while retaining the Tk instance until ordinary cleanup.
+Neither that callback nor translation recreates the snapshot.</p>
+<p>Point and area hit tests intentionally use different boundary comparisons.
+Point distance is zero on every rectangle edge. An area touching only an edge
+is classified as outside; a query enclosing the full item is inside; remaining
+intersections overlap. Both use the cached rectangle regardless of transparency.
+Translation changes the anchor and recomputes that rectangle without resizing
+or resampling pixels. Tk’s canvas operation owns the surrounding redraw work.</p>
+</section>
 </section>
 
 
@@ -172,6 +217,8 @@ memory measurements. It runs separately from the ordinary suite.</p>
 <li><a class="reference internal" href="#preview-ownership-and-configuration">Preview ownership and configuration</a></li>
 <li><a class="reference internal" href="#coordinates-and-export">Coordinates and export</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+<li><a class="reference internal" href="#preview-byte-decoding-details">Preview-byte decoding details</a></li>
+<li><a class="reference internal" href="#small-callback-and-geometry-contracts">Small callback and geometry contracts</a></li>
 </ul>
 </li>
 </ul>

@@ -111,3 +111,55 @@ Use :doc:`image-compatibility` for temporary-photo acquisition and release.
 The optional ``make test-resources`` harness counts source-instance releases
 on deletion followed by reconfiguration or teardown, without relying on process
 memory measurements. It runs separately from the ordinary suite.
+
+Preview-byte decoding details
+-----------------------------
+
+``GetHexValue`` reads from the parser's current cursor, requesting a new bounded
+chunk when necessary. Each new preview chunk must begin with ``%``. Whitespace
+is skipped before each byte pair, but the two hexadecimal digits must occur in
+the same chunk. A matching ``%%EndPreview`` prefix returns ``TCL_RETURN``;
+malformed text or premature EOF returns ``TCL_ERROR``. Only ``TCL_OK`` supplies
+a decoded byte. These statuses are internal parser control, not Tcl script
+return codes propagated to the canvas command.
+
+``ReadEPSI`` accepts dimensions from 1 through ``SHRT_MAX`` and depths of 1 or
+8 bits. The declared number of preview lines is parsed but not enforced.
+Decoding consumes the bytes needed for the dimensions; it does not separately
+require an end marker after the final pixel. A premature marker or malformed
+byte abandons the preview and frees its image. The stream is not rewound and
+preview failure does not itself become a Tcl error.
+
+The two legacy decode branches have different pixel conventions. Eight-bit
+samples are inverted to grayscale, assigned opaque alpha and written from the
+bottom row upward. One-bit rows are written from the top down, consume the
+high bit first and discard unused bits at each row boundary. A zero bit becomes
+opaque white; a set bit leaves the zero-initialized RGBA pixel, including zero
+alpha. This describes the current implementation, rather than a general
+bitmap conversion contract. Changes to preview appearance must test both depths,
+row orientation, padding and alpha explicitly.
+
+The conditional TIFF reader is unfinished: it calls ``TIFFReadRGBAImage`` but
+leaves component reordering as a placeholder. It is not called by the ordinary
+EPSI parsing path. Recording TIFF section offsets in a DOS EPS header does not
+provide a working TIFF preview pipeline.
+
+Small callback and geometry contracts
+-------------------------------------
+
+``EpsOptionSpecified`` is a post-configuration detector, not an option parser.
+It scans option-value pairs and accepts option-name prefixes only after Tk's
+configuration call succeeds. It does not independently enforce unique prefixes
+or reject malformed argument lists.
+
+The supplied-image change callback ignores ordinary pixel updates because
+rendering uses the retained snapshot. On image deletion it clears the source
+name and requests redraw while retaining the Tk instance until ordinary cleanup.
+Neither that callback nor translation recreates the snapshot.
+
+Point and area hit tests intentionally use different boundary comparisons.
+Point distance is zero on every rectangle edge. An area touching only an edge
+is classified as outside; a query enclosing the full item is inside; remaining
+intersections overlap. Both use the cached rectangle regardless of transparency.
+Translation changes the anchor and recomputes that rectangle without resizing
+or resampling pixels. Tk's canvas operation owns the surrounding redraw work.
