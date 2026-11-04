@@ -454,7 +454,21 @@ Returns true only if both real and imaginary values are finite. Does not inspect
 <dt class="sig sig-object c" id="c.InstallIndexProc">
 <span class="target" id="group__expression__engine_1gaa77599d0c18932dded72349c334e87b5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InstallIndexProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tablePtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Rbc_VectorIndexProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">procPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InstallIndexProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Install or remove a named special-index procedure. </p>
-<p>Requires an initialized string-key hash table. Stores a borrowed function pointer, or deletes the entry for NULL. Does not own or release callback state. </p>
+<p>
+Requires an initialized string-key hash table. Stores a borrowed function pointer, or deletes the entry for NULL. Does not own or release callback state. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tablePtr</strong> – <strong>[inout]</strong> Initialized string-key table owned by the vector subsystem. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> NUL-terminated index name; Tcl copies the key when creating an entry. </p></li>
+<li><p><strong>procPtr</strong> – <strong>[in]</strong> Borrowed callback to store, or NULL to remove the name. The table does not own callback state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -787,7 +801,23 @@ Advances nextPtr and records token; VALUE fills the supplied temporary. Bare num
 <dt class="sig sig-object c" id="c.Fmod">
 <span class="target" id="group__expression__engine_1ga1c8c674d386aa3c150825ae283dad946"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Fmod</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Fmod" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the legacy floor-based real remainder. </p>
-<p>Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C fmod for negative operands. Does not report an error or validate finite input. </p>
+<p>
+Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C fmod for negative operands. Does not report an error or validate finite input. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Real dividend. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Real divisor; zero is handled by returning zero. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>x-floor(x/y)*y for nonzero y, otherwise zero; this is not C fmod semantics. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">

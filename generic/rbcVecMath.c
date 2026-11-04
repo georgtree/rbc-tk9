@@ -911,25 +911,6 @@ static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorOb
  */
 static int ComplexValueIsFinite(Rbc_Complex value) { return FINITE(value.real) && FINITE(value.imag); }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_VectorInstallMathFunctions --
- *
- *      Creates a hash entry for every math function
- *      and sets the value to the function.
- *
- * Parameters:
- *      Tcl_HashTable *tablePtr - Pointer to the hash where the math functions should be installed to.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Adds to the hash entry the math functions.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr) {
     Tcl_HashEntry *hPtr;
     MathFunction *mathPtr;
@@ -941,25 +922,6 @@ void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_VectorInstallMathFunctions --
- *
- *      Creates a hash entry for every index
- *      and sets the value to the function.
- *
- * Parameters:
- *      Tcl_HashTable *tablePtr - Pointer to the hash where the special indices should be added to.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Adds to the hash entry the special indicies
- *
- *----------------------------------------------------------------------
- */
 void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr) {
     InstallIndexProc(tablePtr, "min", Rbc_VecMin);
     InstallIndexProc(tablePtr, "max", Rbc_VecMax);
@@ -970,6 +932,12 @@ void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr) {
 
 /**
  * @brief Install or remove a named special-index procedure.
+ * @param[in,out] tablePtr Initialized string-key table owned by the vector subsystem.
+ * @param[in] string NUL-terminated index name; Tcl copies the key when creating an entry.
+ * @param[in] procPtr Borrowed callback to store, or NULL to remove the name. The table does not own callback
+ *     state.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Requires an initialized string-key hash table. Stores a borrowed function pointer, or deletes the
@@ -1117,6 +1085,11 @@ double Rbc_VecMax(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Compute the real mean over finite selected values.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Arithmetic mean, nonfinite when no finite sample exists.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses First/Next and ordinary double summation. Divides by the finite count; no finite values produce
@@ -1139,6 +1112,11 @@ static double Mean(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Sum finite real values in the selected interval.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Sum, or zero when no finite sample exists.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Starts at zero and accumulates in storage order without compensation. Empty or entirely nonfinite
@@ -1158,6 +1136,11 @@ static double Sum(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Multiply finite real values in the selected interval.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Product, or one when no finite sample exists.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Starts at one; empty or entirely nonfinite selections return one. Ordinary multiplication can
@@ -1177,6 +1160,12 @@ static double Product(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Sort the selected real interval through an index permutation.
+ * @param[in,out] vPtr Caller-owned detached real temporary with a valid inclusive first/last interval. Only
+ *     selected values are rearranged.
+ * @return TCL_OK after sorting or for at most one selected value; TCL_ERROR on size/allocation failure, with
+ *     values unchanged.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Selections of at most one value are unchanged. Allocates an index array and a temporary value array,
@@ -1221,6 +1210,11 @@ static int Sort(VectorObject *vPtr) {
 
 /**
  * @brief Count finite real values in the selected interval.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Finite selected sample count as a double.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns the count as double, not allocated capacity or unfiltered vector length. Uses First/Next and
@@ -1240,6 +1234,11 @@ static double Length(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Return the real middle order statistic without rearranging data.
+ * @param[in] vecPtr Borrowed real RBC VectorObject with selection covering its entire used length. The sort
+ *     index is temporary; source values are not rearranged.
+ * @return Median, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Allocates a sort index and frees it before returning. Uses full vector length to choose one middle
@@ -1276,6 +1275,11 @@ static double Median(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Compute real sample variance over finite selected values.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Sample variance, or zero for fewer than two finite samples.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Computes Mean first, then sums squared deviations and divides by count-1. Fewer than two finite
@@ -1305,6 +1309,11 @@ static double Variance(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Compute the legacy absolute standardized third moment.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Legacy absolute standardized third moment; constant samples may yield a nonfinite result.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Accumulates absolute cubed deviations and divides by count times sample variance to the power 3/2.
@@ -1338,6 +1347,11 @@ static double Skew(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Compute signed skewness using population central moments.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Signed population-moment skewness, or NaN for fewer than two samples or zero variance.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where
@@ -1380,6 +1394,11 @@ static double Skewness(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Return the square root of positive real sample variance.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Square root of positive variance, otherwise zero.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Delegates to Variance. Returns zero when variance is not greater than zero, including a NaN
@@ -1397,6 +1416,11 @@ static double StdDeviation(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Compute mean absolute real deviation from the finite-sample mean.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Mean absolute deviation, or zero for fewer than two finite samples.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses finite selected values, divides by their count, and returns zero for fewer than two. Does not
@@ -1425,6 +1449,11 @@ static double AvgDeviation(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Compute the legacy fourth-moment excess statistic.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Legacy excess statistic, or zero for fewer than two finite samples or zero variance.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses finite selected values and sample variance. Returns sum of fourth powers divided by
@@ -1460,6 +1489,12 @@ static double Kurtosis(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Return the legacy lower quartile from a sorted index.
+ * @param[in] vecPtr Borrowed real RBC VectorObject with selection covering its entire used length. The sort
+ *     index is temporary; source values are not rearranged.
+ * @return Legacy lower quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel
+ *     is finite.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the minimum.
@@ -1497,6 +1532,12 @@ static double Q1(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Return the legacy upper quartile from a sorted index.
+ * @param[in] vecPtr Borrowed real RBC VectorObject with selection covering its entire used length. The sort
+ *     index is temporary; source values are not rearranged.
+ * @return Legacy upper quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel
+ *     is finite.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the maximum.
@@ -1535,6 +1576,11 @@ static double Q3(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Normalize every real value using full-vector finite extrema.
+ * @param[in,out] vecPtr Caller-owned detached real VectorObject passed through its Rbc_Vector prefix. Rewrites
+ *     all used values and refreshes extrema while computing the range.
+ * @return TCL_OK after normalization; this status does not imply finite output for a zero range.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Computes min/max, then writes (value-min)/(max-min) in place over the full length. Has no zero-range
@@ -1558,6 +1604,11 @@ static int Norm(Rbc_Vector *vecPtr) {
 
 /**
  * @brief Count nonzero finite real values in the selected interval.
+ * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
+ *     first/last bounds. Storage and selection remain unchanged.
+ * @return Count of finite selected samples unequal to zero, as a double.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses exact comparison with zero, so both signed zeros are excluded. Returns a double count; no
@@ -1687,6 +1738,11 @@ static Rbc_Complex ComplexConj(Rbc_Complex value) {
 
 /**
  * @brief Compute the square-root branch with nonnegative real part.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Square root on the implemented branch. The caller validates errno and component finiteness; no Tcl
+ *     status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns complex zero unchanged. Scales very large components before hypot/2 to avoid avoidable
@@ -1725,6 +1781,10 @@ static Rbc_Complex ComplexSqrt(Rbc_Complex value) {
 
 /**
  * @brief Compute exp(real) times the unit complex phase.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex exponential. The caller validates errno and component finiteness; no Tcl status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the component adapter owns errno
@@ -1742,6 +1802,11 @@ static Rbc_Complex ComplexExp(Rbc_Complex value) {
 
 /**
  * @brief Compute log of a magnitude without first forming that magnitude.
+ * @param[in] x First real component of the magnitude.
+ * @param[in] y Second real component of the magnitude.
+ * @return Logarithmic magnitude; two zero components invoke log(0), leaving error handling to the caller.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * For finite inputs, factors out the larger absolute component and uses log(max)+log(1+ratio*ratio)/2.
@@ -1770,6 +1835,11 @@ static double LogHypot(double x, double y) {
 
 /**
  * @brief Return logarithmic magnitude and principal atan2 phase.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Logarithmic magnitude plus imaginary principal phase. The caller validates errno and component
+ *     finiteness; no Tcl status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Zero input is
@@ -1785,6 +1855,11 @@ static Rbc_Complex ComplexLog(Rbc_Complex value) {
 
 /**
  * @brief Scale the complex natural logarithm to base ten.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex logarithm divided by ln(10). The caller validates errno and component finiteness; no Tcl
+ *     status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Multiplies both components by 1/ln(10), retaining the same phase branch and zero singularity as
@@ -1802,6 +1877,10 @@ static Rbc_Complex ComplexLog10(Rbc_Complex value) {
 
 /**
  * @brief Compute complex sine using real trigonometric and hyperbolic functions.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex sine. The caller validates errno and component finiteness; no Tcl status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is not scaled away;
@@ -1821,6 +1900,10 @@ static Rbc_Complex ComplexSin(Rbc_Complex value) {
 
 /**
  * @brief Compute complex cosine from real trigonometric/hyperbolic functions.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex cosine. The caller validates errno and component finiteness; no Tcl status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflow or report a Tcl
@@ -1840,6 +1923,11 @@ static Rbc_Complex ComplexCos(Rbc_Complex value) {
 
 /**
  * @brief Compute complex hyperbolic sine.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex hyperbolic sine. The caller validates errno and component finiteness; no Tcl status is
+ *     returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result validation.
@@ -1858,6 +1946,11 @@ static Rbc_Complex ComplexSinh(Rbc_Complex value) {
 
 /**
  * @brief Compute complex hyperbolic cosine.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex hyperbolic cosine. The caller validates errno and component finiteness; no Tcl status is
+ *     returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result validation.
@@ -1876,6 +1969,10 @@ static Rbc_Complex ComplexCosh(Rbc_Complex value) {
 
 /**
  * @brief Compute complex tangent using a decaying exponential formulation.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex tangent. The caller validates errno and component finiteness; no Tcl status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * On the real axis delegates to tan and preserves imaginary zero. Otherwise uses exp(-2*abs(imag)) and
@@ -1930,6 +2027,11 @@ static Rbc_Complex ComplexTan(Rbc_Complex value) {
 
 /**
  * @brief Compute complex hyperbolic tangent with scaled exponential terms.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Complex hyperbolic tangent. The caller validates errno and component finiteness; no Tcl status is
+ *     returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses exp(-2*abs(real)),
@@ -1970,6 +2072,10 @@ static Rbc_Complex ComplexTanh(Rbc_Complex value) {
 
 /**
  * @brief Compute real acosh for an argument at least one.
+ * @param[in] value Real scalar at least one; the caller establishes the domain.
+ * @return Real inverse hyperbolic cosine; no independent domain or finite-output check is performed.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(2). Does not
@@ -1986,6 +2092,11 @@ static double RealAcosh(double value) {
 
 /**
  * @brief Compute an inverse-sine branch from distances to plus/minus one.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Inverse sine on the implemented branch. The caller validates errno and component finiteness; no Tcl
+ *     status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Forms alpha as two half magnitudes to avoid adding them before division. Clamps alpha to at least
@@ -2030,6 +2141,11 @@ static Rbc_Complex ComplexAsin(Rbc_Complex value) {
 
 /**
  * @brief Compute inverse cosine from the inverse-sine branch.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Inverse cosine derived from ComplexAsin. The caller validates errno and component finiteness; no Tcl
+ *     status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. Inherits that
@@ -2047,6 +2163,11 @@ static Rbc_Complex ComplexAcos(Rbc_Complex value) {
 
 /**
  * @brief Compute complex inverse tangent with scaled angle and logarithmic distances.
+ * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
+ * @return Inverse tangent on the implemented branch. The caller validates errno and component finiteness; no
+ *     Tcl status is returned.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus/minus i. Returns
@@ -2089,6 +2210,15 @@ static Rbc_Complex ComplexAtan(Rbc_Complex value) {
 
 /**
  * @brief Compute complex powers with a separate integral-exponent path.
+ * @param[in] interp Diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] base Complex base passed by value.
+ * @param[in] exponent Complex exponent passed by value; finite integral real exponents use the separate
+ *     squaring path.
+ * @param[out] resultPtr Non-NULL caller-owned result storage, written on TCL_OK and left unchanged on
+ *     TCL_ERROR. Success does not guarantee finite components.
+ * @return TCL_OK after computation, or TCL_ERROR with a diagnostic for an unsupported power of zero.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Finite real integer exponents use exponentiation by squaring with the exponent kept as double. Zero
@@ -2184,6 +2314,11 @@ static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex expone
 
 /**
  * @brief Sum selected complex values having two finite components.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Complex sum, or 0+0i when no sample qualifies.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Starts at 0+0i and skips the entire sample if either component is nonfinite. Uses ordinary complex
@@ -2209,6 +2344,11 @@ static Rbc_Complex ComplexSum(VectorObject *vPtr) {
 
 /**
  * @brief Compute the componentwise mean of finite complex samples.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Componentwise mean, or a pair of NaNs when no sample qualifies.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Both components must be finite for a sample to count. Divides real and imaginary sums by the same
@@ -2250,6 +2390,11 @@ static Rbc_Complex ComplexMean(VectorObject *vPtr) {
 
 /**
  * @brief Multiply selected finite complex samples.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Complex product, or 1+0i when no sample qualifies.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Starts at 1+0i and skips samples with either component nonfinite. Empty input returns complex one.
@@ -2275,6 +2420,11 @@ static Rbc_Complex ComplexProduct(VectorObject *vPtr) {
 
 /**
  * @brief Count selected complex samples with both components finite.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Qualifying sample count as a real double.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns a double count. A sample with only one finite component is excluded entirely; this is not
@@ -2295,6 +2445,11 @@ static double ComplexLength(VectorObject *vPtr) {
 
 /**
  * @brief Count finite selected complex samples other than complex zero.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Number of qualifying samples with either component nonzero, as a real double.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * A sample counts when both components are finite and at least one is nonzero. No tolerance is used.
@@ -2368,6 +2523,11 @@ static Rbc_Complex ComplexRound(Rbc_Complex value) {
 
 /**
  * @brief Compute mean complex-plane distance from the sample mean.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Mean complex-plane distance, or zero for fewer than two qualifying samples.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by count. Returns real
@@ -2408,6 +2568,11 @@ static double ComplexAvgDeviation(VectorObject *vPtr) {
 
 /**
  * @brief Compute real sample variance from squared complex magnitudes.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Real squared-magnitude sample variance, or zero for fewer than two qualifying samples.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and divides by count-1.
@@ -2451,6 +2616,11 @@ static double ComplexVariance(VectorObject *vPtr) {
 
 /**
  * @brief Return the square root of positive complex sample variance.
+ * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
+ *     component nonfinite are skipped; storage and selection remain unchanged.
+ * @return Square root of positive squared-magnitude variance, otherwise zero.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Returns a real scalar. Delegates to ComplexVariance and returns zero when variance is not greater
@@ -2468,6 +2638,10 @@ static double ComplexStdDeviation(VectorObject *vPtr) {
 
 /**
  * @brief Return the legacy sign-test absolute value.
+ * @param[in] value Real scalar tested against zero; negative zero is preserved.
+ * @return Negated input when strictly negative, otherwise the unchanged input.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Negates values strictly below zero and otherwise returns the original value. Unlike fabs, negative
@@ -2482,6 +2656,10 @@ static double Fabs(double value) {
 
 /**
  * @brief Round a real value halfway away from zero as a double.
+ * @param[in] value Real scalar to round without narrowing to an integer type.
+ * @return Rounded double using the implemented half-away-from-zero formula; the caller checks finiteness.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_numerics
  *
  * Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Performs no integer
@@ -3585,6 +3763,11 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
  */
 /**
  * @brief Compute the legacy floor-based real remainder.
+ * @param[in] x Real dividend.
+ * @param[in] y Real divisor; zero is handled by returning zero.
+ * @return x-floor(x/y)*y for nonzero y, otherwise zero; this is not C fmod semantics.
+ * @see @ref rbc_calling_conventions
+ *
  * @ingroup expression_engine
  *
  * Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C fmod for negative

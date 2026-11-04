@@ -624,7 +624,25 @@ int Rbc_VectorEvaluate(Tcl_Interp *interp, char *string, VectorObject **resultPt
  * destruction observer protects destination identity, not interpreter lifetime.
  */
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr);
+/**
+ * @brief Register the built-in expression function descriptors.
+ * @param[in,out] tablePtr Initialized string-key table owned by the vector subsystem.
+ * @see @ref rbc_calling_conventions
+ *
+ * Stores borrowed pointers into the static mathFunctions table, replacing entries with matching names. The
+ * hash table owns its keys but must not free descriptor values. This installs adapters and their clientData
+ * together; it does not evaluate a function.
+ */
 void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr);
+/**
+ * @brief Register the built-in numeric special indices.
+ * @param[in,out] tablePtr Initialized string-key table owned by the vector subsystem.
+ * @see @ref rbc_calling_conventions
+ *
+ * Installs min, max, mean, sum and prod callbacks, replacing entries with matching names. Callback pointers
+ * are borrowed and have no per-entry allocation to release. Special-index invocation and expression
+ * reduction are distinct callers even when they share a numerical helper.
+ */
 void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr);
 /**
  * @brief Allocate a lexicographic permutation for real vector keys.

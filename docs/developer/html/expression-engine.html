@@ -303,6 +303,18 @@ value together with the current <code class="docutils literal notranslate"><span
 completion status and apply the appropriate finite-result check; these are
 separate responsibilities.</p>
 </section>
+<section id="registry-value-ownership">
+<h2>Registry value ownership<a class="headerlink" href="#registry-value-ownership" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="expression-reference.html#c.Rbc_VectorInstallMathFunctions" title="Rbc_VectorInstallMathFunctions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstallMathFunctions()</span></code></a> stores pointers to static
+<code class="docutils literal notranslate"><span class="pre">MathFunction</span></code> descriptors; each descriptor selects both the adapter and its
+concrete <code class="docutils literal notranslate"><span class="pre">clientData</span></code> representation.
+<a class="reference internal" href="expression-reference.html#c.Rbc_VectorInstallSpecialIndices" title="Rbc_VectorInstallSpecialIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstallSpecialIndices()</span></code></a> populates a separate table with
+borrowed numeric callback pointers. <a class="reference internal" href="expression-engine-reference.html#c.InstallIndexProc" title="InstallIndexProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">InstallIndexProc()</span></code></a> inserts or
+replaces one such callback, or removes its name for a null procedure pointer.
+Tcl owns copied string keys, but neither table owns the pointed-to code or
+static descriptors. See <a class="reference internal" href="expression-reference.html"><span class="doc">Vector expression C reference</span></a> for the initialization
+contracts.</p>
+</section>
 </section>
 
 
@@ -323,6 +335,7 @@ separate responsibilities.</p>
 <li><a class="reference internal" href="#scalar-conversion-and-operand-reuse">Scalar conversion and operand reuse</a></li>
 <li><a class="reference internal" href="#parser-argument-and-completion-contracts">Parser argument and completion contracts</a></li>
 <li><a class="reference internal" href="#adapter-data-and-temporary-failure-states">Adapter data and temporary failure states</a></li>
+<li><a class="reference internal" href="#registry-value-ownership">Registry value ownership</a></li>
 </ul>
 </li>
 </ul>

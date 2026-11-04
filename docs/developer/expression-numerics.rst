@@ -42,29 +42,29 @@ For complex samples, :math:`|z-m|` is Euclidean distance in the complex plane.
      - Real samples
      - Complex samples
    * - ``sum``
-     - Ordinary sum
-     - Componentwise sum
+     - :c:func:`Sum`: Ordinary sum
+     - :c:func:`ComplexSum`: Componentwise sum
    * - ``prod``
-     - Ordinary product
-     - Complex multiplication
+     - :c:func:`Product`: Ordinary product
+     - :c:func:`ComplexProduct`: Complex multiplication
    * - ``mean``
-     - Sum divided by :math:`n`
-     - Complex sum divided by :math:`n`
+     - :c:func:`Mean`: Sum divided by :math:`n`
+     - :c:func:`ComplexMean`: Complex sum divided by :math:`n`
    * - ``length``
-     - Finite selected count
-     - Count with both components finite
+     - :c:func:`Length`: Finite selected count
+     - :c:func:`ComplexLength`: Count with both components finite
    * - ``nz``
-     - Finite count unequal to zero
-     - Finite count with either component nonzero
+     - :c:func:`Nonzeros`: Finite count unequal to zero
+     - :c:func:`ComplexNonzeros`: Finite count with either component nonzero
    * - ``adev``
-     - :math:`\sum |x-m|/n`
-     - :math:`\sum |z-m|/n`, a real scalar
+     - :c:func:`AvgDeviation`: :math:`\sum |x-m|/n`
+     - :c:func:`ComplexAvgDeviation`: :math:`\sum |z-m|/n`, a real scalar
    * - ``var``
-     - :math:`\sum (x-m)^2/(n-1)`
-     - :math:`\sum |z-m|^2/(n-1)`, a real scalar
+     - :c:func:`Variance`: :math:`\sum (x-m)^2/(n-1)`
+     - :c:func:`ComplexVariance`: :math:`\sum |z-m|^2/(n-1)`, a real scalar
    * - ``sdev``
-     - Square root of positive variance
-     - Square root of positive squared-magnitude variance
+     - :c:func:`StdDeviation`: Square root of positive variance
+     - :c:func:`ComplexStdDeviation`: Square root of positive squared-magnitude variance
 
 The complex variance is not the mean of complex squared deviations and is not
 a covariance matrix. Both deviation reducers and variance return zero for fewer
@@ -82,7 +82,7 @@ revising with tests, rather than assuming every nonfinite intermediate propagate
 Real order statistics and normalization
 ---------------------------------------
 
-Median and quartiles allocate a sorted index without reordering source data.
+:c:func:`Median`, :c:func:`Q1` and :c:func:`Q3` allocate a sorted index without reordering source data.
 Median selects the middle value for odd length and averages the middle pair for
 even length. Empty input or index-allocation failure returns ``-DBL_MAX``. This
 is a finite sentinel, so the evaluator's final finite check does not itself turn
@@ -97,7 +97,7 @@ an even ``mid`` averages it with the following value. This is not a selectable
 or universally standardized percentile method. For ``{1 2 3 4}``, the current
 results are ``q1=1`` and ``q3=3``.
 
-``norm`` computes ``(x-min)/(max-min)`` over the full temporary. There is no
+:c:func:`Norm` implements ``norm`` and computes ``(x-min)/(max-min)`` over the full temporary. There is no
 constant-range guard, so nonempty constant input produces nonfinite values and
 is rejected by final expression validation. This helper is distinct from any
 instance normalization command and should not inherit that command's behavior
@@ -106,12 +106,12 @@ by assumption.
 Higher moments and compatibility
 ---------------------------------
 
-``kurtosis`` uses sample variance :math:`s^2` and returns
+:c:func:`Kurtosis` implements ``kurtosis`` using sample variance :math:`s^2` and returns
 :math:`\sum (x-m)^4/(n s^4)-3`. It returns zero for fewer than two samples or
 zero variance. This is neither a bias-corrected estimator nor the usual
 population-moment normalization.
 
-The current ``skew`` calculation uses **absolute** deviations:
+The current :c:func:`Skew` calculation (``skew``) uses **absolute** deviations:
 :math:`\sum |x-m|^3/(n s^3)`. It therefore loses the sign of asymmetry and is not
 conventional signed skewness. For ``{-1 0 1}`` it returns approximately ``2/3``,
 although conventional skewness is zero. Fewer than two samples return zero;
@@ -139,26 +139,26 @@ functions; it is not automatically promoted when a real-domain operation fails.
 An explicitly complex pair selects the complex kernel even when its imaginary
 part is zero. See :doc:`expression-engine` for type-changing adapter boundaries.
 
-The complex logarithm combines a scaled logarithmic magnitude with ``atan2``
-phase. Square root scales large components before computing half the magnitude.
+:c:func:`ComplexLog` combines a scaled logarithmic magnitude with ``atan2``
+phase. :c:func:`ComplexSqrt` scales large components before computing half the magnitude.
 Its negative-real branch tests ``imag < 0``; negative imaginary zero therefore
 chooses the same side as positive zero. Do not claim complete C99 complex
 signed-zero branch semantics for these custom kernels.
 
-Tangent and hyperbolic tangent use decaying exponentials and rearranged
+:c:func:`ComplexTan` and :c:func:`ComplexTanh` use decaying exponentials and rearranged
 denominators to reduce overflow and cancellation. Their axis-special cases use
 ordinary ``tan``; above magnitude 350 the decaying term is set to zero to avoid
 an irrelevant underflow setting ``errno``. Sine, cosine and their hyperbolic
 counterparts retain direct formulas and can overflow in intermediate libm calls.
 
-Inverse sine uses distances to plus/minus one, clamps rounding excursions in
+:c:func:`ComplexAsin` uses distances to plus/minus one, clamps rounding excursions in
 its auxiliary quantities and applies the imaginary sign with ``copysign``.
-Inverse cosine derives from inverse sine. Inverse tangent scales the angle
+:c:func:`ComplexAcos` derives from inverse sine. :c:func:`ComplexAtan` scales the angle
 calculation and uses logarithmic distances to plus/minus i. These strategies
 reduce specific numerical problems; they do not guarantee finite results for
 all finite inputs or remove genuine poles.
 
-Complex power uses exponentiation by squaring for finite real integral exponents,
+:c:func:`ComplexPower` uses exponentiation by squaring for finite real integral exponents,
 keeping the exponent as a double rather than narrowing it to a C integer. Zero
 to zero returns one. Negative powers of zero fail; zero to a positive real
 nonintegral power returns zero; a finite nonreal exponent of zero fails. Other
@@ -191,3 +191,38 @@ once. :c:func:`ComplexRandom` draws independent real and imaginary components,
 advancing it twice. These scalar signatures therefore describe value passing,
 not purity. :c:func:`ComplexValueIsFinite` provides the separate test that both
 components are finite.
+
+Return values and mutation boundaries
+-------------------------------------
+
+The C return type is part of the contract. :c:func:`Sort` returns a Tcl status
+and leaves values unchanged if its temporary allocation fails. :c:func:`Norm`
+also returns a status, but ``TCL_OK`` only means that its loop completed: a
+constant range can still produce nonfinite output. Both are mutation helpers
+for detached temporaries, not notification-producing named-vector operations.
+
+:c:func:`Median`, :c:func:`Q1` and :c:func:`Q3` instead return a numeric
+``-DBL_MAX`` sentinel for an empty vector or sort-index failure. Do not test
+these results as Tcl completion codes. Their full-selection requirement is
+stronger than the inclusive-range contract of :c:func:`Mean` or
+:c:func:`ComplexMean`. The real reducers receive an ``Rbc_Vector *`` prefix
+but cast it back to RBC's internal ``VectorObject``; an independently fabricated
+public prefix is not a valid substitute for the internal record.
+
+:c:func:`ComplexPower` writes its output only on ``TCL_OK``. Its explicit
+zero-base errors leave output storage unchanged, but successful arithmetic can
+still be nonfinite. :c:func:`ComplexExp`, :c:func:`ComplexLog10`,
+:c:func:`ComplexSin`, :c:func:`ComplexCos`, :c:func:`ComplexSinh` and
+:c:func:`ComplexCosh` return copied numeric values without a Tcl status.
+The caller retains responsibility for checking those results.
+
+:c:func:`LogHypot` avoids forming an overflowing magnitude before taking its
+logarithm. :c:func:`RealAcosh` requires an argument at least one. Neither
+helper supplies a Tcl diagnostic or clears ``errno``. Their callers establish
+the domain and apply the expression error policy.
+
+Legacy scalar conventions remain deliberate distinctions:
+:c:func:`Fabs` preserves negative zero, :c:func:`Round` computes a rounded
+double without converting to an integer, and :c:func:`Fmod` implements
+a floor-based remainder with a zero-divisor result of zero. These names must
+not be treated as aliases for the corresponding C library routines.

@@ -245,3 +245,16 @@ not itself return an error status. :c:func:`MathError` classifies the supplied
 value together with the current ``errno``. Callers must both set the intended
 completion status and apply the appropriate finite-result check; these are
 separate responsibilities.
+
+Registry value ownership
+------------------------
+
+:c:func:`Rbc_VectorInstallMathFunctions` stores pointers to static
+``MathFunction`` descriptors; each descriptor selects both the adapter and its
+concrete ``clientData`` representation.
+:c:func:`Rbc_VectorInstallSpecialIndices` populates a separate table with
+borrowed numeric callback pointers. :c:func:`InstallIndexProc` inserts or
+replaces one such callback, or removes its name for a null procedure pointer.
+Tcl owns copied string keys, but neither table owns the pointed-to code or
+static descriptors. See :doc:`expression-reference` for the initialization
+contracts.

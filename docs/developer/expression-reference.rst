@@ -13,3 +13,15 @@ assignment remains caller-owned. The internal helpers described in
 .. doxygenfunction:: Rbc_VectorEvaluate
 
 .. doxygenfunction:: Rbc_ExprVector
+
+Registry initialization
+-----------------------
+
+These routines populate separate tables during vector-subsystem setup. Table
+keys are owned by Tcl; stored descriptors and procedure pointers are borrowed.
+Destroying the tables must not free these static values. Registration does not
+execute callbacks or transfer ownership of any vectors.
+
+.. doxygenfunction:: Rbc_VectorInstallMathFunctions
+
+.. doxygenfunction:: Rbc_VectorInstallSpecialIndices

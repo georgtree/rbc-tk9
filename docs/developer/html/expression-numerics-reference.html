@@ -46,11 +46,14 @@
 <p>These private reducers and scalar kernels implement the expression adapters.
 They are not installed C API entry points. See <a class="reference internal" href="expression-numerics.html"><span class="doc">Expression reductions and scalar kernels</span></a> for
 sample selection, formulas, ownership and compatibility caveats.</p>
-<p>Scalar kernel arguments are copied values, while selection helpers borrow a
-live real vector. Neither form acquires vector ownership. Parameter contracts
+<p>Scalar kernel arguments are copied values, while reducers borrow a
+live real or complex internal vector. Neither form acquires vector ownership. Parameter contracts
 state the input interpretation; the surrounding adapters control error and
 finite-value handling. See <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> and
 <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.</p>
+<p>Reducers document selected versus full-length input explicitly. Numeric return
+values, Tcl statuses and output-pointer writes have different failure contracts;
+see <a class="reference internal" href="expression-numerics.html"><span class="doc">Expression reductions and scalar kernels</span></a> before reusing a helper outside its adapter.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__expression__numerics"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Expression</span> <span class="pre">numerical</span> <span class="pre">kernels</span></span></dt>
@@ -99,112 +102,352 @@ Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginar
 <dt class="sig sig-object c" id="c.Mean">
 <span class="target" id="group__expression__numerics_1ga2ebb0b96481497cf89dbe60ee37dd235"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Mean</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Mean" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the real mean over finite selected values. </p>
-<p>Uses First/Next and ordinary double summation. Divides by the finite count; no finite values produce a nonfinite result rejected by expression evaluation. Does not modify storage or selection. </p>
+<p>
+Uses First/Next and ordinary double summation. Divides by the finite count; no finite values produce a nonfinite result rejected by expression evaluation. Does not modify storage or selection. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Arithmetic mean, nonfinite when no finite sample exists. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Sum">
 <span class="target" id="group__expression__numerics_1ga467ae99da6d0ef6a66337baa5dc7bf1c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Sum</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Sum" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sum finite real values in the selected interval. </p>
-<p>Starts at zero and accumulates in storage order without compensation. Empty or entirely nonfinite selections return zero. No allocation, notification or Tcl evaluation. </p>
+<p>
+Starts at zero and accumulates in storage order without compensation. Empty or entirely nonfinite selections return zero. No allocation, notification or Tcl evaluation. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sum, or zero when no finite sample exists. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Product">
 <span class="target" id="group__expression__numerics_1gaa32a6eb1c726629ce1eeb3460cc686e9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Product</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Product" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Multiply finite real values in the selected interval. </p>
-<p>Starts at one; empty or entirely nonfinite selections return one. Ordinary multiplication can overflow or underflow; final validation belongs to the adapter/evaluator. </p>
+<p>
+Starts at one; empty or entirely nonfinite selections return one. Ordinary multiplication can overflow or underflow; final validation belongs to the adapter/evaluator. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Product, or one when no finite sample exists. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Sort">
 <span class="target" id="group__expression__numerics_1ga77e13638b082222421edfc7e7b191720"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Sort</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Sort" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sort the selected real interval through an index permutation. </p>
-<p>Selections of at most one value are unchanged. Allocates an index array and a temporary value array, copies sorted values back only after allocation succeeds, then frees both arrays. Returns TCL_ERROR on size/allocation failure. Intended for detached expression storage; sends no notifications. </p>
+<p>
+Selections of at most one value are unchanged. Allocates an index array and a temporary value array, copies sorted values back only after allocation succeeds, then frees both arrays. Returns TCL_ERROR on size/allocation failure. Intended for detached expression storage; sends no notifications. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Caller-owned detached real temporary with a valid inclusive first/last interval. Only selected values are rearranged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after sorting or for at most one selected value; TCL_ERROR on size/allocation failure, with values unchanged. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Length">
 <span class="target" id="group__expression__numerics_1ga02d2da9d4fd405a6cee3d7de6a0ccc02"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Length</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Length" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count finite real values in the selected interval. </p>
-<p>Returns the count as double, not allocated capacity or unfiltered vector length. Uses First/Next and does not mutate the record. </p>
+<p>
+Returns the count as double, not allocated capacity or unfiltered vector length. Uses First/Next and does not mutate the record. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Finite selected sample count as a double. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Median">
 <span class="target" id="group__expression__numerics_1gad712444719113428d6993e2e664db989"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Median</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Median" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the real middle order statistic without rearranging data. </p>
-<p>Allocates a sort index and frees it before returning. Uses full vector length to choose one middle value or the average of two; requires the selected interval to cover the full vector, as expression copies normally do. Empty input or sort-index failure returns the finite sentinel -DBL_MAX rather than a Tcl status. </p>
+<p>
+Allocates a sort index and frees it before returning. Uses full vector length to choose one middle value or the average of two; requires the selected interval to cover the full vector, as expression copies normally do. Empty input or sort-index failure returns the finite sentinel -DBL_MAX rather than a Tcl status. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject with selection covering its entire used length. The sort index is temporary; source values are not rearranged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Median, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Variance">
 <span class="target" id="group__expression__numerics_1ga6e09d6fc8c7b5067ce6caaa69e5adf13"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Variance</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Variance" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute real sample variance over finite selected values. </p>
-<p>Computes Mean first, then sums squared deviations and divides by count-1. Fewer than two finite samples return zero. Uses ordinary double arithmetic without compensated summation or overflow scaling. </p>
+<p>
+Computes Mean first, then sums squared deviations and divides by count-1. Fewer than two finite samples return zero. Uses ordinary double arithmetic without compensated summation or overflow scaling. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sample variance, or zero for fewer than two finite samples. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Skew">
 <span class="target" id="group__expression__numerics_1ga7e8479348c3d30e0b23a9d5e491bda53"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Skew</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Skew" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the legacy absolute standardized third moment. </p>
-<p>Accumulates absolute cubed deviations and divides by count times sample variance to the power 3/2. Fewer than two finite samples return zero; constant samples of length at least two yield a nonfinite division. This is not conventional signed skewness; symmetry does not generally give zero. </p>
+<p>
+Accumulates absolute cubed deviations and divides by count times sample variance to the power 3/2. Fewer than two finite samples return zero; constant samples of length at least two yield a nonfinite division. This is not conventional signed skewness; symmetry does not generally give zero. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Legacy absolute standardized third moment; constant samples may yield a nonfinite result. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Skewness">
 <span class="target" id="group__expression__numerics_1gac5c42fd3edc04a4b7d059983a0e5a257"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Skewness</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Skewness" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute signed skewness using population central moments. </p>
-<p>Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where mk=sum((x-mean)^k)/count. This is the unadjusted moment coefficient, not a bias-corrected sample estimator. Scales inputs by their maximum magnitude before accumulation to avoid overflow/underflow from cubing raw values. Returns NaN for empty or constant input; final expression validation reports a domain error. Does not modify storage or change the legacy Skew formula. </p>
+<p>
+Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where mk=sum((x-mean)^k)/count. This is the unadjusted moment coefficient, not a bias-corrected sample estimator. Scales inputs by their maximum magnitude before accumulation to avoid overflow/underflow from cubing raw values. Returns NaN for empty or constant input; final expression validation reports a domain error. Does not modify storage or change the legacy Skew formula. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Signed population-moment skewness, or NaN for fewer than two samples or zero variance. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.StdDeviation">
 <span class="target" id="group__expression__numerics_1ga07dffedd039a3a9bc71b0ee05d5f0708"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StdDeviation</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StdDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the square root of positive real sample variance. </p>
-<p>Delegates to Variance. Returns zero when variance is not greater than zero, including a NaN comparison; does not independently propagate a Tcl status. </p>
+<p>
+Delegates to Variance. Returns zero when variance is not greater than zero, including a NaN comparison; does not independently propagate a Tcl status. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Square root of positive variance, otherwise zero. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.AvgDeviation">
 <span class="target" id="group__expression__numerics_1ga2368b892f5e4d1b3ba08b6b2cc7b675b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AvgDeviation</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AvgDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute mean absolute real deviation from the finite-sample mean. </p>
-<p>Uses finite selected values, divides by their count, and returns zero for fewer than two. Does not use sample count-1 normalization. </p>
+<p>
+Uses finite selected values, divides by their count, and returns zero for fewer than two. Does not use sample count-1 normalization. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean absolute deviation, or zero for fewer than two finite samples. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Kurtosis">
 <span class="target" id="group__expression__numerics_1gaaeb5db9de8d3f76d43dcb82aaea3dd07"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Kurtosis</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Kurtosis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the legacy fourth-moment excess statistic. </p>
-<p>Uses finite selected values and sample variance. Returns sum of fourth powers divided by count*variance*variance, minus three. Returns zero for fewer than two samples or zero variance. This is not a bias-corrected estimator and is not population-moment normalization. </p>
+<p>
+Uses finite selected values and sample variance. Returns sum of fourth powers divided by count*variance*variance, minus three. Returns zero for fewer than two samples or zero variance. This is not a bias-corrected estimator and is not population-moment normalization. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Legacy excess statistic, or zero for fewer than two finite samples or zero variance. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Q1">
 <span class="target" id="group__expression__numerics_1ga122adfc365c7198694fd4ac2c9354638"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Q1</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Q1" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the legacy lower quartile from a sorted index. </p>
-<p>Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the minimum. Otherwise mid=(length-1)/2 and q=mid/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. Frees the index without rearranging source data. </p>
+<p>
+Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the minimum. Otherwise mid=(length-1)/2 and q=mid/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. Frees the index without rearranging source data. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject with selection covering its entire used length. The sort index is temporary; source values are not rearranged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Legacy lower quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Q3">
 <span class="target" id="group__expression__numerics_1gad360761e21358e1eef6be3f1085cac31"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Q3</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Q3" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the legacy upper quartile from a sorted index. </p>
-<p>Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the maximum. Otherwise mid=(length-1)/2 and q=mid+(length-mid)/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. These are legacy index rules, not a selectable percentile convention. </p>
+<p>
+Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the maximum. Otherwise mid=(length-1)/2 and q=mid+(length-mid)/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. These are legacy index rules, not a selectable percentile convention. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject with selection covering its entire used length. The sort index is temporary; source values are not rearranged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Legacy upper quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Norm">
 <span class="target" id="group__expression__numerics_1ga209a018fa0f2d3ba9661ef354f444f7f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Norm</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Norm" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Normalize every real value using full-vector finite extrema. </p>
-<p>Computes min/max, then writes (value-min)/(max-min) in place over the full length. Has no zero-range guard: constant nonempty input produces nonfinite values rejected later by the expression evaluator. Returns TCL_OK after the loop and does not notify; operates on detached expression storage. </p>
+<p>
+Computes min/max, then writes (value-min)/(max-min) in place over the full length. Has no zero-range guard: constant nonempty input produces nonfinite values rejected later by the expression evaluator. Returns TCL_OK after the loop and does not notify; operates on detached expression storage. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[inout]</strong> Caller-owned detached real VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix. Rewrites all used values and refreshes extrema while computing the range. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after normalization; this status does not imply finite output for a zero range. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Nonzeros">
 <span class="target" id="group__expression__numerics_1ga624690ad26560a814d38bf280f29ec89"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Nonzeros</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Nonzeros" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count nonzero finite real values in the selected interval. </p>
-<p>Uses exact comparison with zero, so both signed zeros are excluded. Returns a double count; no tolerance or magnitude threshold is applied. </p>
+<p>
+Uses exact comparison with zero, so both signed zeros are excluded. Returns a double count; no tolerance or magnitude threshold is applied. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[in]</strong> Borrowed real RBC VectorObject passed through its <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"><span class="std std-ref">Rbc_Vector</span></a> prefix, with valid inclusive first/last bounds. Storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Count of finite selected samples unequal to zero, as a double. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -363,147 +606,466 @@ Negates only the imaginary component, including its sign bit for zero. Does not 
 <dt class="sig sig-object c" id="c.ComplexSqrt">
 <span class="target" id="group__expression__numerics_1gae065f7bead68e18bd7c1ca3d9e8dfce2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSqrt</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSqrt" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the square-root branch with nonnegative real part. </p>
-<p>Returns complex zero unchanged. Scales very large components before hypot/2 to avoid avoidable overflow. For negative real input, imaginary sign uses imag&lt;0, so negative zero takes the same branch as positive zero. The adapter checks errno and finite components; this is not a full C99 signed-zero branch guarantee. </p>
+<p>
+Returns complex zero unchanged. Scales very large components before hypot/2 to avoid avoidable overflow. For negative real input, imaginary sign uses imag&lt;0, so negative zero takes the same branch as positive zero. The adapter checks errno and finite components; this is not a full C99 signed-zero branch guarantee. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Square root on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexExp">
 <span class="target" id="group__expression__numerics_1ga686517a0fead3bdcca8938d9938f8a99"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexExp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexExp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute exp(real) times the unit complex phase. </p>
-<p>Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the component adapter owns errno and finite-result checks. </p>
+<p>
+Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the component adapter owns errno and finite-result checks. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex exponential. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.LogHypot">
 <span class="target" id="group__expression__numerics_1ga7758bcfaa6250883ea97eaab77c9a192"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LogHypot</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.LogHypot" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute log of a magnitude without first forming that magnitude. </p>
-<p>For finite inputs, factors out the larger absolute component and uses log(max)+log(1+ratio*ratio)/2. Both zero calls log(0), preserving libm error behavior. Does not clear errno or set Tcl errors. </p>
+<p>
+For finite inputs, factors out the larger absolute component and uses log(max)+log(1+ratio*ratio)/2. Both zero calls log(0), preserving libm error behavior. Does not clear errno or set Tcl errors. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> First real component of the magnitude. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Second real component of the magnitude. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Logarithmic magnitude; two zero components invoke log(0), leaving error handling to the caller. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexLog">
 <span class="target" id="group__expression__numerics_1ga71711a90ed82d4bb816c73d9d7a55ef3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexLog</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexLog" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return logarithmic magnitude and principal atan2 phase. </p>
-<p>Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Zero input is singular; the adapter reports its libm/nonfinite failure. </p>
+<p>
+Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Zero input is singular; the adapter reports its libm/nonfinite failure. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Logarithmic magnitude plus imaginary principal phase. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexLog10">
 <span class="target" id="group__expression__numerics_1ga0375c65e3c2e2de4ef3caaa4151928c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexLog10</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexLog10" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Scale the complex natural logarithm to base ten. </p>
-<p>Multiplies both components by 1/ln(10), retaining the same phase branch and zero singularity as ComplexLog. </p>
+<p>
+Multiplies both components by 1/ln(10), retaining the same phase branch and zero singularity as ComplexLog. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex logarithm divided by ln(10). The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexSin">
 <span class="target" id="group__expression__numerics_1ga403a5c338fcf9468e899382e434ef185"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex sine using real trigonometric and hyperbolic functions. </p>
-<p>Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is not scaled away; caller validates errno and result components. </p>
+<p>
+Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is not scaled away; caller validates errno and result components. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex sine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexCos">
 <span class="target" id="group__expression__numerics_1ga03a8cceb5dd3e27984d58452adaae61e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexCos</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexCos" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex cosine from real trigonometric/hyperbolic functions. </p>
-<p>Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflow or report a Tcl error. </p>
+<p>
+Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflow or report a Tcl error. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex cosine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexSinh">
 <span class="target" id="group__expression__numerics_1ga71acbfb33d9ff19c7ab8688155fcb3a7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSinh</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSinh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex hyperbolic sine. </p>
-<p>Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result validation. </p>
+<p>
+Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result validation. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex hyperbolic sine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexCosh">
 <span class="target" id="group__expression__numerics_1ga77f8eaf5390f4de0b937ac63ec6892d7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexCosh</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexCosh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex hyperbolic cosine. </p>
-<p>Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result validation. </p>
+<p>
+Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result validation. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex hyperbolic cosine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexTan">
 <span class="target" id="group__expression__numerics_1gaed2e6a7b9814cba036674fdc47acc666"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexTan</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexTan" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex tangent using a decaying exponential formulation. </p>
-<p>On the real axis delegates to tan and preserves imaginary zero. Otherwise uses exp(-2*abs(imag)) and a denominator arranged to reduce cancellation near poles. For abs(imag)&gt;350 sets the exponential term to zero to avoid irrelevant underflow errno. Does not suppress true singular or nonfinite results. </p>
+<p>
+On the real axis delegates to tan and preserves imaginary zero. Otherwise uses exp(-2*abs(imag)) and a denominator arranged to reduce cancellation near poles. For abs(imag)&gt;350 sets the exponential term to zero to avoid irrelevant underflow errno. Does not suppress true singular or nonfinite results. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex tangent. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexTanh">
 <span class="target" id="group__expression__numerics_1ga4aad2893ab9a30cd759bf20efdd33fba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexTanh</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexTanh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex hyperbolic tangent with scaled exponential terms. </p>
-<p>On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses exp(-2*abs(real)), setting it to zero above 350, with a cancellation-reduced denominator. Caller checks singularities/nonfinite results. </p>
+<p>
+On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses exp(-2*abs(real)), setting it to zero above 350, with a cancellation-reduced denominator. Caller checks singularities/nonfinite results. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex hyperbolic tangent. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.RealAcosh">
 <span class="target" id="group__expression__numerics_1gaf73a8ae614156bd8ba56b262086497da"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RealAcosh</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RealAcosh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute real acosh for an argument at least one. </p>
-<p>Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(2). Does not validate its domain; ComplexAsin clamps its argument before calling. </p>
+<p>
+Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(2). Does not validate its domain; ComplexAsin clamps its argument before calling. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Real scalar at least one; the caller establishes the domain. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Real inverse hyperbolic cosine; no independent domain or finite-output check is performed. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexAsin">
 <span class="target" id="group__expression__numerics_1ga77f6416a00ca8b2e336655434605801d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAsin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAsin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute an inverse-sine branch from distances to plus/minus one. </p>
-<p>Forms alpha as two half magnitudes to avoid adding them before division. Clamps alpha to at least one and beta=real/alpha into [-1,1], then combines asin(beta) and signed acosh(alpha). Uses copysign for imaginary sign. Individual magnitudes can still overflow for extreme finite inputs. </p>
+<p>
+Forms alpha as two half magnitudes to avoid adding them before division. Clamps alpha to at least one and beta=real/alpha into [-1,1], then combines asin(beta) and signed acosh(alpha). Uses copysign for imaginary sign. Individual magnitudes can still overflow for extreme finite inputs. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Inverse sine on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexAcos">
 <span class="target" id="group__expression__numerics_1ga79c8f707fa4ffa0889793343b2c844a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAcos</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAcos" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute inverse cosine from the inverse-sine branch. </p>
-<p>Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. Inherits that helper’s numerical limits and branch behavior. </p>
+<p>
+Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. Inherits that helper’s numerical limits and branch behavior. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Inverse cosine derived from ComplexAsin. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexAtan">
 <span class="target" id="group__expression__numerics_1ga34351e4044558c1478469f26e28fc353"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAtan</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAtan" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex inverse tangent with scaled angle and logarithmic distances. </p>
-<p>Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus/minus i. Returns half the angle and half the log-distance difference. Poles at plus/minus i remain singular; caller validates errno and finite components. </p>
+<p>
+Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus/minus i. Returns half the angle and half the log-distance difference. Poles at plus/minus i remain singular; caller validates errno and finite components. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex scalar passed by value; no vector or Tcl-object ownership is transferred. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Inverse tangent on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexPower">
 <span class="target" id="group__expression__numerics_1ga848762e239b7be855bf9606de3cbd9bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexPower</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">base</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">exponent</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexPower" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex powers with a separate integral-exponent path. </p>
-<p>Finite real integer exponents use exponentiation by squaring with the exponent kept as double. Zero exponent returns one, including zero-to-zero; negative powers of zero fail. For zero base, positive nonintegral real powers return zero and finite nonreal exponents fail. Other cases use exp(exponent*Log(base)). Returns Tcl status; successful computation can still be nonfinite and requires outer validation. </p>
+<p>
+Finite real integer exponents use exponentiation by squaring with the exponent kept as double. Zero exponent returns one, including zero-to-zero; negative powers of zero fail. For zero base, positive nonintegral real powers return zero and finite nonreal exponents fail. Other cases use exp(exponent*Log(base)). Returns Tcl status; successful computation can still be nonfinite and requires outer validation. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>base</strong> – <strong>[in]</strong> Complex base passed by value. </p></li>
+<li><p><strong>exponent</strong> – <strong>[in]</strong> Complex exponent passed by value; finite integral real exponents use the separate squaring path. </p></li>
+<li><p><strong>resultPtr</strong> – <strong>[out]</strong> Non-NULL caller-owned result storage, written on TCL_OK and left unchanged on TCL_ERROR. Success does not guarantee finite components. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after computation, or TCL_ERROR with a diagnostic for an unsupported power of zero. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexSum">
 <span class="target" id="group__expression__numerics_1ga5f9943b8672b49ae9b7177525b41cfb3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSum</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSum" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sum selected complex values having two finite components. </p>
-<p>Starts at 0+0i and skips the entire sample if either component is nonfinite. Uses ordinary complex addition in storage order; empty input returns complex zero. </p>
+<p>
+Starts at 0+0i and skips the entire sample if either component is nonfinite. Uses ordinary complex addition in storage order; empty input returns complex zero. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex sum, or 0+0i when no sample qualifies. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexMean">
 <span class="target" id="group__expression__numerics_1ga833ff2347ea4707772370fb90a5f59ff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexMean</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexMean" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the componentwise mean of finite complex samples. </p>
-<p>Both components must be finite for a sample to count. Divides real and imaginary sums by the same selected sample count. No finite samples return NaN in both components; the evaluator rejects that result. </p>
+<p>
+Both components must be finite for a sample to count. Divides real and imaginary sums by the same selected sample count. No finite samples return NaN in both components; the evaluator rejects that result. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Componentwise mean, or a pair of NaNs when no sample qualifies. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexProduct">
 <span class="target" id="group__expression__numerics_1ga27993094db8edb8a5f9807baac6401fe"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexProduct</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexProduct" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Multiply selected finite complex samples. </p>
-<p>Starts at 1+0i and skips samples with either component nonfinite. Empty input returns complex one. Uses Rbc_ComplexMul; does not promise overflow-free accumulation. </p>
+<p>
+Starts at 1+0i and skips samples with either component nonfinite. Empty input returns complex one. Uses Rbc_ComplexMul; does not promise overflow-free accumulation. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex product, or 1+0i when no sample qualifies. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexLength">
 <span class="target" id="group__expression__numerics_1ga21e7a626a03948ea9fd55a1c84fac144"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count selected complex samples with both components finite. </p>
-<p>Returns a double count. A sample with only one finite component is excluded entirely; this is not raw vector length. </p>
+<p>
+Returns a double count. A sample with only one finite component is excluded entirely; this is not raw vector length. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Qualifying sample count as a real double. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexNonzeros">
 <span class="target" id="group__expression__numerics_1ga9ea0bc24f0d39371d844e7cffa933077"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexNonzeros</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexNonzeros" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count finite selected complex samples other than complex zero. </p>
-<p>A sample counts when both components are finite and at least one is nonzero. No tolerance is used. </p>
+<p>
+A sample counts when both components are finite and at least one is nonzero. No tolerance is used. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of qualifying samples with either component nonzero, as a real double. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -567,35 +1129,110 @@ Delegates each component to Round. Does not change a complex temporary into real
 <dt class="sig sig-object c" id="c.ComplexAvgDeviation">
 <span class="target" id="group__expression__numerics_1gaf669ab69e8d66b33d854813923528033"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAvgDeviation</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAvgDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute mean complex-plane distance from the sample mean. </p>
-<p>Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by count. Returns real zero for fewer than two finite samples. Does not compute independent real/imaginary deviations. </p>
+<p>
+Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by count. Returns real zero for fewer than two finite samples. Does not compute independent real/imaginary deviations. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean complex-plane distance, or zero for fewer than two qualifying samples. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexVariance">
 <span class="target" id="group__expression__numerics_1ga175f6e0992565f705f71bb0f282adabd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexVariance</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexVariance" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute real sample variance from squared complex magnitudes. </p>
-<p>Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and divides by count-1. Returns zero for fewer than two finite samples. This is squared-magnitude variance, not the possibly complex mean of squared deviations; squaring can still overflow. </p>
+<p>
+Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and divides by count-1. Returns zero for fewer than two finite samples. This is squared-magnitude variance, not the possibly complex mean of squared deviations; squaring can still overflow. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Real squared-magnitude sample variance, or zero for fewer than two qualifying samples. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ComplexStdDeviation">
 <span class="target" id="group__expression__numerics_1ga38e29f9df58512df68d2bed956268619"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexStdDeviation</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexStdDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the square root of positive complex sample variance. </p>
-<p>Returns a real scalar. Delegates to ComplexVariance and returns zero when variance is not greater than zero; does not separately diagnose a nonfinite intermediate. </p>
+<p>
+Returns a real scalar. Delegates to ComplexVariance and returns zero when variance is not greater than zero; does not separately diagnose a nonfinite intermediate. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed complex vector with valid inclusive first/last bounds. Samples with either component nonfinite are skipped; storage and selection remain unchanged. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Square root of positive squared-magnitude variance, otherwise zero. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Fabs">
 <span class="target" id="group__expression__numerics_1gae3b3d2b16f9a52bd1012d312a140c145"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Fabs</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Fabs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the legacy sign-test absolute value. </p>
-<p>Negates values strictly below zero and otherwise returns the original value. Unlike fabs, negative zero retains its sign. </p>
+<p>
+Negates values strictly below zero and otherwise returns the original value. Unlike fabs, negative zero retains its sign. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Real scalar tested against zero; negative zero is preserved. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Negated input when strictly negative, otherwise the unchanged input. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Round">
 <span class="target" id="group__expression__numerics_1ga5725f013ccec099e9ae5eeda8d4eed04"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Round</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Round" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round a real value halfway away from zero as a double. </p>
-<p>Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Performs no integer conversion or independent finite check. </p>
+<p>
+Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Performs no integer conversion or independent finite check. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Real scalar to round without narrowing to an integer type. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Rounded double using the implemented half-away-from-zero formula; the caller checks finiteness. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">

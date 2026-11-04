@@ -91,6 +91,51 @@ Evaluates into a detached temporary before writing the destination. Checks writa
 </dl>
 </dd></dl>
 
+<section id="registry-initialization">
+<h2>Registry initialization<a class="headerlink" href="#registry-initialization" title="Link to this heading">¶</a></h2>
+<p>These routines populate separate tables during vector-subsystem setup. Table
+keys are owned by Tcl; stored descriptors and procedure pointers are borrowed.
+Destroying the tables must not free these static values. Registration does not
+execute callbacks or transfer ownership of any vectors.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorInstallMathFunctions">
+<span class="target" id="rbc_vector_int_8h_1a32ee58e50f50d44aa47f8f70e9d340d4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorInstallMathFunctions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tablePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorInstallMathFunctions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Register the built-in expression function descriptors. </p>
+<p>
+Stores borrowed pointers into the static mathFunctions table, replacing entries with matching names. The hash table owns its keys but must not free descriptor values. This installs adapters and their clientData together; it does not evaluate a function. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tablePtr</strong> – <strong>[inout]</strong> Initialized string-key table owned by the vector subsystem. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorInstallSpecialIndices">
+<span class="target" id="rbc_vector_int_8h_1a1bb6ce49b894a2689c1d6eada34fe2fc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorInstallSpecialIndices</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tablePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorInstallSpecialIndices" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Register the built-in numeric special indices. </p>
+<p>
+Installs min, max, mean, sum and prod callbacks, replacing entries with matching names. Callback pointers are borrowed and have no per-entry allocation to release. Special-index invocation and expression reduction are distinct callers even when they share a numerical helper. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tablePtr</strong> – <strong>[inout]</strong> Initialized string-key table owned by the vector subsystem. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -106,6 +151,11 @@ Evaluates into a detached temporary before writing the destination. Checks writa
 <li><a class="reference internal" href="#">Vector expression C reference</a><ul>
 <li><a class="reference internal" href="#c.Rbc_VectorEvaluate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ExprVector"><code class="docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a></li>
+<li><a class="reference internal" href="#registry-initialization">Registry initialization</a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorInstallMathFunctions"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorInstallMathFunctions()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorInstallSpecialIndices"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorInstallSpecialIndices()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
