@@ -102,6 +102,120 @@ Has the same pointer ownership and failure behavior as Rbc_InitStubs, but does n
 </dl>
 </dd></dl>
 
+<section id="private-registration-helpers">
+<h2>Private registration helpers<a class="headerlink" href="#private-registration-helpers" title="Link to this heading">¶</a></h2>
+<p>These records and callbacks belong to the loader implementation, not the
+installed C API. The consumer-side stubs object is documented alongside them
+because it receives the table published by package initialization.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__initialization__private"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Package</span> <span class="pre">initialization</span> <span class="pre">helpers</span></span></dt>
+<dd><p>Private loader callbacks and readiness bookkeeping, not installed interfaces. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcInitialization.FreeInitData">
+<span class="target" id="group__initialization__private_1ga3a14609e5ce8ae947845cd8753396110"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeInitData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcInitialization.FreeInitData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release the interpreter initialization bookkeeping. </p>
+<p>clientData is the allocated <a class="reference internal" href="#struct_rbc_init_data"><span class="std std-ref">RbcInitData</span></a> owned by Tcl associated data. Free only that record. Subsystem registries, commands, widgets and vectors have separate deletion paths. interp is unused; no Tcl evaluation occurs. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcInitialization.InitTkObjCmd">
+<span class="target" id="group__initialization__private_1ga399143588858c31561d507548b390ed6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitTkObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcInitialization.InitTkObjCmd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Complete the Tk-dependent phases after Tcl-only initialization. </p>
+<p>Require the rbc::init associated record and namespace established by Rbc_Init. Accept no arguments beyond the command name; initialize Tk stubs, then run graph, winop, spline and EPS registration in order. Completed phase flags survive later errors, so retries skip completed work. Re-export constructor names on every successful traversal and provide the full package with the shared stubs table. Do not source support scripts or create widgets here. Return the first Tcl error or package-provision status. The EPS initializer has no status return. This is a private loader command, not a reinitialization or command-repair API. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcInitialization.InitPackageStubs">
+<span class="target" id="group__initialization__private_1gaaf1369b1b540de8ab4d78681cb341aa0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">InitPackageStubs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">package</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">version</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">exact</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcInitialization.InitPackageStubs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Require a package and select its published C dispatch table. </p>
+<p>Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx. Package loading may execute Tcl. If require fails or returns NULL client data, return NULL without changing rbcStubsPtr; missing client data adds no diagnostic. Otherwise assign the borrowed table and return the borrowed actual version. No table-magic/slot checks, copying, interpreter retention or locking occur. Both public stubs initializers share this path; the package name chooses whether Tk and full support scripts are required. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcInitialization.rbcStubsPtr">
+<span class="target" id="group__initialization__private_1ga4842c4df627bf8cb1413b01ba070fd18"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">RbcStubs</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">rbcStubsPtr</span></span></span><a class="headerlink" href="#c.rbcInitialization.rbcStubsPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed dispatch table selected by the consumer-linked stub object. </p>
+<p>Initially NULL. Successful initialization replaces it; failed initialization leaves it unchanged. This is not interpreter-associated storage or an owned allocation, and no lifetime reference or synchronization is supplied here. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcInitialization.RbcInitData">
+<span class="target" id="struct_rbc_init_data"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RbcInitData</span></span></span><a class="headerlink" href="#c.rbcInitialization.RbcInitData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Interpreter-owned record of completed registration phases. </p>
+<p>Stored as rbc::init associated data and freed by FreeInitData. Flags are set only after a phase succeeds and are retained if a later phase fails. They neither own subsystem objects nor detect commands deleted by callers. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcInitialization.RbcInitData.vectorReady">
+<span class="target" id="struct_rbc_init_data_1a82827afbe9f2b2a1b732f7930fb98ba2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorReady</span></span></span><a class="headerlink" href="#c.rbcInitialization.RbcInitData.vectorReady" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Vector commands and private Tk initializer registered. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcInitialization.RbcInitData.graphReady">
+<span class="target" id="struct_rbc_init_data_1a98544bdf14ddb59fc6a26747228c29f1"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">graphReady</span></span></span><a class="headerlink" href="#c.rbcInitialization.RbcInitData.graphReady" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graph constructors registered; no widget is created. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcInitialization.RbcInitData.winopReady">
+<span class="target" id="struct_rbc_init_data_1a792634ec09b8cf42ecfbd9bf8c2e42bd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">winopReady</span></span></span><a class="headerlink" href="#c.rbcInitialization.RbcInitData.winopReady" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Window/photo command registration completed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcInitialization.RbcInitData.splineReady">
+<span class="target" id="struct_rbc_init_data_1a7ebf9bde2cbe8343ae6678dbec177344"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">splineReady</span></span></span><a class="headerlink" href="#c.rbcInitialization.RbcInitData.splineReady" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Spline command registration completed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcInitialization.RbcInitData.epsReady">
+<span class="target" id="struct_rbc_init_data_1ada969827cd46d7ebe7113819ce58b73d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">epsReady</span></span></span><a class="headerlink" href="#c.rbcInitialization.RbcInitData.epsReady" title="Link to this definition">¶</a><br /></dt>
+<dd><p>EPS canvas item registration invoked. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="windows-loader-wrappers">
+<h2>Windows loader wrappers<a class="headerlink" href="#windows-loader-wrappers" title="Link to this heading">¶</a></h2>
+<p>These entry points do not initialize Tcl packages. Their platform-selected
+contracts come from the separate Windows Doxygen input.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__initialization__windows"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">DLL</span> <span class="pre">entry</span> <span class="pre">wrappers</span></span></dt>
+<dd><p>Loader entry wrappers; Tcl package initialization is a separate phase. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsInitialization.DllMain">
+<span class="target" id="group__initialization__windows_1gaa952c96ba0e92c0e45aeb2e2484e7c8a"></span><span class="n"><span class="pre">BOOL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DllMain</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HINSTANCE</span></span><span class="w"> </span><span class="n"><span class="pre">hInst</span></span>, <span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="n"><span class="pre">reason</span></span>, <span class="n"><span class="pre">LPVOID</span></span><span class="w"> </span><span class="n"><span class="pre">reserved</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsInitialization.DllMain" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Accept Windows DLL loader notifications without package initialization. </p>
+<p>Return TRUE for every reason. The instance handle, reason and reserved pointer are unused. No allocation, Tcl/Tk initialization or cleanup runs under this loader callback; Rbc_Init performs package initialization later. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsInitialization.DllEntryPoint">
+<span class="target" id="group__initialization__windows_1ga795bfcbeff175c544580cb7c8f7812cb"></span><span class="n"><span class="pre">BOOL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DllEntryPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HINSTANCE</span></span><span class="w"> </span><span class="n"><span class="pre">hInst</span></span>, <span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="n"><span class="pre">reason</span></span>, <span class="n"><span class="pre">LPVOID</span></span><span class="w"> </span><span class="n"><span class="pre">reserved</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsInitialization.DllEntryPoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Forward the alternate Windows entry point to DllMain. </p>
+<p>Pass all loader arguments through and return DllMain’s BOOL result. This wrapper introduces no additional registration or ownership. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -118,6 +232,26 @@ Has the same pointer ownership and failure behavior as Rbc_InitStubs, but does n
 <li><a class="reference internal" href="#c.Rbc_Init"><code class="docutils literal notranslate"><span class="pre">Rbc_Init()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_InitStubs"><code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_VectorInitStubs"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs()</span></code></a></li>
+<li><a class="reference internal" href="#private-registration-helpers">Private registration helpers</a><ul>
+<li><a class="reference internal" href="#c.rbcInitialization.FreeInitData"><code class="docutils literal notranslate"><span class="pre">FreeInitData()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.InitTkObjCmd"><code class="docutils literal notranslate"><span class="pre">InitTkObjCmd()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.InitPackageStubs"><code class="docutils literal notranslate"><span class="pre">InitPackageStubs()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.rbcStubsPtr"><code class="docutils literal notranslate"><span class="pre">rbcStubsPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.RbcInitData"><code class="docutils literal notranslate"><span class="pre">RbcInitData</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcInitialization.RbcInitData.vectorReady"><code class="docutils literal notranslate"><span class="pre">vectorReady</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.RbcInitData.graphReady"><code class="docutils literal notranslate"><span class="pre">graphReady</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.RbcInitData.winopReady"><code class="docutils literal notranslate"><span class="pre">winopReady</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.RbcInitData.splineReady"><code class="docutils literal notranslate"><span class="pre">splineReady</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcInitialization.RbcInitData.epsReady"><code class="docutils literal notranslate"><span class="pre">epsReady</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-loader-wrappers">Windows loader wrappers</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsInitialization.DllMain"><code class="docutils literal notranslate"><span class="pre">DllMain()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsInitialization.DllEntryPoint"><code class="docutils literal notranslate"><span class="pre">DllEntryPoint()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

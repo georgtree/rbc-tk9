@@ -3,7 +3,7 @@ Package loading and stubs
 
 The package index, ``generic/rbcInt.c`` and ``generic/rbcStubLib.c`` divide
 loading into Tcl-only initialization, Tk command registration and client-side
-C API setup. See :doc:`initialization-reference` for the public contracts.
+C API setup. See :doc:`initialization-reference` for public interfaces and private helper contracts.
 
 Loader sequence
 ---------------
@@ -103,3 +103,27 @@ signatures when extending the ABI, and update generated sections through
 ``tools/genStubs.tcl``. Require a package version containing every slot used by
 a consumer. Private renderer or graph declarations do not become public APIs
 merely by being documented; see :doc:`headers` and :doc:`architecture`.
+
+Loader callbacks versus package initialization
+----------------------------------------------
+
+On Windows, DllMain accepts every loader notification and DllEntryPoint simply
+forwards to it. Neither performs registration, allocation or subsystem cleanup.
+Loading the DLL and initializing its Tcl package are distinct steps; none of the
+per-interpreter readiness flags is set by the native loader callbacks.
+
+InitTkObjCmd assumes that Rbc_Init has already installed the associated record
+and namespace. It checks arity before Tk initialization. Readiness flags guard
+registration phases only: namespace exports and package provision still run on
+a later call even when all subsystem flags are set. EPS registration is marked
+complete after its void initializer returns, unlike phases with a Tcl status.
+Deleting associated data or manually reconstructing this private command is not
+a supported reset mechanism.
+
+The client stub object likewise owns no subsystem state. Its table pointer is
+shared by calls using that linked object, so a successful require in one
+interpreter does not establish initialization in another. Always check the
+returned version pointer for each initialization attempt. A previous dispatch
+table remains selected on failure, including the case where a package exists
+but publishes no client data. Native package teardown does not free this borrowed
+pointer through FreeInitData.

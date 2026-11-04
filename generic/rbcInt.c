@@ -10,71 +10,85 @@
  * See "license.terms" for details.
  */
 
+/**
+ * @file rbcInt.c
+ * @brief Interpreter-local package initialization and delayed Tk registration.
+ */
+/** @defgroup initialization_private Package initialization helpers
+ * Private loader callbacks and readiness bookkeeping, not installed interfaces.
+ */
+/** @defgroup initialization_windows Windows DLL entry wrappers
+ * Loader entry wrappers; Tcl package initialization is a separate phase.
+ */
+
 #include "rbcInt.h"
 
 extern RbcStubs rbcStubs;
 
 #ifdef WIN32
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup initialization_windows
+ * @brief Accept Windows DLL loader notifications without package initialization.
  *
- * DllMain --
- *
- *      This wrapper function is used by Windows to invoke the
- *      initialization code for the DLL.
- *
- * Parameters:
- *      HINSTANCE hInst - Library instance handle.
- *      DWORD reason - Reason this function is being called.
- *      LPVOID reserved - Not used.
- *
- * Results:
- *      Returns TRUE;
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Return TRUE for every reason. The instance handle, reason and reserved
+ * pointer are unused. No allocation, Tcl/Tk initialization or cleanup runs
+ * under this loader callback; Rbc_Init performs package initialization later.
  */
 BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) { return TRUE; }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup initialization_windows
+ * @brief Forward the alternate Windows entry point to DllMain.
  *
- * DllEntryPoint --
- *
- *      TODO: Description
- *
- * Parameters:
- *      HINSTANCE hInst - Library instance handle.
- *      DWORD reason - Reason this function is being called.
- *      LPVOID reserved - Not used.
- *
- * Results:
- *      Returns the result from DllMain.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Pass all loader arguments through and return DllMain's BOOL result.
+ * This wrapper introduces no additional registration or ownership.
  */
 BOOL APIENTRY DllEntryPoint(HINSTANCE hInst, DWORD reason, LPVOID reserved) { return DllMain(hInst, reason, reserved); }
 #endif /* WIN32 */
 
-/* Initialization state belongs to the interpreter, not to the shared library. */
+/**
+ * @ingroup initialization_private
+ * @brief Interpreter-owned record of completed registration phases.
+ *
+ * Stored as rbc::init associated data and freed by FreeInitData. Flags are
+ * set only after a phase succeeds and are retained if a later phase fails.
+ * They neither own subsystem objects nor detect commands deleted by callers.
+ */
 typedef struct {
-    int vectorReady;
-    int graphReady;
-    int winopReady;
-    int splineReady;
-    int epsReady;
+    int vectorReady; /**< Vector commands and private Tk initializer registered. */
+    int graphReady; /**< Graph constructors registered; no widget is created. */
+    int winopReady; /**< Window/photo command registration completed. */
+    int splineReady; /**< Spline command registration completed. */
+    int epsReady; /**< EPS canvas item registration invoked. */
 } RbcInitData;
 
+/**
+ * @ingroup initialization_private
+ * @brief Release the interpreter initialization bookkeeping.
+ *
+ * clientData is the allocated RbcInitData owned by Tcl associated data.
+ * Free only that record. Subsystem registries, commands, widgets and vectors
+ * have separate deletion paths. interp is unused; no Tcl evaluation occurs.
+ */
 static void FreeInitData(ClientData clientData, Tcl_Interp *interp) {
     (void)interp;
     ckfree(clientData);
 }
 
+/**
+ * @ingroup initialization_private
+ * @brief Complete the Tk-dependent phases after Tcl-only initialization.
+ *
+ * Require the rbc::init associated record and namespace established by Rbc_Init.
+ * Accept no arguments beyond the command name; initialize Tk stubs, then run
+ * graph, winop, spline and EPS registration in order. Completed phase flags
+ * survive later errors, so retries skip completed work. Re-export constructor
+ * names on every successful traversal and provide the full package with the
+ * shared stubs table. Do not source support scripts or create widgets here.
+ * Return the first Tcl error or package-provision status. The EPS initializer
+ * has no status return. This is a private loader command, not a reinitialization
+ * or command-repair API.
+ */
 static int InitTkObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcInitData *dataPtr = Tcl_GetAssocData(interp, "rbc::init", NULL);
     Tcl_Namespace *nsPtr;

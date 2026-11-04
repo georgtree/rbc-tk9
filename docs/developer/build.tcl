@@ -144,6 +144,8 @@ proc ::rbcDocBuild::main {arguments} {
         @MARKER_SOURCE@ [doxyQuote [file join $root generic rbcGrMarker.c]] \
         @TRACK_SOURCE@ [doxyQuote [file join $root generic rbcGrTrack.c]] \
         @TRACK_HEADER@ [doxyQuote [file join $root generic rbcGrTrack.h]] \
+        @INIT_SOURCE@ [doxyQuote [file join $root generic rbcInt.c]] \
+        @STUB_SOURCE@ [doxyQuote [file join $root generic rbcStubLib.c]] \
         @CONFIG_HEADER@ [doxyQuote [file join $root generic rbcInt.h]] \
         @BIND_HEADER@ [doxyQuote [file join $root generic rbcBind.h]] \
         @BIND_SOURCE@ [doxyQuote [file join $root generic rbcBind.c]] \
@@ -169,11 +171,11 @@ proc ::rbcDocBuild::main {arguments} {
     set winConfig [file join $output Doxyfile-win]
     file delete -force $winXml
     set winSettings [readFile $config]
-    append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcWinDraw.c]] [doxyQuote [file join $root generic rbcWinImage.c]] [doxyQuote [file join $root generic rbcWinUtil.c]] [doxyQuote [file join $root generic rbcWindow.c]]\n"
+    append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcInt.c]] [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcWinDraw.c]] [doxyQuote [file join $root generic rbcWinImage.c]] [doxyQuote [file join $root generic rbcWinUtil.c]] [doxyQuote [file join $root generic rbcWindow.c]]\n"
     append winSettings "OUTPUT_DIRECTORY = [doxyQuote [file join $output doxygen-win]]\n"
     append winSettings "WARN_LOGFILE = [doxyQuote $winLog]\n"
     # Select Windows branches and expand Xlib spelling without platform headers.
-    append winSettings "PREDEFINED += _Xconst=const WIN32=1 _WIN32=1\n"
+    append winSettings "PREDEFINED += _Xconst=const APIENTRY= WIN32=1 _WIN32=1\n"
     writeFile $winConfig $winSettings
     writeFile $winLog {}
     set directory [pwd]

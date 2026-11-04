@@ -12,6 +12,11 @@
  * RCS: @(#) $Id$
  */
 
+/**
+ * @file rbcStubLib.c
+ * @brief Client-linked stubs-table selection through Tcl package loading.
+ */
+
 #ifndef USE_TCL_STUBS
 #define USE_TCL_STUBS
 #endif
@@ -20,10 +25,30 @@
 #include "rbcVector.h"
 #include "rbcDecls.h"
 
+/**
+ * @ingroup initialization_private
+ * @brief Borrowed dispatch table selected by the consumer-linked stub object.
+ *
+ * Initially NULL. Successful initialization replaces it; failed initialization
+ * leaves it unchanged. This is not interpreter-associated storage or an owned
+ * allocation, and no lifetime reference or synchronization is supplied here.
+ */
 const RbcStubs *rbcStubsPtr;
 
 /* Public initialization contracts are documented in rbc.h. */
 
+/**
+ * @ingroup initialization_private
+ * @brief Require a package and select its published C dispatch table.
+ *
+ * Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx.
+ * Package loading may execute Tcl. If require fails or returns NULL client data,
+ * return NULL without changing rbcStubsPtr; missing client data adds no diagnostic.
+ * Otherwise assign the borrowed table and return the borrowed actual version.
+ * No table-magic/slot checks, copying, interpreter retention or locking occur.
+ * Both public stubs initializers share this path; the package name chooses
+ * whether Tk and full support scripts are required.
+ */
 static const char *InitPackageStubs(Tcl_Interp *interp, const char *package, const char *version, int exact) {
     const char *result;
     void *data;

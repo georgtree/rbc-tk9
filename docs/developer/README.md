@@ -50,6 +50,9 @@ under `_build/developer/`. Generated HTML is retained by `make clean`. Sphinx do
 or add source links to the published pages.
 Use `--html-dir PATH` to override the published HTML destination.
 Developer HTML is not yet included in installation or binary archives.
+Package initialization coverage includes interpreter readiness records, retry
+boundaries, client-side stubs selection and Windows DLL loader wrappers.
+
 Source documentation is incremental: strict checks validate included comments and links, not documentation coverage of the entire codebase.
 See the rendered Building and C documentation conventions chapters for details.
 
