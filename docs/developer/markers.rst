@@ -17,7 +17,7 @@ options. ``Rbc_MapMarkers`` visits the display list and maps items selected by
 ``MAP_ALL`` or ``MAP_ITEM``. Hidden markers and markers with no coordinates are
 skipped; a successful dispatch clears the item's mapping flag.
 
-The private marker ``HMap``, ``VMap`` and ``MapPoint`` helpers are distinct from
+The private marker :c:func:`rbcGrMarkerMapping.HMap`, :c:func:`rbcGrMarkerMapping.VMap` and :c:func:`rbcGrMarkerMapping.MapPoint` helpers are distinct from
 ``Rbc_HMap``, ``Rbc_VMap`` and ``Rbc_Map2D``. Marker parsing represents elastic
 ``Inf`` and ``-Inf`` endpoints using positive and negative ``DBL_MAX``.
 These sentinels select normalized endpoints before applying descending direction
@@ -68,7 +68,7 @@ the anchor and pixel offsets, and tests its rectangle for overlap with the
 current plot viewport. Drawing moves/resizes and maps the child; the drawable
 argument is not used to paint that widget into a pixmap.
 
-``SyncWindowMarkers`` runs independently of the selected drawing layer. It
+:c:func:`rbcGrMarkerWindow.SyncWindowMarkers` runs independently of the selected drawing layer. It
 processes both under/over windows, unmapping hidden or wholly clipped children
 and children in collapsed track regions. This is necessary because skipping a
 paint operation cannot erase an already mapped child, and the below-element
@@ -80,7 +80,7 @@ track. There is no per-track clipping container. Do not describe this as the
 same clipping guarantee as a line, image or polygon marker.
 
 Window-marker cleanup destroys its currently embedded child through
-``ReleaseWindowMarkerChild``. This ownership differs from borrowing an image
+:c:func:`rbcGrMarkerWindow.ReleaseWindowMarkerChild`. This ownership differs from borrowing an image
 or numeric source. Code that changes geometry management or child association
 must preserve event-handler and geometry-manager cleanup as well as pointer
 state.
@@ -117,7 +117,7 @@ Resource release is separate from record destruction. While the Tk window is
 live, ``Rbc_ReleaseMarkerTkResources`` invokes each initialized class's cleanup,
 frees common coordinates and tags, releases axis references, and frees the
 Tk option record and table. Its release guard prevents repeating this work.
-``DestroyMarker`` also handles failed initialization, removes bindings and
+:c:func:`rbcGrMarkerLifetime.DestroyMarker` also handles failed initialization, removes bindings and
 registry/display-list membership, and frees the record. The whole-registry
 ``Rbc_DestroyMarkers`` then destroys marker tables and the display list.
 See :doc:`configuration` and :doc:`graph-lifecycle` for the broader ordering.
@@ -144,7 +144,7 @@ services, rather than introducing a second common marker lifecycle.
    * - Resource
      - Ownership and release
    * - Marker record
-     - Concrete allocation; DestroyMarker frees it
+     - Concrete allocation; :c:func:`rbcGrMarkerLifetime.DestroyMarker` frees it
    * - Name and direct option fields
      - Tk option ownership after initialization; partial-creation cleanup handles earlier state
    * - worldPts
@@ -162,25 +162,25 @@ services, rather than introducing a second common marker lifecycle.
    * - Mapped/type-specific resources
      - Concrete class cleanup before Tk option cleanup
 
-``InitMarkerOptions`` temporarily detaches the preliminary name while applying
+:c:func:`rbcGrMarkerConfiguration.InitMarkerOptions` temporarily detaches the preliminary name while applying
 component defaults through the option proxy. It uses the normalized marker name
 as resource name and the class UID as resource class. Monochrome alternatives
 are selected when available on a one-bit display. Both success and failure
 restore the preliminary name; an option-database name must not silently rename
 the new record or be freed twice during failed initialization.
 
-``ConfigureMarkerOptions`` installs candidate Tk fields under saved options,
+:c:func:`rbcGrMarkerConfiguration.ConfigureMarkerOptions` installs candidate Tk fields under saved options,
 validates the name and calls the class configure method with ``optionMask``.
 Reconfiguration cannot rename over another existing marker. The registry rename
 is committed only after class configuration succeeds. On failure Tk fields are
 restored and the diagnostic retained. This wrapper cannot undo derived resources
 that a class commits prematurely; each class must stage its own fallible work.
 
-Common class preparation uses ``ParsedMarkerOptions``. ``ParseMarkerOptions``
+Common class preparation uses ``ParsedMarkerOptions``. :c:func:`rbcGrMarkerConfiguration.ParseMarkerOptions`
 zeros it, parses tags, coordinates and state, acquires both axes and validates
 the optional track. The selected Y axis must belong to exactly that track,
 including the graph-wide NULL case. Failure releases candidate allocations and
-axis references. ``CommitMarkerOptions`` frees old common resources, transfers
+axis references. :c:func:`rbcGrMarkerConfiguration.CommitMarkerOptions` frees old common resources, transfers
 new allocations/references and clears transferred pointers. It does not register,
 map or schedule the marker; concrete configuration completes those tasks.
 
@@ -227,7 +227,7 @@ pair. Sentinel-aware release remains essential.
 Creation, replacement and rename
 --------------------------------
 
-``CreateOp`` resolves the marker type and scans complete option/value pairs for
+:c:func:`rbcGrMarkerCommands.CreateOp` resolves the marker type and scans complete option/value pairs for
 the last abbreviated or full ``-name`` occurrence. Without one it generates a
 ``markerN`` name. The malformed trailing-option case is left to Tk configuration
 rather than reading past the argument vector. The concrete constructor copies
@@ -242,14 +242,14 @@ class-owned resources of the old marker are released, including a managed child
 for a window marker. Reconfiguration uses different collision rules and rejects
 an existing destination name.
 
-``ConfigureOp`` validates the list of names before starting updates, but each
+:c:func:`rbcGrMarkerCommands.ConfigureOp` validates the list of names before starting updates, but each
 marker update is its own transaction. A failure on a later marker leaves earlier
 successful updates in place. Query forms return information for the first named
 marker. Names are re-resolved as updates proceed, which matters if an earlier
 update renamed a marker.
 
-``DeleteOp`` ignores missing exact names, clears lookup diagnostics and schedules
-a redraw. ``ExistsOp`` tests the registry; ``NamesOp`` enumerates display order.
+:c:func:`rbcGrMarkerCommands.DeleteOp` ignores missing exact names, clears lookup diagnostics and schedules
+a redraw. :c:func:`rbcGrMarkerCommands.ExistsOp` tests the registry; :c:func:`rbcGrMarkerCommands.NamesOp` enumerates display order.
 Those views should agree in a valid registry/list state, but they are different
 structures and must be maintained together.
 
@@ -265,7 +265,7 @@ interned name tag.
 ``marker get current`` checks the graph binding context before interpreting the
 current item as a marker. The handler does not accept coordinate picking or
 ordinary marker names; older legend-related comments here were misleading.
-``Rbc_NearestMarker`` is the point-picking service: it traverses display order
+:c:func:`rbcGrMarkerMapping.Rbc_NearestMarker` is the point-picking service: it traverses display order
 backwards and returns the first class point test that succeeds, not a global
 minimum-distance result.
 
@@ -286,7 +286,7 @@ The shared selection filters differ:
 Both point and region queries enforce visible track constraints for local
 markers. Region overlapping mode intersects its query with track bounds;
 enclosed mode retains the original query rectangle after an intersection test.
-``FindOp`` normalizes integer rectangle corners and returns only the first match.
+:c:func:`rbcGrMarkerCommands.FindOp` normalizes integer rectangle corners and returns only the first match.
 It does not filter by layer or marker state. Point picking does not repeat the
 associated-element hidden check used by region queries and drawing. These are
 current contracts, not interchangeable implementations of visibility.
@@ -299,7 +299,7 @@ implicitly performs the graph's complete layout pass.
 Display-order changes
 ---------------------
 
-``RelinkOp`` resolves the target and optional reference before unlinking the
+:c:func:`rbcGrMarkerCommands.RelinkOp` resolves the target and optional reference before unlinking the
 existing display-list link. Invalid names leave both the registry and display
 order unchanged. Moving a marker relative to itself succeeds without changing
 order. A successful move retains the same marker and link, invalidates the
@@ -310,7 +310,7 @@ retains the existing front/back placement conventions.
 Teardown and invalidation details
 ---------------------------------
 
-``DestroyMarker`` invalidates the backing store for under-layer markers and
+:c:func:`rbcGrMarkerLifetime.DestroyMarker` invalidates the backing store for under-layer markers and
 removes object bindings. Initialized records use the guarded Tk-resource release
 path; records that failed before initialization receive explicit common cleanup.
 It then deletes non-NULL registry/list handles and frees the concrete allocation.
@@ -321,8 +321,8 @@ destructor so iteration owns hash-table deletion. It finally destroys both the
 registry and tag table and the display chain. This is final teardown, not a
 repeatable empty-the-registry operation on an otherwise initialized graph.
 
-``Rbc_MarkersUseTrack`` examines all registered associations to prevent removing
-still-used tracks or Y axes, including hidden markers. ``Rbc_MarkerFontsChanged``
+:c:func:`rbcGrMarkerMapping.Rbc_MarkersUseTrack` examines all registered associations to prevent removing
+still-used tracks or Y axes, including hidden markers. :c:func:`rbcGrMarkerMapping.Rbc_MarkerFontsChanged`
 likewise visits hidden text markers, resets text style and layout, rebuilds the
 rotated bounding outline and sets ``MAP_ITEM``. Hidden geometry must be ready to
 remap when the marker is shown again.
@@ -537,7 +537,7 @@ Bitmap masks and aliasing
 
 A bitmap marker keeps ``srcBitmap`` and optional ``srcMask`` separate from
 ``destBitmap`` and ``destMask``. Configuring both source handles requires matching
-dimensions. ``FreeMappedBitmapResources`` frees only handles whose ownership
+dimensions. :c:func:`rbcGrMarkerBitmap.FreeMappedBitmapResources` frees only handles whose ownership
 flags are set, then clears the handles/flags. A transformed bitmap may also be
 its own mask; in that case only the bitmap handle owns the allocation.
 
@@ -583,9 +583,9 @@ convention used by text markers.
 Photo and non-photo image paths
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``ConfigureImageMarker`` acquires a new Tk image instance and callback before
+:c:func:`rbcGrMarkerImage.ConfigureImageMarker` acquires a new Tk image instance and callback before
 releasing the old instance. If the named image is a photo, it also owns an RBC
-color-image copy. ``ImageChangedProc`` replaces that copy on every notification,
+color-image copy. :c:func:`rbcGrMarkerImage.ImageChangedProc` replaces that copy on every notification,
 ignoring the changed subrectangle. If the name is no longer a photo, it clears
 the old photo representation rather than preserving stale pixels, marks mapping
 and backing dirty, and schedules redraw.
@@ -642,7 +642,7 @@ as its direct parent. Internal zero width/height means requested size, while an
 explicitly configured zero is rejected. Positive overrides take precedence
 during mapping.
 
-``ReleaseWindowMarkerChild`` clears its token before removing the event handler
+:c:func:`rbcGrMarkerWindow.ReleaseWindowMarkerChild` clears its token before removing the event handler
 and geometry manager. Replacement unmaps the old child for reuse; marker
 cleanup destroys the current child. Clearing the token prevents the marker's
 own destroy notification from leaving a stale window reference, but should not
@@ -655,13 +655,13 @@ Callers must retain the marker record while Tk services execute.
 
    * - Callback
      - Current action
-   * - ``ChildEventProc``
+   * - :c:func:`rbcGrMarkerWindow.ChildEventProc`
      - On DestroyNotify, clears child/dimensions, marks mapping dirty and
        schedules redraw when the graph window still exists; retains marker
-   * - ``ChildGeometryProc``
+   * - :c:func:`rbcGrMarkerWindow.ChildGeometryProc`
      - Copies requested dimensions only where the explicit override is zero,
        then schedules remapping/redraw when an automatic dimension changes
-   * - ``ChildCustodyProc``
+   * - :c:func:`rbcGrMarkerWindow.ChildCustodyProc`
      - Removes the event handler, clears the child token and destroys the
        marker, preserving the child for its new geometry manager
 
@@ -671,8 +671,8 @@ recomputes the anchor and visibility before the child is resized. Explicit
 width/height overrides remain authoritative; unchanged or fully overridden
 requests do not schedule unnecessary redraws.
 
-``DrawWindowMarker`` moves/resizes and maps the real child, ignoring its drawable
-argument. ``SyncWindowMarkers`` must run even when a cached under-layer is reused,
+:c:func:`rbcGrMarkerWindow.DrawWindowMarker` moves/resizes and maps the real child, ignoring its drawable
+argument. :c:func:`rbcGrMarkerWindow.SyncWindowMarkers` must run even when a cached under-layer is reused,
 and processes both marker layers. Hidden, wholly clipped or collapsed-track
 children are unmapped; partial overlap retains the full child with graph-parent
 clipping only. Export delegates capture only for a currently mapped child and

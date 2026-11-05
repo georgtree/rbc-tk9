@@ -56,7 +56,7 @@ geometry using its selected axes, anchor, pixel offsets and other type-specific
 options. <code class="docutils literal notranslate"><span class="pre">Rbc_MapMarkers</span></code> visits the display list and maps items selected by
 <code class="docutils literal notranslate"><span class="pre">MAP_ALL</span></code> or <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code>. Hidden markers and markers with no coordinates are
 skipped; a successful dispatch clears the item’s mapping flag.</p>
-<p>The private marker <code class="docutils literal notranslate"><span class="pre">HMap</span></code>, <code class="docutils literal notranslate"><span class="pre">VMap</span></code> and <code class="docutils literal notranslate"><span class="pre">MapPoint</span></code> helpers are distinct from
+<p>The private marker <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.HMap" title="rbcGrMarkerMapping.HMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.HMap()</span></code></a>, <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.VMap" title="rbcGrMarkerMapping.VMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.VMap()</span></code></a> and <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.MapPoint" title="rbcGrMarkerMapping.MapPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.MapPoint()</span></code></a> helpers are distinct from
 <code class="docutils literal notranslate"><span class="pre">Rbc_HMap</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_VMap</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_Map2D</span></code>. Marker parsing represents elastic
 <code class="docutils literal notranslate"><span class="pre">Inf</span></code> and <code class="docutils literal notranslate"><span class="pre">-Inf</span></code> endpoints using positive and negative <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code>.
 These sentinels select normalized endpoints before applying descending direction
@@ -100,7 +100,7 @@ child’s requested dimensions and any positive explicit width/height, applies
 the anchor and pixel offsets, and tests its rectangle for overlap with the
 current plot viewport. Drawing moves/resizes and maps the child; the drawable
 argument is not used to paint that widget into a pixmap.</p>
-<p><code class="docutils literal notranslate"><span class="pre">SyncWindowMarkers</span></code> runs independently of the selected drawing layer. It
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.SyncWindowMarkers" title="rbcGrMarkerWindow.SyncWindowMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.SyncWindowMarkers()</span></code></a> runs independently of the selected drawing layer. It
 processes both under/over windows, unmapping hidden or wholly clipped children
 and children in collapsed track regions. This is necessary because skipping a
 paint operation cannot erase an already mapped child, and the below-element
@@ -110,7 +110,7 @@ remains mapped and is clipped by its graph parent, not by the plotting area or
 track. There is no per-track clipping container. Do not describe this as the
 same clipping guarantee as a line, image or polygon marker.</p>
 <p>Window-marker cleanup destroys its currently embedded child through
-<code class="docutils literal notranslate"><span class="pre">ReleaseWindowMarkerChild</span></code>. This ownership differs from borrowing an image
+<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.ReleaseWindowMarkerChild" title="rbcGrMarkerWindow.ReleaseWindowMarkerChild"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.ReleaseWindowMarkerChild()</span></code></a>. This ownership differs from borrowing an image
 or numeric source. Code that changes geometry management or child association
 must preserve event-handler and geometry-manager cleanup as well as pointer
 state.</p>
@@ -143,7 +143,7 @@ child widget.</p>
 live, <code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseMarkerTkResources</span></code> invokes each initialized class’s cleanup,
 frees common coordinates and tags, releases axis references, and frees the
 Tk option record and table. Its release guard prevents repeating this work.
-<code class="docutils literal notranslate"><span class="pre">DestroyMarker</span></code> also handles failed initialization, removes bindings and
+<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLifetime.DestroyMarker" title="rbcGrMarkerLifetime.DestroyMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLifetime.DestroyMarker()</span></code></a> also handles failed initialization, removes bindings and
 registry/display-list membership, and frees the record. The whole-registry
 <code class="docutils literal notranslate"><span class="pre">Rbc_DestroyMarkers</span></code> then destroys marker tables and the display list.
 See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> and <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the broader ordering.</p>
@@ -170,7 +170,7 @@ services, rather than introducing a second common marker lifecycle.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Marker record</p></td>
-<td><p>Concrete allocation; DestroyMarker frees it</p></td>
+<td><p>Concrete allocation; <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLifetime.DestroyMarker" title="rbcGrMarkerLifetime.DestroyMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLifetime.DestroyMarker()</span></code></a> frees it</p></td>
 </tr>
 <tr class="row-odd"><td><p>Name and direct option fields</p></td>
 <td><p>Tk option ownership after initialization; partial-creation cleanup handles earlier state</p></td>
@@ -198,23 +198,23 @@ services, rather than introducing a second common marker lifecycle.</p>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">InitMarkerOptions</span></code> temporarily detaches the preliminary name while applying
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.InitMarkerOptions" title="rbcGrMarkerConfiguration.InitMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.InitMarkerOptions()</span></code></a> temporarily detaches the preliminary name while applying
 component defaults through the option proxy. It uses the normalized marker name
 as resource name and the class UID as resource class. Monochrome alternatives
 are selected when available on a one-bit display. Both success and failure
 restore the preliminary name; an option-database name must not silently rename
 the new record or be freed twice during failed initialization.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ConfigureMarkerOptions</span></code> installs candidate Tk fields under saved options,
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.ConfigureMarkerOptions" title="rbcGrMarkerConfiguration.ConfigureMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.ConfigureMarkerOptions()</span></code></a> installs candidate Tk fields under saved options,
 validates the name and calls the class configure method with <code class="docutils literal notranslate"><span class="pre">optionMask</span></code>.
 Reconfiguration cannot rename over another existing marker. The registry rename
 is committed only after class configuration succeeds. On failure Tk fields are
 restored and the diagnostic retained. This wrapper cannot undo derived resources
 that a class commits prematurely; each class must stage its own fallible work.</p>
-<p>Common class preparation uses <code class="docutils literal notranslate"><span class="pre">ParsedMarkerOptions</span></code>. <code class="docutils literal notranslate"><span class="pre">ParseMarkerOptions</span></code>
+<p>Common class preparation uses <code class="docutils literal notranslate"><span class="pre">ParsedMarkerOptions</span></code>. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.ParseMarkerOptions" title="rbcGrMarkerConfiguration.ParseMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.ParseMarkerOptions()</span></code></a>
 zeros it, parses tags, coordinates and state, acquires both axes and validates
 the optional track. The selected Y axis must belong to exactly that track,
 including the graph-wide NULL case. Failure releases candidate allocations and
-axis references. <code class="docutils literal notranslate"><span class="pre">CommitMarkerOptions</span></code> frees old common resources, transfers
+axis references. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.CommitMarkerOptions" title="rbcGrMarkerConfiguration.CommitMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.CommitMarkerOptions()</span></code></a> frees old common resources, transfers
 new allocations/references and clears transferred pointers. It does not register,
 map or schedule the marker; concrete configuration completes those tasks.</p>
 </section>
@@ -265,7 +265,7 @@ pair. Sentinel-aware release remains essential.</p>
 </section>
 <section id="creation-replacement-and-rename">
 <h2>Creation, replacement and rename<a class="headerlink" href="#creation-replacement-and-rename" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">CreateOp</span></code> resolves the marker type and scans complete option/value pairs for
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.CreateOp" title="rbcGrMarkerCommands.CreateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.CreateOp()</span></code></a> resolves the marker type and scans complete option/value pairs for
 the last abbreviated or full <code class="docutils literal notranslate"><span class="pre">-name</span></code> occurrence. Without one it generates a
 <code class="docutils literal notranslate"><span class="pre">markerN</span></code> name. The malformed trailing-option case is left to Tk configuration
 rather than reading past the argument vector. The concrete constructor copies
@@ -278,13 +278,13 @@ its display link. This is destruction/recreation, not an in-place type change:
 class-owned resources of the old marker are released, including a managed child
 for a window marker. Reconfiguration uses different collision rules and rejects
 an existing destination name.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ConfigureOp</span></code> validates the list of names before starting updates, but each
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.ConfigureOp" title="rbcGrMarkerCommands.ConfigureOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.ConfigureOp()</span></code></a> validates the list of names before starting updates, but each
 marker update is its own transaction. A failure on a later marker leaves earlier
 successful updates in place. Query forms return information for the first named
 marker. Names are re-resolved as updates proceed, which matters if an earlier
 update renamed a marker.</p>
-<p><code class="docutils literal notranslate"><span class="pre">DeleteOp</span></code> ignores missing exact names, clears lookup diagnostics and schedules
-a redraw. <code class="docutils literal notranslate"><span class="pre">ExistsOp</span></code> tests the registry; <code class="docutils literal notranslate"><span class="pre">NamesOp</span></code> enumerates display order.
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.DeleteOp" title="rbcGrMarkerCommands.DeleteOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.DeleteOp()</span></code></a> ignores missing exact names, clears lookup diagnostics and schedules
+a redraw. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.ExistsOp" title="rbcGrMarkerCommands.ExistsOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.ExistsOp()</span></code></a> tests the registry; <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.NamesOp" title="rbcGrMarkerCommands.NamesOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.NamesOp()</span></code></a> enumerates display order.
 Those views should agree in a valid registry/list state, but they are different
 structures and must be maintained together.</p>
 </section>
@@ -298,7 +298,7 @@ interned name tag.</p>
 <p><code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">get</span> <span class="pre">current</span></code> checks the graph binding context before interpreting the
 current item as a marker. The handler does not accept coordinate picking or
 ordinary marker names; older legend-related comments here were misleading.
-<code class="docutils literal notranslate"><span class="pre">Rbc_NearestMarker</span></code> is the point-picking service: it traverses display order
+<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.Rbc_NearestMarker" title="rbcGrMarkerMapping.Rbc_NearestMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.Rbc_NearestMarker()</span></code></a> is the point-picking service: it traverses display order
 backwards and returns the first class point test that succeeds, not a global
 minimum-distance result.</p>
 <p>The shared selection filters differ:</p>
@@ -324,7 +324,7 @@ minimum-distance result.</p>
 <p>Both point and region queries enforce visible track constraints for local
 markers. Region overlapping mode intersects its query with track bounds;
 enclosed mode retains the original query rectangle after an intersection test.
-<code class="docutils literal notranslate"><span class="pre">FindOp</span></code> normalizes integer rectangle corners and returns only the first match.
+<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.FindOp" title="rbcGrMarkerCommands.FindOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.FindOp()</span></code></a> normalizes integer rectangle corners and returns only the first match.
 It does not filter by layer or marker state. Point picking does not repeat the
 associated-element hidden check used by region queries and drawing. These are
 current contracts, not interchangeable implementations of visibility.</p>
@@ -335,7 +335,7 @@ implicitly performs the graph’s complete layout pass.</p>
 </section>
 <section id="display-order-changes">
 <h2>Display-order changes<a class="headerlink" href="#display-order-changes" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">RelinkOp</span></code> resolves the target and optional reference before unlinking the
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.RelinkOp" title="rbcGrMarkerCommands.RelinkOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.RelinkOp()</span></code></a> resolves the target and optional reference before unlinking the
 existing display-list link. Invalid names leave both the registry and display
 order unchanged. Moving a marker relative to itself succeeds without changing
 order. A successful move retains the same marker and link, invalidates the
@@ -345,7 +345,7 @@ retains the existing front/back placement conventions.</p>
 </section>
 <section id="teardown-and-invalidation-details">
 <h2>Teardown and invalidation details<a class="headerlink" href="#teardown-and-invalidation-details" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">DestroyMarker</span></code> invalidates the backing store for under-layer markers and
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLifetime.DestroyMarker" title="rbcGrMarkerLifetime.DestroyMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLifetime.DestroyMarker()</span></code></a> invalidates the backing store for under-layer markers and
 removes object bindings. Initialized records use the guarded Tk-resource release
 path; records that failed before initialization receive explicit common cleanup.
 It then deletes non-NULL registry/list handles and frees the concrete allocation.
@@ -354,8 +354,8 @@ Callers, rather than this destructor, schedule the eventual redraw.</p>
 destructor so iteration owns hash-table deletion. It finally destroys both the
 registry and tag table and the display chain. This is final teardown, not a
 repeatable empty-the-registry operation on an otherwise initialized graph.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_MarkersUseTrack</span></code> examines all registered associations to prevent removing
-still-used tracks or Y axes, including hidden markers. <code class="docutils literal notranslate"><span class="pre">Rbc_MarkerFontsChanged</span></code>
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.Rbc_MarkersUseTrack" title="rbcGrMarkerMapping.Rbc_MarkersUseTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.Rbc_MarkersUseTrack()</span></code></a> examines all registered associations to prevent removing
+still-used tracks or Y axes, including hidden markers. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.Rbc_MarkerFontsChanged" title="rbcGrMarkerMapping.Rbc_MarkerFontsChanged"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.Rbc_MarkerFontsChanged()</span></code></a>
 likewise visits hidden text markers, resets text style and layout, rebuilds the
 rotated bounding outline and sets <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code>. Hidden geometry must be ready to
 remap when the marker is shown again.</p>
@@ -588,7 +588,7 @@ insert records into the registry or finish option initialization.</p>
 <h3>Bitmap masks and aliasing<a class="headerlink" href="#bitmap-masks-and-aliasing" title="Link to this heading">¶</a></h3>
 <p>A bitmap marker keeps <code class="docutils literal notranslate"><span class="pre">srcBitmap</span></code> and optional <code class="docutils literal notranslate"><span class="pre">srcMask</span></code> separate from
 <code class="docutils literal notranslate"><span class="pre">destBitmap</span></code> and <code class="docutils literal notranslate"><span class="pre">destMask</span></code>. Configuring both source handles requires matching
-dimensions. <code class="docutils literal notranslate"><span class="pre">FreeMappedBitmapResources</span></code> frees only handles whose ownership
+dimensions. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBitmap.FreeMappedBitmapResources" title="rbcGrMarkerBitmap.FreeMappedBitmapResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBitmap.FreeMappedBitmapResources()</span></code></a> frees only handles whose ownership
 flags are set, then clears the handles/flags. A transformed bitmap may also be
 its own mask; in that case only the bitmap handle owns the allocation.</p>
 <p>The effective mask depends on background visibility:</p>
@@ -637,9 +637,9 @@ convention used by text markers.</p>
 </section>
 <section id="photo-and-non-photo-image-paths">
 <h3>Photo and non-photo image paths<a class="headerlink" href="#photo-and-non-photo-image-paths" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">ConfigureImageMarker</span></code> acquires a new Tk image instance and callback before
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerImage.ConfigureImageMarker" title="rbcGrMarkerImage.ConfigureImageMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerImage.ConfigureImageMarker()</span></code></a> acquires a new Tk image instance and callback before
 releasing the old instance. If the named image is a photo, it also owns an RBC
-color-image copy. <code class="docutils literal notranslate"><span class="pre">ImageChangedProc</span></code> replaces that copy on every notification,
+color-image copy. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerImage.ImageChangedProc" title="rbcGrMarkerImage.ImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerImage.ImageChangedProc()</span></code></a> replaces that copy on every notification,
 ignoring the changed subrectangle. If the name is no longer a photo, it clears
 the old photo representation rather than preserving stale pixels, marks mapping
 and backing dirty, and schedules redraw.</p>
@@ -688,7 +688,7 @@ proposed child before detaching the existing one. The child must have the graph
 as its direct parent. Internal zero width/height means requested size, while an
 explicitly configured zero is rejected. Positive overrides take precedence
 during mapping.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ReleaseWindowMarkerChild</span></code> clears its token before removing the event handler
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.ReleaseWindowMarkerChild" title="rbcGrMarkerWindow.ReleaseWindowMarkerChild"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.ReleaseWindowMarkerChild()</span></code></a> clears its token before removing the event handler
 and geometry manager. Replacement unmaps the old child for reuse; marker
 cleanup destroys the current child. Clearing the token prevents the marker’s
 own destroy notification from leaving a stale window reference, but should not
@@ -706,15 +706,15 @@ Callers must retain the marker record while Tk services execute.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ChildEventProc</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.ChildEventProc" title="rbcGrMarkerWindow.ChildEventProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.ChildEventProc()</span></code></a></p></td>
 <td><p>On DestroyNotify, clears child/dimensions, marks mapping dirty and
 schedules redraw when the graph window still exists; retains marker</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ChildGeometryProc</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.ChildGeometryProc" title="rbcGrMarkerWindow.ChildGeometryProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.ChildGeometryProc()</span></code></a></p></td>
 <td><p>Copies requested dimensions only where the explicit override is zero,
 then schedules remapping/redraw when an automatic dimension changes</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ChildCustodyProc</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.ChildCustodyProc" title="rbcGrMarkerWindow.ChildCustodyProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.ChildCustodyProc()</span></code></a></p></td>
 <td><p>Removes the event handler, clears the child token and destroys the
 marker, preserving the child for its new geometry manager</p></td>
 </tr>
@@ -725,8 +725,8 @@ under-layer backing storage when needed, and schedule graph redraw. Mapping
 recomputes the anchor and visibility before the child is resized. Explicit
 width/height overrides remain authoritative; unchanged or fully overridden
 requests do not schedule unnecessary redraws.</p>
-<p><code class="docutils literal notranslate"><span class="pre">DrawWindowMarker</span></code> moves/resizes and maps the real child, ignoring its drawable
-argument. <code class="docutils literal notranslate"><span class="pre">SyncWindowMarkers</span></code> must run even when a cached under-layer is reused,
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.DrawWindowMarker" title="rbcGrMarkerWindow.DrawWindowMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.DrawWindowMarker()</span></code></a> moves/resizes and maps the real child, ignoring its drawable
+argument. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.SyncWindowMarkers" title="rbcGrMarkerWindow.SyncWindowMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.SyncWindowMarkers()</span></code></a> must run even when a cached under-layer is reused,
 and processes both marker layers. Hidden, wholly clipped or collapsed-track
 children are unmapped; partial overlap retains the full child with graph-parent
 clipping only. Export delegates capture only for a currently mapped child and

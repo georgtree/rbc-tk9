@@ -893,6 +893,8 @@ static MarkerClass windowMarkerClass = {
  * the owned preliminary name so partial Tk cleanup cannot free it. Returns
  * TCL_OK with initialized options, or TCL_ERROR after releasing partial Tk
  * resources and restoring the original name for caller cleanup.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static int InitMarkerOptions(Marker *markerPtr) {
     Graph *graphPtr;
@@ -942,6 +944,11 @@ static int InitMarkerOptions(Marker *markerPtr) {
  * clears it afterwards. On error restores saved Tk fields and diagnostic;
  * the class owns rollback of derived state. On success commits registry rename
  * and frees saved options. Creation permits replacement, handled by CreateOp.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in] objc Even number of option/value entries in objv.
+ * @param[in] objv Borrowed even-length option/value vector, excluding widget and operation names.
+ * @param[in] creating Nonzero permits creation-time name replacement; zero enforces rename collision checks.
  */
 static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *const objv[], int creating) {
     Graph *graphPtr;
@@ -1017,6 +1024,8 @@ static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *con
  * frees options/table and sets the release guard. Requires a live graph window.
  * Registry links and record remain for final destruction. Class cleanup can
  * release images or destroy a managed child; this is not just scalar cleanup.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void ReleaseMarkerTkResources(Marker *markerPtr) {
     Graph *graphPtr;
@@ -1074,6 +1083,9 @@ void Rbc_ReleaseMarkerTkResources(Graph *graphPtr) {
  * Requires ordered extents and graph plot bounds, checked with assertions.
  * Touching edges count as overlap. Returns true only for disjoint rectangles;
  * does not clip partial overlaps or map coordinates.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] extsPtr Borrowed ordered rectangle in screen coordinates.
  */
 static int BoxesDontOverlap(Graph *graphPtr, Extents2D *extsPtr) {
     assert(extsPtr->right >= extsPtr->left);
@@ -1091,6 +1103,11 @@ static int BoxesDontOverlap(Graph *graphPtr, Extents2D *extsPtr) {
  * Initializes output to NULL. NULL/empty input succeeds without storage.
  * Tcl_SplitList owns both the returned pointer array and its strings in one
  * allocation; the caller frees it with ckfree. Returns TCL_ERROR on list errors.
+ *
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed Tcl option value; accepted empty/NULL cases are described above.
+ * @param[out] tagsPtrPtr Required output initialized to NULL; success transfers one ckfree-compatible tag
+ *   allocation.
  */
 static int GetMarkerTagsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***tagsPtrPtr) {
     const char **tags;
@@ -1121,6 +1138,10 @@ static int GetMarkerTagsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***tag
  *
  * Borrows the non-NULL object. Writes statePtr only on success; otherwise
  * returns TCL_ERROR with a diagnostic. Does not change drawing or binding state.
+ *
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed Tcl option value; accepted empty/NULL cases are described above.
+ * @param[out] statePtr Required output receiving the state selector only on success.
  */
 static int GetMarkerStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr) {
     const char *string;
@@ -1151,6 +1172,11 @@ static int GetMarkerStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *state
  * through GetCoordinate, which can evaluate Tcl. Returns TCL_OK and transfers
  * the array, or TCL_ERROR after freeing it. Borrows marker and list storage
  * throughout; does not protect against callback mutation of owners/arguments.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in] objPtr Borrowed Tcl option value; accepted empty/NULL cases are described above.
+ * @param[out] worldPtsPtr Required output initialized to NULL; success transfers an owned coordinate array.
+ * @param[out] nWorldPtsPtr Required output initialized to zero; receives the number of coordinate pairs.
  */
 static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point2D **worldPtsPtr,
                                        Tcl_Size *nWorldPtsPtr) {
@@ -1237,6 +1263,10 @@ static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point
  * Frees tag/coordinate allocations and drops candidate axis references,
  * clearing those pointers/counts. Track is borrowed and not released. Accepts
  * a zeroed or partially populated candidate; does not free the candidate record.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] optionsPtr Caller-owned common-option candidate; resource transfer and cleanup rules are
+ *   described above.
  */
 static void FreeParsedMarkerOptions(Graph *graphPtr, ParsedMarkerOptions *optionsPtr) {
     if (optionsPtr->tags != NULL) {
@@ -1267,6 +1297,9 @@ static void FreeParsedMarkerOptions(Graph *graphPtr, ParsedMarkerOptions *option
  * track, and Y-axis ownership must equal the selected track (including NULL).
  * Returns TCL_OK with staged ownership or TCL_ERROR after candidate cleanup.
  * Coordinate expressions can execute Tcl; live records are not preserved here.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[out] optionsPtr Fresh caller-owned candidate, zeroed here; success requires commit or cleanup.
  */
 static int ParseMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsPtr) {
     Graph *graphPtr;
@@ -1315,6 +1348,10 @@ error:
  * and copies borrowed track and state. Clears transferred pointers so candidate
  * cleanup is safe. Does not register a name, map geometry or schedule redraw;
  * the concrete configuration routine owns those remaining steps.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in,out] optionsPtr Caller-owned common-option candidate; resource transfer and cleanup rules are
+ *   described above.
  */
 static void CommitMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsPtr) {
     Graph *graphPtr;
@@ -1354,6 +1391,13 @@ static void CommitMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsP
  * a nonempty prefix of defcolor yields COLOR_DEFAULT. Other spellings acquire
  * a Tk color reference. Returns TCL_OK/TCL_ERROR; callers must distinguish the
  * sentinel from an owned color when releasing the result.
+ *
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed live Tk window supplying the native resource context.
+ * @param[in] objPtr Borrowed Tcl option value; accepted empty/NULL cases are described above.
+ * @param[in] allowDefault Nonzero permits the COLOR_DEFAULT sentinel instead of an owned Tk color.
+ * @param[out] colorPtrPtr Required output initialized to NULL; receives an owned Tk color or the allowed
+ *   sentinel.
  */
 static int GetMarkerColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowDefault,
                                  XColor **colorPtrPtr) {
@@ -1384,6 +1428,13 @@ static int GetMarkerColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *o
  * failure releases any first color and leaves the output pair unchanged.
  * Success transfers the pair for eventual Rbc_FreeColorPair cleanup. Does not
  * release an existing output pair, so callers must manage replacement explicitly.
+ *
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed live Tk window supplying the native resource context.
+ * @param[in] objPtr Borrowed Tcl option value; accepted empty/NULL cases are described above.
+ * @param[in] allowDefault Nonzero permits the COLOR_DEFAULT sentinel instead of an owned Tk color.
+ * @param[out] pairPtr Required output receiving candidate colors on success; existing contents are not
+ *   released.
  */
 static int GetColorPairFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowDefault,
                                ColorPair *pairPtr) {
@@ -1425,6 +1476,10 @@ static int GetColorPairFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *obj
  * Exact Inf, +Inf and -Inf become positive/negative DBL_MAX. Other strings
  * are passed to Tcl_ExprDouble and may execute Tcl. Returns Tcl status and
  * writes valuePtr on success. No general finite-value check is performed here.
+ *
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] expr Borrowed NUL-terminated coordinate expression, potentially executing Tcl.
+ * @param[out] valuePtr Required output assigned only on successful conversion.
  */
 static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr) {
     char c;
@@ -1451,6 +1506,10 @@ static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr)
  * log10 for positives and zero for negatives, then ordinary normalization.
  * Track-owned axes use full world width, otherwise graph hRange/hOffset.
  * Does not clamp normalized values or update layout.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] axisPtr Borrowed mapped axis providing range, scale, direction and track ownership.
+ * @param[in] x Horizontal world coordinate, including supported elastic sentinels.
  */
 static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     double norm;
@@ -1487,6 +1546,10 @@ static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
  * Uses the same sentinel, descending and legacy log rules as HMap, with
  * screen-Y reversal. Track ownership selects world bounds even outside a
  * temporary track drawing scope. Visible clipping must not replace this span.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] axisPtr Borrowed mapped axis providing range, scale, direction and track ownership.
+ * @param[in] y Vertical world coordinate, including supported elastic sentinels.
  */
 static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double norm;
@@ -1524,6 +1587,10 @@ static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
  * Uses marker-specific HMap/VMap, swapping logical axes when inverted.
  * Returns screen coordinates without rounding or remapping graph layout.
  * These helpers intentionally differ from ordinary element mapping.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] pointPtr Borrowed world-coordinate point to map.
+ * @param[in] axesPtr Borrowed logical X/Y axis pair.
  */
 static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr) {
     Point2D result;
@@ -1546,6 +1613,10 @@ static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr) {
  * Concrete allocation is asserted. Copies the name, borrows graph/class, sets
  * MAP_ITEM and initializes option lifecycle flags. Caller must initialize and
  * configure options, then register the marker or destroy the partial record.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] name Borrowed NUL-terminated exact marker name.
+ * @param[in] classUid Interned concrete marker class identifier.
  */
 static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Marker *markerPtr;
@@ -1591,6 +1662,8 @@ static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid)
  * non-NULL hash/list links and frees the record. Bulk teardown or replacement
  * may clear hashPtr first to retain control of the hash entry. Does not itself
  * schedule a graph redraw or make callback-driven registry mutation safe.
+ *
+ * @param[in,out] markerPtr Owned marker consumed by destruction; record and resources are invalid afterward.
  */
 static void DestroyMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -1652,6 +1725,9 @@ static void DestroyMarker(Marker *markerPtr) {
  * destination bitmap but must not also own that same pixmap. Frees owned
  * handles and clears both handles/ownership flags; dimensions and outline
  * count are left to the caller.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] bmPtr Borrowed bitmap marker whose owned mapped caches are released.
  */
 static void FreeMappedBitmapResources(Graph *graphPtr, BitmapMarker *bmPtr) {
     /*
@@ -1679,6 +1755,12 @@ static void FreeMappedBitmapResources(Graph *graphPtr, BitmapMarker *bmPtr) {
  * mask2 through a temporary GC. Returns None on pixmap/GC allocation failure;
  * otherwise the caller must Tk_FreePixmap the result. Does not validate input
  * dimensions or alter the source masks.
+ *
+ * @param[in] tkwin Borrowed live Tk window supplying the native resource context.
+ * @param[in] mask1 Borrowed depth-one mask matching width and height.
+ * @param[in] mask2 Borrowed second depth-one mask with identical dimensions.
+ * @param[in] width Positive mask width in pixels; input storage must match.
+ * @param[in] height Positive mask height in pixels; input storage must match.
  */
 static Pixmap AndBitmapMasks(Tk_Window tkwin, Pixmap mask1, Pixmap mask2, int width, int height) {
     Display *display;
@@ -1725,6 +1807,8 @@ static Pixmap AndBitmapMasks(Tk_Window tkwin, Pixmap mask1, Pixmap mask2, int wi
  * After validation, commits common state, releases old mapped pixmaps and
  * shared GCs, installs replacements and schedules remapping/redraw. Error
  * paths release staged resources; the outer Tk transaction owns rollback.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static int ConfigureBitmapMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -1857,6 +1941,8 @@ error:
  * source bits or aliases the source bitmap. Tracks generated pixmap ownership
  * separately. Stores the background outline in absolute display coordinates for drawing
  * and picking without further anchor translation.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void MapBitmapMarker(Marker *markerPtr) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2072,6 +2158,9 @@ static void MapBitmapMarker(Marker *markerPtr) {
  * Returns false without a source bitmap. Unrotated bounds are half-open.
  * Rotated tests use the absolute mapped outline directly. Does not test
  * individual bitmap bits or transparency mask pixels.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] samplePtr Borrowed query point in screen coordinates; cached geometry must be current.
  */
 static int PointInBitmapMarker(Marker *markerPtr, Point2D *samplePtr) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2093,6 +2182,10 @@ static int PointInBitmapMarker(Marker *markerPtr, Point2D *samplePtr) {
  * Requires world coordinates; uses cached dimensions for unrotated tests.
  * Rotated tests use the absolute mapped outline directly. No pixel-mask
  * or alpha test is made.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] extsPtr Borrowed ordered rectangle in screen coordinates.
+ * @param[in] enclosed Nonzero requests full enclosure; zero requests overlap.
  */
 static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2121,6 +2214,9 @@ static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
  * Arbitrary rotations with opaque background and no explicit mask use the
  * background polygon plus bitmap-as-mask workaround. Integer placement is
  * performed here; renderer services own native clip/origin handling.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in] drawable Borrowed compatible screen destination drawable.
  */
 static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
@@ -2162,6 +2258,9 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
  * mapper-selected effective mask. An unmasked opaque background uses the
  * mapped polygon. Frees any temporary foreground intersection and ends the
  * output context on both empty and normal paths.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in,out] exportPtr Borrowed export context receiving output and backend error state.
  */
 static void BitmapMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -2240,6 +2339,9 @@ static void BitmapMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) 
  * Clears mapped handles/ownership, both GCs, destination dimensions and
  * outline count. Tk option cleanup owns source bitmap/mask and colors; common
  * cleanup owns the record. Does not itself schedule redraw.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
     BitmapMarker *bmPtr;
@@ -2285,6 +2387,14 @@ static Marker *CreateBitmapMarker(void) {
  * photo copy, or NULL if no photo remains. Frees the old copy and marks mapping
  * and backing storage dirty before scheduling redraw; no script evaluation is
  * performed directly here.
+ *
+ * @param[in,out] clientData Borrowed marker registered as callback data; concrete type is specified above.
+ * @param[in] x Changed image rectangle metadata supplied by Tk; ignored by this callback.
+ * @param[in] y Changed image rectangle metadata supplied by Tk; ignored by this callback.
+ * @param[in] width Changed image rectangle metadata supplied by Tk; ignored by this callback.
+ * @param[in] height Changed image rectangle metadata supplied by Tk; ignored by this callback.
+ * @param[in] imageWidth Image width supplied by Tk; ignored by this callback.
+ * @param[in] imageHeight Image height supplied by Tk; ignored by this callback.
  */
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
@@ -2334,6 +2444,8 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
  * pixmap, temporary image, photo copy, Tk instance and GC. Installs new state,
  * clears dimensions and schedules remap/redraw. Error paths free staged
  * resources; the named source image itself is not owned by the marker.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static int ConfigureImageMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -2447,6 +2559,8 @@ error:
  * the visible scaled subregion is generated. Returning to natural size
  * destroys the temporary photo after clearing its field. Creation failure
  * returns without a Tcl status; callers must not assume mapping is atomic.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void MapImageMarker(Marker *markerPtr) {
     Extents2D exts;
@@ -2581,6 +2695,11 @@ static void MapImageMarker(Marker *markerPtr) {
  * negative values or explicitly changed zero, leaving output unchanged on
  * error. Internal zero means use the child requested size. Returns Tcl status
  * and diagnostic; caller supplies the option-change flag.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in] objPtr Borrowed Tcl option value; accepted empty/NULL cases are described above.
+ * @param[in] explicitlyChanged Nonzero rejects an explicitly supplied zero dimension.
+ * @param[out] valuePtr Required output assigned only on successful conversion.
  */
 static int GetWindowMarkerDimension(Marker *markerPtr, Tcl_Obj *objPtr, int explicitlyChanged, int *valuePtr) {
     Graph *graphPtr;
@@ -2614,6 +2733,9 @@ static int GetWindowMarkerDimension(Marker *markerPtr, Tcl_Obj *objPtr, int expl
  * handler and geometry management. Destroys the child when requested, else
  * unmaps it for reuse; resets dimensions afterward. The marker record must
  * remain alive across the Tk operations. Does not free the record.
+ *
+ * @param[in,out] wmPtr Borrowed window marker kept alive while its child is detached.
+ * @param[in] destroyWindow Nonzero destroys the detached child; zero unmaps it for reuse.
  */
 static void ReleaseWindowMarkerChild(WindowMarker *wmPtr, int destroyWindow) {
     Tk_Window tkwin;
@@ -2649,6 +2771,9 @@ static void ReleaseWindowMarkerChild(WindowMarker *wmPtr, int destroyWindow) {
  * Borrows placement/dimensions and does not refresh mapping or inspect
  * source existence, transparency or individual pixels. Caller filtering
  * and current mapped state remain prerequisites.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] samplePtr Borrowed query point in screen coordinates; cached geometry must be current.
  */
 static int PointInImageMarker(Marker *markerPtr, Point2D *samplePtr) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
@@ -2663,6 +2788,10 @@ static int PointInImageMarker(Marker *markerPtr, Point2D *samplePtr) {
  * Requires at least one world point. Uses anchor plus width/height, with
  * strict overlap excluding edge-only contact. Does not inspect alpha or
  * source-image availability and does not remap.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] extsPtr Borrowed ordered rectangle in screen coordinates.
+ * @param[in] enclosed Nonzero requests full enclosure; zero requests overlap.
  */
 static int RegionInImageMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
@@ -2686,6 +2815,9 @@ static int RegionInImageMarker(Marker *markerPtr, Extents2D *extsPtr, int enclos
  * Skips absent/deleted source instances. Prefers tmpImage when there is no
  * pixmap, otherwise submits the pixmap with its GC and rectangle. Borrows all
  * resources and ends the screen raster context after dispatch.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in] drawable Borrowed compatible screen destination drawable.
  */
 static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
@@ -2713,6 +2845,9 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
  * a photo for photo output, otherwise delegates to generic Tk image output.
  * Borrows resources and ends the context on all paths; format-specific
  * capture/conversion remains in the renderer.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in,out] exportPtr Borrowed export context receiving output and backend error state.
  */
 static void ImageMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -2743,6 +2878,9 @@ static void ImageMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
  * dimensions. Clears tmpImage before temporary-image destruction. Freeing the
  * source instance does not delete the user-owned named image; common cleanup
  * releases option objects and the record.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void FreeImageMarker(Graph *graphPtr, Marker *markerPtr) {
     ImageMarker *imPtr;
@@ -2800,6 +2938,8 @@ static Marker *CreateImageMarker(void) {
  * After validation commits the layout, GCs and manually owned shadow color
  * while saved Tk options retain old resources. Error paths free staged
  * resources. Marks mapping and under-layer backing dirty and schedules redraw.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static int ConfigureTextMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -2971,6 +3111,8 @@ error:
  * Requires a non-NULL string and caller-supplied coordinates. Maps the first
  * point, applies marker anchor and pixel offsets, tests plot overlap, and
  * stores anchorPos. Does not rebuild text layout or allocate a bitmap.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void MapTextMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
@@ -3004,6 +3146,9 @@ static void MapTextMarker(Marker *markerPtr) {
  * Returns false for a NULL string. Rotated outline coordinates are local
  * to anchorPos and are translated for polygon testing. Unrotated bounds are
  * half-open. Tests bounds, not glyph coverage or shadow pixels independently.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] samplePtr Borrowed query point in screen coordinates; cached geometry must be current.
  */
 static int PointInTextMarker(Marker *markerPtr, Point2D *samplePtr) {
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
@@ -3036,6 +3181,10 @@ static int PointInTextMarker(Marker *markerPtr, Point2D *samplePtr) {
  * Requires coordinates. Uses four translated rotated-outline vertices or
  * the unrotated rectangle; does not refresh layout or inspect glyph coverage.
  * Unrotated overlap excludes edge-only contact.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] extsPtr Borrowed ordered rectangle in screen coordinates.
+ * @param[in] enclosed Nonzero requests full enclosure; zero requests overlap.
  */
 static int RegionInTextMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
@@ -3074,6 +3223,10 @@ static int RegionInTextMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
  * vertices by anchorPos and truncates to integer coordinates before area
  * submission. Returns the render helper status for native fallback; does not
  * modify cached geometry.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] drawable Borrowed compatible screen destination drawable.
+ * @param[in] tmPtr Borrowed text marker with current layout and mapped background outline.
  */
 static int DrawRenderedTextBackground(Graph *graphPtr, Drawable drawable, TextMarker *tmPtr) {
     Point2D points[4];
@@ -3095,6 +3248,9 @@ static int DrawRenderedTextBackground(Graph *graphPtr, Drawable drawable, TextMa
  * Returns for a NULL string. Background tries Cairo then native services;
  * text uses the screen-text renderer when foreground exists, with integer
  * placement. Borrows layout/style and does not alter their ownership.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in] drawable Borrowed compatible screen destination drawable.
  */
 static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
@@ -3121,6 +3277,9 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
  * Returns through an ended context for a NULL string. Translates background
  * vertices without screen integer truncation, then delegates text to document
  * output using the string and style rather than the cached screen layout.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in,out] exportPtr Borrowed export context receiving output and backend error state.
  */
 static void TextMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -3155,6 +3314,9 @@ static void TextMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
  * Frees shared text/background GCs, manually owned shadow color and layout.
  * Clears their fields, dimensions and outline. Tk option cleanup owns font,
  * foreground/background colors and string; common cleanup owns the record.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void FreeTextMarker(Graph *graphPtr, Marker *markerPtr) {
     TextMarker *tmPtr;
@@ -3226,6 +3388,8 @@ static Tk_GeomMgr winMarkerMgrInfo = {
  * the new token before registering events and geometry management. Schedules
  * remap/redraw; errors release staged common state. Geometry transfer invokes
  * Tk services, so successful validation is not a blanket callback-safety guarantee.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static int ConfigureWindowMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -3314,6 +3478,8 @@ error:
  * Returns without a child. Uses positive explicit dimensions in preference
  * to Tk requested size, stores rectangle and tests plot overlap. Does not
  * move/map the actual child or introduce plot/track clipping containers.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void MapWindowMarker(Marker *markerPtr) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3355,6 +3521,9 @@ static void MapWindowMarker(Marker *markerPtr) {
  *
  * Borrows geometry only; does not check the child token, mapping state or
  * refresh its requested dimensions. Outer marker filtering remains separate.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] samplePtr Borrowed query point in screen coordinates; cached geometry must be current.
  */
 static int PointInWindowMarker(Marker *markerPtr, Point2D *samplePtr) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3368,6 +3537,10 @@ static int PointInWindowMarker(Marker *markerPtr, Point2D *samplePtr) {
  *
  * Requires coordinates and uses anchor plus width/height. Does not inspect
  * child visibility, update geometry or test actual window contents.
+ *
+ * @param[in] markerPtr Borrowed concrete marker with current mapped geometry.
+ * @param[in] extsPtr Borrowed ordered rectangle in screen coordinates.
+ * @param[in] enclosed Nonzero requests full enclosure; zero requests overlap.
  */
 static int RegionInWindowMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3391,6 +3564,9 @@ static int RegionInWindowMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
  * Returns without a child. Moves/resizes only when cached geometry differs,
  * then maps if needed. Ignores drawable: this changes a real Tk child, not a
  * pixmap. Caller must have checked visibility and prepared mapped geometry.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in] drawable Unused drawable; this callback moves/maps the real Tk child.
  */
 static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
@@ -3415,6 +3591,8 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
  * collapsed tracks and associated hidden elements. Maps/moves visible children
  * and unmaps others. Partial overlap keeps the full child, clipped by its
  * graph parent only. Required even when under-layer backing is reused.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
  */
 static void SyncWindowMarkers(Graph *graphPtr) {
     Rbc_ChainLink *link;
@@ -3455,6 +3633,9 @@ static void SyncWindowMarkers(Graph *graphPtr) {
  * Creates/ends an output context and emits only if the child exists and is
  * mapped. Uses marker placement; does not map a hidden child or replace it
  * with an independent widget rendering. Capture policy belongs to the backend.
+ *
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in,out] exportPtr Borrowed export context receiving output and backend error state.
  */
 static void WindowMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -3476,6 +3657,9 @@ static void WindowMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) 
  * Delegates detachment/destruction to ReleaseWindowMarkerChild, then clears
  * anchorPos. Unlike image markers, deleting this marker destroys its owned
  * child. Common lifecycle code frees the marker record/options.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
  */
 static void FreeWindowMarker(Graph *graphPtr, Marker *markerPtr) {
     WindowMarker *wmPtr;
@@ -3515,6 +3699,9 @@ static Marker *CreateWindowMarker(void) {
  * Handles DestroyNotify only. Clears token/dimensions, marks mapping dirty
  * and schedules redraw if the graph window still exists. Other structure
  * events are ignored; this callback does not delete the marker.
+ *
+ * @param[in,out] clientData Borrowed marker registered as callback data; concrete type is specified above.
+ * @param[in] eventPtr Borrowed child structure event; only DestroyNotify is handled.
  */
 static void ChildEventProc(ClientData clientData, XEvent *eventPtr) {
     WindowMarker *wmPtr;
@@ -3539,6 +3726,9 @@ static void ChildEventProc(ClientData clientData, XEvent *eventPtr) {
  * changes, marks mapping dirty and schedules redraw for a live graph window
  * so anchor and visibility are recomputed. Invalidates under-layer backing
  * storage as needed. Fully overridden or unchanged requests need no redraw.
+ *
+ * @param[in,out] clientData Borrowed marker registered as callback data; concrete type is specified above.
+ * @param[in] tkwin Borrowed managed child window supplied by Tk geometry management.
  */
 static void ChildGeometryProc(ClientData clientData, Tk_Window tkwin) {
     WindowMarker *wmPtr = clientData;
@@ -3572,6 +3762,9 @@ static void ChildGeometryProc(ClientData clientData, Tk_Window tkwin) {
  * DestroyMarker, preserving the window for its new manager. Schedules graph
  * redraw afterward. The marker pointer is invalid after destruction; no
  * marker field may be read again by this callback.
+ *
+ * @param[in,out] clientData Borrowed marker registered as callback data; concrete type is specified above.
+ * @param[in] tkwin Borrowed managed child window supplied by Tk geometry management.
  */
 static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
     WindowMarker *wmPtr;
@@ -5162,6 +5355,10 @@ static Marker *CreateArcMarker(void) {
  * Returns TCL_OK and writes markerPtrPtr on success. Otherwise returns
  * TCL_ERROR with graph/name diagnostic, leaving output unchanged. Does not
  * search display order, accept patterns or acquire a lifetime reference.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] name Borrowed NUL-terminated exact marker name.
+ * @param[out] markerPtrPtr Required output receiving a borrowed registry marker only on success.
  */
 static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr) {
     Tcl_HashEntry *hPtr;
@@ -5183,6 +5380,11 @@ static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr
  * No patterns returns all listed names. Traverses from first to last and
  * emits each marker at most once; hidden markers remain eligible. Registry
  * entries detached from the display list are not returned. Returns TCL_OK.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5216,6 +5418,9 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
  * Creates the string-key entry when needed and returns its borrowed key
  * pointer, valid until table destruction. Does not require a named marker
  * to exist or install a binding script.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] tagName Borrowed tag string, copied by the registry when first interned.
  */
 static ClientData MakeMarkerTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
@@ -5233,6 +5438,10 @@ static ClientData MakeMarkerTag(Graph *graphPtr, char *tagName) {
  * Borrows graph, marker and destination list. Interns tag identities in the
  * marker-tag table; the list does not own their strings. Does not evaluate Tcl
  * binding scripts or alter marker state.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] markerPtr Borrowed concrete marker with the class and lifecycle state required above.
+ * @param[in,out] list Caller-owned destination list; appends borrowed tag identities without clearing entries.
  */
 void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List list) {
     char **p;
@@ -5254,6 +5463,11 @@ void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List li
  * No tag returns registry tag names in hash order, not only tags with scripts.
  * Otherwise interns the tag at objv[3] and passes the remaining arguments to
  * the graph binding table service. Returns its Tcl status.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
@@ -5280,6 +5494,11 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  *
  * Resolves objv[3] as an exact name and objv[4] as an option. Returns TCL_OK
  * with its value or TCL_ERROR from lookup/Tk. Does not configure or redraw.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5305,6 +5524,11 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  * Updates re-resolve each name and call ConfigureMarkerOptions independently.
  * A later failure does not roll back earlier markers. Returns a Tcl status;
  * it is not a multi-marker atomic transaction.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5371,6 +5595,11 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * name destroys the old marker while retaining its hash entry. Appends the new
  * record to display order, invalidates under-layer backing when needed and
  * schedules redraw. Returns the configured name or TCL_ERROR with cleanup.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5503,6 +5732,11 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  * Performs deletions sequentially, clears lookup diagnostics and schedules
  * graph redraw even for no matching names. Returns TCL_OK. Concrete cleanup
  * owns associated resources, which can include a managed child window.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5526,6 +5760,11 @@ static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  * context before casting the current item, and verifies a supported marker
  * class. Other selectors or absent/nonmarker items leave an empty result.
  * Returns TCL_OK; does not pick coordinates or resolve ordinary names.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5559,6 +5798,11 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  * to the target itself is a successful no-op. Otherwise moves the existing
  * link, invalidates backing storage when the moved marker is an underlay and
  * schedules redraw. No marker ownership or registry entries change.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_ChainLink *linkPtr, *placePtr;
@@ -5607,6 +5851,11 @@ static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  * track intersection; overlapping queries clip the search box to that track,
  * enclosed queries retain the original box. Returns the first name or an empty
  * result. No automatic layout refresh, layer filter or marker-state filter.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_ChainLink *linkPtr;
@@ -5709,6 +5958,11 @@ static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  *
  * Returns TCL_OK with integer zero/one. Does not require coordinates or
  * current geometry, and does not report an error for a missing name.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_HashEntry *hPtr;
@@ -5724,6 +5978,11 @@ static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  *
  * Resolves an exact name and copies classUid into the interpreter result.
  * Returns TCL_ERROR on missing name; does not configure or map the marker.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5758,6 +6017,11 @@ static const MarkerOpSpec markerOps[] = {{{"after", 4, 5, "marker ?afterMarker?"
  * Uses the complete widget-command argument vector with the operation at
  * index two. Returns shared-dispatch or handler Tcl status. Does not itself
  * refresh layout or preserve marker records across application callbacks.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in,out] interp Borrowed interpreter for diagnostics and results; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -6826,6 +7090,10 @@ void Rbc_MapMarkers(Graph *graphPtr) {
  * Scans the registry, including hidden and coordinate-free markers. NULL
  * track means graph-wide markers; NULL axis matches all markers in that scope.
  * Otherwise compares the marker Y-axis pointer. Borrows all records.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] track Borrowed track selector, or NULL for graph-wide associations.
+ * @param[in] axis Borrowed Y-axis selector, or NULL to match every axis in the selected scope.
  */
 int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis) {
     Tcl_HashSearch search;
@@ -6870,6 +7138,11 @@ void Rbc_DestroyMarkers(Graph *graphPtr) {
  * Local picks enforce visible track bounds and clipping. Does not apply the
  * associated-element hidden check used by drawing/FindOp. Returns borrowed
  * marker or NULL, without layout refresh or lifetime preservation.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
+ * @param[in] x Query x coordinate in graph-window pixels.
+ * @param[in] y Query y coordinate in graph-window pixels.
+ * @param[in] under Layer selector: nonzero selects under markers, zero selects overlays.
  */
 Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
     Rbc_ChainLink *linkPtr;
@@ -6905,6 +7178,8 @@ Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
  * Scans the registry including hidden text markers. Resets text style, replaces
  * layout and rotated bounding geometry when text exists, then marks mapping
  * dirty. Borrows graph/marker records; non-text markers are unaffected.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; callers keep its required Tk and mapping resources valid.
  */
 void Rbc_MarkerFontsChanged(Graph *graphPtr) {
     Tcl_HashSearch iter;

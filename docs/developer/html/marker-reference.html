@@ -174,77 +174,177 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.InitMarkerOptions">
 <span class="target" id="group__marker__configuration_1ga2813e1329eea95ba85dc8a44bea85e88"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.InitMarkerOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize the concrete Tk option record while preserving the chosen name. </p>
-<p>Chooses monochrome specifications when supplied on a one-bit display. Uses a normalized component resource name and class identity. Temporarily detaches the owned preliminary name so partial Tk cleanup cannot free it. Returns TCL_OK with initialized options, or TCL_ERROR after releasing partial Tk resources and restoring the original name for caller cleanup. </p>
+<p>Chooses monochrome specifications when supplied on a one-bit display. Uses a normalized component resource name and class identity. Temporarily detaches the owned preliminary name so partial Tk cleanup cannot free it. Returns TCL_OK with initialized options, or TCL_ERROR after releasing partial Tk resources and restoring the original name for caller cleanup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.ConfigureMarkerOptions">
 <span class="target" id="group__marker__configuration_1ga86eea0bd4435e39e3ca563d99acd04d4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">creating</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.ConfigureMarkerOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply one marker option transaction and commit a rename last. </p>
-<p>Requires initialized options. Installs candidate Tk fields, validates a nonempty name not starting with a dash, and rejects rename collisions when not creating. Passes optionMask to the class configuration callback and clears it afterwards. On error restores saved Tk fields and diagnostic; the class owns rollback of derived state. On success commits registry rename and frees saved options. Creation permits replacement, handled by CreateOp. </p>
+<p>Requires initialized options. Installs candidate Tk fields, validates a nonempty name not starting with a dash, and rejects rename collisions when not creating. Passes optionMask to the class configuration callback and clears it afterwards. On error restores saved Tk fields and diagnostic; the class owns rollback of derived state. On success commits registry rename and frees saved options. Creation permits replacement, handled by CreateOp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Even number of option/value entries in objv. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed even-length option/value vector, excluding widget and operation names. </p></li>
+<li><p><strong>creating</strong> – <strong>[in]</strong> Nonzero permits creation-time name replacement; zero enforces rename collision checks. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerTagsFromObj">
 <span class="target" id="group__marker__configuration_1gad0bb8f47fc6ff69d9be9481bbc975349"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerTagsFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagsPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerTagsFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse an optional tag list into one owned allocation. </p>
-<p>Initializes output to NULL. NULL/empty input succeeds without storage. Tcl_SplitList owns both the returned pointer array and its strings in one allocation; the caller frees it with ckfree. Returns TCL_ERROR on list errors. </p>
+<p>Initializes output to NULL. NULL/empty input succeeds without storage. Tcl_SplitList owns both the returned pointer array and its strings in one allocation; the caller frees it with ckfree. Returns TCL_ERROR on list errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option value; accepted empty/NULL cases are described above. </p></li>
+<li><p><strong>tagsPtrPtr</strong> – <strong>[out]</strong> Required output initialized to NULL; success transfers one ckfree-compatible tag allocation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerStateFromObj">
 <span class="target" id="group__marker__configuration_1ga412a730d56419dd95bb31813ede4a11f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerStateFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">statePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerStateFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse an exact normal, active or disabled marker state. </p>
-<p>Borrows the non-NULL object. Writes statePtr only on success; otherwise returns TCL_ERROR with a diagnostic. Does not change drawing or binding state. </p>
+<p>Borrows the non-NULL object. Writes statePtr only on success; otherwise returns TCL_ERROR with a diagnostic. Does not change drawing or binding state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option value; accepted empty/NULL cases are described above. </p></li>
+<li><p><strong>statePtr</strong> – <strong>[out]</strong> Required output receiving the state selector only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerCoordinatesFromObj">
 <span class="target" id="group__marker__configuration_1gaab4a7e5e8af97fc004a97b52e0737b14"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerCoordinatesFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">worldPtsPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nWorldPtsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerCoordinatesFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage an owned coordinate array with class-specific point counts. </p>
-<p>Initializes outputs to NULL/zero and accepts empty coordinates for every class. Nonempty lists must contain pairs and satisfy the class count limits. Checks allocation size and uses Tcl_AttemptAlloc. Each component is parsed through GetCoordinate, which can evaluate Tcl. Returns TCL_OK and transfers the array, or TCL_ERROR after freeing it. Borrows marker and list storage throughout; does not protect against callback mutation of owners/arguments. </p>
+<p>Initializes outputs to NULL/zero and accepts empty coordinates for every class. Nonempty lists must contain pairs and satisfy the class count limits. Checks allocation size and uses Tcl_AttemptAlloc. Each component is parsed through GetCoordinate, which can evaluate Tcl. Returns TCL_OK and transfers the array, or TCL_ERROR after freeing it. Borrows marker and list storage throughout; does not protect against callback mutation of owners/arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option value; accepted empty/NULL cases are described above. </p></li>
+<li><p><strong>worldPtsPtr</strong> – <strong>[out]</strong> Required output initialized to NULL; success transfers an owned coordinate array. </p></li>
+<li><p><strong>nWorldPtsPtr</strong> – <strong>[out]</strong> Required output initialized to zero; receives the number of coordinate pairs. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.FreeParsedMarkerOptions">
 <span class="target" id="group__marker__configuration_1ga7c9b6e903038a2c17f8c7f47f95698db"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeParsedMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">ParsedMarkerOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.FreeParsedMarkerOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release candidate common resources that have not been transferred. </p>
-<p>Frees tag/coordinate allocations and drops candidate axis references, clearing those pointers/counts. Track is borrowed and not released. Accepts a zeroed or partially populated candidate; does not free the candidate record. </p>
+<p>Frees tag/coordinate allocations and drops candidate axis references, clearing those pointers/counts. Track is borrowed and not released. Accepts a zeroed or partially populated candidate; does not free the candidate record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>optionsPtr</strong> – <strong>[inout]</strong> Caller-owned common-option candidate; resource transfer and cleanup rules are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.ParseMarkerOptions">
 <span class="target" id="group__marker__configuration_1ga1b277a69442001643c14ee8593cc568a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">ParsedMarkerOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.ParseMarkerOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare common tags, coordinates, state, axes and track association. </p>
-<p>Zeros the caller-owned candidate, then parses all common fields and acquires axis references. A nonempty track must name an existing trackgraph track, and Y-axis ownership must equal the selected track (including NULL). Returns TCL_OK with staged ownership or TCL_ERROR after candidate cleanup. Coordinate expressions can execute Tcl; live records are not preserved here. </p>
+<p>Zeros the caller-owned candidate, then parses all common fields and acquires axis references. A nonempty track must name an existing trackgraph track, and Y-axis ownership must equal the selected track (including NULL). Returns TCL_OK with staged ownership or TCL_ERROR after candidate cleanup. Coordinate expressions can execute Tcl; live records are not preserved here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>optionsPtr</strong> – <strong>[out]</strong> Fresh caller-owned candidate, zeroed here; success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.CommitMarkerOptions">
 <span class="target" id="group__marker__configuration_1gabb516a0907c99dab613750a92113bdc8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">ParsedMarkerOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.CommitMarkerOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Transfer common candidate allocations and axis references to the marker. </p>
-<p>Releases old tags, coordinates and axes, moves candidate storage/references and copies borrowed track and state. Clears transferred pointers so candidate cleanup is safe. Does not register a name, map geometry or schedule redraw; the concrete configuration routine owns those remaining steps. </p>
+<p>Releases old tags, coordinates and axes, moves candidate storage/references and copies borrowed track and state. Clears transferred pointers so candidate cleanup is safe. Does not register a name, map geometry or schedule redraw; the concrete configuration routine owns those remaining steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>optionsPtr</strong> – <strong>[inout]</strong> Caller-owned common-option candidate; resource transfer and cleanup rules are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerColorFromObj">
 <span class="target" id="group__marker__configuration_1gae0aad59e8eb15ef1f68fb83d7d213e08"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerColorFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowDefault</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerColorFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve an optional color or an allowed default-color sentinel. </p>
-<p>Initializes output to NULL. Empty input succeeds; when allowDefault is true, a nonempty prefix of defcolor yields COLOR_DEFAULT. Other spellings acquire a Tk color reference. Returns TCL_OK/TCL_ERROR; callers must distinguish the sentinel from an owned color when releasing the result. </p>
+<p>Initializes output to NULL. Empty input succeeds; when allowDefault is true, a nonempty prefix of defcolor yields COLOR_DEFAULT. Other spellings acquire a Tk color reference. Returns TCL_OK/TCL_ERROR; callers must distinguish the sentinel from an owned color when releasing the result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying the native resource context. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option value; accepted empty/NULL cases are described above. </p></li>
+<li><p><strong>allowDefault</strong> – <strong>[in]</strong> Nonzero permits the COLOR_DEFAULT sentinel instead of an owned Tk color. </p></li>
+<li><p><strong>colorPtrPtr</strong> – <strong>[out]</strong> Required output initialized to NULL; receives an owned Tk color or the allowed sentinel. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetColorPairFromObj">
 <span class="target" id="group__marker__configuration_1ga817a7f155c46a2378326c7707e276eff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetColorPairFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowDefault</span></span>, <span class="n"><span class="pre">ColorPair</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetColorPairFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage foreground and background from a list of at most two colors. </p>
-<p>Empty input yields a zeroed pair. Parses colors into temporary ownership; failure releases any first color and leaves the output pair unchanged. Success transfers the pair for eventual Rbc_FreeColorPair cleanup. Does not release an existing output pair, so callers must manage replacement explicitly. </p>
+<p>Empty input yields a zeroed pair. Parses colors into temporary ownership; failure releases any first color and leaves the output pair unchanged. Success transfers the pair for eventual Rbc_FreeColorPair cleanup. Does not release an existing output pair, so callers must manage replacement explicitly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying the native resource context. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option value; accepted empty/NULL cases are described above. </p></li>
+<li><p><strong>allowDefault</strong> – <strong>[in]</strong> Nonzero permits the COLOR_DEFAULT sentinel instead of an owned Tk color. </p></li>
+<li><p><strong>pairPtr</strong> – <strong>[out]</strong> Required output receiving candidate colors on success; existing contents are not released. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetCoordinate">
 <span class="target" id="group__marker__configuration_1gafd8de9d388c4d22bd2f25822de9ddcca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCoordinate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">expr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetCoordinate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate a coordinate with special elastic endpoint spellings. </p>
-<p>Exact Inf, +Inf and -Inf become positive/negative DBL_MAX. Other strings are passed to Tcl_ExprDouble and may execute Tcl. Returns Tcl status and writes valuePtr on success. No general finite-value check is performed here. </p>
+<p>Exact Inf, +Inf and -Inf become positive/negative DBL_MAX. Other strings are passed to Tcl_ExprDouble and may execute Tcl. Returns Tcl status and writes valuePtr on success. No general finite-value check is performed here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>expr</strong> – <strong>[in]</strong> Borrowed NUL-terminated coordinate expression, potentially executing Tcl. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required output assigned only on successful conversion. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -263,21 +363,44 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerLifetime.ReleaseMarkerTkResources">
 <span class="target" id="group__marker__lifecycle__core_1ga548c35e3fb59d813f50d7d5ae7997ffe"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseMarkerTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLifetime.ReleaseMarkerTkResources" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release one initialized marker before the graph window is lost. </p>
-<p>Guards uninitialized/already released records. Calls concrete cleanup before Tk frees option resources, then frees common coordinates/tags, drops axes, frees options/table and sets the release guard. Requires a live graph window. Registry links and record remain for final destruction. Class cleanup can release images or destroy a managed child; this is not just scalar cleanup. </p>
+<p>Guards uninitialized/already released records. Calls concrete cleanup before Tk frees option resources, then frees common coordinates/tags, drops axes, frees options/table and sets the release guard. Requires a live graph window. Registry links and record remain for final destruction. Class cleanup can release images or destroy a managed child; this is not just scalar cleanup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLifetime.CreateMarker">
 <span class="target" id="group__marker__lifecycle__core_1ga0ca7b72dc5f369ab8b01b579b41f2002"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLifetime.CreateMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an unregistered concrete marker and initialize common state. </p>
-<p>Dispatches by interned class identity and returns NULL for an unknown class. Concrete allocation is asserted. Copies the name, borrows graph/class, sets MAP_ITEM and initializes option lifecycle flags. Caller must initialize and configure options, then register the marker or destroy the partial record. </p>
+<p>Dispatches by interned class identity and returns NULL for an unknown class. Concrete allocation is asserted. Copies the name, borrows graph/class, sets MAP_ITEM and initializes option lifecycle flags. Caller must initialize and configure options, then register the marker or destroy the partial record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed NUL-terminated exact marker name. </p></li>
+<li><p><strong>classUid</strong> – <strong>[in]</strong> Interned concrete marker class identifier. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLifetime.DestroyMarker">
 <span class="target" id="group__marker__lifecycle__core_1ga666aa08eb0dd11278f9219244e1e2309"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLifetime.DestroyMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Remove binding and registry/list state and free a concrete marker. </p>
-<p>Requires a live marker. Marks backing store dirty for under markers, removes object bindings, and releases initialized resources while the window exists. Handles pre-initialization failure with explicit cleanup instead. Deletes non-NULL hash/list links and frees the record. Bulk teardown or replacement may clear hashPtr first to retain control of the hash entry. Does not itself schedule a graph redraw or make callback-driven registry mutation safe. </p>
+<p>Requires a live marker. Marks backing store dirty for under markers, removes object bindings, and releases initialized resources while the window exists. Handles pre-initialization failure with explicit cleanup instead. Deletes non-NULL hash/list links and frees the record. Bulk teardown or replacement may clear hashPtr first to retain control of the hash entry. Does not itself schedule a graph redraw or make callback-driven registry mutation safe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Owned marker consumed by destruction; record and resources are invalid afterward. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -296,49 +419,110 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerMapping.BoxesDontOverlap">
 <span class="target" id="group__marker__mapping__core_1gaa223c12dba6dcaea50eadfb44d613d7e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BoxesDontOverlap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.BoxesDontOverlap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reject disjoint inclusive marker and current plot rectangles. </p>
-<p>Requires ordered extents and graph plot bounds, checked with assertions. Touching edges count as overlap. Returns true only for disjoint rectangles; does not clip partial overlaps or map coordinates. </p>
+<p>Requires ordered extents and graph plot bounds, checked with assertions. Touching edges count as overlap. Returns true only for disjoint rectangles; does not clip partial overlaps or map coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered rectangle in screen coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerMapping.HMap">
 <span class="target" id="group__marker__mapping__core_1ga160da3b546f5de350ffaadd7e87ef239"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.HMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a horizontal marker coordinate, preserving elastic endpoints. </p>
-<p>Borrows current axis range and graph geometry. DBL_MAX sentinels select normalized endpoints; descending axes reverse them. Legacy log mapping uses log10 for positives and zero for negatives, then ordinary normalization. Track-owned axes use full world width, otherwise graph hRange/hOffset. Does not clamp normalized values or update layout. </p>
+<p>Borrows current axis range and graph geometry. DBL_MAX sentinels select normalized endpoints; descending axes reverse them. Legacy log mapping uses log10 for positives and zero for negatives, then ordinary normalization. Track-owned axes use full world width, otherwise graph hRange/hOffset. Does not clamp normalized values or update layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed mapped axis providing range, scale, direction and track ownership. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal world coordinate, including supported elastic sentinels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerMapping.VMap">
 <span class="target" id="group__marker__mapping__core_1gaa634792c76a20f1e3f2e19b60539da78"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.VMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a vertical marker coordinate against full track or graph geometry. </p>
-<p>Uses the same sentinel, descending and legacy log rules as HMap, with screen-Y reversal. Track ownership selects world bounds even outside a temporary track drawing scope. Visible clipping must not replace this span. </p>
+<p>Uses the same sentinel, descending and legacy log rules as HMap, with screen-Y reversal. Track ownership selects world bounds even outside a temporary track drawing scope. Visible clipping must not replace this span.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed mapped axis providing range, scale, direction and track ownership. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical world coordinate, including supported elastic sentinels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerMapping.MapPoint">
 <span class="target" id="group__marker__mapping__core_1ga494dc46531d8001bfd277900eaa39915"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.MapPoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map one borrowed world point through its axes and graph inversion. </p>
-<p>Uses marker-specific HMap/VMap, swapping logical axes when inverted. Returns screen coordinates without rounding or remapping graph layout. These helpers intentionally differ from ordinary element mapping. </p>
+<p>Uses marker-specific HMap/VMap, swapping logical axes when inverted. Returns screen coordinates without rounding or remapping graph layout. These helpers intentionally differ from ordinary element mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>pointPtr</strong> – <strong>[in]</strong> Borrowed world-coordinate point to map. </p></li>
+<li><p><strong>axesPtr</strong> – <strong>[in]</strong> Borrowed logical X/Y axis pair. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerMapping.Rbc_MarkersUseTrack">
 <span class="target" id="group__marker__mapping__core_1ga23ef71601c6f0a2551c5c43fadf8e421"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MarkersUseTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axis</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.Rbc_MarkersUseTrack" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test marker associations independently of display visibility. </p>
-<p>Scans the registry, including hidden and coordinate-free markers. NULL track means graph-wide markers; NULL axis matches all markers in that scope. Otherwise compares the marker Y-axis pointer. Borrows all records. </p>
+<p>Scans the registry, including hidden and coordinate-free markers. NULL track means graph-wide markers; NULL axis matches all markers in that scope. Otherwise compares the marker Y-axis pointer. Borrows all records.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>track</strong> – <strong>[in]</strong> Borrowed track selector, or NULL for graph-wide associations. </p></li>
+<li><p><strong>axis</strong> – <strong>[in]</strong> Borrowed Y-axis selector, or NULL to match every axis in the selected scope. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerMapping.Rbc_NearestMarker">
 <span class="target" id="group__marker__mapping__core_1gae8d3f0eda7122b9498834367ebcf71c4"></span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NearestMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.Rbc_NearestMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Pick the first eligible marker in reverse painter order. </p>
-<p>Despite its name, this returns the first successful class point test rather than comparing distances. Requires mapped geometry. Filters by layer, nonempty coordinates, hidden flag and STATE_NORMAL; active/disabled states are excluded. Local picks enforce visible track bounds and clipping. Does not apply the associated-element hidden check used by drawing/FindOp. Returns borrowed marker or NULL, without layout refresh or lifetime preservation. </p>
+<p>Despite its name, this returns the first successful class point test rather than comparing distances. Requires mapped geometry. Filters by layer, nonempty coordinates, hidden flag and STATE_NORMAL; active/disabled states are excluded. Local picks enforce visible track bounds and clipping. Does not apply the associated-element hidden check used by drawing/FindOp. Returns borrowed marker or NULL, without layout refresh or lifetime preservation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Query x coordinate in graph-window pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Query y coordinate in graph-window pixels. </p></li>
+<li><p><strong>under</strong> – <strong>[in]</strong> Layer selector: nonzero selects under markers, zero selects overlays. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerMapping.Rbc_MarkerFontsChanged">
 <span class="target" id="group__marker__mapping__core_1ga0418c329d35b95d233aaecf325310fa7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MarkerFontsChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.Rbc_MarkerFontsChanged" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh all text-marker layouts after a font change. </p>
-<p>Scans the registry including hidden text markers. Resets text style, replaces layout and rotated bounding geometry when text exists, then marks mapping dirty. Borrows graph/marker records; non-text markers are unaffected. </p>
+<p>Scans the registry including hidden text markers. Resets text style, replaces layout and rotated bounding geometry when text exists, then marks mapping dirty. Borrows graph/marker records; non-text markers are unaffected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -357,105 +541,251 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.NameToMarker">
 <span class="target" id="group__marker__commands_1ga6ee1324fec476cdc787a77fd46113f53"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NameToMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.NameToMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve an exact marker name to a borrowed registry record. </p>
-<p>Returns TCL_OK and writes markerPtrPtr on success. Otherwise returns TCL_ERROR with graph/name diagnostic, leaving output unchanged. Does not search display order, accept patterns or acquire a lifetime reference. </p>
+<p>Returns TCL_OK and writes markerPtrPtr on success. Otherwise returns TCL_ERROR with graph/name diagnostic, leaving output unchanged. Does not search display order, accept patterns or acquire a lifetime reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed NUL-terminated exact marker name. </p></li>
+<li><p><strong>markerPtrPtr</strong> – <strong>[out]</strong> Required output receiving a borrowed registry marker only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.NamesOp">
 <span class="target" id="group__marker__commands_1ga35817a8f9f90cf487e885b731de45e29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NamesOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.NamesOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return display-list names matching any supplied glob pattern. </p>
-<p>No patterns returns all listed names. Traverses from first to last and emits each marker at most once; hidden markers remain eligible. Registry entries detached from the display list are not returned. Returns TCL_OK. </p>
+<p>No patterns returns all listed names. Traverses from first to last and emits each marker at most once; hidden markers remain eligible. Registry entries detached from the display list are not returned. Returns TCL_OK.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.MakeMarkerTag">
 <span class="target" id="group__marker__commands_1ga748a6a6af13880f273c64cf64937d4c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeMarkerTag</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.MakeMarkerTag" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intern a binding tag in the graph marker-tag table. </p>
-<p>Creates the string-key entry when needed and returns its borrowed key pointer, valid until table destruction. Does not require a named marker to exist or install a binding script. </p>
+<p>Creates the string-key entry when needed and returns its borrowed key pointer, valid until table destruction. Does not require a named marker to exist or install a binding script.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>tagName</strong> – <strong>[in]</strong> Borrowed tag string, copied by the registry when first interned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.Rbc_AppendMarkerBindingTags">
 <span class="target" id="group__marker__commands_1ga1ccd8ab5952bad3ab693153e1d5d4df8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendMarkerBindingTags</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.Rbc_AppendMarkerBindingTags" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append name, class and configured tags in binding order. </p>
-<p>Borrows graph, marker and destination list. Interns tag identities in the marker-tag table; the list does not own their strings. Does not evaluate Tcl binding scripts or alter marker state. </p>
+<p>Borrows graph, marker and destination list. Interns tag identities in the marker-tag table; the list does not own their strings. Does not evaluate Tcl binding scripts or alter marker state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>list</strong> – <strong>[inout]</strong> Caller-owned destination list; appends borrowed tag identities without clearing entries. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.BindOp">
 <span class="target" id="group__marker__commands_1ga733e36eecb9f4cd2861a5fb31f15d030"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.BindOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>List interned marker tags or delegate a binding query/update. </p>
-<p>No tag returns registry tag names in hash order, not only tags with scripts. Otherwise interns the tag at objv[3] and passes the remaining arguments to the graph binding table service. Returns its Tcl status. </p>
+<p>No tag returns registry tag names in hash order, not only tags with scripts. Otherwise interns the tag at objv[3] and passes the remaining arguments to the graph binding table service. Returns its Tcl status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.CgetOp">
 <span class="target" id="group__marker__commands_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.CgetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a marker option through its concrete Tk option table. </p>
-<p>Resolves objv[3] as an exact name and objv[4] as an option. Returns TCL_OK with its value or TCL_ERROR from lookup/Tk. Does not configure or redraw. </p>
+<p>Resolves objv[3] as an exact name and objv[4] as an option. Returns TCL_OK with its value or TCL_ERROR from lookup/Tk. Does not configure or redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.ConfigureOp">
 <span class="target" id="group__marker__commands_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query one marker or configure multiple named markers in sequence. </p>
-<p>Scans names until the first dash-prefixed argument and validates them before applying options. Zero/one option arguments query the first named marker. Updates re-resolve each name and call ConfigureMarkerOptions independently. A later failure does not roll back earlier markers. Returns a Tcl status; it is not a multi-marker atomic transaction. </p>
+<p>Scans names until the first dash-prefixed argument and validates them before applying options. Zero/one option arguments query the first named marker. Updates re-resolve each name and call ConfigureMarkerOptions independently. A later failure does not roll back earlier markers. Returns a Tcl status; it is not a multi-marker atomic transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.CreateOp">
 <span class="target" id="group__marker__commands_1ga90c7491b4c2ff542af4a6a5c0b644944"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.CreateOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Configure a new marker before replacing any same-named registry entry. </p>
-<p>Resolves the class and scans complete option pairs for the last -name prefix; otherwise generates markerN. Creates and initializes the concrete record, applies options and validates the final name before publishing. A duplicate name destroys the old marker while retaining its hash entry. Appends the new record to display order, invalidates under-layer backing when needed and schedules redraw. Returns the configured name or TCL_ERROR with cleanup. </p>
+<p>Resolves the class and scans complete option pairs for the last -name prefix; otherwise generates markerN. Creates and initializes the concrete record, applies options and validates the final name before publishing. A duplicate name destroys the old marker while retaining its hash entry. Appends the new record to display order, invalidates under-layer backing when needed and schedules redraw. Returns the configured name or TCL_ERROR with cleanup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.DeleteOp">
 <span class="target" id="group__marker__commands_1ga478a3f6ac5ef81f3649c1afabab35cc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.DeleteOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy each existing exact name and ignore missing names. </p>
-<p>Performs deletions sequentially, clears lookup diagnostics and schedules graph redraw even for no matching names. Returns TCL_OK. Concrete cleanup owns associated resources, which can include a managed child window. </p>
+<p>Performs deletions sequentially, clears lookup diagnostics and schedules graph redraw even for no matching names. Returns TCL_OK. Concrete cleanup owns associated resources, which can include a managed child window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.GetOp">
 <span class="target" id="group__marker__commands_1ga45996fadd956f5f43872e47dfd56147f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.GetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the current marker only when the binding context is a marker. </p>
-<p>Recognizes only the exact selector current. Checks the common binding context before casting the current item, and verifies a supported marker class. Other selectors or absent/nonmarker items leave an empty result. Returns TCL_OK; does not pick coordinates or resolve ordinary names. </p>
+<p>Recognizes only the exact selector current. Checks the common binding context before casting the current item, and verifies a supported marker class. Other selectors or absent/nonmarker items leave an empty result. Returns TCL_OK; does not pick coordinates or resolve ordinary names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.RelinkOp">
 <span class="target" id="group__marker__commands_1ga96174306a4dcc902fd2562a2de0bb3d6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RelinkOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.RelinkOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Move a marker link before or after an optional display-list reference. </p>
-<p>Borrows graph and resolves both exact names before changing display order. Invalid names return TCL_ERROR without unlinking either marker. A reference to the target itself is a successful no-op. Otherwise moves the existing link, invalidates backing storage when the moved marker is an underlay and schedules redraw. No marker ownership or registry entries change. </p>
+<p>Borrows graph and resolves both exact names before changing display order. Invalid names return TCL_ERROR without unlinking either marker. A reference to the target itself is a successful no-op. Otherwise moves the existing link, invalidates backing storage when the moved marker is an underlay and schedules redraw. No marker ownership or registry entries change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.FindOp">
 <span class="target" id="group__marker__commands_1ga2b325882e9454af52ae5a49011734cd1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.FindOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the first visible marker passing a class rectangle test. </p>
-<p>Parses enclosed/overlapping and four integer screen coordinates, normalizes corner order and scans first-to-last display order. Filters hidden markers and existing hidden associated elements. Local searches require a visible track intersection; overlapping queries clip the search box to that track, enclosed queries retain the original box. Returns the first name or an empty result. No automatic layout refresh, layer filter or marker-state filter. </p>
+<p>Parses enclosed/overlapping and four integer screen coordinates, normalizes corner order and scans first-to-last display order. Filters hidden markers and existing hidden associated elements. Local searches require a visible track intersection; overlapping queries clip the search box to that track, enclosed queries retain the original box. Returns the first name or an empty result. No automatic layout refresh, layer filter or marker-state filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.ExistsOp">
 <span class="target" id="group__marker__commands_1ga42029521d57777acaf03200401b72666"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ExistsOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.ExistsOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Report exact registry membership regardless of visibility or list order. </p>
-<p>Returns TCL_OK with integer zero/one. Does not require coordinates or current geometry, and does not report an error for a missing name. </p>
+<p>Returns TCL_OK with integer zero/one. Does not require coordinates or current geometry, and does not report an error for a missing name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.TypeOp">
 <span class="target" id="group__marker__commands_1gafd105d5a988d29b3152781d274293fb5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.TypeOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the interned class identity for an existing marker. </p>
-<p>Resolves an exact name and copies classUid into the interpreter result. Returns TCL_ERROR on missing name; does not configure or map the marker. </p>
+<p>Resolves an exact name and copies classUid into the interpreter result. Returns TCL_ERROR on missing name; does not configure or map the marker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerCommands.Rbc_MarkerOp">
 <span class="target" id="group__marker__commands_1gaf4f667c91e6ce033f09dea3f7faebc60"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MarkerOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.Rbc_MarkerOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate operation and arity before shared marker command dispatch. </p>
-<p>Uses the complete widget-command argument vector with the operation at index two. Returns shared-dispatch or handler Tcl status. Does not itself refresh layout or preserve marker records across application callbacks. </p>
+<p>Uses the complete widget-command argument vector with the operation at index two. Returns shared-dispatch or handler Tcl status. Does not itself refresh layout or preserve marker records across application callbacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for diagnostics and results; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed command arguments at the positions described above; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -755,63 +1085,137 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.FreeMappedBitmapResources">
 <span class="target" id="group__marker__bitmap_1gaacb937ddc5a9dd4625c6d9aa50f34f6c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeMappedBitmapResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.rbcGrMarkerBitmap.BitmapMarker" title="BitmapMarker"><span class="n"><span class="pre">BitmapMarker</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.FreeMappedBitmapResources" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release only owned mapped bitmap and mask pixmaps. </p>
-<p>Source Tk bitmaps are borrowed here. A destination mask may alias the destination bitmap but must not also own that same pixmap. Frees owned handles and clears both handles/ownership flags; dimensions and outline count are left to the caller. </p>
+<p>Source Tk bitmaps are borrowed here. A destination mask may alias the destination bitmap but must not also own that same pixmap. Frees owned handles and clears both handles/ownership flags; dimensions and outline count are left to the caller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>bmPtr</strong> – <strong>[inout]</strong> Borrowed bitmap marker whose owned mapped caches are released. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.AndBitmapMasks">
 <span class="target" id="group__marker__bitmap_1gab93eead05393d71cf09de58fadeaf6a7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AndBitmapMasks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask1</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask2</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.AndBitmapMasks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a depth-one intersection of two equally sized masks. </p>
-<p>Borrows both masks and window/display. Copies mask1 and applies GXand with mask2 through a temporary GC. Returns None on pixmap/GC allocation failure; otherwise the caller must Tk_FreePixmap the result. Does not validate input dimensions or alter the source masks. </p>
+<p>Borrows both masks and window/display. Copies mask1 and applies GXand with mask2 through a temporary GC. Returns None on pixmap/GC allocation failure; otherwise the caller must Tk_FreePixmap the result. Does not validate input dimensions or alter the source masks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying the native resource context. </p></li>
+<li><p><strong>mask1</strong> – <strong>[in]</strong> Borrowed depth-one mask matching width and height. </p></li>
+<li><p><strong>mask2</strong> – <strong>[in]</strong> Borrowed second depth-one mask with identical dimensions. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive mask width in pixels; input storage must match. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive mask height in pixels; input storage must match. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.ConfigureBitmapMarker">
 <span class="target" id="group__marker__bitmap_1ga63eb6ce603a7925f815b879aa2da542c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.ConfigureBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage bitmap options and GCs before invalidating mapped resources. </p>
-<p>Parses common resources and checks explicit mask dimensions against the source bitmap. Normalizes rotation separately from the configured value. After validation, commits common state, releases old mapped pixmaps and shared GCs, installs replacements and schedules remapping/redraw. Error paths release staged resources; the outer Tk transaction owns rollback. </p>
+<p>Parses common resources and checks explicit mask dimensions against the source bitmap. Normalizes rotation separately from the configured value. After validation, commits common state, releases old mapped pixmaps and shared GCs, installs replacements and schedules remapping/redraw. Error paths release staged resources; the outer Tk transaction owns rollback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.MapBitmapMarker">
 <span class="target" id="group__marker__bitmap_1ga059aaf30a0ede97b8b64173b479589ea"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.MapBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build visible bitmap/mask transformations and background geometry. </p>
-<p>Requires a source bitmap and caller-supplied coordinates. One point uses source dimensions and anchor; two corners define an inclusive scaled box. Applies offsets, rejects offscreen boxes, and transforms only the visible subregion. With transparent background, combines an explicit mask with source bits or aliases the source bitmap. Tracks generated pixmap ownership separately. Stores the background outline in absolute display coordinates for drawing and picking without further anchor translation. </p>
+<p>Requires a source bitmap and caller-supplied coordinates. One point uses source dimensions and anchor; two corners define an inclusive scaled box. Applies offsets, rejects offscreen boxes, and transforms only the visible subregion. With transparent background, combines an explicit mask with source bits or aliases the source bitmap. Tracks generated pixmap ownership separately. Stores the background outline in absolute display coordinates for drawing and picking without further anchor translation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.PointInBitmapMarker">
 <span class="target" id="group__marker__bitmap_1gae61e88a51d06217023af9eae02178f62"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.PointInBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test a mapped bitmap rectangle or rotated bounding polygon. </p>
-<p>Returns false without a source bitmap. Unrotated bounds are half-open. Rotated tests use the absolute mapped outline directly. Does not test individual bitmap bits or transparency mask pixels. </p>
+<p>Returns false without a source bitmap. Unrotated bounds are half-open. Rotated tests use the absolute mapped outline directly. Does not test individual bitmap bits or transparency mask pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed query point in screen coordinates; cached geometry must be current. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.RegionInBitmapMarker">
 <span class="target" id="group__marker__bitmap_1ga5bc042e4419a3f3bd53a05bfb2385bf0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.RegionInBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test bitmap bounds against an enclosed/overlapping region. </p>
-<p>Requires world coordinates; uses cached dimensions for unrotated tests. Rotated tests use the absolute mapped outline directly. No pixel-mask or alpha test is made. </p>
+<p>Requires world coordinates; uses cached dimensions for unrotated tests. Rotated tests use the absolute mapped outline directly. No pixel-mask or alpha test is made.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered rectangle in screen coordinates. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero requests full enclosure; zero requests overlap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.DrawBitmapMarker">
 <span class="target" id="group__marker__bitmap_1gaa0ff8fcb9dbed50120228d1599579169"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.DrawBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Present the mapped bitmap through screen raster services. </p>
-<p>Skips missing/empty destination bitmaps. Borrows mapped handles and GCs. Arbitrary rotations with opaque background and no explicit mask use the background polygon plus bitmap-as-mask workaround. Integer placement is performed here; renderer services own native clip/origin handling. </p>
+<p>Skips missing/empty destination bitmaps. Borrows mapped handles and GCs. Arbitrary rotations with opaque background and no explicit mask use the background polygon plus bitmap-as-mask workaround. Integer placement is performed here; renderer services own native clip/origin handling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination drawable. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.BitmapMarkerExport">
 <span class="target" id="group__marker__bitmap_1ga0376617aa712e8b61ba12b7ed2734382"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BitmapMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.BitmapMarkerExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export mapped foreground and background masks or polygon. </p>
-<p>Borrows export context and mapped resources. Explicit masks restrict the background and intersect foreground bits; transparent backgrounds use the mapper-selected effective mask. An unmasked opaque background uses the mapped polygon. Frees any temporary foreground intersection and ends the output context on both empty and normal paths. </p>
+<p>Borrows export context and mapped resources. Explicit masks restrict the background and intersect foreground bits; transparent backgrounds use the mapper-selected effective mask. An unmasked opaque background uses the mapped polygon. Frees any temporary foreground intersection and ends the output context on both empty and normal paths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed export context receiving output and backend error state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.FreeBitmapMarker">
 <span class="target" id="group__marker__bitmap_1ga9429b5994ad0a9b0fc4acb8cb902822c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.FreeBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release bitmap-derived caches and shared drawing GCs. </p>
-<p>Clears mapped handles/ownership, both GCs, destination dimensions and outline count. Tk option cleanup owns source bitmap/mask and colors; common cleanup owns the record. Does not itself schedule redraw. </p>
+<p>Clears mapped handles/ownership, both GCs, destination dimensions and outline count. Tk option cleanup owns source bitmap/mask and colors; common cleanup owns the record. Does not itself schedule redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -847,56 +1251,124 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.ImageChangedProc">
 <span class="target" id="group__marker__image_1ga8c1f32a61141b0176033e550f1ce5a40"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ImageChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.ImageChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh the owned photo copy after a Tk image change. </p>
-<p>Borrows the marker callback data and ignores the changed rectangle/size arguments. Looks up the configured name and replaces srcImage with a fresh photo copy, or NULL if no photo remains. Frees the old copy and marks mapping and backing storage dirty before scheduling redraw; no script evaluation is performed directly here. </p>
+<p>Borrows the marker callback data and ignores the changed rectangle/size arguments. Looks up the configured name and replaces srcImage with a fresh photo copy, or NULL if no photo remains. Frees the old copy and marks mapping and backing storage dirty before scheduling redraw; no script evaluation is performed directly here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed marker registered as callback data; concrete type is specified above. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Changed image rectangle metadata supplied by Tk; ignored by this callback. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Changed image rectangle metadata supplied by Tk; ignored by this callback. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Changed image rectangle metadata supplied by Tk; ignored by this callback. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Changed image rectangle metadata supplied by Tk; ignored by this callback. </p></li>
+<li><p><strong>imageWidth</strong> – <strong>[in]</strong> Image width supplied by Tk; ignored by this callback. </p></li>
+<li><p><strong>imageHeight</strong> – <strong>[in]</strong> Image height supplied by Tk; ignored by this callback. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.ConfigureImageMarker">
 <span class="target" id="group__marker__image_1gac9fc2c5e0ea51eb3def4855fd1eb9c5e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureImageMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.ConfigureImageMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire replacement Tk image resources before releasing the old ones. </p>
-<p>Stages common options, Tk image instance/change callback, optional photo copy and GC. After validation, commits common resources and releases old pixmap, temporary image, photo copy, Tk instance and GC. Installs new state, clears dimensions and schedules remap/redraw. Error paths free staged resources; the named source image itself is not owned by the marker. </p>
+<p>Stages common options, Tk image instance/change callback, optional photo copy and GC. After validation, commits common resources and releases old pixmap, temporary image, photo copy, Tk instance and GC. Installs new state, clears dimensions and schedules remap/redraw. Error paths free staged resources; the named source image itself is not owned by the marker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.MapImageMarker">
 <span class="target" id="group__marker__image_1gaeebbe17e03ed101308cfd898436e6aac"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapImageMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.MapImageMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map image placement and maintain a temporary scaled photo. </p>
-<p>Skips absent/deleted source instances. Non-photo images use the first mapped point plus offsets as top-left, without anchor adjustment or scaling. Photos use anchor/natural size or a two-corner inclusive box; only the visible scaled subregion is generated. Returning to natural size destroys the temporary photo after clearing its field. Creation failure returns without a Tcl status; callers must not assume mapping is atomic. </p>
+<p>Skips absent/deleted source instances. Non-photo images use the first mapped point plus offsets as top-left, without anchor adjustment or scaling. Photos use anchor/natural size or a two-corner inclusive box; only the visible scaled subregion is generated. Returning to natural size destroys the temporary photo after clearing its field. Creation failure returns without a Tcl status; callers must not assume mapping is atomic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.PointInImageMarker">
 <span class="target" id="group__marker__image_1ga4b8a128a0c8afd310ec41d1f7fba0e4a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInImageMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.PointInImageMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test the half-open cached image rectangle. </p>
-<p>Borrows placement/dimensions and does not refresh mapping or inspect source existence, transparency or individual pixels. Caller filtering and current mapped state remain prerequisites. </p>
+<p>Borrows placement/dimensions and does not refresh mapping or inspect source existence, transparency or individual pixels. Caller filtering and current mapped state remain prerequisites.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed query point in screen coordinates; cached geometry must be current. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.RegionInImageMarker">
 <span class="target" id="group__marker__image_1ga2a4384ddb0c9119c6192a752e255beea"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInImageMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.RegionInImageMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test enclosure or overlap of cached image bounds. </p>
-<p>Requires at least one world point. Uses anchor plus width/height, with strict overlap excluding edge-only contact. Does not inspect alpha or source-image availability and does not remap. </p>
+<p>Requires at least one world point. Uses anchor plus width/height, with strict overlap excluding edge-only contact. Does not inspect alpha or source-image availability and does not remap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered rectangle in screen coordinates. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero requests full enclosure; zero requests overlap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.DrawImageMarker">
 <span class="target" id="group__marker__image_1gaea7afb184f9e307d942f004813033b94"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawImageMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.DrawImageMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw the temporary/source Tk image or cached pixmap. </p>
-<p>Skips absent/deleted source instances. Prefers tmpImage when there is no pixmap, otherwise submits the pixmap with its GC and rectangle. Borrows all resources and ends the screen raster context after dispatch. </p>
+<p>Skips absent/deleted source instances. Prefers tmpImage when there is no pixmap, otherwise submits the pixmap with its GC and rectangle. Borrows all resources and ends the screen raster context after dispatch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination drawable. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.ImageMarkerExport">
 <span class="target" id="group__marker__image_1ga840ee8bd839418c865acf0e3366734ea"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ImageMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.ImageMarkerExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export the current temporary/source image through output services. </p>
-<p>Skips absent/deleted source instances. Resolves the selected image name as a photo for photo output, otherwise delegates to generic Tk image output. Borrows resources and ends the context on all paths; format-specific capture/conversion remains in the renderer. </p>
+<p>Skips absent/deleted source instances. Resolves the selected image name as a photo for photo output, otherwise delegates to generic Tk image output. Borrows resources and ends the context on all paths; format-specific capture/conversion remains in the renderer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed export context receiving output and backend error state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.FreeImageMarker">
 <span class="target" id="group__marker__image_1ga4b606fe81b053055ab51450b4f8883da"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeImageMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.FreeImageMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release owned image caches and the source image instance. </p>
-<p>Frees pixmap, GC, Tk instance, temporary image and photo copy, then clears dimensions. Clears tmpImage before temporary-image destruction. Freeing the source instance does not delete the user-owned named image; common cleanup releases option objects and the record. </p>
+<p>Frees pixmap, GC, Tk instance, temporary image and photo copy, then clears dimensions. Clears tmpImage before temporary-image destruction. Freeing the source instance does not delete the user-owned named image; common cleanup releases option objects and the record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -932,56 +1404,120 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.ConfigureTextMarker">
 <span class="target" id="group__marker__text_1ga52f38d4e3ce12de56406736669f5c27a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.ConfigureTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage text layout, padding, shadow and drawing resources. </p>
-<p>Parses common resources, padding and shadow, normalizes rotation, and builds a new layout/rotated outline using the proposed Tk-managed style. After validation commits the layout, GCs and manually owned shadow color while saved Tk options retain old resources. Error paths free staged resources. Marks mapping and under-layer backing dirty and schedules redraw. </p>
+<p>Parses common resources, padding and shadow, normalizes rotation, and builds a new layout/rotated outline using the proposed Tk-managed style. After validation commits the layout, GCs and manually owned shadow color while saved Tk options retain old resources. Error paths free staged resources. Marks mapping and under-layer backing dirty and schedules redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.MapTextMarker">
 <span class="target" id="group__marker__text_1ga4391af31448ee0b50d3777ce8a250ae7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.MapTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Place the cached rotated text rectangle using its marker anchor. </p>
-<p>Requires a non-NULL string and caller-supplied coordinates. Maps the first point, applies marker anchor and pixel offsets, tests plot overlap, and stores anchorPos. Does not rebuild text layout or allocate a bitmap. </p>
+<p>Requires a non-NULL string and caller-supplied coordinates. Maps the first point, applies marker anchor and pixel offsets, tests plot overlap, and stores anchorPos. Does not rebuild text layout or allocate a bitmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.PointInTextMarker">
 <span class="target" id="group__marker__text_1ga1ea989e088e76711a4a543425ba9d885"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.PointInTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Pick the text bounding rectangle or rotated outline. </p>
-<p>Returns false for a NULL string. Rotated outline coordinates are local to anchorPos and are translated for polygon testing. Unrotated bounds are half-open. Tests bounds, not glyph coverage or shadow pixels independently. </p>
+<p>Returns false for a NULL string. Rotated outline coordinates are local to anchorPos and are translated for polygon testing. Unrotated bounds are half-open. Tests bounds, not glyph coverage or shadow pixels independently.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed query point in screen coordinates; cached geometry must be current. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.RegionInTextMarker">
 <span class="target" id="group__marker__text_1ga8886afd5b1c229f99c4fe04d546750e9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.RegionInTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test cached text bounds for enclosure or overlap. </p>
-<p>Requires coordinates. Uses four translated rotated-outline vertices or the unrotated rectangle; does not refresh layout or inspect glyph coverage. Unrotated overlap excludes edge-only contact. </p>
+<p>Requires coordinates. Uses four translated rotated-outline vertices or the unrotated rectangle; does not refresh layout or inspect glyph coverage. Unrotated overlap excludes edge-only contact.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered rectangle in screen coordinates. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero requests full enclosure; zero requests overlap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.DrawRenderedTextBackground">
 <span class="target" id="group__marker__text_1ga99deb746b83492518f14f2365a5bc8ed"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedTextBackground</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="#c.rbcGrMarkerText.TextMarker" title="TextMarker"><span class="n"><span class="pre">TextMarker</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.DrawRenderedTextBackground" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Try Cairo background fill with native-sized integer vertices. </p>
-<p>Returns FALSE for other renderers. Translates the four local outline vertices by anchorPos and truncates to integer coordinates before area submission. Returns the render helper status for native fallback; does not modify cached geometry. </p>
+<p>Returns FALSE for other renderers. Translates the four local outline vertices by anchorPos and truncates to integer coordinates before area submission. Returns the render helper status for native fallback; does not modify cached geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination drawable. </p></li>
+<li><p><strong>tmPtr</strong> – <strong>[in]</strong> Borrowed text marker with current layout and mapped background outline. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.DrawTextMarker">
 <span class="target" id="group__marker__text_1ga991568324b74581f8a11aceca4810ed3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.DrawTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw optional background and cached text layout. </p>
-<p>Returns for a NULL string. Background tries Cairo then native services; text uses the screen-text renderer when foreground exists, with integer placement. Borrows layout/style and does not alter their ownership. </p>
+<p>Returns for a NULL string. Background tries Cairo then native services; text uses the screen-text renderer when foreground exists, with integer placement. Borrows layout/style and does not alter their ownership.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination drawable. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.TextMarkerExport">
 <span class="target" id="group__marker__text_1ga88c8bbd3c7a0d07f9bd4fb6b21817878"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.TextMarkerExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export the text string/style and optional rotated background. </p>
-<p>Returns through an ended context for a NULL string. Translates background vertices without screen integer truncation, then delegates text to document output using the string and style rather than the cached screen layout. </p>
+<p>Returns through an ended context for a NULL string. Translates background vertices without screen integer truncation, then delegates text to document output using the string and style rather than the cached screen layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed export context receiving output and backend error state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.FreeTextMarker">
 <span class="target" id="group__marker__text_1ga0a60ebe0bdc71a30e6cf1524973f9964"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.FreeTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release derived text resources without freeing Tk option values. </p>
-<p>Frees shared text/background GCs, manually owned shadow color and layout. Clears their fields, dimensions and outline. Tk option cleanup owns font, foreground/background colors and string; common cleanup owns the record. </p>
+<p>Frees shared text/background GCs, manually owned shadow color and layout. Clears their fields, dimensions and outline. Tk option cleanup owns font, foreground/background colors and string; common cleanup owns the record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1017,91 +1553,195 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.GetWindowMarkerDimension">
 <span class="target" id="group__marker__window_1ga0ea4bb743bf1a48808d7ede5cf4a6ca9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetWindowMarkerDimension</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">explicitlyChanged</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.GetWindowMarkerDimension" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a child dimension while distinguishing defaults from explicit zero. </p>
-<p>Writes zero for a NULL object. Otherwise parses pixels and rejects negative values or explicitly changed zero, leaving output unchanged on error. Internal zero means use the child requested size. Returns Tcl status and diagnostic; caller supplies the option-change flag. </p>
+<p>Writes zero for a NULL object. Otherwise parses pixels and rejects negative values or explicitly changed zero, leaving output unchanged on error. Internal zero means use the child requested size. Returns Tcl status and diagnostic; caller supplies the option-change flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option value; accepted empty/NULL cases are described above. </p></li>
+<li><p><strong>explicitlyChanged</strong> – <strong>[in]</strong> Nonzero rejects an explicitly supplied zero dimension. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required output assigned only on successful conversion. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.ReleaseWindowMarkerChild">
 <span class="target" id="group__marker__window_1ga776677b51325b278a7e0d66f24a8c0a1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseWindowMarkerChild</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrMarkerWindow.WindowMarker" title="WindowMarker"><span class="n"><span class="pre">WindowMarker</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">wmPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destroyWindow</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.ReleaseWindowMarkerChild" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach the embedded child and optionally destroy it. </p>
-<p>Returns if no child. Clears the marker token before removing its event handler and geometry management. Destroys the child when requested, else unmaps it for reuse; resets dimensions afterward. The marker record must remain alive across the Tk operations. Does not free the record. </p>
+<p>Returns if no child. Clears the marker token before removing its event handler and geometry management. Destroys the child when requested, else unmaps it for reuse; resets dimensions afterward. The marker record must remain alive across the Tk operations. Does not free the record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wmPtr</strong> – <strong>[inout]</strong> Borrowed window marker kept alive while its child is detached. </p></li>
+<li><p><strong>destroyWindow</strong> – <strong>[in]</strong> Nonzero destroys the detached child; zero unmaps it for reuse. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.ConfigureWindowMarker">
 <span class="target" id="group__marker__window_1ga8e8f251684db9249e02a57b0987dc137"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureWindowMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.ConfigureWindowMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate dimensions and direct-child ownership before transferring geometry. </p>
-<p>Stages common options and dimensions and resolves the requested window. Only direct children of the graph are accepted. On success commits common state, detaches/unmaps the previous child without destroying it, and sets the new token before registering events and geometry management. Schedules remap/redraw; errors release staged common state. Geometry transfer invokes Tk services, so successful validation is not a blanket callback-safety guarantee. </p>
+<p>Stages common options and dimensions and resolves the requested window. Only direct children of the graph are accepted. On success commits common state, detaches/unmaps the previous child without destroying it, and sets the new token before registering events and geometry management. Schedules remap/redraw; errors release staged common state. Geometry transfer invokes Tk services, so successful validation is not a blanket callback-safety guarantee.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.MapWindowMarker">
 <span class="target" id="group__marker__window_1ga14f8e11dfa3915b56711addcd916a526"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapWindowMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.MapWindowMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map child requested/explicit dimensions, anchor and pixel offsets. </p>
-<p>Returns without a child. Uses positive explicit dimensions in preference to Tk requested size, stores rectangle and tests plot overlap. Does not move/map the actual child or introduce plot/track clipping containers. </p>
+<p>Returns without a child. Uses positive explicit dimensions in preference to Tk requested size, stores rectangle and tests plot overlap. Does not move/map the actual child or introduce plot/track clipping containers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.PointInWindowMarker">
 <span class="target" id="group__marker__window_1gae018baa990165d9c77a298d56787c797"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInWindowMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.PointInWindowMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test the half-open cached child rectangle. </p>
-<p>Borrows geometry only; does not check the child token, mapping state or refresh its requested dimensions. Outer marker filtering remains separate. </p>
+<p>Borrows geometry only; does not check the child token, mapping state or refresh its requested dimensions. Outer marker filtering remains separate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed query point in screen coordinates; cached geometry must be current. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.RegionInWindowMarker">
 <span class="target" id="group__marker__window_1ga32383e04b72cd865400e722d7ce669e1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInWindowMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.RegionInWindowMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test enclosure or strict overlap of cached child bounds. </p>
-<p>Requires coordinates and uses anchor plus width/height. Does not inspect child visibility, update geometry or test actual window contents. </p>
+<p>Requires coordinates and uses anchor plus width/height. Does not inspect child visibility, update geometry or test actual window contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed concrete marker with current mapped geometry. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered rectangle in screen coordinates. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero requests full enclosure; zero requests overlap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.DrawWindowMarker">
 <span class="target" id="group__marker__window_1gac17bffcb222057c64cecb9dc2aba4a23"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWindowMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.DrawWindowMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Synchronize the real child position/size and map it if necessary. </p>
-<p>Returns without a child. Moves/resizes only when cached geometry differs, then maps if needed. Ignores drawable: this changes a real Tk child, not a pixmap. Caller must have checked visibility and prepared mapped geometry. </p>
+<p>Returns without a child. Moves/resizes only when cached geometry differs, then maps if needed. Ignores drawable: this changes a real Tk child, not a pixmap. Caller must have checked visibility and prepared mapped geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Unused drawable; this callback moves/maps the real Tk child. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.SyncWindowMarkers">
 <span class="target" id="group__marker__window_1ga8e49ee88b490271713cfa6575b2f9a99"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SyncWindowMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.SyncWindowMarkers" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Synchronize visibility of all real child markers across both layers. </p>
-<p>Walks display order and filters missing coordinates, hidden/clipped state, collapsed tracks and associated hidden elements. Maps/moves visible children and unmaps others. Partial overlap keeps the full child, clipped by its graph parent only. Required even when under-layer backing is reused. </p>
+<p>Walks display order and filters missing coordinates, hidden/clipped state, collapsed tracks and associated hidden elements. Maps/moves visible children and unmaps others. Partial overlap keeps the full child, clipped by its graph parent only. Required even when under-layer backing is reused.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.WindowMarkerExport">
 <span class="target" id="group__marker__window_1gadb02b85d7e654d8a978ccaec0680543c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WindowMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.WindowMarkerExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delegate capture of an existing mapped child to the exporter. </p>
-<p>Creates/ends an output context and emits only if the child exists and is mapped. Uses marker placement; does not map a hidden child or replace it with an independent widget rendering. Capture policy belongs to the backend. </p>
+<p>Creates/ends an output context and emits only if the child exists and is mapped. Uses marker placement; does not map a hidden child or replace it with an independent widget rendering. Capture policy belongs to the backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed export context receiving output and backend error state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.FreeWindowMarker">
 <span class="target" id="group__marker__window_1ga3eecaad6e8d4f88c0a6a449a67d0090e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeWindowMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.FreeWindowMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy the currently embedded child and clear marker placement. </p>
-<p>Delegates detachment/destruction to ReleaseWindowMarkerChild, then clears anchorPos. Unlike image markers, deleting this marker destroys its owned child. Common lifecycle code frees the marker record/options. </p>
+<p>Delegates detachment/destruction to ReleaseWindowMarkerChild, then clears anchorPos. Unlike image markers, deleting this marker destroys its owned child. Common lifecycle code frees the marker record/options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; callers keep its required Tk and mapping resources valid. </p></li>
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed concrete marker with the class and lifecycle state required above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.ChildEventProc">
 <span class="target" id="group__marker__window_1ga60643404699821cfba4bec1bace72ddb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChildEventProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.ChildEventProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clear a destroyed child token while retaining the marker record. </p>
-<p>Handles DestroyNotify only. Clears token/dimensions, marks mapping dirty and schedules redraw if the graph window still exists. Other structure events are ignored; this callback does not delete the marker. </p>
+<p>Handles DestroyNotify only. Clears token/dimensions, marks mapping dirty and schedules redraw if the graph window still exists. Other structure events are ignored; this callback does not delete the marker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed marker registered as callback data; concrete type is specified above. </p></li>
+<li><p><strong>eventPtr</strong> – <strong>[in]</strong> Borrowed child structure event; only DestroyNotify is handled. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.ChildGeometryProc">
 <span class="target" id="group__marker__window_1ga963094e7b054b07261e2d24a6755878b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChildGeometryProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.ChildGeometryProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy newly requested child dimensions into automatic-size fields. </p>
-<p>Updates only dimensions whose explicit request is zero. When either changes, marks mapping dirty and schedules redraw for a live graph window so anchor and visibility are recomputed. Invalidates under-layer backing storage as needed. Fully overridden or unchanged requests need no redraw. </p>
+<p>Updates only dimensions whose explicit request is zero. When either changes, marks mapping dirty and schedules redraw for a live graph window so anchor and visibility are recomputed. Invalidates under-layer backing storage as needed. Fully overridden or unchanged requests need no redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed marker registered as callback data; concrete type is specified above. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed managed child window supplied by Tk geometry management. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.ChildCustodyProc">
 <span class="target" id="group__marker__window_1gaa70fc06802113d9ad8dad25afa04ce76"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChildCustodyProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.ChildCustodyProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delete the marker when another manager takes its child. </p>
-<p>Removes the event handler and clears the matching child token before DestroyMarker, preserving the window for its new manager. Schedules graph redraw afterward. The marker pointer is invalid after destruction; no marker field may be read again by this callback. </p>
+<p>Removes the event handler and clears the matching child token before DestroyMarker, preserving the window for its new manager. Schedules graph redraw afterward. The marker pointer is invalid after destruction; no marker field may be read again by this callback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed marker registered as callback data; concrete type is specified above. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed managed child window supplied by Tk geometry management. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
