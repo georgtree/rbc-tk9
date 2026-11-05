@@ -127,6 +127,9 @@ static void TileRegion(HDC srcDC, HDC destDC, HDC maskDC, TileClient *clientPtr,
  * Releases masks with their platform-specific allocator. The image display
  * procedure is an external callback boundary; this helper provides no lifetime
  * barrier around it and has no error return.
+ *
+ * @param[in] tkwin Borrowed live window supplying display, depth and coordinate context.
+ * @param[in,out] tilePtr Live server whose native cache is rebuilt; Tk image must remain valid.
  */
 static void RedrawTile(Tk_Window tkwin, Tile *tilePtr) {
     GC newGC;
@@ -189,6 +192,8 @@ static void RedrawTile(Tk_Window tkwin, Tile *tilePtr) {
  *
  * Receives storage transferred through Tcl_EventuallyFree. Frees only the
  * record: links, image and native resources must already have been released.
+ *
+ * @param[in] memory Detached heap record transferred by Tcl_EventuallyFree; freed here.
  */
 static void FreeTileRecord(DestroyData memory) {
     ckfree(memory);
@@ -206,6 +211,8 @@ static void FreeTileRecord(DestroyData memory) {
  * Stops delivery if the server is destroying or interpreter is deleted. Releases
  * every snapshot reference even after early termination. Does not save or
  * restore interpreter result state, and refresh precedes the client snapshot.
+ *
+ * @param[in] clientData Live Tile server queued by the image-change callback.
  */
 static void UpdateTile(ClientData clientData) {
     Tile *tilePtr = (Tile *)clientData;
@@ -263,6 +270,14 @@ static void UpdateTile(ClientData clientData) {
  * Ignores the changed rectangle and image dimensions. Schedules UpdateTile
  * only when TILE_NOTIFY_PENDING is clear. Does not redraw synchronously or
  * invoke client callbacks; server teardown must cancel the queued idle call.
+ *
+ * @param[in] clientData Live Tile server registered with Tk_GetImage.
+ * @param[in] x Tk image-change metadata; ignored because refresh rebuilds the whole cache.
+ * @param[in] y Tk image-change metadata; ignored because refresh rebuilds the whole cache.
+ * @param[in] width Tk image-change metadata; ignored because refresh rebuilds the whole cache.
+ * @param[in] height Tk image-change metadata; ignored because refresh rebuilds the whole cache.
+ * @param[in] imageWidth Tk image-change metadata; ignored because refresh rebuilds the whole cache.
+ * @param[in] imageHeight Tk image-change metadata; ignored because refresh rebuilds the whole cache.
  */
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
@@ -283,6 +298,8 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
  * mask, Tk image, GC and copied name, then defers the server record free.
  * Active notification preserves storage only, not these resources. Requires a
  * live server and is not an idempotent operation.
+ *
+ * @param[in] tilePtr Live owned server to detach and destroy; invalid after this call.
  */
 static void DestroyTile(Tile *tilePtr) {
     Rbc_ChainLink *linkPtr;
@@ -335,6 +352,10 @@ static void DestroyTile(Tile *tilePtr) {
  * native cache resources before returning. Hash registration and first-client
  * attachment belong to CreateClient. Tk image acquisition and drawing can call
  * image-provider code before that attachment exists.
+ *
+ * @param[in,out] interp Interpreter owning the registry and receiving acquisition diagnostics.
+ * @param[in] tkwin Borrowed live window supplying display, depth and coordinate context.
+ * @param[in] imageName Borrowed existing image name; copied on successful acquisition.
  */
 static Tile *CreateTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageName) {
     Tile *tilePtr;
@@ -370,6 +391,8 @@ static Tile *CreateTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageNa
  * then clears client validity, server/link pointers and callback and defers
  * record reclamation. Requires a valid attached client. The removed record
  * is no longer in the server chain when last-client teardown occurs.
+ *
+ * @param[in] clientPtr Attached client to detach and release; invalid after this call.
  */
 static void DestroyClient(TileClient *clientPtr) {
     Tile *tilePtr;
@@ -402,6 +425,10 @@ static void DestroyClient(TileClient *clientPtr) {
  * failure. Every success allocates a distinct zeroed client with a borrowed
  * window and no callback, appends it to the server chain and returns ownership
  * to the caller. Existing server resources are shared, not copied.
+ *
+ * @param[in,out] interp Interpreter owning the registry and receiving acquisition diagnostics.
+ * @param[in] tkwin Borrowed live window supplying display, depth and coordinate context.
+ * @param[in] name Borrowed Tk image name used in the display/depth/name registry key.
  */
 static TileClient *CreateClient(Tcl_Interp *interp, Tk_Window tkwin, const char *name) {
     TileClient *clientPtr;
@@ -448,6 +475,9 @@ static TileClient *CreateClient(Tcl_Interp *interp, Tk_Window tkwin, const char 
  * local storage. Clears each server hash pointer before destroying it so hash
  * iteration remains valid, then deletes the table and associated-data entry
  * and frees the registry. Invalidates outstanding client tokens.
+ *
+ * @param[in] clientData Owned TileInterpData registry supplied as interpreter associated data.
+ * @param[in,out] interp Interpreter whose tile registry is being removed.
  */
 static void TileInterpDeleteProc(ClientData clientData, Tcl_Interp *interp) {
     TileInterpData *dataPtr = clientData;
@@ -472,6 +502,8 @@ static void TileInterpDeleteProc(ClientData clientData, Tcl_Interp *interp) {
  * Lazily allocates associated data and installs TileInterpDeleteProc. Uses
  * a fixed-size multiword key for TileKey. Returns borrowed registry storage
  * valid until associated-data teardown; no global or cross-interpreter sharing.
+ *
+ * @param[in,out] interp Live interpreter owning the lazily allocated associated-data registry.
  */
 static TileInterpData *GetTileInterpData(Tcl_Interp *interp) {
     TileInterpData *dataPtr;

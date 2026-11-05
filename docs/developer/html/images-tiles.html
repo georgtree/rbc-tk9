@@ -140,7 +140,7 @@ and visibility limitations remain platform-specific.</p>
 </section>
 <section id="shared-tile-servers-individual-clients">
 <h2>Shared tile servers, individual clients<a class="headerlink" href="#shared-tile-servers-individual-clients" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetTile</span></code> returns a fresh client token on every successful acquisition.
+<p><a class="reference internal" href="image-tile-reference.html#c.Rbc_GetTile" title="Rbc_GetTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTile()</span></code></a> returns a fresh client token on every successful acquisition.
 Servers are cached in interpreter associated data, keyed by display, depth and
 interned image name. The key structure is zero-initialized because the hash
 includes its padding bytes. Identical names in different interpreters do not
@@ -157,7 +157,7 @@ valid after interpreter teardown.</p>
 </section>
 <section id="idle-refresh-and-notification">
 <h2>Idle refresh and notification<a class="headerlink" href="#idle-refresh-and-notification" title="Link to this heading">¶</a></h2>
-<p>Tk image changes are coalesced into one <code class="docutils literal notranslate"><span class="pre">UpdateTile</span></code> idle callback using
+<p>Tk image changes are coalesced into one <a class="reference internal" href="image-tile-reference.html#c.rbcTileLifecycle.UpdateTile" title="rbcTileLifecycle.UpdateTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTileLifecycle.UpdateTile()</span></code></a> idle callback using
 <code class="docutils literal notranslate"><span class="pre">TILE_NOTIFY_PENDING</span></code>. The update clears the pending flag, redraws the cache
 using a client window, then walks the client chain and calls installed callbacks.
 Resizing allocates the replacement pixmap before releasing the old one; redraw
@@ -165,7 +165,7 @@ also refreshes the GC and photo transparency mask.</p>
 <p>If the Tk image has been deleted, the update releases the cached pixmap and
 sets it to <code class="docutils literal notranslate"><span class="pre">None</span></code>. It does not reset every cached field: size queries can still
 report the last dimensions. Query helpers do not force pending idle work.
-<code class="docutils literal notranslate"><span class="pre">Rbc_GetTilePhoto</span></code> distinguishes a deleted image (true with an empty block)
+<a class="reference internal" href="image-tile-reference.html#c.Rbc_GetTilePhoto" title="Rbc_GetTilePhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTilePhoto()</span></code></a> distinguishes a deleted image (true with an empty block)
 from a non-photo image (false). For a live photo its returned pixels are borrowed
 until the next image change, not until the next idle notification.</p>
 <p>Notification snapshots preserve the server and each current client record.
@@ -180,8 +180,8 @@ Existing graph/line callbacks simply schedule redraw work.</p>
 </section>
 <section id="origin-and-renderer-boundaries">
 <h2>Origin and renderer boundaries<a class="headerlink" href="#origin-and-renderer-boundaries" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_SetTileOrigin</span></code> translates through the Tk window hierarchy to align the
-pattern with the toplevel; <code class="docutils literal notranslate"><span class="pre">Rbc_SetTSOrigin</span></code> installs the supplied origin
+<p><a class="reference internal" href="image-tile-reference.html#c.Rbc_SetTileOrigin" title="Rbc_SetTileOrigin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetTileOrigin()</span></code></a> translates through the Tk window hierarchy to align the
+pattern with the toplevel; <a class="reference internal" href="image-tile-reference.html#c.Rbc_SetTSOrigin" title="Rbc_SetTSOrigin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetTSOrigin()</span></code></a> installs the supplied origin
 directly. Both store client coordinates and update the server GC. Since the GC
 is shared, consumers must establish the intended origin for drawing rather than
 assume it is permanent per-client state.</p>
@@ -216,12 +216,12 @@ associated data. TileInterpData owns the table; it is not process-global or
 thread-local sharing. A server is registered only after image acquisition and
 initial redraw succeed. The first client is appended after that registration.
 Failure to acquire the Tk image removes the newly reserved hash entry.</p>
-<p>There are two distinct release phases. DestroyClient removes membership and
-invalidates the token immediately, and DestroyTile releases image/native
-resources immediately. FreeTileRecord later reclaims only record storage once
+<p>There are two distinct release phases. <a class="reference internal" href="image-tile-reference.html#c.rbcTileLifecycle.DestroyClient" title="rbcTileLifecycle.DestroyClient"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTileLifecycle.DestroyClient()</span></code></a> removes membership and
+invalidates the token immediately, and <a class="reference internal" href="image-tile-reference.html#c.rbcTileLifecycle.DestroyTile" title="rbcTileLifecycle.DestroyTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTileLifecycle.DestroyTile()</span></code></a> releases image/native
+resources immediately. <a class="reference internal" href="image-tile-reference.html#c.rbcTileLifecycle.FreeTileRecord" title="rbcTileLifecycle.FreeTileRecord"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTileLifecycle.FreeTileRecord()</span></code></a> later reclaims only record storage once
 notification snapshots release their preserves. Neither preserve extends the
 lifetime of a window, image resource, callback data or client chain link.</p>
-<p>UpdateTile snapshots membership after refreshing the cache. It deliberately
+<p><a class="reference internal" href="image-tile-reference.html#c.rbcTileLifecycle.UpdateTile" title="rbcTileLifecycle.UpdateTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTileLifecycle.UpdateTile()</span></code></a> snapshots membership after refreshing the cache. It deliberately
 does not snapshot callback pointers, so replacing another client’s callback
 changes that client’s delivery in the same pass. It also does not save the
 interpreter result around callbacks. Clients which evaluate Tcl must apply

@@ -48,42 +48,90 @@
 <dt class="sig sig-object c" id="c.Rbc_GetTile">
 <span class="target" id="rbc_tile_8h_1ae128955de0a4c8ff84cdf5ddb6d94bea"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imageName</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tilePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a new client token for a named Tk image. </p>
-<p>Requires a live window. The interpreter-local server is shared by display, depth and image name, but each successful call returns its own client. On TCL_OK, the caller owns the token and must call Rbc_FreeTile before its window/client data disappear. On TCL_ERROR, the output is not assigned. </p>
+<p>Requires a live window. The interpreter-local server is shared by display, depth and image name, but each successful call returns its own client. On TCL_OK, the caller owns the token and must call Rbc_FreeTile before its window/client data disappear. On TCL_ERROR, the output is not assigned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter owning the registry and receiving acquisition diagnostics. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>imageName</strong> – <strong>[in]</strong> Name of an existing Tk image; copied by a new server. </p></li>
+<li><p><strong>tilePtr</strong> – <strong>[out]</strong> Required output receiving an owned client token only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreeTile">
 <span class="target" id="rbc_tile_8h_1a25c8f369a43a499588e243ea6b2df491"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release one client token and destroy the server if it was the last. </p>
-<p>NULL is harmless. A released token is invalid; the magic check does not make stale pointers or repeated frees safe. Server teardown cancels pending idle notification. Active notification snapshots defer record reclamation. </p>
+<p>NULL is harmless. A released token is invalid; the magic check does not make stale pointers or repeated frees safe. Server teardown cancels pending idle notification. Active notification snapshots defer record reclamation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tile</strong> – <strong>[in]</strong> Client token to release, or NULL; ownership ends at this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SetTileChangedProc">
 <span class="target" id="rbc_tile_8h_1a6ff46a208b35b5deb56d1c7f32491bfd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetTileChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Rbc_TileChangedProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">changeProc</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetTileChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Install or replace one client’s borrowed notification callback and data. </p>
-<p>A NULL callback disables notification. No immediate callback is made. Notifications run after an idle pixmap update over preserved client records. Callbacks may release clients or process nested updates. Removed clients are skipped; newly added clients wait for a later update. Interpreter deletion stops the current pass. Callback data remains owned by the caller. </p>
+<p>A NULL callback disables notification. No immediate callback is made. Notifications run after an idle pixmap update over preserved client records. Callbacks may release clients or process nested updates. Removed clients are skipped; newly added clients wait for a later update. Interpreter deletion stops the current pass. Callback data remains owned by the caller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>changeProc</strong> – <strong>[in]</strong> Borrowed callback, or NULL to disable delivery. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Opaque caller-owned callback data, passed unchanged at delivery. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PixmapOfTile">
 <span class="target" id="rbc_tile_8h_1a2212b7a11f3b043d36ce28a332e70664"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PixmapOfTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PixmapOfTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a borrowed cached pixmap, or None for no tile. </p>
-<p>Do not free it or retain it across a tile update/release. Image changes are processed at idle, so this is a cache query, not a forced refresh. </p>
+<p>Do not free it or retain it across a tile update/release. Image changes are processed at idle, so this is a cache query, not a forced refresh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ImageOfTile">
 <span class="target" id="rbc_tile_8h_1abb1816dd7ad6aa3a059ae5bd4b9a6a1d"></span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ImageOfTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ImageOfTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow the tile’s Tk image without acquiring another image reference. </p>
-<p>Returns NULL for no tile or a deleted image. Do not call Tk_FreeImage on the result; use it only while the tile and current image state remain valid. </p>
+<p>Returns NULL for no tile or a deleted image. Do not call Tk_FreeImage on the result; use it only while the tile and current image state remain valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetTilePhoto">
 <span class="target" id="rbc_tile_8h_1ab3fdaca5e1be8032303c4da05a1cc287"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTilePhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">blockPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTilePhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow photo pixel storage into a caller-owned block record. </p>
-<p>Clears the record first. Returns false for no tile or a non-photo image; a deleted image returns true with an empty block. The pixel pointer remains Tk-owned and is invalidated by image changes or deletion. No copy is made. </p>
+<p>Clears the record first. Returns false for no tile or a non-photo image; a deleted image returns true with an empty block. The pixel pointer remains Tk-owned and is invalidated by image changes or deletion. No copy is made.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>blockPtr</strong> – <strong>[out]</strong> Required caller-owned descriptor; cleared before querying borrowed photo pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -125,28 +173,64 @@
 <dt class="sig sig-object c" id="c.Rbc_NameOfTile">
 <span class="target" id="rbc_tile_8h_1a394a11d557514a4bbf02e66a8734d53b"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NameOfTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NameOfTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the borrowed image name; NULL yields an empty string. </p>
-<p>An invalid magic value yields “not a tile”. Neither result validates a stale pointer. The server owns a live name; callers must not modify or free it. </p>
+<p>An invalid magic value yields “not a tile”. Neither result validates a stale pointer. The server owns a live name; callers must not modify or free it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SizeOfTile">
 <span class="target" id="rbc_tile_8h_1ac246541d8550f4702c3d4318491c3851"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SizeOfTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">heightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SizeOfTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read cached tile dimensions without forcing an idle refresh. </p>
-<p>Both output pointers are required. NULL or invalid tokens yield zero sizes; deleted images may retain their last cached dimensions. </p>
+<p>Both output pointers are required. NULL or invalid tokens yield zero sizes; deleted images may retain their last cached dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>widthPtr</strong> – <strong>[out]</strong> Required output for cached width in pixels. </p></li>
+<li><p><strong>heightPtr</strong> – <strong>[out]</strong> Required output for cached height in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SetTileOrigin">
 <span class="target" id="rbc_tile_8h_1ae134fe9014bfa518b9704199c207c235"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetTileOrigin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetTileOrigin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Align a client pattern origin through its window ancestry. </p>
-<p>Requires a live client and window. Adds position and border offsets up to the toplevel, negates the result and updates both client origin and shared server GC. Does not retain windows or change other clients stored origins. </p>
+<p>Requires a live client and window. Adds position and border offsets up to the toplevel, negates the result and updates both client origin and shared server GC. Does not retain windows or change other clients stored origins.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal offset before ancestry translation, in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical offset before ancestry translation, in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SetTSOrigin">
 <span class="target" id="rbc_tile_8h_1aefa9b0809b0fd1ab6d4b116e34350812"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetTSOrigin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetTSOrigin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Set a client origin directly in drawable coordinates. </p>
-<p>Requires a live client and compatible window. Updates its stored origin and the shared server GC; callers must establish origins for each draw. </p>
+<p>Requires a live client and compatible window. Updates its stored origin and the shared server GC; callers must establish origins for each draw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal tile origin in drawable pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical tile origin in drawable pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -156,70 +240,152 @@
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.RedrawTile">
 <span class="target" id="group__tile__lifecycle_1ga1c7c26da5b9e212e99e41ec4ea058360"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RedrawTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <a class="reference internal" href="#c.rbcTileLifecycle.Tile" title="Tile"><span class="n"><span class="pre">Tile</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tilePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.RedrawTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh a live tile server using a client window. </p>
-<p>Requires a live Tk image and compatible window. Allocates a replacement pixmap before freeing the old one when size changes, redraws the image, replaces the tiled GC, records dimensions and rebuilds the photo alpha mask. Releases masks with their platform-specific allocator. The image display procedure is an external callback boundary; this helper provides no lifetime barrier around it and has no error return. </p>
+<p>Requires a live Tk image and compatible window. Allocates a replacement pixmap before freeing the old one when size changes, redraws the image, replaces the tiled GC, records dimensions and rebuilds the photo alpha mask. Releases masks with their platform-specific allocator. The image display procedure is an external callback boundary; this helper provides no lifetime barrier around it and has no error return.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>tilePtr</strong> – <strong>[inout]</strong> Live server whose native cache is rebuilt; Tk image must remain valid. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.FreeTileRecord">
 <span class="target" id="group__tile__lifecycle_1ga051d512289e451a1a6a676dbde7fb968"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeTileRecord</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">DestroyData</span></span><span class="w"> </span><span class="n"><span class="pre">memory</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.FreeTileRecord" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reclaim a detached tile or client record after preservation ends. </p>
-<p>Receives storage transferred through Tcl_EventuallyFree. Frees only the record: links, image and native resources must already have been released. </p>
+<p>Receives storage transferred through Tcl_EventuallyFree. Frees only the record: links, image and native resources must already have been released.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memory</strong> – <strong>[in]</strong> Detached heap record transferred by Tcl_EventuallyFree; freed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.UpdateTile">
 <span class="target" id="group__tile__lifecycle_1gab1971b1206bf2743dab5fc3d40841a02"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UpdateTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.UpdateTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh the cache and notify a preserved snapshot of clients. </p>
-<p>Preserves server and interpreter, clears the pending bit, and redraws using the first client window. A deleted image instead releases only the cached pixmap. Snapshots and preserves client membership after refresh, but reads callback pointers at delivery time. Removed clients are skipped, new clients wait for another pass, and callback replacement takes effect immediately. Stops delivery if the server is destroying or interpreter is deleted. Releases every snapshot reference even after early termination. Does not save or restore interpreter result state, and refresh precedes the client snapshot. </p>
+<p>Preserves server and interpreter, clears the pending bit, and redraws using the first client window. A deleted image instead releases only the cached pixmap. Snapshots and preserves client membership after refresh, but reads callback pointers at delivery time. Removed clients are skipped, new clients wait for another pass, and callback replacement takes effect immediately. Stops delivery if the server is destroying or interpreter is deleted. Releases every snapshot reference even after early termination. Does not save or restore interpreter result state, and refresh precedes the client snapshot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Live <a class="reference internal" href="#struct_tile"><span class="std std-ref">Tile</span></a> server queued by the image-change callback. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.ImageChangedProc">
 <span class="target" id="group__tile__lifecycle_1ga8c1f32a61141b0176033e550f1ce5a40"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ImageChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.ImageChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Coalesce Tk image changes into a deferred cache update. </p>
-<p>Ignores the changed rectangle and image dimensions. Schedules UpdateTile only when TILE_NOTIFY_PENDING is clear. Does not redraw synchronously or invoke client callbacks; server teardown must cancel the queued idle call. </p>
+<p>Ignores the changed rectangle and image dimensions. Schedules UpdateTile only when TILE_NOTIFY_PENDING is clear. Does not redraw synchronously or invoke client callbacks; server teardown must cancel the queued idle call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Live <a class="reference internal" href="#struct_tile"><span class="std std-ref">Tile</span></a> server registered with Tk_GetImage. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Tk image-change metadata; ignored because refresh rebuilds the whole cache. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Tk image-change metadata; ignored because refresh rebuilds the whole cache. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Tk image-change metadata; ignored because refresh rebuilds the whole cache. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Tk image-change metadata; ignored because refresh rebuilds the whole cache. </p></li>
+<li><p><strong>imageWidth</strong> – <strong>[in]</strong> Tk image-change metadata; ignored because refresh rebuilds the whole cache. </p></li>
+<li><p><strong>imageHeight</strong> – <strong>[in]</strong> Tk image-change metadata; ignored because refresh rebuilds the whole cache. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.DestroyTile">
 <span class="target" id="group__tile__lifecycle_1ga95127f00e5b87d2e2afc2a70400a3e78"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyTile</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcTileLifecycle.Tile" title="Tile"><span class="n"><span class="pre">Tile</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tilePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.DestroyTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach a server and release all owned resources. </p>
-<p>Marks destruction and cancels pending idle work. Invalidates remaining client tokens, clears their links and callbacks, and defers record frees. Destroys the client chain, removes a still-linked hash entry, releases pixmap, mask, Tk image, GC and copied name, then defers the server record free. Active notification preserves storage only, not these resources. Requires a live server and is not an idempotent operation. </p>
+<p>Marks destruction and cancels pending idle work. Invalidates remaining client tokens, clears their links and callbacks, and defers record frees. Destroys the client chain, removes a still-linked hash entry, releases pixmap, mask, Tk image, GC and copied name, then defers the server record free. Active notification preserves storage only, not these resources. Requires a live server and is not an idempotent operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tilePtr</strong> – <strong>[in]</strong> Live owned server to detach and destroy; invalid after this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.CreateTile">
 <span class="target" id="group__tile__lifecycle_1ga809ded051e407b8a925d059fa01ef068"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcTileLifecycle.Tile" title="Tile"><span class="n"><span class="pre">Tile</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imageName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.CreateTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a Tk image and construct an unregistered tile server. </p>
-<p>Allocates a zeroed record and acquires the image with ImageChangedProc. Acquisition failure frees the record and returns NULL with the Tk error. Success owns the copied name, image and client chain, and immediately builds native cache resources before returning. Hash registration and first-client attachment belong to CreateClient. Tk image acquisition and drawing can call image-provider code before that attachment exists. </p>
+<p>Allocates a zeroed record and acquires the image with ImageChangedProc. Acquisition failure frees the record and returns NULL with the Tk error. Success owns the copied name, image and client chain, and immediately builds native cache resources before returning. Hash registration and first-client attachment belong to CreateClient. Tk image acquisition and drawing can call image-provider code before that attachment exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter owning the registry and receiving acquisition diagnostics. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>imageName</strong> – <strong>[in]</strong> Borrowed existing image name; copied on successful acquisition. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.DestroyClient">
 <span class="target" id="group__tile__lifecycle_1ga3d8ebefa7fc0f3f71ebc9b7618f423b9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyClient</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TileClient</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.DestroyClient" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach one live client and destroy an unused server. </p>
-<p>Removes its chain link first. If no clients remain, destroys the server; then clears client validity, server/link pointers and callback and defers record reclamation. Requires a valid attached client. The removed record is no longer in the server chain when last-client teardown occurs. </p>
+<p>Removes its chain link first. If no clients remain, destroys the server; then clears client validity, server/link pointers and callback and defers record reclamation. Requires a valid attached client. The removed record is no longer in the server chain when last-client teardown occurs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientPtr</strong> – <strong>[in]</strong> Attached client to detach and release; invalid after this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.CreateClient">
 <span class="target" id="group__tile__lifecycle_1gac4bb47937f261a9d93e686a80fd6b057"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">TileClient</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateClient</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.CreateClient" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire an interpreter-local server and append a new client token. </p>
-<p>Zeroes the complete display/depth/interned-name key, including padding. Creates a hash entry and server if absent, removing the entry on acquisition failure. Every success allocates a distinct zeroed client with a borrowed window and no callback, appends it to the server chain and returns ownership to the caller. Existing server resources are shared, not copied. </p>
+<p>Zeroes the complete display/depth/interned-name key, including padding. Creates a hash entry and server if absent, removing the entry on acquisition failure. Every success allocates a distinct zeroed client with a borrowed window and no callback, appends it to the server chain and returns ownership to the caller. Existing server resources are shared, not copied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter owning the registry and receiving acquisition diagnostics. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed Tk image name used in the display/depth/name registry key. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.TileInterpDeleteProc">
 <span class="target" id="group__tile__lifecycle_1gad5b44f90b80077f1f02c4a458c55d3ef"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TileInterpDeleteProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.TileInterpDeleteProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy all tile servers when interpreter associated data is removed. </p>
-<p>The clientData argument is interpreter-owned <a class="reference internal" href="#struct_tile_interp_data"><span class="std std-ref">TileInterpData</span></a>, not thread local storage. Clears each server hash pointer before destroying it so hash iteration remains valid, then deletes the table and associated-data entry and frees the registry. Invalidates outstanding client tokens. </p>
+<p>The clientData argument is interpreter-owned <a class="reference internal" href="#struct_tile_interp_data"><span class="std std-ref">TileInterpData</span></a>, not thread local storage. Clears each server hash pointer before destroying it so hash iteration remains valid, then deletes the table and associated-data entry and frees the registry. Invalidates outstanding client tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Owned <a class="reference internal" href="#struct_tile_interp_data"><span class="std std-ref">TileInterpData</span></a> registry supplied as interpreter associated data. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter whose tile registry is being removed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileLifecycle.GetTileInterpData">
 <span class="target" id="group__tile__lifecycle_1ga92663df58fc2ccfddf1c7ed0bb6a8327"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcTileLifecycle.TileInterpData" title="TileInterpData"><span class="n"><span class="pre">TileInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetTileInterpData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileLifecycle.GetTileInterpData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find or create the interpreter-owned tile registry. </p>
-<p>Lazily allocates associated data and installs TileInterpDeleteProc. Uses a fixed-size multiword key for <a class="reference internal" href="#struct_tile_key"><span class="std std-ref">TileKey</span></a>. Returns borrowed registry storage valid until associated-data teardown; no global or cross-interpreter sharing. </p>
+<p>Lazily allocates associated data and installs TileInterpDeleteProc. Uses a fixed-size multiword key for <a class="reference internal" href="#struct_tile_key"><span class="std std-ref">TileKey</span></a>. Returns borrowed registry storage valid until associated-data teardown; no global or cross-interpreter sharing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Live interpreter owning the lazily allocated associated-data registry. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c struct">
@@ -257,21 +423,56 @@
 <dt class="sig sig-object c" id="c.Rbc_TileRectangle">
 <span class="target" id="rbc_tile_8h_1abfcdc59312cfdf672f3d5faf5ef21aed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TileRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_TileRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw one rectangle using borrowed native tile resources. </p>
-<p>Requires a live client/window and a usable cached pixmap with positive tile dimensions. None drawables or nonpositive dimensions are ignored. Does not refresh pending image changes; native failures have no status return. Transparency uses platform masks rather than continuous alpha blending. </p>
+<p>Requires a live client/window and a usable cached pixmap with positive tile dimensions. None drawables or nonpositive dimensions are ignored. Does not refresh pending image changes; native failures have no status return. Transparency uses platform masks rather than continuous alpha blending.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Compatible destination drawable, or None to draw nothing. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Left destination coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Top destination coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in pixels; nonpositive values draw nothing. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in pixels; nonpositive values draw nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_TileRectangles">
 <span class="target" id="rbc_tile_8h_1a8ba091adb423f09523cb47949ddb1ce4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TileRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">XRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_TileRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a borrowed rectangle array with one shared tile. </p>
-<p>None drawables, NULL arrays and nonpositive counts are ignored. Other lifetime requirements match Rbc_TileRectangle. Windows retains DCs across the batch; X11 batches opaque requests but draws masked rectangles singly. </p>
+<p>None drawables, NULL arrays and nonpositive counts are ignored. Other lifetime requirements match Rbc_TileRectangle. Windows retains DCs across the batch; X11 batches opaque requests but draws masked rectangles singly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Compatible destination drawable, or None to draw nothing. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>rectArr</strong> – <strong>[in]</strong> Borrowed native-coordinate rectangle array, or NULL to draw nothing. </p></li>
+<li><p><strong>nRects</strong> – <strong>[in]</strong> Number of array entries; nonpositive counts draw nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_TilePolygon">
 <span class="target" id="rbc_tile_8h_1adf15bf2766774e30b8b95b9f8eb5661a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TilePolygon</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_TilePolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a borrowed nonempty polygon with a shared tile. </p>
-<p>Requires a valid drawable, live client and usable cache. Callers must reject empty arrays; unlike rectangle helpers, polygon guards differ by platform. Uses native fill rules and temporary clipping resources for transparency. Does not force image refresh or propagate native drawing errors. </p>
+<p>Requires a valid drawable, live client and usable cache. Callers must reject empty arrays; unlike rectangle helpers, polygon guards differ by platform. Uses native fill rules and temporary clipping resources for transparency. Does not force image refresh or propagate native drawing errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying display, depth and coordinate context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Valid compatible destination drawable. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed client token; validity and NULL policy are described above. </p></li>
+<li><p><strong>pointArr</strong> – <strong>[in]</strong> Borrowed nonempty array of native-coordinate polygon vertices. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Positive number of accessible vertices. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">

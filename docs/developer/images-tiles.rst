@@ -99,7 +99,7 @@ and visibility limitations remain platform-specific.
 Shared tile servers, individual clients
 ---------------------------------------
 
-``Rbc_GetTile`` returns a fresh client token on every successful acquisition.
+:c:func:`Rbc_GetTile` returns a fresh client token on every successful acquisition.
 Servers are cached in interpreter associated data, keyed by display, depth and
 interned image name. The key structure is zero-initialized because the hash
 includes its padding bytes. Identical names in different interpreters do not
@@ -119,7 +119,7 @@ valid after interpreter teardown.
 Idle refresh and notification
 -----------------------------
 
-Tk image changes are coalesced into one ``UpdateTile`` idle callback using
+Tk image changes are coalesced into one :c:func:`rbcTileLifecycle.UpdateTile` idle callback using
 ``TILE_NOTIFY_PENDING``. The update clears the pending flag, redraws the cache
 using a client window, then walks the client chain and calls installed callbacks.
 Resizing allocates the replacement pixmap before releasing the old one; redraw
@@ -128,7 +128,7 @@ also refreshes the GC and photo transparency mask.
 If the Tk image has been deleted, the update releases the cached pixmap and
 sets it to ``None``. It does not reset every cached field: size queries can still
 report the last dimensions. Query helpers do not force pending idle work.
-``Rbc_GetTilePhoto`` distinguishes a deleted image (true with an empty block)
+:c:func:`Rbc_GetTilePhoto` distinguishes a deleted image (true with an empty block)
 from a non-photo image (false). For a live photo its returned pixels are borrowed
 until the next image change, not until the next idle notification.
 
@@ -145,8 +145,8 @@ Existing graph/line callbacks simply schedule redraw work.
 Origin and renderer boundaries
 ------------------------------
 
-``Rbc_SetTileOrigin`` translates through the Tk window hierarchy to align the
-pattern with the toplevel; ``Rbc_SetTSOrigin`` installs the supplied origin
+:c:func:`Rbc_SetTileOrigin` translates through the Tk window hierarchy to align the
+pattern with the toplevel; :c:func:`Rbc_SetTSOrigin` installs the supplied origin
 directly. Both store client coordinates and update the server GC. Since the GC
 is shared, consumers must establish the intended origin for drawing rather than
 assume it is permanent per-client state.
@@ -187,13 +187,13 @@ thread-local sharing. A server is registered only after image acquisition and
 initial redraw succeed. The first client is appended after that registration.
 Failure to acquire the Tk image removes the newly reserved hash entry.
 
-There are two distinct release phases. DestroyClient removes membership and
-invalidates the token immediately, and DestroyTile releases image/native
-resources immediately. FreeTileRecord later reclaims only record storage once
+There are two distinct release phases. :c:func:`rbcTileLifecycle.DestroyClient` removes membership and
+invalidates the token immediately, and :c:func:`rbcTileLifecycle.DestroyTile` releases image/native
+resources immediately. :c:func:`rbcTileLifecycle.FreeTileRecord` later reclaims only record storage once
 notification snapshots release their preserves. Neither preserve extends the
 lifetime of a window, image resource, callback data or client chain link.
 
-UpdateTile snapshots membership after refreshing the cache. It deliberately
+:c:func:`rbcTileLifecycle.UpdateTile` snapshots membership after refreshing the cache. It deliberately
 does not snapshot callback pointers, so replacing another client's callback
 changes that client's delivery in the same pass. It also does not save the
 interpreter result around callbacks. Clients which evaluate Tcl must apply
