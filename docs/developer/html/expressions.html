@@ -64,16 +64,16 @@ in <a class="reference internal" href="expression-engine.html"><span class="doc"
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">expr</span> <span class="pre">expression</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Rbc_ExprVector</span></code> with a NULL destination evaluates a temporary, converts
+<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> with a NULL destination evaluates a temporary, converts
 its values to a Tcl list and frees the temporary.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">expr</span> <span class="pre">-name</span> <span class="pre">name</span> <span class="pre">expression</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate</span></code> returns an owned temporary. The command creates a
+<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_VectorEvaluate" title="Rbc_VectorEvaluate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a> returns an owned temporary. The command creates a
 vector of that type, transfers storage and returns its qualified name.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vectorName</span> <span class="pre">expr</span> <span class="pre">expression</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Rbc_ExprVector</span></code> evaluates a temporary and copies into the existing
-destination. <code class="docutils literal notranslate"><span class="pre">ExprOp</span></code> then flushes its cache when enabled and notifies
+<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> evaluates a temporary and copies into the existing
+destination. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ExprOp" title="rbcVectorCommands.ExprOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ExprOp</span></code></a> then flushes its cache when enabled and notifies
 clients.</p></td>
 </tr>
 </tbody>

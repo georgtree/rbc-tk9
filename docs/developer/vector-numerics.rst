@@ -38,7 +38,7 @@ indices with the vector offset, or matching values with ``-value``. Complex
 search accepts a single target and compares real and imaginary components
 separately; complex interval ordering is deliberately unsupported.
 
-``InRange`` supplies the historical tolerance. For an interval narrower than
+:c:func:`InRange` supplies the historical tolerance. For an interval narrower than
 ``DBL_EPSILON``, it tests absolute distance from the upper bound strictly below
 that epsilon. Otherwise it normalizes by interval width, accepts positions down to
 ``-DBL_EPSILON``, and permits a small excess above one. It does not swap bounds or

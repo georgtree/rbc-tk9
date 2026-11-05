@@ -74,7 +74,7 @@ or append position produces an error before reading storage.</p>
 indices with the vector offset, or matching values with <code class="docutils literal notranslate"><span class="pre">-value</span></code>. Complex
 search accepts a single target and compares real and imaginary components
 separately; complex interval ordering is deliberately unsupported.</p>
-<p><code class="docutils literal notranslate"><span class="pre">InRange</span></code> supplies the historical tolerance. For an interval narrower than
+<p><a class="reference internal" href="vector-numeric-reference.html#c.InRange" title="InRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">InRange()</span></code></a> supplies the historical tolerance. For an interval narrower than
 <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code>, it tests absolute distance from the upper bound strictly below
 that epsilon. Otherwise it normalizes by interval width, accepts positions down to
 <code class="docutils literal notranslate"><span class="pre">-DBL_EPSILON</span></code>, and permits a small excess above one. It does not swap bounds or

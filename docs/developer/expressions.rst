@@ -19,14 +19,14 @@ Entry points and result ownership
    * - Tcl operation
      - C path and result
    * - ``rbc::vector expr expression``
-     - ``Rbc_ExprVector`` with a NULL destination evaluates a temporary, converts
+     - :c:func:`Rbc_ExprVector` with a NULL destination evaluates a temporary, converts
        its values to a Tcl list and frees the temporary.
    * - ``rbc::vector expr -name name expression``
-     - ``Rbc_VectorEvaluate`` returns an owned temporary. The command creates a
+     - :c:func:`Rbc_VectorEvaluate` returns an owned temporary. The command creates a
        vector of that type, transfers storage and returns its qualified name.
    * - ``vectorName expr expression``
-     - ``Rbc_ExprVector`` evaluates a temporary and copies into the existing
-       destination. ``ExprOp`` then flushes its cache when enabled and notifies
+     - :c:func:`Rbc_ExprVector` evaluates a temporary and copies into the existing
+       destination. :c:func:`ExprOp <rbcVectorCommands.ExprOp>` then flushes its cache when enabled and notifies
        clients.
 
 A scalar is a vector of length one inside the evaluator. List output still

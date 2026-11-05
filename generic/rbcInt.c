@@ -29,6 +29,11 @@ extern RbcStubs rbcStubs;
 /**
  * @ingroup initialization_windows
  * @brief Accept Windows DLL loader notifications without package initialization.
+ * @param[in] hInst Borrowed module instance handle supplied by the loader; unused.
+ * @param[in] reason Loader notification reason; all reasons are accepted.
+ * @param[in] reserved Loader-supplied reserved pointer; may be NULL and is never
+ *     dereferenced or retained.
+ * @return TRUE; package initialization is deferred to Rbc_Init.
  *
  * Return TRUE for every reason. The instance handle, reason and reserved
  * pointer are unused. No allocation, Tcl/Tk initialization or cleanup runs
@@ -39,6 +44,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) { return T
 /**
  * @ingroup initialization_windows
  * @brief Forward the alternate Windows entry point to DllMain.
+ * @param[in] hInst Borrowed module instance handle supplied by the loader; unused.
+ * @param[in] reason Loader notification reason; all reasons are accepted.
+ * @param[in] reserved Loader-supplied reserved pointer; may be NULL and is never
+ *     dereferenced or retained.
+ * @return TRUE; package initialization is deferred to Rbc_Init.
  *
  * Pass all loader arguments through and return DllMain's BOOL result.
  * This wrapper introduces no additional registration or ownership.

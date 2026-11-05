@@ -130,8 +130,8 @@ typedef struct {
 /* Prototypes of image routines */
 
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image);
-void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage image, Tk_PhotoHandle photo);
-Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter);
+void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandle photo);
+Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr);
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height);
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma);
@@ -142,16 +142,16 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName);
 #endif
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height);
-int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
-Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage image, int destWidth, int destHeight,
+int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceColors);
+Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage src, int width, int height,
                                       ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
 void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                        Tk_PhotoHandle destPhoto, ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
 Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                     int destHeight);
-Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
+Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regionY, int regionWidth, int regionHeight, int destWidth,
                                        int destHeight);
-Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage image, double theta);
+Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle);
 void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                      Tk_PhotoHandle destPhoto);
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,

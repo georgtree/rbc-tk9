@@ -59,7 +59,7 @@ Graph options and document assembly
 These contracts describe the shared graph-facing command layer in
 ``rbcGrPs.c``. The parameter lists distinguish full command vectors from option slices and
 borrowed output buffers from owned component state. Windows binary preview
-packaging has its source-level contract on ``CreateWindowsEPS`` and its
+packaging has its source-level contract on :c:func:`CreateWindowsEPS <rbcWindowsPostscript.CreateWindowsEPS>` and its
 platform behavior described in :doc:`postscript-output`.
 
 .. c:namespace:: rbcGraphPostscript

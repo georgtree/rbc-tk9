@@ -284,14 +284,6 @@ void Rbc_NativeEndTrace(Rbc_NativeTrace *ctx) {
     ckfree(ctx);
 }
 
-/*
- * Round a representable value away from zero at ties.
- *
- * Adds or subtracts one half before int conversion. Requires finite input
- * in range; this local helper is currently unused in the Windows backend.
- */
-INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
-
 #define DRAW_SYMBOL(style) (((style)->counter % (style)->interval) == 0)
 
 #define MAX_DRAWLINES(d) Rbc_MaxRequestSize(d, sizeof(XPoint))

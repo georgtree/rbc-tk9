@@ -51,7 +51,7 @@ recognized appends also report a range. Other writes report a full update.
 This distinction lets graph clients maintain extrema and decimation caches
 without treating every single-value update as a complete replacement.
 
-``DeleteOp`` with explicit indices allocates one bitmap bit per original value,
+:c:func:`DeleteOp` with explicit indices allocates one bitmap bit per original value,
 marks all selected ranges, then compacts surviving entries in place. Overlapping
 ranges therefore remove a value once. Capacity is retained, length is reduced,
 and clients receive a full update because later indices have shifted.

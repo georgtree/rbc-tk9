@@ -240,14 +240,40 @@ contracts come from the separate Windows Doxygen input.</p>
 <dt class="sig sig-object c" id="c.rbcWindowsInitialization.DllMain">
 <span class="target" id="group__initialization__windows_1gaa952c96ba0e92c0e45aeb2e2484e7c8a"></span><span class="n"><span class="pre">BOOL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DllMain</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HINSTANCE</span></span><span class="w"> </span><span class="n"><span class="pre">hInst</span></span>, <span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="n"><span class="pre">reason</span></span>, <span class="n"><span class="pre">LPVOID</span></span><span class="w"> </span><span class="n"><span class="pre">reserved</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsInitialization.DllMain" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Accept Windows DLL loader notifications without package initialization. </p>
-<p>Return TRUE for every reason. The instance handle, reason and reserved pointer are unused. No allocation, Tcl/Tk initialization or cleanup runs under this loader callback; Rbc_Init performs package initialization later. </p>
+<p>
+Return TRUE for every reason. The instance handle, reason and reserved pointer are unused. No allocation, Tcl/Tk initialization or cleanup runs under this loader callback; Rbc_Init performs package initialization later. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hInst</strong> – <strong>[in]</strong> Borrowed module instance handle supplied by the loader; unused. </p></li>
+<li><p><strong>reason</strong> – <strong>[in]</strong> Loader notification reason; all reasons are accepted. </p></li>
+<li><p><strong>reserved</strong> – <strong>[in]</strong> Loader-supplied reserved pointer; may be NULL and is never dereferenced or retained. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE; package initialization is deferred to Rbc_Init.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcWindowsInitialization.DllEntryPoint">
 <span class="target" id="group__initialization__windows_1ga795bfcbeff175c544580cb7c8f7812cb"></span><span class="n"><span class="pre">BOOL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DllEntryPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HINSTANCE</span></span><span class="w"> </span><span class="n"><span class="pre">hInst</span></span>, <span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="n"><span class="pre">reason</span></span>, <span class="n"><span class="pre">LPVOID</span></span><span class="w"> </span><span class="n"><span class="pre">reserved</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsInitialization.DllEntryPoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Forward the alternate Windows entry point to DllMain. </p>
-<p>Pass all loader arguments through and return DllMain’s BOOL result. This wrapper introduces no additional registration or ownership. </p>
+<p>
+Pass all loader arguments through and return DllMain’s BOOL result. This wrapper introduces no additional registration or ownership. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hInst</strong> – <strong>[in]</strong> Borrowed module instance handle supplied by the loader; unused. </p></li>
+<li><p><strong>reason</strong> – <strong>[in]</strong> Loader notification reason; all reasons are accepted. </p></li>
+<li><p><strong>reserved</strong> – <strong>[in]</strong> Loader-supplied reserved pointer; may be NULL and is never dereferenced or retained. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE; package initialization is deferred to Rbc_Init.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
