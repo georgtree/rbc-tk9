@@ -59,7 +59,7 @@ names and color output selected. Its interpreter and Tk window are borrowed.
 The command assigns mapping variable names from its PostScript configuration;
 the token does not own those strings. <a class="reference internal" href="postscript-reference.html#c.Rbc_ReleasePsToken" title="Rbc_ReleasePsToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReleasePsToken()</span></code></a> frees the DString
 and token, but none of these borrowed objects.</p>
-<p>During <code class="docutils literal notranslate"><span class="pre">GraphToPostScript</span></code>, the shared export context’s <code class="docutils literal notranslate"><span class="pre">buffer</span></code> points to
+<p>During <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a>, the shared export context’s <code class="docutils literal notranslate"><span class="pre">buffer</span></code> points to
 the token’s DString and <code class="docutils literal notranslate"><span class="pre">backendData</span></code> points to the token. Renderer contexts
 borrow that export context and token. Destroy renderer contexts before ending
 the enclosing export; releasing shared export state does not release the
@@ -389,13 +389,13 @@ Tk configuration context is still usable.</p>
 <p>Configuration has two layers: Tk option objects and derived numeric fields.
 Dimensions, padding, color mode and preview format are converted into locals
 before committing any derived field. If conversion fails after Tk_SetOptions,
-SetPostScriptOptions restores the saved options and error state. Successful
+<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.SetPostScriptOptions" title="rbcGraphPostscript.SetPostScriptOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.SetPostScriptOptions()</span></code></a> restores the saved options and error state. Successful
 callers release the saved options. Queries use Tk_GetOptionValue and
 Tk_GetOptionInfo without rendering.</p>
 <p>Options supplied to <code class="docutils literal notranslate"><span class="pre">postscript</span> <span class="pre">output</span></code> are persistent settings. They remain
 installed even if a later prolog, rendering or file operation fails. This is
-separate from restoration of screen geometry. GraphToPostScript pairs
-Rbc_ExportBeginGraph with Rbc_ExportEndGraph on both success and failure. For a
+separate from restoration of screen geometry. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a> pairs
+<a class="reference internal" href="export-reference.html#c.Rbc_ExportBeginGraph" title="Rbc_ExportBeginGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph()</span></code></a> with <a class="reference internal" href="export-reference.html#c.Rbc_ExportEndGraph" title="Rbc_ExportEndGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a> on both success and failure. For a
 surviving window, EndGraph resets dimensions to the live window, marks mapping
 work and schedules redraw. It does not immediately restore all mapped arrays
 or revert requested PostScript dimensions. The enclosing widget command owns
@@ -403,13 +403,13 @@ callback lifetime protection; these helpers do not acquire it independently.</p>
 </section>
 <section id="page-layout-and-preview-paths">
 <h2>Page layout and preview paths<a class="headerlink" href="#page-layout-and-preview-paths" title="Link to this heading">¶</a></h2>
-<p>ComputeBoundingBox applies positive requested plot dimensions, exchanges the
+<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.ComputeBoundingBox" title="rbcGraphPostscript.ComputeBoundingBox"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.ComputeBoundingBox()</span></code></a> applies positive requested plot dimensions, exchanges the
 oriented extents for landscape, and computes a common scale from the available
 paper area after padding. Maxpect permits enlargement as well as reduction.
 Centered placement replaces the padding origin when the page is larger than
 the scaled plot. Wide arithmetic and positive-int clamping precede storage of
 the inclusive bounds. Layout failure propagates before document traversal.</p>
-<p>PostScriptPreamble converts pixels to points using screen pixel and millimeter
+<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PostScriptPreamble" title="rbcGraphPostscript.PostScriptPreamble"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PostScriptPreamble()</span></code></a> converts pixels to points using screen pixel and millimeter
 dimensions, emits escaped metadata and optional preview, loads <code class="docutils literal notranslate"><span class="pre">rbcGraph.pro</span></code>,
 and emits footer and coordinate transforms. Metadata includes the current time;
 byte-for-byte output comparisons must account for that field. Reading
@@ -429,7 +429,7 @@ PostScript payload without that binary wrapper.</p>
 </section>
 <section id="delivery-and-ownership">
 <h2>Delivery and ownership<a class="headerlink" href="#delivery-and-ownership" title="Link to this heading">¶</a></h2>
-<p>OutputOp owns the PostScript token and staging DString, while the token borrows
+<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.OutputOp" title="rbcGraphPostscript.OutputOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.OutputOp()</span></code></a> owns the PostScript token and staging DString, while the token borrows
 the component’s font/color mapping names. Rendering and any binary preview
 assembly finish before opening the destination through Tcl’s filesystem API.
 Binary channel translation preserves document bytes. Short writes and close
@@ -438,7 +438,7 @@ it with a close diagnostic. Successful file output has an empty Tcl result.</p>
 <p>This ordering avoids truncating a destination on a rendering failure, but is
 not an atomic replacement protocol: an open, write or close failure can leave
 an empty or partial destination. The temporary token and DString are released
-on every OutputOp exit after their creation. Component options outlive them.</p>
+on every <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.OutputOp" title="rbcGraphPostscript.OutputOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.OutputOp()</span></code></a> exit after their creation. Component options outlive them.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
@@ -516,6 +516,64 @@ offsets; it neither selects a font nor anchors a layout. The enclosing
 <a class="reference internal" href="postscript-reference.html#c.rbcPsText.Rbc_TextToPostScript" title="rbcPsText.Rbc_TextToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.Rbc_TextToPostScript()</span></code></a> owns those operations and its temporary
 layout, while leaving the caller’s style unchanged.</p>
 </section>
+<section id="command-arguments-and-transaction-boundaries">
+<h2>Command arguments and transaction boundaries<a class="headerlink" href="#command-arguments-and-transaction-boundaries" title="Link to this heading">¶</a></h2>
+<p>The command helpers receive the full widget command: index two is the
+PostScript operation. Only <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.SetPostScriptOptions" title="rbcGraphPostscript.SetPostScriptOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.SetPostScriptOptions()</span></code></a>
+receives a sliced option/value array. Passing the full array to that helper
+would attempt to interpret the widget and subcommand names as options.</p>
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">State retained after a call</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 66.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Boundary</p></th>
+<th class="head"><p>Ownership and failure behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.ConfigurePostScript" title="rbcGraphPostscript.ConfigurePostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.ConfigurePostScript()</span></code></a></p></td>
+<td><p>Stages derived values before committing. It does not restore Tk option objects.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.SetPostScriptOptions" title="rbcGraphPostscript.SetPostScriptOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.SetPostScriptOptions()</span></code></a></p></td>
+<td><p>Restores failed derived conversions. On success its caller must free saved options.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.ComputeBoundingBox" title="rbcGraphPostscript.ComputeBoundingBox"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.ComputeBoundingBox()</span></code></a></p></td>
+<td><p>Changes graph layout and stores inclusive bounds. It does not save screen geometry.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a></p></td>
+<td><p>Pairs export begin/end, including failure; the caller still owns the output token.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.OutputOp" title="rbcGraphPostscript.OutputOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.OutputOp()</span></code></a></p></td>
+<td><p>Owns token, staging buffer and channel cleanup. Persistent options are not rolled back.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Preview buffers have a different purpose from the final vector document.
+<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PreviewImage" title="rbcGraphPostscript.PreviewImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PreviewImage()</span></code></a> draws at the export layout size and
+may omit an unavailable capture. The Windows-only <a class="reference internal" href="postscript-reference.html#c.rbcWindowsPostscript.CreateWindowsEPS" title="rbcWindowsPostscript.CreateWindowsEPS"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsPostscript.CreateWindowsEPS()</span></code></a> helper
+instead draws a metafile at live widget dimensions and appends binary packaging
+to an initialized DString. It includes the PostScript terminating NUL in that
+payload’s byte count. Its native handles are temporary; neither the token nor
+the destination DString is transferred or freed. Preview generation can run
+drawing callbacks, so the enclosing command’s graph protection remains required.</p>
+</section>
+<section id="variable-trace-cancellation">
+<h2>Variable-trace cancellation<a class="headerlink" href="#variable-trace-cancellation" title="Link to this heading">¶</a></h2>
+<p>The preamble’s reads of <code class="docutils literal notranslate"><span class="pre">rbc_version</span></code> and <code class="docutils literal notranslate"><span class="pre">rbc::library</span></code> can invoke user
+read traces. Keeping the graph record allocated does not keep its Tk window
+alive. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PostScriptPreamble" title="rbcGraphPostscript.PostScriptPreamble"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PostScriptPreamble()</span></code></a> therefore checks graph
+validity after the version read and after successful prolog loading, before
+continuing to use widget or component state.</p>
+<p>If a trace destroys the graph, output returns an error and the export cleanup
+still runs. File destinations are opened only after successful assembly, so
+this cancellation leaves an existing destination untouched. Recreating a widget
+with the same pathname does not revive the original graph record. These checks
+protect against destruction; they do not make arbitrary reentrant changes to
+export options transactional.</p>
+</section>
 </section>
 
 
@@ -544,6 +602,8 @@ layout, while leaving the caller’s style unchanged.</p>
 <li><a class="reference internal" href="#delivery-and-ownership">Delivery and ownership</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#parameter-and-return-value-boundaries">Parameter and return-value boundaries</a></li>
+<li><a class="reference internal" href="#command-arguments-and-transaction-boundaries">Command arguments and transaction boundaries</a></li>
+<li><a class="reference internal" href="#variable-trace-cancellation">Variable-trace cancellation</a></li>
 </ul>
 </li>
 </ul>

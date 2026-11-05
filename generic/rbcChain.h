@@ -52,6 +52,8 @@ typedef struct {
 /**
  * @brief Initialize caller-owned storage as an empty chain.
  * Does not free existing links. Use Reset to clear an initialized chain.
+ *
+ * @param[in,out] chainPtr Required caller-owned record to initialize; no existing links are released.
  */
 void Rbc_ChainInit(Rbc_Chain *chainPtr);
 /**
@@ -66,6 +68,9 @@ Rbc_Chain *Rbc_ChainCreate();
  * @brief Reset and free a heap-allocated chain, accepting NULL.
  * Do not use on stack or embedded storage. External payload ownership remains
  * with the caller.
+ *
+ * @param[in,out] chainPtr Heap-allocated chain to consume, or NULL; all linked records and the container become
+ *   invalid.
  */
 void Rbc_ChainDestroy(Rbc_Chain *chainPtr);
 /**
@@ -81,6 +86,9 @@ Rbc_ChainLink *Rbc_ChainNewLink(void);
  * With nonzero size, clientData points into the same allocation; do not free
  * it separately. With zero size clientData is NULL. Size overflow panics.
  * Link it into a chain or release the detached allocation with ckfree.
+ *
+ * @param[in] size Requested trailing payload bytes, excluding the link header and alignment padding; zero
+ *   creates a plain link.
  */
 Rbc_ChainLink *Rbc_ChainAllocLink(size_t size);
 /**
@@ -89,6 +97,9 @@ Rbc_ChainLink *Rbc_ChainAllocLink(size_t size);
  * Requires an initialized non-NULL chain. Returns the newly linked record,
  * owned by the chain. Does not copy, retain or release clientData. Insertion
  * increments the count and panics on count overflow.
+ *
+ * @param[in,out] chainPtr Required initialized destination chain; takes ownership of the newly allocated link.
+ * @param[in] clientData Borrowed payload pointer, possibly NULL; no copy, retention or destructor is applied.
  */
 Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData);
 /**
@@ -97,12 +108,17 @@ Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData);
  * Requires an initialized non-NULL chain. Returns the newly linked record,
  * owned by the chain. clientData remains independently owned. Allocation/count
  * failure is not reported through an interpreter.
+ *
+ * @param[in,out] chainPtr Required initialized destination chain; takes ownership of the newly allocated link.
+ * @param[in] clientData Borrowed payload pointer, possibly NULL; no copy, retention or destructor is applied.
  */
 Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData);
 /**
  * @brief Free all linked records and leave an empty initialized chain.
  * NULL is harmless. External clientData is not freed. Inline storage created
  * by ChainAllocLink is part of each freed record; run any payload cleanup first.
+ *
+ * @param[in,out] chainPtr Initialized chain to clear, or NULL; container storage remains owned by the caller.
  */
 void Rbc_ChainReset(Rbc_Chain *chainPtr);
 /**
@@ -112,6 +128,10 @@ void Rbc_ChainReset(Rbc_Chain *chainPtr);
  * non-NULL neighbor belonging to that chain. Does not validate membership or
  * unlink an already inserted link. Updates endpoints, neighbors and count without
  * allocation or callbacks; count overflow panics. Payload ownership is unchanged.
+ *
+ * @param[in,out] chainPtr Required initialized destination chain; count and neighbors are updated.
+ * @param[in,out] linkPtr Detached link with NULL neighbors; ownership of the record transfers to the chain.
+ * @param[in] afterLinkPtr Borrowed neighbor in this chain, or NULL to prepend.
  */
 void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *afterLinkPtr);
 /**
@@ -121,6 +141,10 @@ void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLi
  * non-NULL neighbor belonging to that chain. No membership validation or automatic
  * unlinking occurs. Updates endpoints, neighbors and count without allocation;
  * count overflow panics. The chain owns the inserted record, not its payload.
+ *
+ * @param[in,out] chainPtr Required initialized destination chain; count and neighbors are updated.
+ * @param[in,out] linkPtr Detached link with NULL neighbors; ownership of the record transfers to the chain.
+ * @param[in] beforeLinkPtr Borrowed neighbor in this chain, or NULL to append.
  */
 void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *beforeLinkPtr);
 /**
@@ -128,12 +152,19 @@ void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainL
  * Supply its actual chain; links do not store owner identity and this helper
  * cannot validate membership. Clears next/previous pointers. The detached link
  * may be reinserted or freed by the caller.
+ *
+ * @param[in,out] chainPtr Required actual owning chain; membership is not checked.
+ * @param[in,out] linkPtr Required member link; detached with NULL neighbors and returned to caller ownership.
  */
 void Rbc_ChainUnlinkLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr);
 /**
  * @brief Unlink and free a link record, including any inline trailing storage.
  * Requires a valid link and its actual chain. Does not free external clientData.
  * All borrowed pointers into the link become invalid.
+ *
+ * @param[in,out] chainPtr Required actual owning chain; membership is not checked.
+ * @param[in,out] linkPtr Required member link; allocation and inline payload are consumed; external payload
+ *   ownership is unchanged.
  */
 void Rbc_ChainDeleteLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr);
 

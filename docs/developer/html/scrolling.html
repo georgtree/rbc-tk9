@@ -50,7 +50,7 @@ scrollbar notification live in <code class="docutils literal notranslate"><span 
 resulting screen transforms and full versus visible track rectangles.</p>
 <section id="two-parsing-interfaces">
 <h2>Two parsing interfaces<a class="headerlink" href="#two-parsing-interfaces" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ParseScrollRequest</span></code> parses a request into <code class="docutils literal notranslate"><span class="pre">Rbc_ScrollRequest</span></code> without
+<p><a class="reference internal" href="scroll-reference.html#c.Rbc_ParseScrollRequest" title="Rbc_ParseScrollRequest"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ParseScrollRequest()</span></code></a> parses a request into <code class="docutils literal notranslate"><span class="pre">Rbc_ScrollRequest</span></code> without
 modifying graph state. It accepts finite double values for moveto, units and
 pages, including fractional unit counts. It validates the complete argument
 shape before reading optional values and assigns its output only on success.
@@ -60,16 +60,16 @@ request arguments is handled by the owning command, not this parser.</p>
 unit count are accepted. Track commands use exact <code class="docutils literal notranslate"><span class="pre">moveto</span></code>, <code class="docutils literal notranslate"><span class="pre">scroll</span></code>,
 <code class="docutils literal notranslate"><span class="pre">units</span></code> and <code class="docutils literal notranslate"><span class="pre">pages</span></code> words. The caller supplies a valid starting argument
 index and array; the helper does not validate arbitrary C pointer/index misuse.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetScrollInfoFromObj</span></code> is an older integer-offset interface. It parses
+<p><a class="reference internal" href="scroll-reference.html#c.Rbc_GetScrollInfoFromObj" title="Rbc_GetScrollInfoFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetScrollInfoFromObj()</span></code></a> is an older integer-offset interface. It parses
 integer counts for units/pages, a finite double for moveto and legacy numeric
 unit requests. It truncates the computed delta before adding it, saturates
-integer conversions and applies <code class="docutils literal notranslate"><span class="pre">Rbc_AdjustViewport</span></code>. Errors leave the input
+integer conversions and applies <a class="reference internal" href="scroll-reference.html#c.Rbc_AdjustViewport" title="Rbc_AdjustViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AdjustViewport()</span></code></a>. Errors leave the input
 offset unchanged, but malformed arity does not always produce a diagnostic.
 It is not interchangeable with the double-valued axis/track parser.</p>
 </section>
 <section id="integer-viewport-modes">
 <h2>Integer viewport modes<a class="headerlink" href="#integer-viewport-modes" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_AdjustViewport</span></code> assumes meaningful nonnegative world/window sizes and
+<p><a class="reference internal" href="scroll-reference.html#c.Rbc_AdjustViewport" title="Rbc_AdjustViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AdjustViewport()</span></code></a> assumes meaningful nonnegative world/window sizes and
 positive scroll units. It uses wide intermediate arithmetic and returns an
 integer offset. Mode policy is intentionally distinct:</p>
 <table class="docutils align-default">
@@ -128,7 +128,7 @@ percent of the visible range per page; moveto is relative to the total extent.
 The offset is clamped to the available extent, or forced to zero when track
 scrolling is disabled. It requests world reset/redraw without changing data-axis
 limits.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_TrackYViewOp</span></code> instead reuses axis data scrolling. <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> selects one axis
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.Rbc_TrackYViewOp" title="rbcGrAxisLayoutControl.Rbc_TrackYViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.Rbc_TrackYViewOp()</span></code></a> instead reuses axis data scrolling. <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> selects one axis
 that must belong to the track. Without it, a query reports the first axis and a
 movement applies to all track Y axes. Parsing precedes layout. The operation
 saves all selected requested limits and graph flags before applying updates;
@@ -140,7 +140,7 @@ rollback of requested axis state, not rollback of arbitrary layout callbacks.</p
 <h2>Scrollbar callbacks and lifetime<a class="headerlink" href="#scrollbar-callbacks-and-lifetime" title="Link to this heading">¶</a></h2>
 <p>Axis scrollbar updates are queued through an idle callback, using the latest
 stored fractions. Track-stack notification happens after native drawing through
-<code class="docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView</span></code>. That helper first repicks a stationary pointer so track
+<a class="reference internal" href="scroll-reference.html#c.Rbc_NotifyTrackView" title="Rbc_NotifyTrackView"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView()</span></code></a>. That helper first repicks a stationary pointer so track
 Enter/Leave bindings reflect changed layout, then checks the surviving window
 before reporting fractions. Neither notification path emits export-driven
 scrollbar updates.</p>
@@ -166,6 +166,19 @@ that integer delta. Combining these steps into one floating-point addition can
 change historical results for fractional page deltas, especially across zero.
 The double-valued request parser deliberately leaves this policy to its owner.</p>
 </section>
+<section id="argument-slices-and-coordinate-units">
+<h2>Argument slices and coordinate units<a class="headerlink" href="#argument-slices-and-coordinate-units" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="scroll-reference.html#c.Rbc_ParseScrollRequest" title="Rbc_ParseScrollRequest"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ParseScrollRequest()</span></code></a> takes the full object vector plus a starting
+index. It produces a finite double-valued request, without applying a viewport.
+<a class="reference internal" href="scroll-reference.html#c.Rbc_GetScrollInfoFromObj" title="Rbc_GetScrollInfoFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetScrollInfoFromObj()</span></code></a> takes only the request slice and updates an
+integer pixel offset. Passing a full widget command to the latter would try to
+parse the widget name as a unit count.</p>
+<p>In the integer path, world size, visible size, unit distance and offset all use
+pixels. A moveto fraction is multiplied by world size; a page count uses 90
+percent of the visible size. The separate <a class="reference internal" href="scroll-reference.html#c.Rbc_AdjustViewport" title="Rbc_AdjustViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AdjustViewport()</span></code></a> then
+applies the selected bounds policy. These helpers do not themselves change an
+axis range, move tracks, or schedule drawing.</p>
+</section>
 </section>
 
 
@@ -185,6 +198,7 @@ The double-valued request parser deliberately leaves this policy to its owner.</
 <li><a class="reference internal" href="#track-stack-versus-track-local-data">Track stack versus track-local data</a></li>
 <li><a class="reference internal" href="#scrollbar-callbacks-and-lifetime">Scrollbar callbacks and lifetime</a></li>
 <li><a class="reference internal" href="#integer-conversion-boundary">Integer conversion boundary</a></li>
+<li><a class="reference internal" href="#argument-slices-and-coordinate-units">Argument slices and coordinate units</a></li>
 </ul>
 </li>
 </ul>

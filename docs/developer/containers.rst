@@ -21,7 +21,7 @@ Reset frees linked records but retains an empty container. Destroy additionally
 frees the container allocation, so it must not be used on embedded or stack
 storage. Reset/Destroy do not invoke destructors for external payloads.
 
-``Rbc_ChainAllocLink`` is a special case: it allocates aligned trailing storage
+:c:func:`Rbc_ChainAllocLink` is a special case: it allocates aligned trailing storage
 in the link allocation and points ``clientData`` there. Freeing that link also
 frees those inline bytes. Do not free that pointer separately. If the inline
 object owns other resources, release them before deleting/resetting the link.
@@ -37,7 +37,7 @@ contents. Reset/delete releases copied keys with the node, but does not free
 one-word key targets. Repeated keys are allowed and lookup returns the first
 match in current order.
 
-``Rbc_ListCreateNode`` allocates but does not insert a node. It nevertheless
+:c:func:`Rbc_ListCreateNode` allocates but does not insert a node. It nevertheless
 sets ``listPtr`` to the intended list so its key representation is known.
 This is a construction state, not ordinary detached state: calling unlink or
 delete before first insertion would incorrectly change the list count. Insert
@@ -45,7 +45,7 @@ it, or dispose of the never-inserted allocation directly with ``ckfree``.
 The Append/Prepend convenience functions perform creation and insertion together.
 
 After normal unlinking, ``listPtr`` is NULL. The node can then be freed with
-``Rbc_ListDeleteNode`` or relinked into a list with the same key representation.
+:c:func:`Rbc_ListDeleteNode` or relinked into a list with the same key representation.
 The ``Rbc_ListGetKey`` macro dereferences ``listPtr`` and therefore must not be
 used on an unlinked node. It is a convenience for string/one-word keys; code
 handling array keys must use the stored words with the known key type.
@@ -59,7 +59,7 @@ A NULL neighbor has deliberately asymmetric meaning: Before(NULL) appends,
 while After(NULL) prepends. The AppendLink/PrependLink and AppendNode/PrependNode
 macros express those conventions directly.
 
-Chain links do not store owner identity. ``Rbc_ChainUnlinkLink`` needs the actual
+Chain links do not store owner identity. :c:func:`Rbc_ChainUnlinkLink` needs the actual
 owning chain; passing another chain can corrupt both structures. Unlink clears
 neighbor pointers without freeing the link. Delete additionally releases it.
 List nodes store their owner after insertion, so unlink needs only the node.
@@ -94,11 +94,11 @@ these containers.
 Sorting and positional lookup
 -----------------------------
 
-``Rbc_ListGetNthNode`` uses a zero-based position, traversing from the head for
+:c:func:`Rbc_ListGetNthNode` uses a zero-based position, traversing from the head for
 positive direction and from the tail otherwise. Invalid positions or a NULL
 list return NULL. It does not cache an index.
 
-``Rbc_ListSort`` builds an array of node pointers, calls ``qsort`` and relinks
+:c:func:`Rbc_ListSort` builds an array of node pointers, calls ``qsort`` and relinks
 the same allocations. Saved node addresses remain valid, but neighbor/order
 assumptions do not. Its comparator receives pointers to node pointers and must
 not mutate membership or invoke reentrant code that does so. Sorting is not
@@ -107,7 +107,7 @@ the list unchanged without an error result; this void helper is not a promise
 that sorting succeeded under allocation pressure.
 
 See :doc:`container-reference` for selected lifecycle contracts. The historical
-``Rb_ListDeleteNodeByKey`` spelling remains unchanged; it removes only the first
+:c:func:`Rb_ListDeleteNodeByKey` spelling remains unchanged; it removes only the first
 matching node. These documentation changes do not rename private functions or
 alter container behavior.
 
@@ -150,7 +150,7 @@ All searches walk from the head and return the first match. Sorting or moving
 nodes can therefore change which duplicate is found without changing any key.
 Array keys are native-memory representations, not a portable byte encoding.
 Lookup returns a borrowed node; it adds no protection against deletion by a
-later callback. ``Rb_ListDeleteNodeByKey`` uses this same first-match rule.
+later callback. :c:func:`Rb_ListDeleteNodeByKey` uses this same first-match rule.
 
 Private key lookup contracts
 ----------------------------
@@ -165,3 +165,33 @@ not a conversion request.
 :c:func:`FreeNode` only releases the detached allocation and its inline key.
 It does not unlink a node, adjust a list count, or free the client payload or
 a one-word key target. Membership changes belong to the enclosing list API.
+
+Parameter contracts and construction states
+-------------------------------------------
+
+The parameter lists in :doc:`container-reference` distinguish caller-owned
+container storage from link/node allocations transferred by insertion. A
+payload pointer remains borrowed unless it points into the trailing allocation
+returned by :c:func:`Rbc_ChainAllocLink`.
+
+.. list-table:: Release the record in its current state
+   :header-rows: 1
+   :widths: 35 65
+
+   * - State
+     - Release or reuse
+   * - Fresh chain link, not inserted
+     - Insert it once, or release its allocation with ``ckfree``.
+   * - Fresh keyed node, not inserted
+     - Insert it once, or use ``ckfree``. Its preassigned owner is not proof of membership.
+   * - Linked record
+     - Use the matching chain/list unlink or delete operation.
+   * - Normally unlinked keyed node
+     - Relink with a compatible key representation, or call :c:func:`Rbc_ListDeleteNode`.
+   * - Stack or embedded container
+     - Use Reset; Destroy also frees container storage.
+
+A NULL neighbor is a position selector, not a missing dependency: LinkAfter
+with NULL prepends and LinkBefore with NULL appends. A non-NULL neighbor must
+belong to the specified destination. Neither interface searches for or repairs
+incorrect membership, and no insertion implicitly removes an existing one.

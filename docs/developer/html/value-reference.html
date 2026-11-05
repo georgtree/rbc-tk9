@@ -48,70 +48,166 @@
 <dt class="sig sig-object c" id="c.Rbc_GetPixels">
 <span class="target" id="rbc_int_8h_1a01ba708e564e13f68feb78560ed8a7b8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPixels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tk_Window</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPixels" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a Tk screen distance and validate its converted integer value. </p>
-<p>Borrow window/string. Apply PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE after Tk_GetPixels succeeds; these flags do not override Tk parser policy. Commit valuePtr only on success. Return Tcl status with an error diagnostic. </p>
+<p>Borrow window/string. Apply PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE after Tk_GetPixels succeeds; these flags do not override Tk parser policy. Commit valuePtr only on success. Return Tcl status with an error diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying screen-unit and resource context; no ownership is acquired. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated Tk screen-distance text. </p></li>
+<li><p><strong>check</strong> – <strong>[in]</strong> PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE, applied after successful Tk conversion. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required converted pixel output; unchanged on conversion or sign-check failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetPixelsFromObj">
 <span class="target" id="rbc_int_8h_1a1d3e04e09d09582bd45cf0af54cd6550"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPixelsFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPixelsFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse an object screen distance with the same checks as Rbc_GetPixels. </p>
-<p>Borrow object/window and use Tk_GetPixelsFromObj before RBC range checks. Only success assigns valuePtr; the object may acquire Tk conversion state. No expression evaluation or graph-axis conversion is performed here. </p>
+<p>Borrow object/window and use Tk_GetPixelsFromObj before RBC range checks. Only success assigns valuePtr; the object may acquire Tk conversion state. No expression evaluation or graph-axis conversion is performed here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying screen-unit and resource context; no ownership is acquired. </p></li>
+<li><p><strong>pixelsObj</strong> – <strong>[in]</strong> Borrowed non-NULL Tcl input object, kept valid by the caller; not retained here. </p></li>
+<li><p><strong>check</strong> – <strong>[in]</strong> PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE, applied after successful Tk conversion. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required converted pixel output; unchanged on conversion or sign-check failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetPadFromObj">
 <span class="target" id="rbc_int_8h_1a7c0c59ea9ecdc985bf2c06e6ff2df130"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPadFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Pad</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">padPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPadFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse one or two nonnegative screen distances into a staged padding value. </p>
-<p>One distance sets both sides; two preserve order. Borrow the Tcl list and window. Only assign padPtr after all conversions succeed; errors leave the previous padding unchanged. No resources are allocated into the result. </p>
+<p>One distance sets both sides; two preserve order. Borrow the Tcl list and window. Only assign padPtr after all conversions succeed; errors leave the previous padding unchanged. No resources are allocated into the result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying screen-unit and resource context; no ownership is acquired. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed non-NULL Tcl input object, kept valid by the caller; not retained here. </p></li>
+<li><p><strong>padPtr</strong> – <strong>[out]</strong> Required padding output; both sides are committed together only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetShadowFromObj">
 <span class="target" id="rbc_int_8h_1a888e1fc100dd8c2ded93ec85e6bbaa05"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetShadowFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Shadow</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetShadowFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a color and optional nonnegative pixel offset into an owned shadow. </p>
-<p>NULL or empty input yields no color and offset zero. A color alone defaults to offset one. Acquire a Tk color reference and release it on offset failure. Only success assigns shadowPtr. The caller must release any previous shadow separately and ultimately Tk_FreeColor the returned non-NULL color. </p>
+<p>NULL or empty input yields no color and offset zero. A color alone defaults to offset one. Acquire a Tk color reference and release it on offset failure. Only success assigns shadowPtr. The caller must release any previous shadow separately and ultimately Tk_FreeColor the returned non-NULL color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying screen-unit and resource context; no ownership is acquired. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed color/offset list, or NULL or empty to disable the shadow. </p></li>
+<li><p><strong>shadowPtr</strong> – <strong>[out]</strong> Required result receiving an owned Tk color reference on success; previous contents are not released. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetDashesFromObj">
 <span class="target" id="rbc_int_8h_1ac4f247a3db478ba2be09bf2b9c3f2f7a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetDashesFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetDashesFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse named or expression-valued dashes into a staged descriptor. </p>
-<p>NULL/empty input or the singleton zero yields solid lines. Named patterns are exact matches; lists have at most RBC_MAX_DASH_VALUES entries in 1..255. Evaluate list entries through Tcl_ExprLongObj, so arbitrary Tcl callbacks are possible. Commit only on success and reset the descriptor offset to zero. The helper does not preserve the owning component across those callbacks. </p>
+<p>NULL/empty input or the singleton zero yields solid lines. Named patterns are exact matches; lists have at most RBC_MAX_DASH_VALUES entries in 1..255. Evaluate list entries through Tcl_ExprLongObj, so arbitrary Tcl callbacks are possible. Commit only on success and reset the descriptor offset to zero. The helper does not preserve the owning component across those callbacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed pattern or expression-list object; NULL or empty selects solid lines. Caller keeps the input and destination valid across expression callbacks. </p></li>
+<li><p><strong>dashesPtr</strong> – <strong>[out]</strong> Required descriptor; changed only on success, with offset reset to zero. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetFillFromObj">
 <span class="target" id="rbc_int_8h_1a3507a06005734906d829296b15ad0fe7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetFillFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fillPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetFillFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a nonempty fill-name prefix into an integer mode. </p>
-<p>Accept none (also legacy no), x, y or both using case-sensitive prefix matching. Commit fillPtr only on success. This is directional fill selection, not the graph area-fill brush or uncertainty-band parser. </p>
+<p>Accept none (also legacy no), x, y or both using case-sensitive prefix matching. Commit fillPtr only on success. This is directional fill selection, not the graph area-fill brush or uncertainty-band parser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed non-NULL Tcl input object, kept valid by the caller; not retained here. </p></li>
+<li><p><strong>fillPtr</strong> – <strong>[out]</strong> Required FILL_* mode output; unchanged on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetStateFromObj">
 <span class="target" id="rbc_int_8h_1a22c1111c710c5695f00939af7800e4c3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetStateFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">statePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetStateFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse an exact normal, active or disabled state name. </p>
-<p>Borrow objPtr and commit statePtr only on success. Abbreviations and case variants are not accepted. Return TCL_ERROR with a diagnostic otherwise. </p>
+<p>Borrow objPtr and commit statePtr only on success. Abbreviations and case variants are not accepted. Return TCL_ERROR with a diagnostic otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed non-NULL Tcl input object, kept valid by the caller; not retained here. </p></li>
+<li><p><strong>statePtr</strong> – <strong>[out]</strong> Required STATE_NORMAL, STATE_ACTIVE or STATE_DISABLED output; unchanged on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetStringListFromObj">
 <span class="target" id="rbc_int_8h_1a8238a360b47f2bf941352631c14e76bb"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetStringListFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetStringListFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a Tcl list into one caller-owned pointer-and-string allocation. </p>
-<p>NULL input and an empty list yield NULL. Set listPtrPtr to NULL before parsing, including on failure; do not pass the sole owning field of an existing list unless its storage is managed separately. Release a nonempty result with one ckfree, never by freeing individual entries. Input strings are NUL-terminated. </p>
+<p>NULL input and an empty list yield NULL. Set listPtrPtr to NULL before parsing, including on failure; do not pass the sole owning field of an existing list unless its storage is managed separately. Release a nonempty result with one ckfree, never by freeing individual entries. Input strings are NUL-terminated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl list object, or NULL for an empty list; string bytes are copied. </p></li>
+<li><p><strong>listPtrPtr</strong> – <strong>[out]</strong> Required output cleared before parsing; receives one ckfree-owned pointer/string block for a nonempty list, not separate entry allocations. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetXY">
 <span class="target" id="rbc_int_8h_1aba2b853419ac0dc899ce3be540c90dea"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetXY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetXY" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse an optional &#64;x,y position using Tk screen-distance conversion. </p>
-<p>NULL/empty input succeeds with both outputs set to -SHRT_MAX. Otherwise copy the X substring without modifying the input and parse both components. Commit x/y only after both succeed. These are screen pixels, not graph coordinates; conversion errors append position context to the interpreter diagnostic. </p>
+<p>NULL/empty input succeeds with both outputs set to -SHRT_MAX. Otherwise copy the X substring without modifying the input and parse both components. Commit x/y only after both succeed. These are screen pixels, not graph coordinates; conversion errors append position context to the interpreter diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying screen-unit and resource context; no ownership is acquired. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> screen-position text; NULL or empty selects the unspecified-position sentinel. </p></li>
+<li><p><strong>x</strong> – <strong>[out]</strong> Required X pixel output; failure leaves it unchanged, empty input assigns -SHRT_MAX. </p></li>
+<li><p><strong>y</strong> – <strong>[out]</strong> Required distinct Y pixel output; committed with X only after both conversions succeed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ClampToInt">
 <span class="target" id="rbc_int_8h_1a9fe7e8ae56aa6f7b15e393c5b55a8d09"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ClampToInt</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ClampToInt" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Saturate an already-computed wide integer to INT_MIN..INT_MAX. </p>
-<p>Pure conversion with no interpreter state. Does not round floating values, check finiteness or impose widget-specific minimum sizes. </p>
+<p>Pure conversion with no interpreter state. Does not round floating values, check finiteness or impose widget-specific minimum sizes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Already-computed wide integer to saturate; this function does not protect earlier arithmetic from overflow. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="private-parsing-and-legacy-tk-adapters">

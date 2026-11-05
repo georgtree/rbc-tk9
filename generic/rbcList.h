@@ -56,12 +56,19 @@ struct Rbc_ListStruct {
  * free prior nodes or validate type. Use TCL_STRING_KEYS, TCL_ONE_WORD_KEYS or an
  * integer-array word count greater than TCL_ONE_WORD_KEYS. Reset a populated
  * list before reinitializing it.
+ *
+ * @param[in,out] list Required caller-owned record; initialization does not release existing nodes.
+ * @param[in] type TCL_STRING_KEYS, TCL_ONE_WORD_KEYS, or an int-array word count greater than
+ *   TCL_ONE_WORD_KEYS; not validated here.
  */
 void Rbc_ListInit(Rbc_List list, int type);
 /**
  * @brief Free linked nodes and copied keys while retaining the list key type.
  * Accepts NULL. Does not free clientData or objects denoted by one-word keys.
  * Nodes allocated but never inserted are not visited.
+ *
+ * @param[in,out] list Initialized list to clear, or NULL; retains the container and key type but frees linked
+ *   nodes.
  */
 void Rbc_ListReset(Rbc_List list);
 /**
@@ -70,6 +77,9 @@ void Rbc_ListReset(Rbc_List list);
  * Returns caller-owned Tcl-allocated storage, eventually released through
  * Rbc_ListDestroy. Type has the same preconditions as Rbc_ListInit and is not
  * validated here. Allocation exhaustion is not an interpreter error.
+ *
+ * @param[in] type TCL_STRING_KEYS, TCL_ONE_WORD_KEYS, or an int-array word count greater than
+ *   TCL_ONE_WORD_KEYS; not validated here.
  */
 Rbc_List Rbc_ListCreate(int type);
 /**
@@ -78,6 +88,9 @@ Rbc_List Rbc_ListCreate(int type);
  * Accepts NULL. Releases linked nodes and copied keys, then the list itself.
  * Does not free external payloads or one-word key targets. Do not pass stack or
  * embedded storage; use Rbc_ListReset for those records.
+ *
+ * @param[in,out] list Heap-allocated list to consume, or NULL; linked nodes and container storage become
+ *   invalid.
  */
 void Rbc_ListDestroy(Rbc_List list);
 /**
@@ -86,12 +99,19 @@ void Rbc_ListDestroy(Rbc_List list);
  * retain only the pointer value. Duplicate keys are permitted. The node already
  * records the intended list: insert it before using ListUnlinkNode/DeleteNode,
  * or free this never-inserted allocation directly with ckfree.
+ *
+ * @param[in] list Required initialized list supplying key type and initial owner identity; no node is inserted.
+ * @param[in] key Key matching the list type: readable NUL-terminated string, pointer-sized identity, or
+ *   readable native int array; only identity keys may be NULL.
  */
 Rbc_ListNode Rbc_ListCreateNode(Rbc_List list, const char *key);
 /**
  * @brief Unlink and free an inserted or previously unlinked node.
  * Copied key storage is freed with the record; external clientData and one-word
  * key targets are not freed. Never pass a newly created, never-inserted node.
+ *
+ * @param[in,out] node Required inserted or normally unlinked node to consume; never pass a newly created,
+ *   never-inserted node.
  */
 void Rbc_ListDeleteNode(Rbc_ListNode node);
 /**
@@ -101,6 +121,11 @@ void Rbc_ListDeleteNode(Rbc_ListNode node);
  * Copies string/array keys and stores one-word keys by value. Duplicate keys are
  * allowed. Returns the list-owned node; clientData is borrowed and unchanged.
  * Allocation, invalid key type and count overflow use fatal allocation/panic paths.
+ *
+ * @param[in,out] list Required initialized destination list; owns the new node on return.
+ * @param[in] key Key matching the list type: readable NUL-terminated string, pointer-sized identity, or
+ *   readable native int array; only identity keys may be NULL.
+ * @param[in] clientData Borrowed payload pointer, possibly NULL; no retention or destructor is installed.
  */
 Rbc_ListNode Rbc_ListAppend(Rbc_List list, const char *key, ClientData clientData);
 /**
@@ -109,6 +134,11 @@ Rbc_ListNode Rbc_ListAppend(Rbc_List list, const char *key, ClientData clientDat
  * Uses the same key-copy and payload-ownership rules as Rbc_ListAppend.
  * Duplicate keys are allowed and the new node becomes the first matching node
  * for lookup. Requires a valid list/key; returns a list-owned record.
+ *
+ * @param[in,out] list Required initialized destination list; owns the new node on return.
+ * @param[in] key Key matching the list type: readable NUL-terminated string, pointer-sized identity, or
+ *   readable native int array; only identity keys may be NULL.
+ * @param[in] clientData Borrowed payload pointer, possibly NULL; no retention or destructor is installed.
  */
 Rbc_ListNode Rbc_ListPrepend(Rbc_List list, const char *key, ClientData clientData);
 /**
@@ -119,6 +149,10 @@ Rbc_ListNode Rbc_ListPrepend(Rbc_List list, const char *key, ClientData clientDa
  * must belong to that list; an already inserted node must first be unlinked.
  * Sets the node owner, neighbors, endpoints and count without allocation or
  * callbacks. Count overflow panics; no membership or key-type check is performed.
+ *
+ * @param[in,out] list Required initialized destination with a key type matching the node allocation.
+ * @param[in,out] node Newly created or normally unlinked node with NULL neighbors; destination takes ownership.
+ * @param[in] afterNode Borrowed neighbor in the destination list, or NULL to prepend.
  */
 void Rbc_ListLinkAfter(Rbc_List list, Rbc_ListNode node, Rbc_ListNode afterNode);
 /**
@@ -128,6 +162,10 @@ void Rbc_ListLinkAfter(Rbc_List list, Rbc_ListNode node, Rbc_ListNode afterNode)
  * as Rbc_ListLinkAfter. Does not unlink prior membership or validate the neighbor.
  * Sets owner and links, increments count, and panics on count overflow. Node
  * payload and copied-key storage remain unchanged.
+ *
+ * @param[in,out] list Required initialized destination with a key type matching the node allocation.
+ * @param[in,out] node Newly created or normally unlinked node with NULL neighbors; destination takes ownership.
+ * @param[in] beforeNode Borrowed neighbor in the destination list, or NULL to append.
  */
 void Rbc_ListLinkBefore(Rbc_List list, Rbc_ListNode node, Rbc_ListNode beforeNode);
 /**
@@ -135,12 +173,19 @@ void Rbc_ListLinkBefore(Rbc_List list, Rbc_ListNode node, Rbc_ListNode beforeNod
  * Clears owner, next and previous pointers. A previously unlinked node is a
  * no-op, but a newly created, never-inserted node is not valid input: its owner
  * field is already set although the list count does not include it.
+ *
+ * @param[in,out] node Required inserted or normally unlinked node; clears membership without freeing it.
+ *   Never-inserted nodes are invalid.
  */
 void Rbc_ListUnlinkNode(Rbc_ListNode node);
 /**
  * @brief Return the borrowed first node matching a key, or NULL.
  * Searches linearly in list order; duplicate keys are not rejected. A NULL
  * list returns NULL. The node remains owned by its container/caller.
+ *
+ * @param[in] list Initialized list, or NULL for no match; membership is unchanged.
+ * @param[in] key Key matching the list type: readable NUL-terminated string, pointer-sized identity, or
+ *   readable native int array; only identity keys may be NULL.
  */
 Rbc_ListNode Rbc_ListGetNode(Rbc_List list, const char *key);
 /**
@@ -149,6 +194,10 @@ Rbc_ListNode Rbc_ListGetNode(Rbc_List list, const char *key);
  * A NULL list or absent key is a no-op. Otherwise unlinks and frees the node
  * and copied key, leaving clientData and one-word key targets owned by the caller.
  * Uses the historical Rb_ spelling. Does not call a payload destructor.
+ *
+ * @param[in,out] list Initialized list, or NULL for no match; the first matching node is removed and freed.
+ * @param[in] key Key matching the list type: readable NUL-terminated string, pointer-sized identity, or
+ *   readable native int array; only identity keys may be NULL.
  */
 void Rb_ListDeleteNodeByKey(Rbc_List list, const char *key);
 /**
@@ -157,6 +206,10 @@ void Rb_ListDeleteNodeByKey(Rbc_List list, const char *key);
  * Traverses from head when direction is positive, from tail otherwise.
  * Returns NULL for a NULL list, negative position or position at/above length.
  * Linear traversal does not mutate the list or retain the returned record.
+ *
+ * @param[in] list Borrowed initialized list, or NULL to return NULL.
+ * @param[in] position Zero-based traversal position; negative or out-of-range values return NULL.
+ * @param[in] direction Positive starts at the head; zero or negative starts at the tail.
  */
 Rbc_ListNode Rbc_ListGetNthNode(Rbc_List list, Tcl_Size position, int direction);
 /**
@@ -165,6 +218,11 @@ Rbc_ListNode Rbc_ListGetNthNode(Rbc_List list, Tcl_Size position, int direction)
  * list, delete nodes or reenter code that does so. Equal-key ordering is not
  * stable. NULL/short lists are unchanged; scratch-allocation failure silently
  * leaves the list unchanged. Payload ownership is unaffected.
+ *
+ * @param[in,out] list Initialized list to reorder, or NULL; NULL and lists shorter than two nodes are
+ *   unchanged.
+ * @param[in] proc Comparator receiving pointers to node pointers; required for a nontrivial sort and must not
+ *   mutate or destroy list state.
  */
 void Rbc_ListSort(Rbc_List list, Rbc_ListCompareProc *proc);
 

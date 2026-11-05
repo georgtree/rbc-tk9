@@ -48,21 +48,58 @@
 <dt class="sig sig-object c" id="c.Rbc_AdjustViewport">
 <span class="target" id="rbc_int_8h_1aefdeccf457bf8d8b6f75d49264d8dc8b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AdjustViewport</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">worldSize</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">windowSize</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scrollUnits</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scrollMode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AdjustViewport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clamp an integer offset according to the selected legacy scroll mode. </p>
-<p>Caller supplies meaningful nonnegative world/window sizes and positive unit size. Canvas mode permits negative offsets when the world is smaller than the window; listbox permits trailing blank space; hierbox clamps to zero when the world fits. Unknown modes leave the offset unchanged. Arithmetic uses wide intermediates and saturates the returned int; no state is mutated. </p>
+<p>Caller supplies meaningful nonnegative world/window sizes and positive unit size. Canvas mode permits negative offsets when the world is smaller than the window; listbox permits trailing blank space; hierbox clamps to zero when the world fits. Unknown modes leave the offset unchanged. Arithmetic uses wide intermediates and saturates the returned int; no state is mutated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>offset</strong> – <strong>[in]</strong> Requested pixel offset to clamp; negative values are meaningful for some canvas layouts. </p></li>
+<li><p><strong>worldSize</strong> – <strong>[in]</strong> Nonnegative total content extent in pixels, supplied by the caller. </p></li>
+<li><p><strong>windowSize</strong> – <strong>[in]</strong> Nonnegative visible extent in pixels, supplied by the caller. </p></li>
+<li><p><strong>scrollUnits</strong> – <strong>[in]</strong> Positive pixel distance per scroll unit. </p></li>
+<li><p><strong>scrollMode</strong> – <strong>[in]</strong> RBC_SCROLL_MODE_CANVAS, RBC_SCROLL_MODE_LISTBOX or RBC_SCROLL_MODE_HIERBOX; unknown modes leave the computed offset unclamped. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ParseScrollRequest">
-<span class="target" id="rbc_int_8h_1ae79b6103507a4e946060bbaca09398e3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ParseScrollRequest</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="n"><span class="pre">Rbc_ScrollRequest</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ParseScrollRequest" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1ae0e815ada5b074a0811125aff1e598e8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ParseScrollRequest</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">legacy</span></span>, <span class="n"><span class="pre">Rbc_ScrollRequest</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">request</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ParseScrollRequest" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a finite double-valued scroll request without moving a viewport. </p>
-<p>Requires a valid argument array, 0 &lt;= first &lt;= objc, and a non-NULL output. Queries are handled by callers. Legacy mode allows nonempty abbreviations and one numeric unit count; strict mode requires exact Tk-style words. Returns TCL_OK and assigns the complete request, or TCL_ERROR with a Tcl diagnostic and the output unchanged. Fractions and counts are not clamped. </p>
+<p>Requires a valid argument array, 0 &lt;= first &lt;= objc, and a non-NULL output. Queries are handled by callers. Legacy mode allows nonempty abbreviations and one numeric unit count; strict mode requires exact Tk-style words. Returns TCL_OK and assigns the complete request, or TCL_ERROR with a Tcl diagnostic and the output unchanged. Fractions and counts are not clamped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Total number of accessible objv entries. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full argument vector; requests start at first, earlier entries supply usage context. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>first</strong> – <strong>[in]</strong> Request start index, with 0 &lt;= first &lt;= objc; an empty suffix reports usage rather than querying. </p></li>
+<li><p><strong>legacy</strong> – <strong>[in]</strong> Nonzero accepts nonempty abbreviations and a single numeric unit count; zero requires exact command words. </p></li>
+<li><p><strong>request</strong> – <strong>[out]</strong> Required kind/value record, assigned only on success; finite values are not clamped to a viewport. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetScrollInfoFromObj">
 <span class="target" id="rbc_int_8h_1a1e6d6781ed1e9f1a31c24c185d29d404"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetScrollInfoFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsetPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">worldSize</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">windowSize</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scrollUnits</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scrollMode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetScrollInfoFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse legacy integer scrolling and update a caller-owned pixel offset. </p>
-<p>Unit/page counts are integers; moveto accepts a finite double fraction. A page is 90 percent of windowSize. Delta truncation precedes addition, with saturation before AdjustViewport applies mode bounds. On TCL_ERROR the offset is unchanged; some malformed-arity paths do not set a diagnostic. This is separate from the double-valued axis/track request parser. </p>
+<p>Unit/page counts are integers; moveto accepts a finite double fraction. A page is 90 percent of windowSize. Delta truncation precedes addition, with saturation before AdjustViewport applies mode bounds. On TCL_ERROR the offset is unchanged; some malformed-arity paths do not set a diagnostic. This is separate from the double-valued axis/track request parser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Count of request objects only; standard scroll/moveto forms enforce their arity. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed request slice starting with scroll, moveto or a numeric count; NULL is rejected. </p></li>
+<li><p><strong>offsetPtr</strong> – <strong>[inout]</strong> Required current pixel offset; replaced with the saturated, mode-adjusted result only on success. </p></li>
+<li><p><strong>worldSize</strong> – <strong>[in]</strong> Nonnegative total content extent in pixels, supplied by the caller. </p></li>
+<li><p><strong>windowSize</strong> – <strong>[in]</strong> Nonnegative visible extent in pixels, supplied by the caller. </p></li>
+<li><p><strong>scrollUnits</strong> – <strong>[in]</strong> Positive pixel distance per scroll unit. </p></li>
+<li><p><strong>scrollMode</strong> – <strong>[in]</strong> RBC_SCROLL_MODE_CANVAS, RBC_SCROLL_MODE_LISTBOX or RBC_SCROLL_MODE_HIERBOX; unknown modes leave the computed offset unclamped. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <p>Track-local axis scrolling is documented as

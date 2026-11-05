@@ -41,7 +41,7 @@ parsers stage local values, but their output and resource rules differ.
 Screen units and staged values
 ------------------------------
 
-Rbc_GetPixels and Rbc_GetPixelsFromObj delegate unit conversion and rounding to
+:c:func:`Rbc_GetPixels` and :c:func:`Rbc_GetPixelsFromObj` delegate unit conversion and rounding to
 Tk before applying PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE. ANY skips
 RBC's extra sign restriction; it does not force Tk to accept input rejected by
 its own parser. The helpers do not evaluate Tcl expressions or map graph axes.
@@ -50,7 +50,7 @@ including TK_OPTION_NEG_OK compatibility across Tk versions.
 
 Padding uses one distance for both sides or two in their supplied order. It
 stages the complete Rbc_Pad, so failure on the second value keeps the old result.
-Rbc_GetXY copies the X substring instead of modifying the caller's string. Its
+:c:func:`Rbc_GetXY` copies the X substring instead of modifying the caller's string. Its
 NULL/empty input returns -SHRT_MAX for both coordinates. Otherwise it parses
 both Tk distances and only then commits; these are not graph data coordinates.
 
@@ -76,7 +76,7 @@ or borrowed list-element array across arbitrary callbacks. Callers must audit
 that lifetime boundary separately; this chapter does not claim those paths
 are reentrant merely because option rollback exists.
 
-Applying the descriptor to a GC is another operation, Rbc_SetDashes; see
+Applying the descriptor to a GC is another operation, :c:func:`Rbc_SetDashes`; see
 :doc:`window-services`. Screen and document backends still own their respective
 dash encoding and phase conventions.
 
@@ -88,7 +88,7 @@ for none. State parsing intentionally accepts only complete exact names. Neither
 should be silently replaced with the other's matching policy. Directional fill
 selection is also distinct from graph area fills in :doc:`fills`.
 
-Rbc_GetStringListFromObj converts through the object's string representation
+:c:func:`Rbc_GetStringListFromObj` converts through the object's string representation
 and Tcl_SplitList. The result is a single block containing the pointer array
 and characters, freed once with ckfree. NULL input and empty lists produce NULL.
 The destination pointer is cleared before parsing, even on failure. Parse into
@@ -112,7 +112,7 @@ ABS, FABS, MIN/MAX and related macros can evaluate arguments repeatedly; avoid
 side-effecting arguments. Signed ABS also cannot represent the magnitude of
 the most negative integer in the same type.
 
-Rbc_ClampToInt is the safe saturating boundary for an already-computed
+:c:func:`Rbc_ClampToInt` is the safe saturating boundary for an already-computed
 Tcl_WideInt. It does not protect arithmetic that overflowed before the call,
 round doubles or enforce widget-specific minimum dimensions. Keep these three
 steps separate: validate input, compute in an adequate type, then narrow with
@@ -153,7 +153,7 @@ sign policy encoded in client data and commits only a converted integer.
 ``StringToShadow`` stages a color and optional offset, then releases the old
 color itself. ``StringToColorPair`` similarly stages the complete pair before
 releasing the old fields. These replacement callbacks are distinct from
-``Rbc_GetShadowFromObj`` and ``GetColorPair``, whose successful outputs transfer
+:c:func:`Rbc_GetShadowFromObj` and ``GetColorPair``, whose successful outputs transfer
 resources without disposing of the previous destination.
 
 NULL/empty shadow input clears both fields. A nonempty shadow list requires
@@ -193,3 +193,19 @@ The private parser reference also records the smaller matching boundaries:
 applies only a sign restriction, and ``GetState`` requires exact names.
 ``GetStringList`` clears its output before parsing, so its failure behavior
 must not be mistaken for the staged replacement behavior of these adapters.
+
+Output parameters are not interchangeable
+-----------------------------------------
+
+Parameter directions describe where data is written, not whether a previous
+resource is released. :c:func:`Rbc_GetShadowFromObj` transfers a new color
+reference only on success; the caller separately owns replacement of any old
+shadow. :c:func:`Rbc_GetStringListFromObj` instead clears its output before
+parsing, including failure, so that output must not be the sole untracked owner
+of an existing allocation.
+
+:c:func:`Rbc_GetDashesFromObj` stages the descriptor but can evaluate Tcl while
+converting entries. The caller must keep both the input objects and destination
+storage valid across those callbacks. A successful scalar parse alone does not
+prove that a widget or component still exists; see :doc:`configuration` for the
+surrounding transaction and callback checks.

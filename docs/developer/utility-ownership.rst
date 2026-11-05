@@ -9,9 +9,9 @@ See :doc:`utility-reference` for the selected C declarations.
 Allocation and failure policy
 -----------------------------
 
-RbcCalloc checks the multiplication of element count and element size against
+:c:func:`RbcCalloc` checks the multiplication of element count and element size against
 SIZE_MAX. Overflow invokes Tcl_Panic. A zero logical size still allocates and
-zeros one byte, retaining ckalloc-style non-NULL behavior. RbcStrdup copies a
+zeros one byte, retaining ckalloc-style non-NULL behavior. :c:func:`RbcStrdup` copies a
 non-NULL NUL-terminated string, including its terminator. Both use Tcl allocation
 and return storage to release with ckfree, not libc free.
 
@@ -28,35 +28,35 @@ to compute a count was safe; callers own those calculations.
    * - Result
      - Ownership and lifetime
      - Release/copy rule
-   * - RbcCalloc / RbcStrdup
+   * - :c:func:`RbcCalloc` / :c:func:`RbcStrdup`
      - New allocation owned by caller
      - ckfree
-   * - Rbc_GetUid
+   * - :c:func:`Rbc_GetUid`
      - One reference to shared immutable characters
-     - Rbc_FreeUid once per acquisition
-   * - Rbc_FindUid
+     - :c:func:`Rbc_FreeUid` once per acquisition
+   * - :c:func:`Rbc_FindUid`
      - Borrowed existing key, no new reference
      - Acquire separately if it must outlive its owner
-   * - Rbc_Itoa / Rbc_Utoa / Rbc_Dtoa
+   * - :c:func:`Rbc_Itoa` / :c:func:`Rbc_Utoa` / :c:func:`Rbc_Dtoa`
      - One shared process-static scratch buffer
      - Copy immediately if it must be retained
-   * - Rbc_GetStringListFromObj
+   * - :c:func:`Rbc_GetStringListFromObj`
      - One allocation containing pointers and characters
      - One ckfree of the block
 
 UID table
 ---------
 
-Rbc_GetUid lazily initializes a process-static Tcl hash table keyed by string
+:c:func:`Rbc_GetUid` lazily initializes a process-static Tcl hash table keyed by string
 contents. It increments the entry count and returns the table's key pointer.
-Equal names share identity while references remain. Rbc_FreeUid decrements the
+Equal names share identity while references remain. :c:func:`Rbc_FreeUid` decrements the
 count and deletes the entry at zero. The historical Rbc_Uid typedef is mutable,
 but callers must not modify hash-key characters or release them directly.
 
-Rbc_FindUid returns the same pointer without incrementing its count. It is not
+:c:func:`Rbc_FindUid` returns the same pointer without incrementing its count. It is not
 an acquisition. Retaining its result after the last owner releases the UID is
 invalid, even if the characters previously matched another string. An unknown
-still-valid string passed to Rbc_FreeUid produces a stderr diagnostic; this is
+still-valid string passed to :c:func:`Rbc_FreeUid` produces a stderr diagnostic; this is
 not protection against NULL, stale or already-freed pointers.
 
 The table is not interpreter-associated and has no synchronization or teardown
@@ -74,29 +74,29 @@ calls as arguments of one function does not produce two independent strings;
 argument evaluation order cannot make that safe. Copy or append one result
 before requesting the next. These helpers have no thread synchronization.
 
-Rbc_AppendResultStrings duplicates the current Tcl result object, appends raw
+:c:func:`Rbc_AppendResultStrings` duplicates the current Tcl result object, appends raw
 NUL-terminated fragments and installs the completed duplicate. It preserves
 shared original objects, but does not quote list elements, retain binary data
 past NUL, or set errorCode/errorInfo. Its varargs terminate with a NULL string
-pointer. Rbc_DStringAppendElements instead appends each argument through Tcl's
+pointer. :c:func:`Rbc_DStringAppendElements` instead appends each argument through Tcl's
 list-element quoting API. It borrows an initialized DString; the caller remains
 responsible for freeing it. Neither helper is an arbitrary Tcl evaluator.
 
 Other utility boundaries
 ------------------------
 
-Rbc_InitHexTable initializes only the hexadecimal digit entries. Callers must
+:c:func:`Rbc_InitHexTable` initializes only the hexadecimal digit entries. Callers must
 initialize the remaining slots to their desired invalid-digit sentinel; the
 helper neither clears the table nor maintains an initialization flag.
 
-Rbc_RandomDouble consumes the C library rand state and divides by RAND_MAX + 1,
+:c:func:`Rbc_RandomDouble` consumes the C library rand state and divides by RAND_MAX + 1,
 producing values from zero inclusive to one exclusive. It does not seed a
 per-interpreter generator, promise identical sequences across C libraries or
 provide a cryptographic random source.
 
 The same module contains legacy byte-case fallback routines, dictionary
 comparison and stdio filename conversion. They are not unified Unicode string
-or Tcl-channel abstractions. In particular, Rbc_OpenUtfFile converts a name to
+or Tcl-channel abstractions. In particular, :c:func:`Rbc_OpenUtfFile` converts a name to
 the default external encoding and uses fopen; it is not Tcl filesystem/VFS
 access. Their presence does not change the ownership rules above.
 
@@ -113,7 +113,7 @@ utility changes.
 Dictionary ordering and fatal diagnostics
 -----------------------------------------
 
-Rbc_DictionaryCompare handles decimal runs without first converting them to
+:c:func:`Rbc_DictionaryCompare` handles decimal runs without first converting them to
 machine integers. Thus ``x9`` precedes ``x10`` even when runs exceed an integer
 value's range. Commas encountered while advancing digit runs are skipped by
 the legacy algorithm; this is not a general numeric parser. Leading zeros and
@@ -128,12 +128,12 @@ parameter types. Consumers should test the sign of the result, not expect
 exact values of minus one or plus one. This comparator is different from the
 conditional byte-oriented strcasecmp fallback in the same module.
 
-Rbc_OpenUtfFile owns only its temporary encoding-conversion buffer. A
+:c:func:`Rbc_OpenUtfFile` owns only its temporary encoding-conversion buffer. A
 successful FILE stream belongs to its caller and must be closed with fclose;
 NULL reports stdio failure, without a Tcl interpreter result. This helper
 cannot substitute for Tcl filesystem operations on virtual paths.
 
-Rbc_Assert and Rbc_Panic are process-fatal diagnostics. They flush stderr and
+:c:func:`Rbc_Assert` and :c:func:`Rbc_Panic` are process-fatal diagnostics. They flush stderr and
 abort, rather than returning TCL_ERROR or invoking the ordinary ownership
 cleanup paths. The assertion function is compiled only in non-NDEBUG builds.
 Do not use either for expected malformed user input; that belongs in a

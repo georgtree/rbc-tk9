@@ -784,7 +784,10 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <section id="graph-options-and-document-assembly">
 <h2>Graph options and document assembly<a class="headerlink" href="#graph-options-and-document-assembly" title="Link to this heading">¶</a></h2>
 <p>These contracts describe the shared graph-facing command layer in
-<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>. Windows binary preview packaging is separate from this group.</p>
+<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>. The parameter lists distinguish full command vectors from option slices and
+borrowed output buffers from owned component state. Windows binary preview
+packaging has its source-level contract on <code class="docutils literal notranslate"><span class="pre">CreateWindowsEPS</span></code> and its
+platform behavior described in <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__graph__postscript"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Graph</span> <span class="pre">PostScript</span> <span class="pre">command</span> <span class="pre">internals</span></span></dt>
@@ -800,112 +803,287 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.IsOptionPrefix">
 <span class="target" id="group__graph__postscript_1ga11ca7d3dfaa3dfacaa1b14ee8ffd3f58"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsOptionPrefix</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fullName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.IsOptionPrefix" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Match a nonempty, case-sensitive prefix of an option value. </p>
-<p>Borrows both strings. The supplied length must describe readable string storage; lengths beyond fullName are rejected before comparison. Returns a boolean without changing the interpreter or either string. </p>
+<p>Borrows both strings. The supplied length must describe readable string storage; lengths beyond fullName are rejected before comparison. Returns a boolean without changing the interpreter or either string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed candidate bytes, readable for length bytes. </p></li>
+<li><p><strong>length</strong> – <strong>[in]</strong> Candidate byte count; nonpositive lengths never match. </p></li>
+<li><p><strong>fullName</strong> – <strong>[in]</strong> Borrowed NUL-terminated full option spelling. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.GetColorModeFromObj">
 <span class="target" id="group__graph__postscript_1ga57d2a93d29bb20cdda8a3c9c722d74ef"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetColorModeFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">PsColorMode</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">modePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.GetColorModeFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a color level without changing the destination on failure. </p>
-<p>Accepts nonempty prefixes of color, grayscale, greyscale and monochrome. Borrows objPtr and writes modePtr only on TCL_OK; TCL_ERROR leaves a diagnostic in interp. Does not retain the object. </p>
+<p>Accepts nonempty prefixes of color, grayscale, greyscale and monochrome. Borrows objPtr and writes modePtr only on TCL_OK; TCL_ERROR leaves a diagnostic in interp. Does not retain the object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving conversion errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option object; not retained. </p></li>
+<li><p><strong>modePtr</strong> – <strong>[out]</strong> Required result storage; unchanged on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.GetPreviewFormatFromObj">
 <span class="target" id="group__graph__postscript_1ga304354caacdc098934e5a5bbb24fc9e4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPreviewFormatFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">formatPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.GetPreviewFormatFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a preview format supported by this build. </p>
-<p>EPSI is available everywhere and WMF on Windows. Accepts nonempty prefixes. Writes formatPtr only on TCL_OK; TCL_ERROR reports the build-specific choices in interp. TIFF has no encoder and is rejected regardless of HAVE_TIFF_H. </p>
+<p>EPSI is available everywhere and WMF on Windows. Accepts nonempty prefixes. Writes formatPtr only on TCL_OK; TCL_ERROR reports the build-specific choices in interp. TIFF has no encoder and is rejected regardless of HAVE_TIFF_H.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving unsupported-format errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed preview-format object; not retained. </p></li>
+<li><p><strong>formatPtr</strong> – <strong>[out]</strong> Required result storage; changed only on TCL_OK. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.ConfigurePostScript">
 <span class="target" id="group__graph__postscript_1ga9ad977a4691d29fb93ba3553d6033878"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PostScript</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ConfigurePostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate changed option objects before committing derived fields. </p>
-<p>Borrows the graph and its PostScript record. Converts only mask-selected dimensions, padding, color mode and preview format into local values. Plot dimensions may be zero; paper dimensions must be positive. On TCL_ERROR no derived field is committed. This does not restore the Tk option objects themselves; SetPostScriptOptions handles that rollback. </p>
+<p>Borrows the graph and its PostScript record. Converts only mask-selected dimensions, padding, color mode and preview format into local values. Plot dimensions may be zero; paper dimensions must be positive. On TCL_ERROR no derived field is committed. This does not restore the Tk option objects themselves; SetPostScriptOptions handles that rollback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph providing interpreter and Tk distance-conversion context. </p></li>
+<li><p><strong>psPtr</strong> – <strong>[inout]</strong> Initialized component; selected derived fields commit together after validation. </p></li>
+<li><p><strong>mask</strong> – <strong>[in]</strong> PS_*_CHANGED bits selecting conversions; unselected derived values are retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.SetPostScriptOptions">
 <span class="target" id="group__graph__postscript_1gaed7fc6c960dbe3abbcdbbae15fe9a2eb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPostScriptOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PostScript</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tk_SavedOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">savedOptionsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.SetPostScriptOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply Tk options and validate their derived PostScript values. </p>
-<p>Requires initialized component options and caller-provided saved-options and mask storage. Returns TCL_ERROR on Tk or conversion failure; derived conversion failure restores saved Tk options while preserving the error. On TCL_OK the caller must release saved options with Tk_FreeSavedOptions. Successful settings belong to the component, not a temporary export. </p>
+<p>Requires initialized component options and caller-provided saved-options and mask storage. Returns TCL_ERROR on Tk or conversion failure; derived conversion failure restores saved Tk options while preserving the error. On TCL_OK the caller must release saved options with Tk_FreeSavedOptions. Successful settings belong to the component, not a temporary export.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph providing the interpreter and live Tk configuration context. </p></li>
+<li><p><strong>psPtr</strong> – <strong>[inout]</strong> Initialized component receiving persistent option values. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of objects in the option/value slice, not the full widget command. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed option/value slice; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for object lifetime. </p></li>
+<li><p><strong>savedOptionsPtr</strong> – <strong>[out]</strong> Required Tk saved-options storage; caller frees it after TCL_OK. </p></li>
+<li><p><strong>maskPtr</strong> – <strong>[out]</strong> Required storage for Tk changed-option bits; not a success indicator. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.Rbc_DestroyPostScript">
 <span class="target" id="group__graph__postscript_1gae19c9c2ad0dc425be6fda373142b9f0c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_DestroyPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach and release the graph-owned PostScript option record. </p>
-<p>A NULL graph-&gt;postscript is a no-op. Otherwise clears that pointer before freeing Tk configuration resources, deleting the option table and freeing the record. Requires the graph and Tk option context to remain valid; does not destroy the graph, its window or an independently owned token. </p>
+<p>A NULL graph-&gt;postscript is a no-op. Otherwise clears that pointer before freeing Tk configuration resources, deleting the option table and freeing the record. Requires the graph and Tk option context to remain valid; does not destroy the graph, its window or an independently owned token.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Graph whose component is detached and freed; a NULL component is allowed, a NULL graph is not. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.CgetOp">
 <span class="target" id="group__graph__postscript_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.CgetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return one PostScript option value through the Tcl result. </p>
-<p>Requires dispatch-validated arguments with the option at objv[3]. Borrows the component and arguments. Returns TCL_OK with the Tk option value or TCL_ERROR with the lookup diagnostic; does not configure or render. </p>
+<p>Requires dispatch-validated arguments with the option at objv[3]. Borrows the component and arguments. Returns TCL_OK with the Tk option value or TCL_ERROR with the lookup diagnostic; does not configure or render.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Exactly four full-command objects; option name is objv[3]. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.ConfigureOp">
 <span class="target" id="group__graph__postscript_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or update the persistent PostScript component options. </p>
-<p>With three words returns all option descriptions; with four returns one. Otherwise applies option/value pairs transactionally and frees saved options on success. Returns the Tk query or configuration status. Does not emit a document or open a destination file. </p>
+<p>With three words returns all option descriptions; with four returns one. Otherwise applies option/value pairs transactionally and frees saved options on success. Returns the Tk query or configuration status. Does not emit a document or open a destination file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Full-command count: three lists all options, four queries one, otherwise option/value pairs follow objv[2]. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.PostScriptLayoutSize">
 <span class="target" id="group__graph__postscript_1ga47b54bdf0a6cfd675b7345a022e83a5d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptLayoutSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.PostScriptLayoutSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clamp a wide layout size to the positive int range. </p>
-<p>Returns at least one and at most INT_MAX, represented as Tcl_WideInt. Used before narrowing page and plot dimensions; has no side effects. </p>
+<p>Returns at least one and at most INT_MAX, represented as Tcl_WideInt. Used before narrowing page and plot dimensions; has no side effects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Wide intermediate pixel size, including zero or negative values. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.ComputeBoundingBox">
 <span class="target" id="group__graph__postscript_1ga15682a04cfea56f8f2581f42174e1ddc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeBoundingBox</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PostScript</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ComputeBoundingBox" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute page bounds and lay out the graph at export dimensions. </p>
-<p>Uses requested plot dimensions when positive, exchanges oriented extents for landscape, and fits within paper minus padding. Maxpect also permits enlargement. Stores pageScale and inclusive bounds in psPtr; centering replaces the initial padding origin when paper is larger than the plot. Wide arithmetic and clamping bound intermediate layout sizes. Sets layout and mapping flags, invokes Rbc_LayoutGraph, and returns paper height in pixels or -1 on layout failure. The caller must restore screen geometry through the export lifecycle; this function does not save it. </p>
+<p>Uses requested plot dimensions when positive, exchanges oriented extents for landscape, and fits within paper minus padding. Maxpect also permits enlargement. Stores pageScale and inclusive bounds in psPtr; centering replaces the initial padding origin when paper is larger than the plot. Wide arithmetic and clamping bound intermediate layout sizes. Sets layout and mapping flags, invokes Rbc_LayoutGraph, and returns paper height in pixels or -1 on layout failure. The caller must restore screen geometry through the export lifecycle; this function does not save it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph whose export dimensions, flags and mapped layout are changed. </p></li>
+<li><p><strong>psPtr</strong> – <strong>[inout]</strong> Component supplying page settings and receiving scale and inclusive pixel bounds. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.PreviewImage">
 <span class="target" id="group__graph__postscript_1ga6c042a64a87ff50fe6d6e6658fdc7640"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PreviewImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.PreviewImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an eight-bit grayscale EPSI preview from a native snapshot. </p>
-<p>Borrows the graph and token. Owns and frees the temporary pixmap, captured color image and encoding DString. Drawing may run callbacks; invalidation is checked before capture. Capture failure silently omits the preview. THUMBNAIL_PREVIEW enables optional resampling; otherwise uses the export layout size. Landscape rotates the grayscale image by 90 degrees. The caller checks graph validity again because this void helper has no status. </p>
+<p>Borrows the graph and token. Owns and frees the temporary pixmap, captured color image and encoding DString. Drawing may run callbacks; invalidation is checked before capture. Capture failure silently omits the preview. THUMBNAIL_PREVIEW enables optional resampling; otherwise uses the export layout size. Landscape rotates the grayscale image by 90 degrees. The caller checks graph validity again because this void helper has no status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed, caller-protected graph at export layout dimensions; drawing may invoke callbacks. </p></li>
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Borrowed output token receiving EPSI comments; remains owned by the caller. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.PostScriptPreamble">
 <span class="target" id="group__graph__postscript_1ga0b2bb9aa12d1465aaf2bb1afd1676f9e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPreamble</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.PostScriptPreamble" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Lay out the export and append EPS metadata, prolog and transforms. </p>
-<p>Borrows fileName (NULL selects the widget path) and psToken. Returns TCL_ERROR on layout failure, preview invalidation or prolog load failure. Converts display pixels to points using screen pixel/mm dimensions, escapes metadata strings, optionally appends EPSI, loads rbcGraph.pro, then emits any footer and establishes page orientation and scaling. Reads rbc_version through Tcl, so variable traces are possible. Partial output remains in the token on failure; the enclosing operation owns graph lifetime protection and export cleanup. </p>
+<p>Borrows fileName (NULL selects the widget path) and psToken. Returns TCL_ERROR on layout failure, preview invalidation or prolog load failure. Converts display pixels to points using screen pixel/mm dimensions, escapes metadata strings, optionally appends EPSI, loads rbcGraph.pro, then emits any footer and establishes page orientation and scaling. Reads rbc_version and the prolog library path through Tcl, so variable traces are possible. Checks graph validity after successful callback-capable reads before resuming component access. Partial output remains in the token on failure; the enclosing operation owns graph lifetime protection and export cleanup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Caller-protected graph with initialized PostScript component; layout is changed. </p></li>
+<li><p><strong>fileName</strong> – <strong>[in]</strong> Borrowed NUL-terminated title, or NULL to use the widget path. </p></li>
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Borrowed token receiving metadata, prolog and transforms; partial output remains on error. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.GraphToPostScript">
 <span class="target" id="group__graph__postscript_1ga2d3ac2a6e634f4ab99c75cbf939cb427"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ident</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.GraphToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Render a complete PostScript graph through the shared export layer. </p>
-<p>Borrows the token as backendData and its DString as the output buffer. Begins graph export, emits the preamble and shared graph traversal, then appends the trailer only on success. Always ends graph export and frees the export context, including on error. EndGraph restores live window dimensions and schedules remapping rather than synchronously restoring every screen coordinate. Returns the first failing stage or TCL_OK. </p>
+<p>Borrows the token as backendData and its DString as the output buffer. Begins graph export, emits the preamble and shared graph traversal, then appends the trailer only on success. Always ends graph export and frees the export context, including on error. EndGraph restores live window dimensions and schedules remapping rather than synchronously restoring every screen coordinate. Returns the first failing stage or TCL_OK.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Caller-protected graph; export begin/end manage its temporary layout state. </p></li>
+<li><p><strong>ident</strong> – <strong>[in]</strong> Borrowed document title, or NULL to select the widget path. </p></li>
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Caller-owned token borrowed by renderer contexts; not released by export cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.OutputOp">
 <span class="target" id="group__graph__postscript_1ga1629c82c9c314c191a49442b02bc2c33"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OutputOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.OutputOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return PostScript text or write a completed document to a Tcl file. </p>
-<p>A fourth word not starting with a dash is the filename; remaining words configure persistent output options. Successful options remain installed even if rendering or delivery fails. Owns the token and staging DString; token mapping names borrow component storage. Renders before opening the destination. String results omit the Windows binary-preview wrapper. File output uses binary channel translation, checks write and close failures, and preserves an earlier error across cleanup. A delivery failure can leave a partial file: this is not atomic file replacement. Returns TCL_OK with text or an empty file-output result, else TCL_ERROR. Caller must protect the graph across callbacks during rendering. </p>
+<p>A fourth word not starting with a dash is the filename; remaining words configure persistent output options. Successful options remain installed even if rendering or delivery fails. Owns the token and staging DString; token mapping names borrow component storage. Renders before opening the destination. String results omit the Windows binary-preview wrapper. File output uses binary channel translation, checks write and close failures, and preserves an earlier error across cleanup. A delivery failure can leave a partial file: this is not atomic file replacement. Returns TCL_OK with text or an empty file-output result, else TCL_ERROR. Caller must protect the graph across callbacks during rendering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Full-command count; optional filename and option/value pairs follow objv[2]. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.Rbc_CreatePostScript">
 <span class="target" id="group__graph__postscript_1gac1247df230ddb1e5fc598aa2d3ee80d0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreatePostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_CreatePostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create and initialize the graph-owned named PostScript component. </p>
-<p>Requires a graph without an existing PostScript record and a live option context. Allocates the record/table, initializes resource name postscript and class Postscript through the option proxy, then validates derived fields. Returns TCL_OK on success. On TCL_ERROR destroys the partial component and leaves graph-&gt;postscript NULL; diagnostics remain in interp. </p>
+<p>Requires a graph without an existing PostScript record and a live option context. Allocates the record/table, initializes resource name postscript and class Postscript through the option proxy, then validates derived fields. Returns TCL_OK on success. On TCL_ERROR destroys the partial component and leaves graph-&gt;postscript NULL; diagnostics remain in interp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Graph with no existing PostScript component and a usable Tk configuration context; owns the new record on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.Rbc_PostScriptOp">
 <span class="target" id="group__graph__postscript_1ga7a924d29246ed4e817d6e9e20c80cf08"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PostScriptOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_PostScriptOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate and dispatch the graph postscript subcommand. </p>
-<p>Borrows graph, interpreter and argument objects. Uses the strided psOps table to validate the operation at argument two and its arity, then returns the selected handler status. Does not independently preserve the graph or interpreter; the enclosing widget command owns that guard. </p>
+<p>Borrows graph, interpreter and argument objects. Uses the strided psOps table to validate the operation at argument two and its arity, then returns the selected handler status. Does not independently preserve the graph or interpreter; the enclosing widget command owns that guard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Full widget-command count, including the postscript operation at objv[2]. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="windows-binary-preview-packaging">
+<h2>Windows binary preview packaging<a class="headerlink" href="#windows-binary-preview-packaging" title="Link to this heading">¶</a></h2>
+<p>The Windows-only helper is extracted in the separate platform project. It
+shares the graph command’s lifetime protection but owns its temporary native
+resources. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for the EPSI/WMF distinction.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__graph__postscript__windows"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">EPS</span> <span class="pre">preview</span> <span class="pre">packaging</span></span></dt>
+<dd><p>Private native preview assembly for the graph PostScript command. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsPostscript.CreateWindowsEPS">
+<span class="target" id="group__graph__postscript__windows_1gafc16556c491d6eb0bebfc086deee1c1e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateWindowsEPS</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">document</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPostscript.CreateWindowsEPS" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a DOS EPS header, PostScript payload and Windows metafile preview. </p>
+<p>Windows-only packaging used for file output with a WMF preview. Appends a newline to the token, captures a separate preview at live widget dimensions, and copies the header and both payloads into document. The PostScript byte count includes its terminating NUL. This is not the EPSI snapshot path.</p>
+<p>Owns the temporary drawable wrapper, metafile, reference DC and global-memory block, releasing them before return. The caller retains graph lifetime protection and owns both output buffers. Once preview drawing has begun, cleanup marks mapping work and schedules redraw. Returns TCL_OK after assembly, or TCL_ERROR for the checked native failures or graph invalidation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Caller-protected graph with a live, realized Tk window. </p></li>
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Caller-owned completed PostScript token; receives a trailing newline. </p></li>
+<li><p><strong>document</strong> – <strong>[inout]</strong> Initialized caller-owned DString receiving binary bytes; not freed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -999,6 +1177,10 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <li><a class="reference internal" href="#c.rbcGraphPostscript.OutputOp"><code class="docutils literal notranslate"><span class="pre">OutputOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGraphPostscript.Rbc_CreatePostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_CreatePostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGraphPostscript.Rbc_PostScriptOp"><code class="docutils literal notranslate"><span class="pre">Rbc_PostScriptOp()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-binary-preview-packaging">Windows binary preview packaging</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsPostscript.CreateWindowsEPS"><code class="docutils literal notranslate"><span class="pre">CreateWindowsEPS()</span></code></a></li>
 </ul>
 </li>
 </ul>

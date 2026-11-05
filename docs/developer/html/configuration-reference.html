@@ -117,19 +117,28 @@ Clear borrowed argument vectors and transaction context before calling. Derived 
 <h2>Option lookup and metadata<a class="headerlink" href="#option-lookup-and-metadata" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetComponentOptionIndex">
-<span class="target" id="rbc_int_8h_1a957570bbeac882bc011d70a62b7c654c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComponentOptionIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComponentOptionIndex" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1aa96d89b3ab58e2a88fe8fb2ef0af373d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComponentOptionIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">specs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">message</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComponentOptionIndex" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Look up a custom component option using Tcl’s indexed-name matching. </p>
 <p>Arguments are interpreter, option-name object, specification array, diagnostic label and output index. The array must contain concrete options (no synonyms), terminate with TK_OPTION_END, and outlive Tcl objects caching its entries. Unique abbreviations are accepted. </p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TCL_OK with the selected index, or TCL_ERROR with a diagnostic. </p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed non-NULL Tcl input object, kept valid by the caller; not retained here. </p></li>
+<li><p><strong>specs</strong> – <strong>[in]</strong> Persistent Tk_OptionSpec array terminated by TK_OPTION_END, containing concrete options; must outlive objects caching indexed-name lookup. </p></li>
+<li><p><strong>message</strong> – <strong>[in]</strong> Borrowed NUL-terminated label for unknown/ambiguous-option diagnostics. </p></li>
+<li><p><strong>indexPtr</strong> – <strong>[out]</strong> Required specification index output, meaningful only on TCL_OK. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the selected index, or TCL_ERROR with a diagnostic.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetComponentOptionInfo">
-<span class="target" id="rbc_int_8h_1ad22b5aa43521881e5b9c71ac50c4f216"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComponentOptionInfo</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComponentOptionInfo" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1a3565c8cb4cfa02c78bbcd53dfe605faa"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComponentOptionInfo</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">spec</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valueObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComponentOptionInfo" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build configure metadata from one specification and its live value. </p>
 <p><p>Arguments are a concrete specification with non-NULL optionName, dbName, dbClass and defValue strings, and a valid Tcl value object.</p>
 <p>No option table or synthetic component record is allocated for this query.</p>
@@ -137,6 +146,12 @@ Clear borrowed argument vectors and transaction context before calling. Derived 
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>New zero-reference-count list containing option name, resource name, resource class, default and supplied value. The list retains the value; the caller retains any references it already owns.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>spec</strong> – <strong>[in]</strong> Borrowed concrete specification with non-NULL optionName, dbName, dbClass and defValue strings; their text is copied. </p></li>
+<li><p><strong>valueObj</strong> – <strong>[in]</strong> Required current value; the returned list retains it without consuming references already held by the caller. </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

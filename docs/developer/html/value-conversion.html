@@ -96,7 +96,7 @@ parsers stage local values, but their output and resource rules differ.</p>
 </table>
 <section id="screen-units-and-staged-values">
 <h2>Screen units and staged values<a class="headerlink" href="#screen-units-and-staged-values" title="Link to this heading">¶</a></h2>
-<p>Rbc_GetPixels and Rbc_GetPixelsFromObj delegate unit conversion and rounding to
+<p><a class="reference internal" href="value-reference.html#c.Rbc_GetPixels" title="Rbc_GetPixels"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPixels()</span></code></a> and <a class="reference internal" href="value-reference.html#c.Rbc_GetPixelsFromObj" title="Rbc_GetPixelsFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPixelsFromObj()</span></code></a> delegate unit conversion and rounding to
 Tk before applying PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE. ANY skips
 RBC’s extra sign restriction; it does not force Tk to accept input rejected by
 its own parser. The helpers do not evaluate Tcl expressions or map graph axes.
@@ -104,7 +104,7 @@ A component’s own signed-pixel option specification remains a separate concern
 including TK_OPTION_NEG_OK compatibility across Tk versions.</p>
 <p>Padding uses one distance for both sides or two in their supplied order. It
 stages the complete Rbc_Pad, so failure on the second value keeps the old result.
-Rbc_GetXY copies the X substring instead of modifying the caller’s string. Its
+<a class="reference internal" href="value-reference.html#c.Rbc_GetXY" title="Rbc_GetXY"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetXY()</span></code></a> copies the X substring instead of modifying the caller’s string. Its
 NULL/empty input returns -SHRT_MAX for both coordinates. Otherwise it parses
 both Tk distances and only then commits; these are not graph data coordinates.</p>
 <p>A shadow parser acquires a Tk color, defaults the offset to one, and releases
@@ -126,7 +126,7 @@ partial value commit, but does not preserve a graph, pen, marker, interpreter
 or borrowed list-element array across arbitrary callbacks. Callers must audit
 that lifetime boundary separately; this chapter does not claim those paths
 are reentrant merely because option rollback exists.</p>
-<p>Applying the descriptor to a GC is another operation, Rbc_SetDashes; see
+<p>Applying the descriptor to a GC is another operation, <a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a>; see
 <a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a>. Screen and document backends still own their respective
 dash encoding and phase conventions.</p>
 </section>
@@ -136,7 +136,7 @@ dash encoding and phase conventions.</p>
 for none. State parsing intentionally accepts only complete exact names. Neither
 should be silently replaced with the other’s matching policy. Directional fill
 selection is also distinct from graph area fills in <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a>.</p>
-<p>Rbc_GetStringListFromObj converts through the object’s string representation
+<p><a class="reference internal" href="value-reference.html#c.Rbc_GetStringListFromObj" title="Rbc_GetStringListFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetStringListFromObj()</span></code></a> converts through the object’s string representation
 and Tcl_SplitList. The result is a single block containing the pointer array
 and characters, freed once with ckfree. NULL input and empty lists produce NULL.
 The destination pointer is cleared before parsing, even on failure. Parse into
@@ -157,7 +157,7 @@ finite quotient representable as int. Neither macro saturates large inputs.
 ABS, FABS, MIN/MAX and related macros can evaluate arguments repeatedly; avoid
 side-effecting arguments. Signed ABS also cannot represent the magnitude of
 the most negative integer in the same type.</p>
-<p>Rbc_ClampToInt is the safe saturating boundary for an already-computed
+<p><a class="reference internal" href="value-reference.html#c.Rbc_ClampToInt" title="Rbc_ClampToInt"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ClampToInt()</span></code></a> is the safe saturating boundary for an already-computed
 Tcl_WideInt. It does not protect arithmetic that overflowed before the call,
 round doubles or enforce widget-specific minimum dimensions. Keep these three
 steps separate: validate input, compute in an adequate type, then narrow with
@@ -194,7 +194,7 @@ sign policy encoded in client data and commits only a converted integer.
 <code class="docutils literal notranslate"><span class="pre">StringToShadow</span></code> stages a color and optional offset, then releases the old
 color itself. <code class="docutils literal notranslate"><span class="pre">StringToColorPair</span></code> similarly stages the complete pair before
 releasing the old fields. These replacement callbacks are distinct from
-<code class="docutils literal notranslate"><span class="pre">Rbc_GetShadowFromObj</span></code> and <code class="docutils literal notranslate"><span class="pre">GetColorPair</span></code>, whose successful outputs transfer
+<a class="reference internal" href="value-reference.html#c.Rbc_GetShadowFromObj" title="Rbc_GetShadowFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetShadowFromObj()</span></code></a> and <code class="docutils literal notranslate"><span class="pre">GetColorPair</span></code>, whose successful outputs transfer
 resources without disposing of the previous destination.</p>
 <p>NULL/empty shadow input clears both fields. A nonempty shadow list requires
 one or two elements; its default offset is one. The color-pair list accepts
@@ -241,6 +241,20 @@ applies only a sign restriction, and <code class="docutils literal notranslate">
 <code class="docutils literal notranslate"><span class="pre">GetStringList</span></code> clears its output before parsing, so its failure behavior
 must not be mistaken for the staged replacement behavior of these adapters.</p>
 </section>
+<section id="output-parameters-are-not-interchangeable">
+<h2>Output parameters are not interchangeable<a class="headerlink" href="#output-parameters-are-not-interchangeable" title="Link to this heading">¶</a></h2>
+<p>Parameter directions describe where data is written, not whether a previous
+resource is released. <a class="reference internal" href="value-reference.html#c.Rbc_GetShadowFromObj" title="Rbc_GetShadowFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetShadowFromObj()</span></code></a> transfers a new color
+reference only on success; the caller separately owns replacement of any old
+shadow. <a class="reference internal" href="value-reference.html#c.Rbc_GetStringListFromObj" title="Rbc_GetStringListFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetStringListFromObj()</span></code></a> instead clears its output before
+parsing, including failure, so that output must not be the sole untracked owner
+of an existing allocation.</p>
+<p><a class="reference internal" href="value-reference.html#c.Rbc_GetDashesFromObj" title="Rbc_GetDashesFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetDashesFromObj()</span></code></a> stages the descriptor but can evaluate Tcl while
+converting entries. The caller must keep both the input objects and destination
+storage valid across those callbacks. A successful scalar parse alone does not
+prove that a widget or component still exists; see <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for the
+surrounding transaction and callback checks.</p>
+</section>
 </section>
 
 
@@ -261,6 +275,7 @@ must not be mistaken for the staged replacement behavior of these adapters.</p>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#legacy-color-pair-adapter">Legacy color-pair adapter</a></li>
 <li><a class="reference internal" href="#legacy-adapter-replacement-and-printing">Legacy adapter replacement and printing</a></li>
+<li><a class="reference internal" href="#output-parameters-are-not-interchangeable">Output parameters are not interchangeable</a></li>
 </ul>
 </li>
 </ul>

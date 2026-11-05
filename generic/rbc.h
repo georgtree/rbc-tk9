@@ -44,6 +44,8 @@ typedef char *Rbc_Uid;
  * the returned characters despite the historical mutable typedef. Pair each
  * acquisition with Rbc_FreeUid. The process-static table is neither interpreter
  * local nor protected by locks; this is not a cross-thread sharing API.
+ *
+ * @param[in] string Borrowed non-NULL NUL-terminated spelling; acquires one reference to the interned result.
  */
 EXTERN Rbc_Uid Rbc_GetUid (const char *string);
 /**
@@ -52,6 +54,9 @@ EXTERN Rbc_Uid Rbc_GetUid (const char *string);
  * Require a still-valid UID acquired through Rbc_GetUid. Do not free the string
  * with ckfree or release a merely borrowed Rbc_FindUid result. Unknown valid
  * strings produce a stderr diagnostic; NULL or dangling pointers are not safe.
+ *
+ * @param[in,out] uid Live acquired UID reference to release; the string becomes invalid if this was its final
+ *   reference.
  */
 EXTERN void Rbc_FreeUid (Rbc_Uid uid);
 /**
@@ -60,6 +65,9 @@ EXTERN void Rbc_FreeUid (Rbc_Uid uid);
  * Return NULL when absent. The pointer remains valid only while an acquiring
  * owner keeps a reference. Lookup lazily initializes the shared table but does
  * not insert a missing name. Use Rbc_GetUid when independent ownership is needed.
+ *
+ * @param[in] string Borrowed non-NULL NUL-terminated lookup spelling; bytes are not modified and no reference
+ *   is acquired.
  */
 EXTERN Rbc_Uid Rbc_FindUid (char *string);
 

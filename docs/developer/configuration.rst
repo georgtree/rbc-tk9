@@ -12,12 +12,12 @@ Resource identity
 -----------------
 
 A component's command name and its option-database resource name serve different
-purposes. ``Rbc_GetComponentResourceName`` creates an allocated resource-name
+purposes. :c:func:`Rbc_GetComponentResourceName` creates an allocated resource-name
 copy with only the first byte lowercased. Callers release the copy with
 ``ckfree``; the component retains its original command identity. This preserves
 legacy child-name matching rather than applying Unicode case folding.
 
-``Rbc_InitComponentOptions`` receives the resource name and class separately.
+:c:func:`Rbc_InitComponentOptions` receives the resource name and class separately.
 It first looks for an existing real child of the graph with that name. When
 found, initialization uses that child's existing class. Otherwise the helper
 reuses the graph's anonymous option proxy, setting its name and class for this
@@ -57,7 +57,7 @@ component configuration follows this sequence:
 3. Validate relationships and prepare replacements for derived resources.
    Keep old active resources until all fallible work succeeds.
 4. On validation failure, clear borrowed transaction context and call
-   ``Rbc_RestoreOptionsOnError``. It consumes the saved transaction while
+   :c:func:`Rbc_RestoreOptionsOnError`. It consumes the saved transaction while
    preserving the original interpreter result, error code and error information.
 5. On success, commit prepared resources and component relationships, clear
    borrowed context and call ``Tk_FreeSavedOptions`` to discard old option values.
@@ -85,16 +85,16 @@ Lookup and configure metadata
 Ordinary Tk option records use Tk's query machinery. Custom component commands
 can share a concrete ``Tk_OptionSpec`` array between initialization, lookup and
 metadata without constructing a temporary live record for each query.
-``Rbc_GetComponentOptionIndex`` accepts unique abbreviations through Tcl's
+:c:func:`Rbc_GetComponentOptionIndex` accepts unique abbreviations through Tcl's
 indexed-name lookup. Its array contains no synonyms and must outlive option-name
 objects that cache references to it.
 
-``Rbc_GetComponentOptionInfo`` combines one specification with a caller-supplied
+:c:func:`Rbc_GetComponentOptionInfo` combines one specification with a caller-supplied
 live value to produce the usual five fields: option name, resource name,
 resource class, default and current value. The returned list owns a reference
 to the value, without taking away any reference already held by the caller.
 
-``Rbc_GetCanonicalOptionName`` serves configuration bookkeeping for full Tk
+:c:func:`Rbc_GetCanonicalOptionName` serves configuration bookkeeping for full Tk
 specification tables, including chained tables and synonym entries. It returns
 a borrowed specification string, with no interpreter diagnostic on failure.
 It is not a value parser and does not replace ``Tk_SetOptions`` validation.

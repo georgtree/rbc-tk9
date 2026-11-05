@@ -10,7 +10,7 @@ resulting screen transforms and full versus visible track rectangles.
 Two parsing interfaces
 ----------------------
 
-``Rbc_ParseScrollRequest`` parses a request into ``Rbc_ScrollRequest`` without
+:c:func:`Rbc_ParseScrollRequest` parses a request into ``Rbc_ScrollRequest`` without
 modifying graph state. It accepts finite double values for moveto, units and
 pages, including fractional unit counts. It validates the complete argument
 shape before reading optional values and assigns its output only on success.
@@ -22,17 +22,17 @@ unit count are accepted. Track commands use exact ``moveto``, ``scroll``,
 ``units`` and ``pages`` words. The caller supplies a valid starting argument
 index and array; the helper does not validate arbitrary C pointer/index misuse.
 
-``Rbc_GetScrollInfoFromObj`` is an older integer-offset interface. It parses
+:c:func:`Rbc_GetScrollInfoFromObj` is an older integer-offset interface. It parses
 integer counts for units/pages, a finite double for moveto and legacy numeric
 unit requests. It truncates the computed delta before adding it, saturates
-integer conversions and applies ``Rbc_AdjustViewport``. Errors leave the input
+integer conversions and applies :c:func:`Rbc_AdjustViewport`. Errors leave the input
 offset unchanged, but malformed arity does not always produce a diagnostic.
 It is not interchangeable with the double-valued axis/track parser.
 
 Integer viewport modes
 ----------------------
 
-``Rbc_AdjustViewport`` assumes meaningful nonnegative world/window sizes and
+:c:func:`Rbc_AdjustViewport` assumes meaningful nonnegative world/window sizes and
 positive scroll units. It uses wide intermediate arithmetic and returns an
 integer offset. Mode policy is intentionally distinct:
 
@@ -88,7 +88,7 @@ The offset is clamped to the available extent, or forced to zero when track
 scrolling is disabled. It requests world reset/redraw without changing data-axis
 limits.
 
-``Rbc_TrackYViewOp`` instead reuses axis data scrolling. ``-mapy`` selects one axis
+:c:func:`rbcGrAxisLayoutControl.Rbc_TrackYViewOp` instead reuses axis data scrolling. ``-mapy`` selects one axis
 that must belong to the track. Without it, a query reports the first axis and a
 movement applies to all track Y axes. Parsing precedes layout. The operation
 saves all selected requested limits and graph flags before applying updates;
@@ -101,7 +101,7 @@ Scrollbar callbacks and lifetime
 
 Axis scrollbar updates are queued through an idle callback, using the latest
 stored fractions. Track-stack notification happens after native drawing through
-``Rbc_NotifyTrackView``. That helper first repicks a stationary pointer so track
+:c:func:`Rbc_NotifyTrackView`. That helper first repicks a stationary pointer so track
 Enter/Leave bindings reflect changed layout, then checks the surviving window
 before reporting fractions. Neither notification path emits export-driven
 scrollbar updates.
@@ -120,7 +120,7 @@ See :doc:`graph-lifecycle` and :doc:`bindings` for the surrounding lifetime and
 repicking rules, and :doc:`scroll-reference` for the shared contracts.
 
 Integer conversion boundary
-----------------------------
+---------------------------
 
 :c:func:`ClampScrollValue` is documented in :doc:`scroll-reference`. Its input must
 not be NaN. It saturates outside the integer range and otherwise truncates
@@ -129,3 +129,18 @@ first truncates/saturates the requested delta, then separately adds and clamps
 that integer delta. Combining these steps into one floating-point addition can
 change historical results for fractional page deltas, especially across zero.
 The double-valued request parser deliberately leaves this policy to its owner.
+
+Argument slices and coordinate units
+------------------------------------
+
+:c:func:`Rbc_ParseScrollRequest` takes the full object vector plus a starting
+index. It produces a finite double-valued request, without applying a viewport.
+:c:func:`Rbc_GetScrollInfoFromObj` takes only the request slice and updates an
+integer pixel offset. Passing a full widget command to the latter would try to
+parse the widget name as a unit count.
+
+In the integer path, world size, visible size, unit distance and offset all use
+pixels. A moveto fraction is multiplied by world size; a page count uses 90
+percent of the visible size. The separate :c:func:`Rbc_AdjustViewport` then
+applies the selected bounds policy. These helpers do not themselves change an
+axis range, move tracks, or schedule drawing.

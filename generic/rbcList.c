@@ -192,24 +192,7 @@ void Rbc_ListReset(struct Rbc_ListStruct *listPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListDestroy
- *
- *     Frees all list structures
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr
- *
- * Results:
- *      Returns a pointer to the newly created list structure.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 void Rbc_ListDestroy(struct Rbc_ListStruct *listPtr) {
     if (listPtr != NULL) {
         Rbc_ListReset(listPtr);
