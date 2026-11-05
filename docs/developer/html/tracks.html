@@ -191,6 +191,22 @@ fields are read after callback evaluation in this helper. The surrounding
 notification service similarly repicks stationary pointers, checks that the
 widget survived binding callbacks, then invokes scrollbar notification.</p>
 </section>
+<section id="dispatch-and-notification-contracts">
+<h2>Dispatch and notification contracts<a class="headerlink" href="#dispatch-and-notification-contracts" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="track-reference.html#c.Rbc_ConfigureTrackGraph" title="Rbc_ConfigureTrackGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureTrackGraph()</span></code></a> validates the widget-level track options;
+<a class="reference internal" href="track-reference.html#c.Rbc_TrackOp" title="Rbc_TrackOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_TrackOp()</span></code></a> dispatches the full widget command under its enclosing
+lifetime protection. <a class="reference internal" href="track-reference.html#c.Rbc_CreateTrackComponentArgs" title="Rbc_CreateTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateTrackComponentArgs()</span></code></a> adapts nested grid
+and legend arguments without copying every Tcl object. Its retained command
+prefix and array must be released with <a class="reference internal" href="track-reference.html#c.Rbc_FreeTrackComponentArgs" title="Rbc_FreeTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTrackComponentArgs()</span></code></a>
+before the borrowed arguments expire.</p>
+<p><a class="reference internal" href="track-reference.html#c.Rbc_FindTrack" title="Rbc_FindTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindTrack()</span></code></a> returns an unretained identity: ordering does not invalidate
+it, but deletion does. <a class="reference internal" href="scroll-reference.html#c.Rbc_NotifyTrackView" title="Rbc_NotifyTrackView"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView()</span></code></a> may execute bindings and
+scrollbar callbacks that delete the widget; its internal preservation does not
+guarantee that the graph remains usable after return.
+<a class="reference internal" href="track-reference.html#c.Rbc_DestroyTracks" title="Rbc_DestroyTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a> is teardown, after dependent elements and markers
+have gone and before axes are freed. <a class="reference internal" href="track-reference.html#c.Rbc_DrawTrackSeparators" title="Rbc_DrawTrackSeparators"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawTrackSeparators()</span></code></a> uses
+current world bounds and limits strokes to visible gaps.</p>
+</section>
 </section>
 
 
@@ -213,6 +229,7 @@ widget survived binding callbacks, then invokes scrollbar notification.</p>
 <li><a class="reference internal" href="#axis-chain-synchronization-and-option-queries">Axis-chain synchronization and option queries</a></li>
 <li><a class="reference internal" href="#sash-geometry-and-scroll-fractions">Sash geometry and scroll fractions</a></li>
 <li><a class="reference internal" href="#notification-lifetime-boundary">Notification lifetime boundary</a></li>
+<li><a class="reference internal" href="#dispatch-and-notification-contracts">Dispatch and notification contracts</a></li>
 </ul>
 </li>
 </ul>

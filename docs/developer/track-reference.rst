@@ -16,3 +16,12 @@ lifecycle, :doc:`mapping-reference` for viewport scopes and
 
 .. doxygengroup:: track_ownership
    :members:
+
+Widget integration
+------------------
+
+.. doxygenfunction:: Rbc_ConfigureTrackGraph
+
+.. doxygenfunction:: Rbc_TrackOp
+
+.. doxygenfunction:: Rbc_DrawTrackSeparators

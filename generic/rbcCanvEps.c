@@ -794,6 +794,10 @@ static void ReadTiffPreview(EpsItem *epsPtr) {
  * photo, pixmaps, fill GC, title style and parsed title through their matching
  * APIs. Detach tmpImage before temporary-image cleanup can notify clients.
  * The canvas owns the item record itself; this function does not free it.
+ *
+ * @param[in] canvas Borrowed owning Tk canvas; supplies window and coordinate conversion.
+ * @param[in,out] itemPtr Canvas-owned initialized EpsItem; owned resources are released, but the record is not freed.
+ * @param[in] display Borrowed display matching the item graphics resources.
  */
 static void DeleteEps(Tk_Canvas canvas, /* Info about overall canvas widget. */
                       Tk_Item *itemPtr, /* Item that is being deleted. */
@@ -834,24 +838,17 @@ static void DeleteEps(Tk_Canvas canvas, /* Info about overall canvas widget. */
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Initialize a canvas-owned EPS item and apply its creation options.
  *
- * CreateEps --
- *
- *      This procedure is invoked to create a new EPS item
- *      in a canvas.
- *
- * Results:
- *      A standard Tcl return value.  If an error occurred in
- *      creating the item, then an error message is left in the
- *      interprwter esult;  in this case itemPtr is left uninitialized,
- *      so it can be safely freed by the caller.
- *
- * Side effects:
- *      A new EPS item is created.
- *
- *----------------------------------------------------------------------
+ * Returns Tcl status. A configuration failure releases initialized resources through
+ * DeleteEps; the item record remains caller-owned.
+ * @param[in,out] interp Borrowed result interpreter; see @ref rbc_interp_argument.
+ * @param[in] canvas Borrowed owning Tk canvas; supplies window and coordinate conversion.
+ * @param[in,out] itemPtr Caller-allocated EpsItem with its Tk_Item header initialized; record ownership stays with the canvas.
+ * @param[in] objc Number of creation arguments; at least two coordinates are required.
+ * @param[in] objv Borrowed x/y coordinates followed by option/value pairs; see @ref rbc_command_arguments.
  */
 static int CreateEps(Tcl_Interp *interp,    /* Interpreter for error reporting. */
                      Tk_Canvas canvas,      /* Canvas to hold new item. */
@@ -993,6 +990,13 @@ static int EpsOptionSpecified(Tcl_Size objc, Tcl_Obj *const objv[], const char *
  * Create or discard the temporary display photo as needed, rebuild the fill GC
  * and bbox, and close the file on success. Return Tcl status. Resource updates
  * are incremental, not a Tk_SetOptions saved-options rollback transaction.
+ *
+ * @param[in,out] interp Borrowed result interpreter; see @ref rbc_interp_argument.
+ * @param[in] canvas Borrowed owning Tk canvas; supplies window and coordinate conversion.
+ * @param[in,out] itemPtr Borrowed initialized EpsItem; updates can remain partially applied on failure.
+ * @param[in] objc Number of option/value objects in objv.
+ * @param[in] objv Borrowed option/value array; see @ref rbc_command_arguments.
+ * @param[in] flags Tk_ConfigureWidget configuration flags, including TK_CONFIG_ARGV_ONLY for reconfiguration.
  */
 static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
                         Tk_Canvas canvas,      /* Canvas containing itemPtr. */
@@ -1138,22 +1142,17 @@ static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Query or replace the EPS anchor coordinates.
  *
- * EpsCoords --
- *
- *      This procedure is invoked to process the "coords" widget
- *      command on EPS items.  See the user documentation for
- *      details on what it does.
- *
- * Results:
- *      Returns TCL_OK or TCL_ERROR, and sets the interpreter result.
- *
- * Side effects:
- *      The coordinates for the given item may be changed.
- *
- *----------------------------------------------------------------------
+ * Returns TCL_OK or TCL_ERROR. A query returns a two-value coordinate list;
+ * replacement converts both values before changing the item.
+ * @param[in,out] interp Borrowed result interpreter; see @ref rbc_interp_argument.
+ * @param[in] canvas Borrowed owning Tk canvas; supplies window and coordinate conversion.
+ * @param[in,out] itemPtr Borrowed initialized EpsItem; anchor and bbox change only after both coordinates parse.
+ * @param[in] objc Zero for a query or two for an X/Y replacement; other counts are rejected.
+ * @param[in] objv Borrowed coordinate objects for replacement; not read for a query.
  */
 static int EpsCoords(Tcl_Interp *interp,    /* Used for error reporting. */
                      Tk_Canvas canvas,      /* Canvas containing item. */
@@ -1231,6 +1230,15 @@ static void ComputeEpsBbox(Tk_Canvas canvas, EpsItem *epsPtr) {
  * photo, release the intermediate buffer, and draw pixmap/photo or filled
  * placeholder, optional title and border. Borrow the drawable and canvas.
  * This path does not construct a graph renderer context.
+ *
+ * @param[in] canvas Borrowed owning Tk canvas; supplies window and coordinate conversion.
+ * @param[in,out] itemPtr Borrowed configured EpsItem; preview caches may be rebuilt.
+ * @param[in] display Borrowed display associated with the destination.
+ * @param[in] drawable Borrowed canvas drawable receiving the preview, title and border.
+ * @param[in] x Canvas redisplay rectangle X origin; unused.
+ * @param[in] y Canvas redisplay rectangle Y origin; unused.
+ * @param[in] width Canvas redisplay rectangle width; unused.
+ * @param[in] height Canvas redisplay rectangle height; unused.
  */
 static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
                        Tk_Item *itemPtr,      /* Item to be displayed. */
@@ -1557,20 +1565,12 @@ static Tk_ItemType epsItemType = {
     (Tk_ItemType *)NULL           /* nextPtr */
 };
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Register the EPS canvas item type and Tk tag option callbacks.
  *
- * Rbc_InitEpsCanvasItem --
- *
- *      TODO: Description
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Registers the static Tk item-type descriptor. Does not create a canvas or item.
+ * @param[in] interp Interpreter supplied by package initialization; currently unused.
  */
 void Rbc_InitEpsCanvasItem(Tcl_Interp *interp) {
     Tk_CreateItemType(&epsItemType);

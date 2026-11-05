@@ -734,6 +734,22 @@ is opaque for these operations. <a class="reference internal" href="native-windo
 instead returns a newly owned, fully opaque color image after gamma conversion.</p>
 </section>
 </section>
+<section id="retained-native-geometry-contexts">
+<h2>Retained native geometry contexts<a class="headerlink" href="#retained-native-geometry-contexts" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeSymbols" title="Rbc_RenderBeginNativeSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeSymbols()</span></code></a> retains the symbol-style pointer;
+<a class="reference internal" href="reference.html#c.Rbc_RenderBeginBars" title="Rbc_RenderBeginBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars()</span></code></a> instead copies its style record, while borrowing
+the resources referenced by that record. Both borrow the graph and drawable
+until <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeFill" title="Rbc_RenderBeginNativeFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeFill()</span></code></a> passes the tile and stipple selector to the
+native fill path. With no tile, a non-None selector enables GC filling; None
+alone does not mean solid fill. <a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeSegments" title="Rbc_RenderBeginNativeSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeSegments()</span></code></a> retains
+the supplied GC, including XOR and its existing clip.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeArc" title="Rbc_RenderBeginNativeArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeArc()</span></code></a> borrows already mapped fill vertices and
+outline segments. Keep them consistent with the analytic arc passed to dispatch
+and alive until End. <a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativePolygonBatch" title="Rbc_RenderBeginNativePolygonBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativePolygonBatch()</span></code></a> may retain a
+Windows DC and point buffer; an unavailable batch falls back to ordinary native
+polygon filling. It still returns a context requiring End.</p>
+</section>
 </section>
 
 
@@ -773,6 +789,7 @@ instead returns a newly owned, fully opaque color image after gamma conversion.<
 <li><a class="reference internal" href="#bitmap-packing-and-output-ownership">Bitmap packing and output ownership</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#retained-native-geometry-contexts">Retained native geometry contexts</a></li>
 </ul>
 </li>
 </ul>

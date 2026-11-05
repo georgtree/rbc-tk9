@@ -432,24 +432,82 @@ typedef struct {
     double fillOpacity;
 } Rbc_RenderBarStyle;
 
-/** Screen-only adapters. Native symbol contexts support SymbolPoints/End;
- * bar contexts support FillRectangles/End (including the existing bevel).
- * Fill contexts support FillPolygon/End. Native arc contexts retain mapped,
- * clipped fallback geometry and support Arc/FillArc/End. All input resources
- * and geometry are borrowed until End; no public Tcl or vector ABI changes. */
-Rbc_RenderContext *Rbc_RenderBeginNativeSymbols(Graph *, Drawable, Rbc_RenderNativeSymbolStyle *, int size);
-/** @brief Create a native bar context supporting FillRectangles and End. */
-Rbc_RenderContext *Rbc_RenderBeginBars(Graph *, Drawable, const Rbc_RenderBarStyle *);
-/** @brief Create a native polygon-fill context borrowing its GC, tile and stipple. */
-Rbc_RenderContext *Rbc_RenderBeginNativeFill(Graph *, Drawable, GC, Rbc_Tile, Pixmap);
+/**
+ * @brief Create a native SymbolPoints/End context.
+ *
+ * Returns an owned context; release exactly once with Rbc_RenderEnd.
+ * This adapter does not take ownership of graph or drawing resources.
+ * @param[in] graphPtr Borrowed live graph; keep it valid until Rbc_RenderEnd.
+ * @param[in] drawable Borrowed destination drawable; keep it valid until Rbc_RenderEnd.
+ * @param[in,out] style Borrowed symbol style and its resources, retained by pointer until End; drawing updates its sampling counter.
+ * @param[in] size Symbol size in screen pixels, passed unchanged to native symbol drawing.
+ */
+Rbc_RenderContext *Rbc_RenderBeginNativeSymbols(Graph *graphPtr, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, int size);
+/**
+ * @brief Create a native FillRectangles/End context.
+ *
+ * Returns an owned context; release exactly once with Rbc_RenderEnd.
+ * This adapter does not take ownership of graph or drawing resources.
+ * The caller may discard the style record after construction. Native bevel and fill behavior are retained.
+ * @param[in] graphPtr Borrowed live graph; keep it valid until Rbc_RenderEnd.
+ * @param[in] drawable Borrowed destination drawable; keep it valid until Rbc_RenderEnd.
+ * @param[in] style Required bar-style record copied by value; its GC, border and stipple resources remain borrowed until End.
+ */
+Rbc_RenderContext *Rbc_RenderBeginBars(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *style);
+/**
+ * @brief Create a native FillPolygon/End context.
+ *
+ * Returns an owned context; release exactly once with Rbc_RenderEnd.
+ * This adapter does not take ownership of graph or drawing resources.
+ * @param[in] graphPtr Borrowed live graph; keep it valid until Rbc_RenderEnd.
+ * @param[in] drawable Borrowed destination drawable; keep it valid until Rbc_RenderEnd.
+ * @param[in] gc Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd.
+ * @param[in] tile Borrowed tile, or NULL for the GC/stipple path.
+ * @param[in] stipple Non-None enables GC polygon filling when tile is NULL. None does not select solid filling; not acquired or freed here.
+ */
+Rbc_RenderContext *Rbc_RenderBeginNativeFill(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile tile, Pixmap stipple);
 
-/** Native-only Segments/End; also preserves XOR and preinstalled GC clips. */
-Rbc_RenderContext *Rbc_RenderBeginNativeSegments(Graph *, Drawable, GC);
-/** @brief Create a native arc context borrowing pre-mapped fill points and outline segments until End. */
-Rbc_RenderContext *Rbc_RenderBeginNativeArc(Graph *, Drawable, GC, const Point2D *, Tcl_Size, const Segment2D *,
-                                            Tcl_Size);
-/** @brief Create a native polygon batch with the supplied maximum point capacity. */
-Rbc_RenderContext *Rbc_RenderBeginNativePolygonBatch(Graph *, Drawable, GC, Tcl_Size maxPoints);
+/**
+ * @brief Create a native Segments/End context.
+ *
+ * Returns an owned context; release exactly once with Rbc_RenderEnd.
+ * This adapter does not take ownership of graph or drawing resources.
+ * Preserves the supplied GC raster operation, including XOR, and its installed clip.
+ * @param[in] graphPtr Borrowed live graph; keep it valid until Rbc_RenderEnd.
+ * @param[in] drawable Borrowed destination drawable; keep it valid until Rbc_RenderEnd.
+ * @param[in] gc Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd.
+ */
+Rbc_RenderContext *Rbc_RenderBeginNativeSegments(Graph *graphPtr, Drawable drawable, GC gc);
+/**
+ * @brief Create a native Arc/FillArc/End context.
+ *
+ * Returns an owned context; release exactly once with Rbc_RenderEnd.
+ * This adapter does not take ownership of graph or drawing resources.
+ * Keep both arrays alive until End and consistent with the analytic geometry passed
+ * to Arc/FillArc. The native adapter draws these arrays rather than remapping the ellipse.
+ * @param[in] graphPtr Borrowed live graph; keep it valid until Rbc_RenderEnd.
+ * @param[in] drawable Borrowed destination drawable; keep it valid until Rbc_RenderEnd.
+ * @param[in] gc Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd.
+ * @param[in] fillPoints Borrowed mapped, clipped fill polygon; may be NULL when fillCount is zero.
+ * @param[in] fillCount Nonnegative number of fill points.
+ * @param[in] segments Borrowed mapped, clipped outline segments; may be NULL when count is zero.
+ * @param[in] count Nonnegative number of outline segments.
+ */
+Rbc_RenderContext *Rbc_RenderBeginNativeArc(Graph *graphPtr, Drawable drawable, GC gc, const Point2D *fillPoints,
+                                            Tcl_Size fillCount, const Segment2D *segments, Tcl_Size count);
+/**
+ * @brief Create a native polygon-fill batch context.
+ *
+ * Returns an owned context; release exactly once with Rbc_RenderEnd.
+ * This adapter does not take ownership of graph or drawing resources.
+ * A missing platform batch or failed batch allocation falls back to ordinary native
+ * polygon filling. The context itself is still returned and must be ended.
+ * @param[in] graphPtr Borrowed live graph; keep it valid until Rbc_RenderEnd.
+ * @param[in] drawable Borrowed destination drawable; keep it valid until Rbc_RenderEnd.
+ * @param[in] gc Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd.
+ * @param[in] maxPoints Maximum vertex count for each submitted polygon; use a positive representable capacity.
+ */
+Rbc_RenderContext *Rbc_RenderBeginNativePolygonBatch(Graph *graphPtr, Drawable drawable, GC gc, Tcl_Size maxPoints);
 
 /**
  * Export symbol contexts support SymbolPoints and End. Screen shape batching

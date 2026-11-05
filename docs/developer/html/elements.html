@@ -900,6 +900,32 @@ short points as successful positive-infinity results; callers must not equate a
 successful conversion with finite output.</p>
 </section>
 </section>
+<section id="pen-palette-and-error-geometry-boundaries">
+<h2>Pen, palette and error-geometry boundaries<a class="headerlink" href="#pen-palette-and-error-geometry-boundaries" title="Link to this heading">¶</a></h2>
+<p>The pen and palette transactions complement the common data transaction.
+<a class="reference internal" href="element-reference.html#c.Rbc_PrepareElemPenTransaction" title="Rbc_PrepareElemPenTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PrepareElemPenTransaction()</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.Rbc_PrepareElemStylesTransaction" title="Rbc_PrepareElemStylesTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PrepareElemStylesTransaction()</span></code></a> validate explicit values in caller
+order without replacing live resources. Their output storage must not already
+own candidates. Failure releases candidates and clears the transaction.
+After all validation, <a class="reference internal" href="element-reference.html#c.Rbc_CommitElemPenTransaction" title="Rbc_CommitElemPenTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CommitElemPenTransaction()</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.Rbc_CommitElemStylesTransaction" title="Rbc_CommitElemStylesTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CommitElemStylesTransaction()</span></code></a> transfer ownership and release the
+old resources. <a class="reference internal" href="element-reference.html#c.Rbc_FreeElemPenTransaction" title="Rbc_FreeElemPenTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeElemPenTransaction()</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.Rbc_FreeElemStylesTransaction" title="Rbc_FreeElemStylesTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeElemStylesTransaction()</span></code></a> release anything left uncommitted.
+These operations do not supply rollback after commit.</p>
+<p><a class="reference internal" href="element-reference.html#c.Rbc_ExpandErrorBarExtents" title="Rbc_ExpandErrorBarExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExpandErrorBarExtents()</span></code></a> and <a class="reference internal" href="element-reference.html#c.Rbc_MapErrorBars" title="Rbc_MapErrorBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapErrorBars()</span></code></a> share the
+same source-point limits and symmetric-versus-explicit error precedence.
+<a class="reference internal" href="element-reference.html#c.Rbc_ExpandErrorBarExtentsOffset" title="Rbc_ExpandErrorBarExtentsOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExpandErrorBarExtentsOffset()</span></code></a> and <a class="reference internal" href="element-reference.html#c.Rbc_MapErrorBarsOffset" title="Rbc_MapErrorBarsOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapErrorBarsOffset()</span></code></a>
+apply a uniform data-space X shift. Their per-point counterparts,
+<a class="reference internal" href="element-reference.html#c.Rbc_ExpandErrorBarExtentsTranslated" title="Rbc_ExpandErrorBarExtentsTranslated"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExpandErrorBarExtentsTranslated()</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.Rbc_MapErrorBarsTranslated" title="Rbc_MapErrorBarsTranslated"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapErrorBarsTranslated()</span></code></a>, use an optional full source-indexed array
+of X/Y translations instead. A non-finite translation omits that point.
+Neither path modifies the source vectors.</p>
+<p>Before mapping, the caller releases old error caches and selects the owning
+track viewport. Styles supply cap half-widths in pixels; translations remain
+in data units. <a class="reference internal" href="element-reference.html#c.AllocateErrorBarArrays" title="AllocateErrorBarArrays"><code class="xref c c-func docutils literal notranslate"><span class="pre">AllocateErrorBarArrays()</span></code></a> reserves up to three segments
+and indices per point. Overflow is checked, but the void mapping API cannot
+report that failure and may already have mapped the other direction.</p>
+</section>
 </section>
 
 
@@ -962,6 +988,7 @@ successful conversion with finite output.</p>
 <li><a class="reference internal" href="#scalar-adapters-and-ownership">Scalar adapters and ownership</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pen-palette-and-error-geometry-boundaries">Pen, palette and error-geometry boundaries</a></li>
 </ul>
 </li>
 </ul>

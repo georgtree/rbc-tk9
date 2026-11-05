@@ -942,3 +942,32 @@ conversion helpers :c:func:`rbcGrLineConfiguration.GammaToNormalizedImpedance` a
 :c:func:`rbcGrLineConfiguration.GammaToNormalizedAdmittance` special-case exact open and
 short points as successful positive-infinity results; callers must not equate a
 successful conversion with finite output.
+
+Pen, palette and error-geometry boundaries
+------------------------------------------
+
+The pen and palette transactions complement the common data transaction.
+:c:func:`Rbc_PrepareElemPenTransaction` and
+:c:func:`Rbc_PrepareElemStylesTransaction` validate explicit values in caller
+order without replacing live resources. Their output storage must not already
+own candidates. Failure releases candidates and clears the transaction.
+After all validation, :c:func:`Rbc_CommitElemPenTransaction` and
+:c:func:`Rbc_CommitElemStylesTransaction` transfer ownership and release the
+old resources. :c:func:`Rbc_FreeElemPenTransaction` and
+:c:func:`Rbc_FreeElemStylesTransaction` release anything left uncommitted.
+These operations do not supply rollback after commit.
+
+:c:func:`Rbc_ExpandErrorBarExtents` and :c:func:`Rbc_MapErrorBars` share the
+same source-point limits and symmetric-versus-explicit error precedence.
+:c:func:`Rbc_ExpandErrorBarExtentsOffset` and :c:func:`Rbc_MapErrorBarsOffset`
+apply a uniform data-space X shift. Their per-point counterparts,
+:c:func:`Rbc_ExpandErrorBarExtentsTranslated` and
+:c:func:`Rbc_MapErrorBarsTranslated`, use an optional full source-indexed array
+of X/Y translations instead. A non-finite translation omits that point.
+Neither path modifies the source vectors.
+
+Before mapping, the caller releases old error caches and selects the owning
+track viewport. Styles supply cap half-widths in pixels; translations remain
+in data units. :c:func:`AllocateErrorBarArrays` reserves up to three segments
+and indices per point. Overflow is checked, but the void mapping API cannot
+report that failure and may already have mapped the other direction.

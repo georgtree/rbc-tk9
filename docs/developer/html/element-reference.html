@@ -453,6 +453,55 @@ failure and cleanup rules.</p>
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeElemPenTransaction">
+<span class="target" id="group__element__transaction__internals_1gaf6752de3cb4719b5d82e7bce8ab44241"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeElemPenTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">ElemPenTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeElemPenTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release uncommitted named pens and zero the transaction. </p>
+<p>Safe after commit or a failed prepare. Does not free the transaction record. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Required initialized or already-cleared transaction; releases only candidates still owned by it. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PrepareElemPenTransaction">
+<span class="target" id="group__element__transaction__internals_1ga13ed0563fcf90635884d42ad198e5610"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PrepareElemPenTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">ElemPenTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PrepareElemPenTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage named pens without replacing live element resources. </p>
+<p>Processes repeated explicit options in caller order, including invalid earlier values. Returns TCL_OK with candidates, or TCL_ERROR after releasing candidates and zeroing the transaction. On success, commit or free the transaction. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element with the pending even-length option/value array and effective option objects. </p></li>
+<li><p><strong>penType</strong> – <strong>[in]</strong> Required element pen-class UID used to validate named pens. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Required fresh transaction storage; initialized here. Do not pass a transaction still owning candidates. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CommitElemPenTransaction">
+<span class="target" id="group__element__transaction__internals_1gaaf7ebc2220a056b7eaa98be621814669"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CommitElemPenTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">builtinPenPtr</span></span>, <span class="n"><span class="pre">ElemPenTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CommitElemPenTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Commit staged named pens and release replaced resources. </p>
+<p>Unstaged options remain unchanged. Complete all other validation before committing; this operation does not provide rollback. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Borrowed live element receiving successfully staged resources. </p></li>
+<li><p><strong>builtinPenPtr</strong> – <strong>[in]</strong> Borrowed embedded pen selected by an empty normal-pen value; never released as a named pen. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared transaction; committed candidate ownership transfers to the element and candidate pointers are cleared. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.StageElemDataVector">
 <span class="target" id="group__element__transaction__internals_1gaf146fb70121c0376eff57e0217afab36"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemDataVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtr</span></span>, <span class="n"><span class="pre">ElemDataOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemDataVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a data slot before discarding its previous candidate. </p>
@@ -528,6 +577,55 @@ failure and cleanup rules.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>elemPtr</strong> – Configured element with even, still-valid option arguments. Processes non-overridden initial defaults in data/X/Y order, then explicit arguments in caller order. A data occurrence sets coherent data/X/Y objects; an independent X or Y clears data and replaces that coordinate representation. Pins initial objects while replacing fields, then releases those temporary references. Does not rebuild numeric arrays or evaluate expressions. Call while optionsConfigured still identifies first configuration when applicable. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeElemStylesTransaction">
+<span class="target" id="group__element__transaction__internals_1gae53b5a397e326064d2c34ee2e1380982"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeElemStylesTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">ElemStylesTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeElemStylesTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release uncommitted palette and zero the transaction. </p>
+<p>Safe after commit or a failed prepare. Does not free the transaction record. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Required initialized or already-cleared transaction; releases only candidates still owned by it. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PrepareElemStylesTransaction">
+<span class="target" id="group__element__transaction__internals_1ga866bd82afcc1bd6b178aca8b88d053d5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PrepareElemStylesTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">styleSize</span></span>, <span class="n"><span class="pre">ElemStylesTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PrepareElemStylesTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage palette without replacing live element resources. </p>
+<p>Processes repeated explicit options in caller order, including invalid earlier values. Returns TCL_OK with candidates, or TCL_ERROR after releasing candidates and zeroing the transaction. On success, commit or free the transaction. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element with the pending even-length option/value array and effective option objects. </p></li>
+<li><p><strong>penType</strong> – <strong>[in]</strong> Retained interface argument, currently unused; palette parsing checks pens against the element class. </p></li>
+<li><p><strong>styleSize</strong> – <strong>[in]</strong> Byte size of the concrete style record, including its PenStyle prefix. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Required fresh transaction storage; initialized here. Do not pass a transaction still owning candidates. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CommitElemStylesTransaction">
+<span class="target" id="group__element__transaction__internals_1ga02a9c20eb3588e130b66e82dfbcf87f1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CommitElemStylesTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemStylesTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CommitElemStylesTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Commit staged palette and release replaced resources. </p>
+<p>Unstaged options remain unchanged. Complete all other validation before committing; this operation does not provide rollback. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Borrowed live element receiving successfully staged resources. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared transaction; committed candidate ownership transfers to the element and candidate pointers are cleared. </p></li>
 </ul>
 </dd>
 </dl>
@@ -2968,6 +3066,133 @@ Requires nonempty finite mapped geometry with parallel source indices and no int
 </dd></dl>
 
 </section>
+<section id="shared-error-bar-geometry">
+<h2>Shared error-bar geometry<a class="headerlink" href="#shared-error-bar-geometry" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__element__error__geometry"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Error-bar</span> <span class="pre">extents</span> <span class="pre">and</span> <span class="pre">mapping</span></span></dt>
+<dd><p>Private shared geometry for line and bar elements. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExpandErrorBarExtents">
+<span class="target" id="group__element__error__geometry_1ga57a804db92737043e4169714fe9d7e55"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExpandErrorBarExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExpandErrorBarExtents" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Expand data bounds to include eligible error bars. </p>
+<p>Symmetric error vectors take precedence over explicit low/high pairs. Only errors with corresponding source points contribute; source vectors are never modified. Explicit endpoints and symmetric intervals receive the same data-space translation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element with source coordinates, error vectors and axes. NULL is a no-op. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[inout]</strong> Initialized data-coordinate bounds to expand; NULL is a no-op. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExpandErrorBarExtentsOffset">
+<span class="target" id="group__element__error__geometry_1ga8e3bb8d422dcc4a76249615dff875e5f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExpandErrorBarExtentsOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">xOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExpandErrorBarExtentsOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Expand data bounds to include eligible error bars. </p>
+<p>Symmetric error vectors take precedence over explicit low/high pairs. Only errors with corresponding source points contribute; source vectors are never modified. Explicit endpoints and symmetric intervals receive the same data-space translation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element with source coordinates, error vectors and axes. NULL is a no-op. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[inout]</strong> Initialized data-coordinate bounds to expand; NULL is a no-op. </p></li>
+<li><p><strong>xOffset</strong> – <strong>[in]</strong> Uniform data-coordinate X translation. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExpandErrorBarExtentsTranslated">
+<span class="target" id="group__element__error__geometry_1gacc3acbbbcae774b7ce30946dc5ba9bde"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExpandErrorBarExtentsTranslated</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">xOffset</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsets</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExpandErrorBarExtentsTranslated" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Expand data bounds to include eligible error bars. </p>
+<p>Symmetric error vectors take precedence over explicit low/high pairs. Only errors with corresponding source points contribute; source vectors are never modified. Explicit endpoints and symmetric intervals receive the same data-space translation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element with source coordinates, error vectors and axes. NULL is a no-op. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[inout]</strong> Initialized data-coordinate bounds to expand; NULL is a no-op. </p></li>
+<li><p><strong>xOffset</strong> – <strong>[in]</strong> Uniform data-coordinate X translation; ignored when offsets is non-NULL. </p></li>
+<li><p><strong>offsets</strong> – <strong>[in]</strong> Borrowed array covering NumberOfPoints(elemPtr), or NULL for uniform X translation. Entries translate both coordinates; non-finite entries suppress that point. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.AllocateErrorBarArrays">
+<span class="target" id="group__element__error__geometry_1ga01072d7e472d1e0d374ee3aeff46ed3a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AllocateErrorBarArrays</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segmentsPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AllocateErrorBarArrays" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate segment and source-index capacity for three segments per point. </p>
+<p>Returns TCL_OK or TCL_ERROR for size validation. The caller releases both arrays with ckfree; allocator exhaustion follows ckalloc behavior. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Nonnegative number of source points; rejected if the count or either byte size would overflow. </p></li>
+<li><p><strong>segmentsPtr</strong> – <strong>[out]</strong> Required output receiving an owned ckalloc array of 3*nPoints segments; NULL on size rejection. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[out]</strong> Required output receiving an owned ckalloc array of 3*nPoints indices; NULL on size rejection. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapErrorBars">
+<span class="target" id="group__element__error__geometry_1ga5ef8d4ac208f355f5f4653d480dc7db7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapErrorBars</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataToStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapErrorBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map and clip error bars and caps. </p>
+<p>Symmetric error vectors take precedence over explicit low/high pairs. Only errors with corresponding source points contribute; source vectors are never modified. Stores owned clipped segments and source-index arrays on the element. A capacity overflow returns without a diagnostic; one direction may already have been mapped. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with the owning track viewport selected, if applicable; provides mapping and clipping geometry. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Borrowed element with source coordinates, error vectors and axes. Caller must release and clear prior error-bar caches before mapping. </p></li>
+<li><p><strong>dataToStyle</strong> – <strong>[in]</strong> Borrowed per-source-point style array covering NumberOfPoints(elemPtr); eligible entries must point to valid styles with pixel cap widths. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapErrorBarsOffset">
+<span class="target" id="group__element__error__geometry_1ga0caf0858aed301161bfe497ccfef8e14"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapErrorBarsOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataToStyle</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">xOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapErrorBarsOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map and clip error bars and caps. </p>
+<p>Symmetric error vectors take precedence over explicit low/high pairs. Only errors with corresponding source points contribute; source vectors are never modified. Stores owned clipped segments and source-index arrays on the element. A capacity overflow returns without a diagnostic; one direction may already have been mapped. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with the owning track viewport selected, if applicable; provides mapping and clipping geometry. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Borrowed element with source coordinates, error vectors and axes. Caller must release and clear prior error-bar caches before mapping. </p></li>
+<li><p><strong>dataToStyle</strong> – <strong>[in]</strong> Borrowed per-source-point style array covering NumberOfPoints(elemPtr); eligible entries must point to valid styles with pixel cap widths. </p></li>
+<li><p><strong>xOffset</strong> – <strong>[in]</strong> Uniform data-coordinate X translation. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapErrorBarsTranslated">
+<span class="target" id="group__element__error__geometry_1ga021c0a56cf8c32ed86c18f3deeb6c45d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapErrorBarsTranslated</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataToStyle</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">xOffset</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsets</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapErrorBarsTranslated" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map and clip error bars and caps. </p>
+<p>Symmetric error vectors take precedence over explicit low/high pairs. Only errors with corresponding source points contribute; source vectors are never modified. Stores owned clipped segments and source-index arrays on the element. A capacity overflow returns without a diagnostic; one direction may already have been mapped. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with the owning track viewport selected, if applicable; provides mapping and clipping geometry. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Borrowed element with source coordinates, error vectors and axes. Caller must release and clear prior error-bar caches before mapping. </p></li>
+<li><p><strong>dataToStyle</strong> – <strong>[in]</strong> Borrowed per-source-point style array covering NumberOfPoints(elemPtr); eligible entries must point to valid styles with pixel cap widths. </p></li>
+<li><p><strong>xOffset</strong> – <strong>[in]</strong> Uniform data-coordinate X translation; ignored when offsets is non-NULL. </p></li>
+<li><p><strong>offsets</strong> – <strong>[in]</strong> Borrowed array covering NumberOfPoints(elemPtr), or NULL for uniform X translation. Entries translate both coordinates; non-finite entries suppress that point. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -3010,11 +3235,17 @@ Requires nonempty finite mapped geometry with parallel source indices and no int
 <li><a class="reference internal" href="#c.Rbc_FreeElemAxisTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemAxisTransaction()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PrepareElemAxisTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemAxisTransaction()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_CommitElemAxisTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemAxisTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeElemPenTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemPenTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PrepareElemPenTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemPenTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CommitElemPenTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemPenTransaction()</span></code></a></li>
 <li><a class="reference internal" href="#c.StageElemDataVector"><code class="docutils literal notranslate"><span class="pre">StageElemDataVector()</span></code></a></li>
 <li><a class="reference internal" href="#c.StageElemDataPairs"><code class="docutils literal notranslate"><span class="pre">StageElemDataPairs()</span></code></a></li>
 <li><a class="reference internal" href="#c.ReplaceElemOptionObject"><code class="docutils literal notranslate"><span class="pre">ReplaceElemOptionObject()</span></code></a></li>
 <li><a class="reference internal" href="#c.SetElemDataPairOptionObjects"><code class="docutils literal notranslate"><span class="pre">SetElemDataPairOptionObjects()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_SyncElemDataOptionObjects"><code class="docutils literal notranslate"><span class="pre">Rbc_SyncElemDataOptionObjects()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeElemStylesTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemStylesTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PrepareElemStylesTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemStylesTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CommitElemStylesTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemStylesTransaction()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#data-observation-and-value-presentation">Data observation and value presentation</a><ul>
@@ -3176,6 +3407,16 @@ Requires nonempty finite mapped geometry with parallel source indices and no int
 <li><a class="reference internal" href="#c.rbcGrLineConfiguration.GenerateSpline"><code class="docutils literal notranslate"><span class="pre">GenerateSpline()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineConfiguration.GenerateParametricSpline"><code class="docutils literal notranslate"><span class="pre">GenerateParametricSpline()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineConfiguration.ConfigureLine"><code class="docutils literal notranslate"><span class="pre">ConfigureLine()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shared-error-bar-geometry">Shared error-bar geometry</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ExpandErrorBarExtents"><code class="docutils literal notranslate"><span class="pre">Rbc_ExpandErrorBarExtents()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExpandErrorBarExtentsOffset"><code class="docutils literal notranslate"><span class="pre">Rbc_ExpandErrorBarExtentsOffset()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExpandErrorBarExtentsTranslated"><code class="docutils literal notranslate"><span class="pre">Rbc_ExpandErrorBarExtentsTranslated()</span></code></a></li>
+<li><a class="reference internal" href="#c.AllocateErrorBarArrays"><code class="docutils literal notranslate"><span class="pre">AllocateErrorBarArrays()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MapErrorBars"><code class="docutils literal notranslate"><span class="pre">Rbc_MapErrorBars()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MapErrorBarsOffset"><code class="docutils literal notranslate"><span class="pre">Rbc_MapErrorBarsOffset()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MapErrorBarsTranslated"><code class="docutils literal notranslate"><span class="pre">Rbc_MapErrorBarsTranslated()</span></code></a></li>
 </ul>
 </li>
 </ul>

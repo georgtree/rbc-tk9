@@ -20,6 +20,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <limits.h>
+/** @defgroup element_error_geometry Error-bar extents and mapping
+ * Private shared geometry for line and bar elements.
+ */
+
 /** @defgroup element_transaction_internals Element transaction internals
  * Candidate ownership, option identity and retained representations.
  */
@@ -1470,15 +1474,13 @@ static int StageElemPen(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid penType, ElemP
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Release uncommitted named pens and zero the transaction.
  *
- * Rbc_FreeElemPenTransaction --
- *
- *      Releases all named-pen references owned by a staged element
- *      pen transaction.
- *
- *----------------------------------------------------------------------
+ * Safe after commit or a failed prepare. Does not free the transaction record.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in,out] transactionPtr Required initialized or already-cleared transaction; releases only candidates still owned by it.
  */
 void Rbc_FreeElemPenTransaction(Graph *graphPtr, ElemPenTransaction *transactionPtr) {
     if (transactionPtr->activePenPtr != NULL) {
@@ -1490,20 +1492,17 @@ void Rbc_FreeElemPenTransaction(Graph *graphPtr, ElemPenTransaction *transaction
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Stage named pens without replacing live element resources.
  *
- * Rbc_PrepareElemPenTransaction --
- *
- *      Resolves all active and normal pen options involved in the
- *      current modern configuration without modifying the live
- *      element.
- *
- *      Explicit occurrences are processed in caller order, so an
- *      invalid earlier repeated value still causes the complete
- *      configuration to fail.
- *
- *----------------------------------------------------------------------
+ * Processes repeated explicit options in caller order, including invalid earlier values.
+ * Returns TCL_OK with candidates, or TCL_ERROR after releasing candidates and zeroing
+ * the transaction. On success, commit or free the transaction.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in] elemPtr Borrowed element with the pending even-length option/value array and effective option objects.
+ * @param[in] penType Required element pen-class UID used to validate named pens.
+ * @param[out] transactionPtr Required fresh transaction storage; initialized here. Do not pass a transaction still owning candidates.
  */
 int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType,
                                   ElemPenTransaction *transactionPtr) {
@@ -1575,18 +1574,16 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Commit staged named pens and release replaced resources.
  *
- * Rbc_CommitElemPenTransaction --
- *
- *      Replaces the live element pens with successfully staged
- *      candidates.
- *
- *      An empty normal-pen value selects the element's embedded
- *      built-in pen.
- *
- *----------------------------------------------------------------------
+ * Unstaged options remain unchanged. Complete all other validation before committing;
+ * this operation does not provide rollback.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in,out] elemPtr Borrowed live element receiving successfully staged resources.
+ * @param[in] builtinPenPtr Borrowed embedded pen selected by an empty normal-pen value; never released as a named pen.
+ * @param[in,out] transactionPtr Successfully prepared transaction; committed candidate ownership transfers to the element and candidate pointers are cleared.
  */
 void Rbc_CommitElemPenTransaction(Graph *graphPtr, Element *elemPtr, Pen *builtinPenPtr,
                                   ElemPenTransaction *transactionPtr) {
@@ -2157,33 +2154,31 @@ static int StageElemStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, R
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Release uncommitted palette and zero the transaction.
  *
- * Rbc_FreeElemStylesTransaction --
- *
- *      Releases a staged candidate palette.
- *
- *----------------------------------------------------------------------
+ * Safe after commit or a failed prepare. Does not free the transaction record.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in,out] transactionPtr Required initialized or already-cleared transaction; releases only candidates still owned by it.
  */
 void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *transactionPtr) {
     DestroyPalette(graphPtr, transactionPtr->palette);
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Stage palette without replacing live element resources.
  *
- * Rbc_PrepareElemStylesTransaction --
- *
- *      Parses all -styles values involved in the current modern
- *      configuration without modifying the live palette.
- *
- *      Explicit occurrences are processed in caller order. Therefore,
- *      an invalid earlier repeated value still causes the complete
- *      configuration to fail.
- *
- *----------------------------------------------------------------------
+ * Processes repeated explicit options in caller order, including invalid earlier values.
+ * Returns TCL_OK with candidates, or TCL_ERROR after releasing candidates and zeroing
+ * the transaction. On success, commit or free the transaction.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in] elemPtr Borrowed element with the pending even-length option/value array and effective option objects.
+ * @param[in] penType Retained interface argument, currently unused; palette parsing checks pens against the element class.
+ * @param[in] styleSize Byte size of the concrete style record, including its PenStyle prefix.
+ * @param[out] transactionPtr Required fresh transaction storage; initialized here. Do not pass a transaction still owning candidates.
  */
 int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType, size_t styleSize,
                                      ElemStylesTransaction *transactionPtr) {
@@ -2226,14 +2221,15 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_transaction_internals
+ * @brief Commit staged palette and release replaced resources.
  *
- * Rbc_CommitElemStylesTransaction --
- *
- *      Replaces the live palette with a successfully staged candidate.
- *
- *----------------------------------------------------------------------
+ * Unstaged options remain unchanged. Complete all other validation before committing;
+ * this operation does not provide rollback.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in,out] elemPtr Borrowed live element receiving successfully staged resources.
+ * @param[in,out] transactionPtr Successfully prepared transaction; committed candidate ownership transfers to the element and candidate pointers are cleared.
  */
 void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStylesTransaction *transactionPtr) {
     Rbc_Chain *oldPalette;
@@ -2526,40 +2522,46 @@ PenStyle **Rbc_StyleMap(Element *elemPtr) {
     return dataToStyle;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_error_geometry
+ * @brief Expand data bounds to include eligible error bars.
  *
- * Rbc_ExpandErrorBarExtents --
- *
- *      Expands element extents to include error-bar coordinates.
- *      Only error values that correspond to actual element data points
- *      and can therefore be mapped by Rbc_MapErrorBars are considered.
- *
- * Parameters:
- *      Element *elemPtr    - Element containing data and error vectors.
- *      Extents2D *extsPtr  - Extents to expand.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      May expand the supplied extents.
- *
- *----------------------------------------------------------------------
+ * Symmetric error vectors take precedence over explicit low/high pairs. Only errors
+ * with corresponding source points contribute; source vectors are never modified.
+ * Explicit endpoints and symmetric intervals receive the same data-space translation.
+ * @param[in] elemPtr Borrowed element with source coordinates, error vectors and axes. NULL is a no-op.
+ * @param[in,out] extsPtr Initialized data-coordinate bounds to expand; NULL is a no-op.
  */
 void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     Rbc_ExpandErrorBarExtentsOffset(elemPtr, extsPtr, 0.0);
 }
 
-/* Apply a data-coordinate X translation without modifying source vectors. */
+/**
+ * @ingroup element_error_geometry
+ * @brief Expand data bounds to include eligible error bars.
+ *
+ * Symmetric error vectors take precedence over explicit low/high pairs. Only errors
+ * with corresponding source points contribute; source vectors are never modified.
+ * Explicit endpoints and symmetric intervals receive the same data-space translation.
+ * @param[in] elemPtr Borrowed element with source coordinates, error vectors and axes. NULL is a no-op.
+ * @param[in,out] extsPtr Initialized data-coordinate bounds to expand; NULL is a no-op.
+ * @param[in] xOffset Uniform data-coordinate X translation.
+ */
 void Rbc_ExpandErrorBarExtentsOffset(Element *elemPtr, Extents2D *extsPtr, double xOffset) {
     Rbc_ExpandErrorBarExtentsTranslated(elemPtr, extsPtr, xOffset, NULL);
 }
 
-/*
- * Use per-point data-space translations when supplied. Non-finite translations
- * suppress errors for omitted bars. Explicit endpoints and symmetric errors
- * receive the same translation, without modifying any source vectors.
+/**
+ * @ingroup element_error_geometry
+ * @brief Expand data bounds to include eligible error bars.
+ *
+ * Symmetric error vectors take precedence over explicit low/high pairs. Only errors
+ * with corresponding source points contribute; source vectors are never modified.
+ * Explicit endpoints and symmetric intervals receive the same data-space translation.
+ * @param[in] elemPtr Borrowed element with source coordinates, error vectors and axes. NULL is a no-op.
+ * @param[in,out] extsPtr Initialized data-coordinate bounds to expand; NULL is a no-op.
+ * @param[in] xOffset Uniform data-coordinate X translation; ignored when offsets is non-NULL.
+ * @param[in] offsets Borrowed array covering NumberOfPoints(elemPtr), or NULL for uniform X translation. Entries translate both coordinates; non-finite entries suppress that point.
  */
 void Rbc_ExpandErrorBarExtentsTranslated(Element *elemPtr, Extents2D *extsPtr, double xOffset,
                                        const Point2D *offsets) {
@@ -2725,29 +2727,15 @@ void Rbc_ExpandErrorBarExtentsTranslated(Element *elemPtr, Extents2D *extsPtr, d
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_error_geometry
+ * @brief Allocate segment and source-index capacity for three segments per point.
  *
- * AllocateErrorBarArrays --
- *
- *      Allocates storage for mapped error-bar segments and their
- *      data-index map.  Each source point may generate a main
- *      segment and two caps.
- *
- * Parameters:
- *      Tcl_Size nPoints       - Number of source error-bar points.
- *      Segment2D **segmentsPtr
- *                             - Receives the segment array.
- *      Tcl_Size **mapPtr      - Receives the data-index array.
- *
- * Results:
- *      TCL_OK if the requested allocation sizes are representable.
- *      TCL_ERROR if the required count or byte size would overflow.
- *
- * Side Effects:
- *      Allocates both result arrays with ckalloc() on success.
- *
- *----------------------------------------------------------------------
+ * Returns TCL_OK or TCL_ERROR for size validation. The caller releases both arrays
+ * with ckfree; allocator exhaustion follows ckalloc behavior.
+ * @param[in] nPoints Nonnegative number of source points; rejected if the count or either byte size would overflow.
+ * @param[out] segmentsPtr Required output receiving an owned ckalloc array of 3*nPoints segments; NULL on size rejection.
+ * @param[out] mapPtr Required output receiving an owned ckalloc array of 3*nPoints indices; NULL on size rejection.
  */
 static int AllocateErrorBarArrays(Tcl_Size nPoints, Segment2D **segmentsPtr, Tcl_Size **mapPtr) {
     Tcl_Size capacity;
@@ -2775,40 +2763,52 @@ static int AllocateErrorBarArrays(Tcl_Size nPoints, Segment2D **segmentsPtr, Tcl
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup element_error_geometry
+ * @brief Map and clip error bars and caps.
  *
- * Rbc_MapErrorBars --
- *
- *      Creates two arrays of points and pen indices, filled with
- *      the screen coordinates of the visible
- *
- * Parameters:
- *      Graph *graphPtr
- *      Element *elemPtr
- *      PenStyle **dataToStyle
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is freed and allocated for the index array.
- *
- *----------------------------------------------------------------------
+ * Symmetric error vectors take precedence over explicit low/high pairs. Only errors
+ * with corresponding source points contribute; source vectors are never modified.
+ * Stores owned clipped segments and source-index arrays on the element. A capacity
+ * overflow returns without a diagnostic; one direction may already have been mapped.
+ * @param[in] graphPtr Borrowed graph with the owning track viewport selected, if applicable; provides mapping and clipping geometry.
+ * @param[in,out] elemPtr Borrowed element with source coordinates, error vectors and axes. Caller must release and clear prior error-bar caches before mapping.
+ * @param[in] dataToStyle Borrowed per-source-point style array covering NumberOfPoints(elemPtr); eligible entries must point to valid styles with pixel cap widths.
  */
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle) {
     Rbc_MapErrorBarsOffset(graphPtr, elemPtr, dataToStyle, 0.0);
 }
 
-/* Apply a data-coordinate X translation without modifying source vectors. */
+/**
+ * @ingroup element_error_geometry
+ * @brief Map and clip error bars and caps.
+ *
+ * Symmetric error vectors take precedence over explicit low/high pairs. Only errors
+ * with corresponding source points contribute; source vectors are never modified.
+ * Stores owned clipped segments and source-index arrays on the element. A capacity
+ * overflow returns without a diagnostic; one direction may already have been mapped.
+ * @param[in] graphPtr Borrowed graph with the owning track viewport selected, if applicable; provides mapping and clipping geometry.
+ * @param[in,out] elemPtr Borrowed element with source coordinates, error vectors and axes. Caller must release and clear prior error-bar caches before mapping.
+ * @param[in] dataToStyle Borrowed per-source-point style array covering NumberOfPoints(elemPtr); eligible entries must point to valid styles with pixel cap widths.
+ * @param[in] xOffset Uniform data-coordinate X translation.
+ */
 void Rbc_MapErrorBarsOffset(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle, double xOffset) {
     Rbc_MapErrorBarsTranslated(graphPtr, elemPtr, dataToStyle, xOffset, NULL);
 }
 
-/*
- * Use per-point data-space translations when supplied. Non-finite translations
- * suppress errors for omitted bars. Explicit endpoints and symmetric errors
- * receive the same translation, without modifying any source vectors.
+/**
+ * @ingroup element_error_geometry
+ * @brief Map and clip error bars and caps.
+ *
+ * Symmetric error vectors take precedence over explicit low/high pairs. Only errors
+ * with corresponding source points contribute; source vectors are never modified.
+ * Stores owned clipped segments and source-index arrays on the element. A capacity
+ * overflow returns without a diagnostic; one direction may already have been mapped.
+ * @param[in] graphPtr Borrowed graph with the owning track viewport selected, if applicable; provides mapping and clipping geometry.
+ * @param[in,out] elemPtr Borrowed element with source coordinates, error vectors and axes. Caller must release and clear prior error-bar caches before mapping.
+ * @param[in] dataToStyle Borrowed per-source-point style array covering NumberOfPoints(elemPtr); eligible entries must point to valid styles with pixel cap widths.
+ * @param[in] xOffset Uniform data-coordinate X translation; ignored when offsets is non-NULL.
+ * @param[in] offsets Borrowed array covering NumberOfPoints(elemPtr), or NULL for uniform X translation. Entries translate both coordinates; non-finite entries suppress that point.
  */
 void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle, double xOffset,
                                 const Point2D *offsets) {

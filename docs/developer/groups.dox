@@ -117,6 +117,10 @@
  * @ingroup rbc_graphs
  */
 
+/** @addtogroup element_error_geometry
+ * @ingroup rbc_graphs
+ */
+
 /** @addtogroup element_transaction_internals
  * @ingroup rbc_graphs
  */

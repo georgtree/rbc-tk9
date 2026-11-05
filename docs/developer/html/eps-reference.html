@@ -186,7 +186,34 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.DeleteEps">
 <span class="target" id="group__eps__canvas_1ga0d17f9c12de8e24dbda90b878d2ae38f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DeleteEps" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release resources of a canvas-owned EPS item. </p>
-<p>Release options, file, DString, color snapshot, source-image instance, private photo, pixmaps, fill GC, title style and parsed title through their matching APIs. Detach tmpImage before temporary-image cleanup can notify clients. The canvas owns the item record itself; this function does not free it. </p>
+<p>Release options, file, DString, color snapshot, source-image instance, private photo, pixmaps, fill GC, title style and parsed title through their matching APIs. Detach tmpImage before temporary-image cleanup can notify clients. The canvas owns the item record itself; this function does not free it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning Tk canvas; supplies window and coordinate conversion. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Canvas-owned initialized EpsItem; owned resources are released, but the record is not freed. </p></li>
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display matching the item graphics resources. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CreateEps">
+<span class="target" id="group__eps__canvas_1ga792b821113c8c40e4d6bc2611d75cd06"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CreateEps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize a canvas-owned EPS item and apply its creation options. </p>
+<p>Returns Tcl status. A configuration failure releases initialized resources through DeleteEps; the item record remains caller-owned. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed result interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning Tk canvas; supplies window and coordinate conversion. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Caller-allocated EpsItem with its Tk_Item header initialized; record ownership stays with the canvas. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of creation arguments; at least two coordinates are required. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed x/y coordinates followed by option/value pairs; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -229,7 +256,37 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.ConfigureEps">
 <span class="target" id="group__eps__canvas_1ga33829327d778bb37df4ee6a3695924f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConfigureEps" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply legacy canvas options and rebuild EPS preview resources. </p>
-<p>Use Tk_ConfigureWidget and explicit option-prefix detection for image, file and quick changes. Source images are photo-only and copied to owned pixels. Create or discard the temporary display photo as needed, rebuild the fill GC and bbox, and close the file on success. Return Tcl status. Resource updates are incremental, not a Tk_SetOptions saved-options rollback transaction. </p>
+<p>Use Tk_ConfigureWidget and explicit option-prefix detection for image, file and quick changes. Source images are photo-only and copied to owned pixels. Create or discard the temporary display photo as needed, rebuild the fill GC and bbox, and close the file on success. Return Tcl status. Resource updates are incremental, not a Tk_SetOptions saved-options rollback transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed result interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning Tk canvas; supplies window and coordinate conversion. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Borrowed initialized EpsItem; updates can remain partially applied on failure. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of option/value objects in objv. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed option/value array; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>flags</strong> – <strong>[in]</strong> Tk_ConfigureWidget configuration flags, including TK_CONFIG_ARGV_ONLY for reconfiguration. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EpsCoords">
+<span class="target" id="group__eps__canvas_1gad41f85ba11145a921d09ec58499b4d6b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EpsCoords</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EpsCoords" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or replace the EPS anchor coordinates. </p>
+<p>Returns TCL_OK or TCL_ERROR. A query returns a two-value coordinate list; replacement converts both values before changing the item. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed result interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning Tk canvas; supplies window and coordinate conversion. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Borrowed initialized EpsItem; anchor and bbox change only after both coordinates parse. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Zero for a query or two for an X/Y replacement; other counts are rejected. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed coordinate objects for replacement; not read for a query. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -251,7 +308,21 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.DisplayEps">
 <span class="target" id="group__eps__canvas_1gaa7d4a5c3ee9cf8e8b894b98035ec87b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DisplayEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DisplayEps" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw the preview or placeholder through Tk canvas/native services. </p>
-<p>Rescale the saved color snapshot only when cached dimensions differ. Quick mode uses resize; otherwise use box resampling. Publish into the private photo, release the intermediate buffer, and draw pixmap/photo or filled placeholder, optional title and border. Borrow the drawable and canvas. This path does not construct a graph renderer context. </p>
+<p>Rescale the saved color snapshot only when cached dimensions differ. Quick mode uses resize; otherwise use box resampling. Publish into the private photo, release the intermediate buffer, and draw pixmap/photo or filled placeholder, optional title and border. Borrow the drawable and canvas. This path does not construct a graph renderer context.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning Tk canvas; supplies window and coordinate conversion. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Borrowed configured EpsItem; preview caches may be rebuilt. </p></li>
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display associated with the destination. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed canvas drawable receiving the preview, title and border. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Canvas redisplay rectangle X origin; unused. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Canvas redisplay rectangle Y origin; unused. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Canvas redisplay rectangle width; unused. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Canvas redisplay rectangle height; unused. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -339,6 +410,20 @@ These are private implementation interfaces.</p>
 </dl>
 </dd></dl>
 
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_InitEpsCanvasItem">
+<span class="target" id="group__eps__canvas_1gacfaa2a520bced1d72898b02780f6912e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitEpsCanvasItem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InitEpsCanvasItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Register the EPS canvas item type and Tk tag option callbacks. </p>
+<p>Registers the static Tk item-type descriptor. Does not create a canvas or item. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter supplied by package initialization; currently unused. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </dd></dl>
 
@@ -365,9 +450,11 @@ These are private implementation interfaces.</p>
 <li><a class="reference internal" href="#c.OpenEpsFile"><code class="docutils literal notranslate"><span class="pre">OpenEpsFile()</span></code></a></li>
 <li><a class="reference internal" href="#c.CloseEpsFile"><code class="docutils literal notranslate"><span class="pre">CloseEpsFile()</span></code></a></li>
 <li><a class="reference internal" href="#c.DeleteEps"><code class="docutils literal notranslate"><span class="pre">DeleteEps()</span></code></a></li>
+<li><a class="reference internal" href="#c.CreateEps"><code class="docutils literal notranslate"><span class="pre">CreateEps()</span></code></a></li>
 <li><a class="reference internal" href="#c.ImageChangedProc"><code class="docutils literal notranslate"><span class="pre">ImageChangedProc()</span></code></a></li>
 <li><a class="reference internal" href="#c.EpsOptionSpecified"><code class="docutils literal notranslate"><span class="pre">EpsOptionSpecified()</span></code></a></li>
 <li><a class="reference internal" href="#c.ConfigureEps"><code class="docutils literal notranslate"><span class="pre">ConfigureEps()</span></code></a></li>
+<li><a class="reference internal" href="#c.EpsCoords"><code class="docutils literal notranslate"><span class="pre">EpsCoords()</span></code></a></li>
 <li><a class="reference internal" href="#c.ComputeEpsBbox"><code class="docutils literal notranslate"><span class="pre">ComputeEpsBbox()</span></code></a></li>
 <li><a class="reference internal" href="#c.DisplayEps"><code class="docutils literal notranslate"><span class="pre">DisplayEps()</span></code></a></li>
 <li><a class="reference internal" href="#c.EpsToPoint"><code class="docutils literal notranslate"><span class="pre">EpsToPoint()</span></code></a></li>
@@ -375,6 +462,7 @@ These are private implementation interfaces.</p>
 <li><a class="reference internal" href="#c.ScaleEps"><code class="docutils literal notranslate"><span class="pre">ScaleEps()</span></code></a></li>
 <li><a class="reference internal" href="#c.TranslateEps"><code class="docutils literal notranslate"><span class="pre">TranslateEps()</span></code></a></li>
 <li><a class="reference internal" href="#c.EpsToPostScript"><code class="docutils literal notranslate"><span class="pre">EpsToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_InitEpsCanvasItem"><code class="docutils literal notranslate"><span class="pre">Rbc_InitEpsCanvasItem()</span></code></a></li>
 </ul>
 </li>
 </ul>

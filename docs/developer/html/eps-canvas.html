@@ -201,6 +201,18 @@ intersections overlap. Both use the cached rectangle regardless of transparency.
 Translation changes the anchor and recomputes that rectangle without resizing
 or resampling pixels. Tk’s canvas operation owns the surrounding redraw work.</p>
 </section>
+<section id="canvas-callback-argument-contracts">
+<h2>Canvas callback argument contracts<a class="headerlink" href="#canvas-callback-argument-contracts" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="eps-reference.html#c.Rbc_InitEpsCanvasItem" title="Rbc_InitEpsCanvasItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitEpsCanvasItem()</span></code></a> registers the static item type; it does not create
+an item. <a class="reference internal" href="eps-reference.html#c.CreateEps" title="CreateEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateEps()</span></code></a> initializes a canvas-owned record whose Tk header
+already exists. <a class="reference internal" href="eps-reference.html#c.ConfigureEps" title="ConfigureEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureEps()</span></code></a> applies legacy options incrementally,
+whereas <a class="reference internal" href="eps-reference.html#c.EpsCoords" title="EpsCoords"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsCoords()</span></code></a> parses both new coordinates before updating the
+anchor and bbox.</p>
+<p><a class="reference internal" href="eps-reference.html#c.DisplayEps" title="DisplayEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">DisplayEps()</span></code></a> may rebuild preview caches but borrows the canvas drawable.
+Its redisplay-rectangle arguments are not used by the implementation.
+<a class="reference internal" href="eps-reference.html#c.DeleteEps" title="DeleteEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteEps()</span></code></a> releases initialized resources through their matching APIs;
+the canvas retains ownership of the item record itself.</p>
+</section>
 </section>
 
 
@@ -220,6 +232,7 @@ or resampling pixels. Tk’s canvas operation owns the surrounding redraw work.<
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#preview-byte-decoding-details">Preview-byte decoding details</a></li>
 <li><a class="reference internal" href="#small-callback-and-geometry-contracts">Small callback and geometry contracts</a></li>
+<li><a class="reference internal" href="#canvas-callback-argument-contracts">Canvas callback argument contracts</a></li>
 </ul>
 </li>
 </ul>

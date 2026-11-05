@@ -150,3 +150,9 @@ reference-impedance validation boundary. This namespace disambiguates private na
    :members:
 
 .. c:namespace-pop::
+
+Shared error-bar geometry
+-------------------------
+
+.. doxygengroup:: element_error_geometry
+   :members:

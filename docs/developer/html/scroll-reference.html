@@ -108,7 +108,14 @@
 <dt class="sig sig-object c" id="c.Rbc_NotifyTrackView">
 <span class="target" id="rbc_gr_track_8h_1a727067e48c7cc0bbd97a75e585ae57d5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NotifyTrackView</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NotifyTrackView" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Repick the stationary pointer and report track scrollbar fractions. </p>
-<p>Called after native display/layout work; does nothing for non-track graphs or during export. Preserves the graph across binding callbacks, rechecks the live window, then notifies the scrollbar. Callbacks may destroy the widget; the caller must not assume the graph survives this function. </p>
+<p>Called after native display/layout work; does nothing for non-track graphs or during export. Preserves the graph across binding callbacks, rechecks the live window, then notifies the scrollbar. Callbacks may destroy the widget; the caller must not assume the graph survives this function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph; callbacks may destroy it. A caller needing subsequent access must separately protect and revalidate it. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="implementation-helpers">

@@ -51,28 +51,58 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 <dt class="sig sig-object c" id="c.Rbc_FindTrack">
 <span class="target" id="rbc_gr_track_8h_1ad0dad7686a4153f63c294649138f5703"></span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FindTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FindTrack" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a borrowed track by exact, case-sensitive name, or NULL. </p>
-<p>Searches the owning graph list without creating or retaining an object. Reordering preserves the pointer; deletion or graph teardown invalidates it. </p>
+<p>Searches the owning graph list without creating or retaining an object. Reordering preserves the pointer; deletion or graph teardown invalidates it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph whose track list is searched. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Required NUL-terminated exact track name; not retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DestroyTracks">
 <span class="target" id="rbc_gr_track_8h_1a40fc147aad30c666f7cb277b3206493e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTracks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTracks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release all tracks during graph teardown, before destroying axes. </p>
-<p>Removes track bindings, local grids and legends, then releases axis references, names and records. The caller must already have disposed of dependent elements and markers and retain the component cleanup resources. Unlike command deletion, this does not validate dependencies or redraw. </p>
+<p>Removes track bindings, local grids and legends, then releases axis references, names and records. The caller must already have disposed of dependent elements and markers and retain the component cleanup resources. Unlike command deletion, this does not validate dependencies or redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_CreateTrackComponentArgs">
 <span class="target" id="rbc_gr_track_8h_1ac264eac1e80712bb8b4c354934f9c3ce"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateTrackComponentArgs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateTrackComponentArgs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an argument vector for nested grid or legend dispatch. </p>
-<p>Require objc &gt;= 5 and the widget track component name operation form. The result has objc - 2 entries and owns only a newly retained list-valued command prefix at index 1; other entries borrow input objects. Release with <a class="reference internal" href="#rbc_gr_track_8h_1a833467ecb5aff7a5ccea1efc37f1806d"><span class="std std-ref">Rbc_FreeTrackComponentArgs()</span></a> before those borrowed arguments expire. </p>
+<p>Require objc &gt;= 5 and the widget track component name operation form. The result has objc - 2 entries and owns only a newly retained list-valued command prefix at index 1; other entries borrow input objects. Release with <a class="reference internal" href="#rbc_gr_track_8h_1a833467ecb5aff7a5ccea1efc37f1806d"><span class="std std-ref">Rbc_FreeTrackComponentArgs()</span></a> before those borrowed arguments expire.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of input objects; must be at least five. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget track component name operation argument array; keep its objects alive until the adapter is freed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreeTrackComponentArgs">
 <span class="target" id="rbc_gr_track_8h_1a833467ecb5aff7a5ccea1efc37f1806d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeTrackComponentArgs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeTrackComponentArgs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release the owned command prefix and array from <a class="reference internal" href="#rbc_gr_track_8h_1ac264eac1e80712bb8b4c354934f9c3ce"><span class="std std-ref">Rbc_CreateTrackComponentArgs()</span></a>. </p>
-<p>Borrowed argument objects are not decremented. Require a non-NULL result from that allocator and release it exactly once. </p>
+<p>Borrowed argument objects are not decremented. Require a non-NULL result from that allocator and release it exactly once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – <strong>[in]</strong> Non-NULL owned array returned by Rbc_CreateTrackComponentArgs; consumed by this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl>
@@ -318,6 +348,57 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 </div>
 </dd></dl>
 
+<section id="widget-integration">
+<h2>Widget integration<a class="headerlink" href="#widget-integration" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ConfigureTrackGraph">
+<span class="target" id="rbc_gr_track_8h_1a786d7283dee8d68a58440bf623b2ffc3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ConfigureTrackGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scrollCommandChanged</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ConfigureTrackGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate track-specific widget options before configuration commits. </p>
+<p>Returns TCL_OK or TCL_ERROR with a graph-interpreter diagnostic. Failure after the cached fraction reset does not undo that reset; the caller owns option rollback. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>scrollCommandChanged</strong> – <strong>[in]</strong> Nonzero when the scroll command changed; resets the cached first fraction after validating its list syntax. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_TrackOp">
+<span class="target" id="rbc_gr_track_8h_1a3e8b76b093209b2cf868eee569ad770a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TrackOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_TrackOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch the widget track subcommand. </p>
+<p>Returns Tcl status and sets the interpreter result. The enclosing widget command protects graph lifetime across layout and nested component callbacks. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live component resources on its Tk thread. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed result interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of full widget-command arguments, including widget and track words. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command array; operation is at index 2. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DrawTrackSeparators">
+<span class="target" id="rbc_gr_track_8h_1a980bdd7e36317fdc21d42443be47ecc2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawTrackSeparators</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawTrackSeparators" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw dividers inside the gaps between adjacent tracks. </p>
+<p>Uses the same centers as sash positioning. Compressed or off-viewport strokes are omitted. Does nothing for ordinary graphs or an unset separator color. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current track world bounds and plot viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed screen destination; used by screen rendering and native fallback. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed export context, or NULL for screen output. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -350,6 +431,12 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 <li><a class="reference internal" href="#c.TrackViewOp"><code class="docutils literal notranslate"><span class="pre">TrackViewOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.NotifyTrackScrollbar"><code class="docutils literal notranslate"><span class="pre">NotifyTrackScrollbar()</span></code></a></li>
 <li><a class="reference internal" href="#c.DeleteTracks"><code class="docutils literal notranslate"><span class="pre">DeleteTracks()</span></code></a></li>
+<li><a class="reference internal" href="#widget-integration">Widget integration</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ConfigureTrackGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ConfigureTrackGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_TrackOp"><code class="docutils literal notranslate"><span class="pre">Rbc_TrackOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DrawTrackSeparators"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawTrackSeparators()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

@@ -684,3 +684,22 @@ though the descriptor is passed by value.
 Both represent exactly transparent pixels with a binary mask; partial alpha
 is opaque for these operations. :c:func:`rbcWindowsImages.Rbc_DrawableToColorImage`
 instead returns a newly owned, fully opaque color image after gamma conversion.
+
+Retained native geometry contexts
+---------------------------------
+
+:c:func:`Rbc_RenderBeginNativeSymbols` retains the symbol-style pointer;
+:c:func:`Rbc_RenderBeginBars` instead copies its style record, while borrowing
+the resources referenced by that record. Both borrow the graph and drawable
+until :c:func:`Rbc_RenderEnd`.
+
+:c:func:`Rbc_RenderBeginNativeFill` passes the tile and stipple selector to the
+native fill path. With no tile, a non-None selector enables GC filling; None
+alone does not mean solid fill. :c:func:`Rbc_RenderBeginNativeSegments` retains
+the supplied GC, including XOR and its existing clip.
+
+:c:func:`Rbc_RenderBeginNativeArc` borrows already mapped fill vertices and
+outline segments. Keep them consistent with the analytic arc passed to dispatch
+and alive until End. :c:func:`Rbc_RenderBeginNativePolygonBatch` may retain a
+Windows DC and point buffer; an unavailable batch falls back to ordinary native
+polygon filling. It still returns a context requiring End.

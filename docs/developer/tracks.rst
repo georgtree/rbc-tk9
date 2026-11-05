@@ -171,3 +171,21 @@ not continued widget validity: the callback may destroy the graph. No graph
 fields are read after callback evaluation in this helper. The surrounding
 notification service similarly repicks stationary pointers, checks that the
 widget survived binding callbacks, then invokes scrollbar notification.
+
+Dispatch and notification contracts
+-----------------------------------
+
+:c:func:`Rbc_ConfigureTrackGraph` validates the widget-level track options;
+:c:func:`Rbc_TrackOp` dispatches the full widget command under its enclosing
+lifetime protection. :c:func:`Rbc_CreateTrackComponentArgs` adapts nested grid
+and legend arguments without copying every Tcl object. Its retained command
+prefix and array must be released with :c:func:`Rbc_FreeTrackComponentArgs`
+before the borrowed arguments expire.
+
+:c:func:`Rbc_FindTrack` returns an unretained identity: ordering does not invalidate
+it, but deletion does. :c:func:`Rbc_NotifyTrackView` may execute bindings and
+scrollbar callbacks that delete the widget; its internal preservation does not
+guarantee that the graph remains usable after return.
+:c:func:`Rbc_DestroyTracks` is teardown, after dependent elements and markers
+have gone and before axes are freed. :c:func:`Rbc_DrawTrackSeparators` uses
+current world bounds and limits strokes to visible gaps.

@@ -163,3 +163,17 @@ is classified as outside; a query enclosing the full item is inside; remaining
 intersections overlap. Both use the cached rectangle regardless of transparency.
 Translation changes the anchor and recomputes that rectangle without resizing
 or resampling pixels. Tk's canvas operation owns the surrounding redraw work.
+
+Canvas callback argument contracts
+----------------------------------
+
+:c:func:`Rbc_InitEpsCanvasItem` registers the static item type; it does not create
+an item. :c:func:`CreateEps` initializes a canvas-owned record whose Tk header
+already exists. :c:func:`ConfigureEps` applies legacy options incrementally,
+whereas :c:func:`EpsCoords` parses both new coordinates before updating the
+anchor and bbox.
+
+:c:func:`DisplayEps` may rebuild preview caches but borrows the canvas drawable.
+Its redisplay-rectangle arguments are not used by the implementation.
+:c:func:`DeleteEps` releases initialized resources through their matching APIs;
+the canvas retains ownership of the item record itself.

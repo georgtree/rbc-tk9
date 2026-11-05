@@ -728,39 +728,106 @@ Caller supplies compatible drawables and GC and controls clipping and presentati
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeSymbols">
-<span class="target" id="rbc_render_8h_1a9b34592b82db390910e87c1d0e88ba49"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeSymbols" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Screen-only adapters. </p>
-<p>Native symbol contexts support SymbolPoints/End; bar contexts support FillRectangles/End (including the existing bevel). Fill contexts support FillPolygon/End. Native arc contexts retain mapped, clipped fallback geometry and support Arc/FillArc/End. All input resources and geometry are borrowed until End; no public Tcl or vector ABI changes. </p>
+<span class="target" id="rbc_render_8h_1ad9b54615ef865c21012a1f38306220c2"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native SymbolPoints/End context. </p>
+<p>Returns an owned context; release exactly once with Rbc_RenderEnd. This adapter does not take ownership of graph or drawing resources. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed live graph; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed symbol style and its resources, retained by pointer until End; drawing updates its sampling counter. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in screen pixels, passed unchanged to native symbol drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginBars">
-<span class="target" id="rbc_render_8h_1af1bff317a1fb76a5fa106ae3961495e1"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginBars</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginBars" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Create a native bar context supporting FillRectangles and End. </p>
+<span class="target" id="rbc_render_8h_1a882390a0b076c8f6f0f2a5c12a297213"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginBars</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native FillRectangles/End context. </p>
+<p>Returns an owned context; release exactly once with Rbc_RenderEnd. This adapter does not take ownership of graph or drawing resources. The caller may discard the style record after construction. Native bevel and fill behavior are retained. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed live graph; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Required bar-style record copied by value; its GC, border and stipple resources remain borrowed until End. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeFill">
-<span class="target" id="rbc_render_8h_1a82bd8f77a3c221e6e3a3f8d9673422b3"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeFill</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeFill" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Create a native polygon-fill context borrowing its GC, tile and stipple. </p>
+<span class="target" id="rbc_render_8h_1a3ea359596ea1cc7ac665b0000a99b050"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeFill</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeFill" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native FillPolygon/End context. </p>
+<p>Returns an owned context; release exactly once with Rbc_RenderEnd. This adapter does not take ownership of graph or drawing resources. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed live graph; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed tile, or NULL for the GC/stipple path. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Non-None enables GC polygon filling when tile is NULL. None does not select solid filling; not acquired or freed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeSegments">
-<span class="target" id="rbc_render_8h_1a20f0215adcb47f830cf5894bc0aa271a"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeSegments" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Native-only Segments/End; also preserves XOR and preinstalled GC clips. </p>
+<span class="target" id="rbc_render_8h_1aad8547ceab7c3d36e65372fc3adb5815"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native Segments/End context. </p>
+<p>Returns an owned context; release exactly once with Rbc_RenderEnd. This adapter does not take ownership of graph or drawing resources. Preserves the supplied GC raster operation, including XOR, and its installed clip. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed live graph; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeArc">
-<span class="target" id="rbc_render_8h_1a88983ecf05335f260550edb96e509dcb"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeArc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeArc" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Create a native arc context borrowing pre-mapped fill points and outline segments until End. </p>
+<span class="target" id="rbc_render_8h_1a166e5302b33fc555e2575a81416b165a"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeArc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fillPoints</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">fillCount</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeArc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native Arc/FillArc/End context. </p>
+<p>Returns an owned context; release exactly once with Rbc_RenderEnd. This adapter does not take ownership of graph or drawing resources. Keep both arrays alive until End and consistent with the analytic geometry passed to Arc/FillArc. The native adapter draws these arrays rather than remapping the ellipse. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed live graph; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>fillPoints</strong> – <strong>[in]</strong> Borrowed mapped, clipped fill polygon; may be NULL when fillCount is zero. </p></li>
+<li><p><strong>fillCount</strong> – <strong>[in]</strong> Nonnegative number of fill points. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped, clipped outline segments; may be NULL when count is zero. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of outline segments. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginNativePolygonBatch">
-<span class="target" id="rbc_render_8h_1aec7061f247dd0abcd98f406568b4af11"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativePolygonBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">maxPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativePolygonBatch" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Create a native polygon batch with the supplied maximum point capacity. </p>
+<span class="target" id="rbc_render_8h_1afefa04cb30a22dae3b3fced1f245ac98"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativePolygonBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">maxPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativePolygonBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native polygon-fill batch context. </p>
+<p>Returns an owned context; release exactly once with Rbc_RenderEnd. This adapter does not take ownership of graph or drawing resources. A missing platform batch or failed batch allocation falls back to ordinary native polygon filling. The context itself is still returned and must be ended. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed live graph; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed native GC, including its raster operation and clipping; keep it valid until Rbc_RenderEnd. </p></li>
+<li><p><strong>maxPoints</strong> – <strong>[in]</strong> Maximum vertex count for each submitted polygon; use a positive representable capacity. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">

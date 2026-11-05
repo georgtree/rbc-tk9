@@ -17,12 +17,17 @@
  * result has objc - 2 entries and owns only a newly retained list-valued command
  * prefix at index 1; other entries borrow input objects. Release with
  * Rbc_FreeTrackComponentArgs() before those borrowed arguments expire.
+ *
+ * @param[in] objc Number of input objects; must be at least five.
+ * @param[in] objv Borrowed full widget track component name operation argument array; keep its objects alive until the adapter is freed.
  */
 Tcl_Obj **Rbc_CreateTrackComponentArgs(Tcl_Size objc, Tcl_Obj *const objv[]);
 /**
  * @brief Release the owned command prefix and array from Rbc_CreateTrackComponentArgs().
  * Borrowed argument objects are not decremented. Require a non-NULL result
  * from that allocator and release it exactly once.
+ *
+ * @param[in] args Non-NULL owned array returned by Rbc_CreateTrackComponentArgs; consumed by this call.
  */
 void Rbc_FreeTrackComponentArgs(Tcl_Obj **args);
 
@@ -57,6 +62,14 @@ struct RbcTrack {
     RbcTrack *next;
 };
 
+/**
+ * @brief Validate track-specific widget options before configuration commits.
+ *
+ * Returns TCL_OK or TCL_ERROR with a graph-interpreter diagnostic. Failure after
+ * the cached fraction reset does not undo that reset; the caller owns option rollback.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in] scrollCommandChanged Nonzero when the scroll command changed; resets the cached first fraction after validating its list syntax.
+ */
 int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged);
 /**
  * @brief Release all tracks during graph teardown, before destroying axes.
@@ -65,6 +78,8 @@ int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged);
  * references, names and records. The caller must already have disposed of
  * dependent elements and markers and retain the component cleanup resources.
  * Unlike command deletion, this does not validate dependencies or redraw.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
  */
 void Rbc_DestroyTracks(Graph *graphPtr);
 /**
@@ -73,8 +88,20 @@ void Rbc_DestroyTracks(Graph *graphPtr);
  * or during export. Preserves the graph across binding callbacks, rechecks the
  * live window, then notifies the scrollbar. Callbacks may destroy the widget;
  * the caller must not assume the graph survives this function.
+ *
+ * @param[in,out] graphPtr Borrowed graph; callbacks may destroy it. A caller needing subsequent access must separately protect and revalidate it.
  */
 void Rbc_NotifyTrackView(Graph *graphPtr);
+/**
+ * @brief Dispatch the widget track subcommand.
+ *
+ * Returns Tcl status and sets the interpreter result. The enclosing widget command
+ * protects graph lifetime across layout and nested component callbacks.
+ * @param[in,out] graphPtr Borrowed owning graph with live component resources on its Tk thread.
+ * @param[in,out] interp Borrowed result interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Number of full widget-command arguments, including widget and track words.
+ * @param[in] objv Borrowed full command array; operation is at index 2. See @ref rbc_command_arguments.
+ */
 int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 /**
  * @brief Release a track's local grid and both mapped segment caches.
@@ -106,6 +133,9 @@ void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int r
  * @brief Return a borrowed track by exact, case-sensitive name, or NULL.
  * Searches the owning graph list without creating or retaining an object.
  * Reordering preserves the pointer; deletion or graph teardown invalidates it.
+ *
+ * @param[in] graphPtr Borrowed graph whose track list is searched.
+ * @param[in] name Required NUL-terminated exact track name; not retained.
  */
 RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name);
 /**
@@ -140,6 +170,15 @@ void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved);
  * Does not undo other graph mutations, layout work or renderer clipping.
  */
 void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved);
+/**
+ * @brief Draw dividers inside the gaps between adjacent tracks.
+ *
+ * Uses the same centers as sash positioning. Compressed or off-viewport strokes
+ * are omitted. Does nothing for ordinary graphs or an unset separator color.
+ * @param[in] graphPtr Borrowed graph with current track world bounds and plot viewport.
+ * @param[in] drawable Borrowed screen destination; used by screen rendering and native fallback.
+ * @param[in,out] exportPtr Borrowed export context, or NULL for screen output.
+ */
 void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr);
 int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis);
 
