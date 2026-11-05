@@ -415,6 +415,8 @@ static RbcGrAxisVirtualOp ViewOp;
  * @brief Clamp a wide layout size to a nonnegative int.
  *
  * Returns zero for nonpositive input; otherwise uses Rbc_ClampToInt. Does not alter graph state.
+ *
+ * @param[in] value Wide integer layout extent in pixels, clamped before narrowing to int.
  */
 static int LayoutSize(Tcl_WideInt value) {
     if (value <= 0) {
@@ -429,6 +431,8 @@ static int LayoutSize(Tcl_WideInt value) {
  *
  * Returns one below the minimum usable scalar range; otherwise uses Rbc_ClampToInt. This arithmetic
  * floor does not make collapsed plot geometry drawable.
+ *
+ * @param[in] value Wide integer layout extent in pixels, clamped before narrowing to int.
  */
 static int LayoutRange(Tcl_WideInt value) {
     if (value < 1) {
@@ -443,6 +447,9 @@ static int LayoutRange(Tcl_WideInt value) {
  *
  * NULL and empty lists succeed. Returns a Tcl parsing status for other values; does not evaluate the
  * command, resolve its first word or retain list elements.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed command-prefix object, or NULL; an empty list is also accepted.
  */
 static int ValidateAxisCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     Tcl_Size objc;
@@ -466,6 +473,9 @@ static int ValidateAxisCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
  * graph/interpreter storage and interpreter state, evaluates globally and reports errors in the
  * background. Does not dereference the axis after Tcl evaluation; destruction cancels outstanding idle
  * delivery.
+ *
+ * @param[in,out] clientData Borrowed Axis pointer registered for idle delivery; destruction must cancel the
+ *   pending callback.
  */
 static void NotifyAxisScrollbar(ClientData clientData) {
     Axis *axisPtr = clientData;
@@ -508,6 +518,13 @@ static void NotifyAxisScrollbar(ClientData clientData) {
  * Suppresses updates during GRAPH_EXPORT. Otherwise replaces pending fraction values and schedules at
  * most one idle callback for the axis. Does not evaluate Tcl, compare fractions with the previous
  * delivery or retain a separate axis reference.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] firstFract Latest screen-oriented first scrollbar fraction, copied without clamping.
+ * @param[in] lastFract Latest screen-oriented last scrollbar fraction, copied without clamping.
  */
 static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFract, double lastFract) {
     if (graphPtr->flags & GRAPH_EXPORT) {
@@ -545,6 +562,9 @@ static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
  *
  * Uses halfway-away-from-zero rounding without an integer conversion. Returns the original value if
  * inputs, quotient or rounded product cannot be used safely; does not report a Tcl error.
+ *
+ * @param[in] value Value to round; returned unchanged when the inputs or intermediate arithmetic are unusable.
+ * @param[in] step Finite nonzero rounding interval; invalid values leave the input value unchanged.
  */
 static double RoundToStep(double value, double step) {
     double scaled;
@@ -576,6 +596,13 @@ static double RoundToStep(double value, double step) {
  * Requires finite endpoints and a positive finite step. Works in step units to avoid subtracting large
  * raw endpoints. Rejects nonfinite quotients/products and counts outside 1..MAXTICKS before converting
  * to Tcl_Size. Returns TRUE and assigns all outputs only on success; FALSE leaves outputs untouched.
+ *
+ * @param[in] min Lower endpoint used to select mapping bounds and tick spacing.
+ * @param[in] max Upper endpoint in the same coordinate space as min.
+ * @param[in] step Positive finite interval in the same units as min/max; other values return FALSE.
+ * @param[out] tickMinPtr Required lower enclosing-tick output; assigned only on TRUE.
+ * @param[out] tickMaxPtr Required separate upper enclosing-tick output; assigned only on TRUE.
+ * @param[out] nTicksPtr Required tick-count output in 1..MAXTICKS; assigned only on TRUE.
  */
 static int GetLinearSweep(double min, double max, double step, double *tickMinPtr, double *tickMaxPtr,
                           Tcl_Size *nTicksPtr) {
@@ -627,6 +654,9 @@ static int GetLinearSweep(double min, double max, double step, double *tickMinPt
  * First applies NiceNum to the representable positive span, aiming for DEF_NUM_TICKS intervals. If
  * that fails, uses quarter-scaled endpoint subtraction to avoid span overflow. Returns a positive
  * finite nice step when possible, otherwise 1.0; does not allocate or report errors.
+ *
+ * @param[in] min Lower endpoint used to select mapping bounds and tick spacing.
+ * @param[in] max Upper endpoint in the same coordinate space as min.
  */
 static double AutomaticLinearStep(double min, double max) {
     double range;
@@ -669,6 +699,8 @@ static double AutomaticLinearStep(double min, double max) {
  *
  * Nonfinite or nonpositive inputs return zero. Values within half a unit of INT_MAX are saturated
  * before ROUND adds its rounding offset; ordinary positive extents retain legacy rounding.
+ *
+ * @param[in] value Rotated pixel extent; nonfinite/nonpositive values return zero, excessive values saturate.
  */
 static int AxisRotatedSize(double value) {
     if ((!FINITE(value)) || (value <= 0.0)) {
@@ -2057,6 +2089,9 @@ static void CommitAxisLimitTransaction(Axis *axisPtr, AxisLimitTransaction *tran
  *
  * Frees the owned TickLabel allocations, then resets the chain. The chain itself remains owned by the
  * axis and reusable. Requires a valid chain.
+ *
+ * @param[in,out] chainPtr Valid caller-owned chain whose owned TickLabel records and links are released; the
+ *   chain itself remains reusable.
  */
 static void FreeLabels(Rbc_Chain *chainPtr) {
     Rbc_ChainLink *linkPtr;
@@ -2076,6 +2111,8 @@ static void FreeLabels(Rbc_Chain *chainPtr) {
  * Checks allocation-size overflow and uses the fatal allocator. Initializes anchor coordinates to
  * DBL_MAX to mark an unmapped label; dimensions are filled during geometry measurement. The caller
  * owns the allocation and frees it with ckfree.
+ *
+ * @param[in] string Borrowed NUL-terminated label text, copied into the returned allocation.
  */
 static TickLabel *NewTickLabel(const char *string) {
     TickLabel *labelPtr;
@@ -2102,6 +2139,12 @@ static TickLabel *NewTickLabel(const char *string) {
  * label. After evaluation checks graph validity without dereferencing the axis; invalidation frees the
  * candidate and returns NULL. Callers must stop traversing cached axis/layout pointers on NULL.
  * Successful labels are caller-owned.
+ *
+ * @param[in,out] graphPtr Borrowed graph kept alive by the caller through Tcl evaluation and subsequent
+ *   callback-validity checks.
+ * @param[in,out] axisPtr Borrowed axis supplying formatting state; may become invalid during Tcl evaluation and
+ *   must not be reused after a NULL result.
+ * @param[in] value Value in axis space; logarithmic axes use base-ten exponents.
  */
 TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) {
     char defaultLabel[TICK_LABEL_SIZE + 1];
@@ -3061,6 +3104,9 @@ static void GetDataLimits(Axis *axisPtr, double min, double max) {
  * automatic endpoints when necessary. Applies automatic window shifting only when neither requested
  * endpoint is defined, clamping negative shiftBy to zero. Marks AXIS_DIRTY and updates previous limits
  * when resolved min/max change. Does not generate ticks or map geometry.
+ *
+ * @param[in,out] axisPtr Borrowed axis with accumulated valueRange and configured requested limits; resolved
+ *   ranges and dirty state are updated.
  */
 static void FixAxisRange(Axis *axisPtr) {
     double min, max;
@@ -3187,6 +3233,9 @@ static void FixAxisRange(Axis *axisPtr) {
  * Uses Heckbert's nice-number method (Graphics Gems, pages 61-63). The round argument selects nearest-
  * style thresholds rather than upward enclosure. Expects a positive input; does not guarantee a finite
  * positive result for extreme magnitudes, so scaling callers validate it. No graph state is changed.
+ *
+ * @param[in] x Positive magnitude to approximate; extreme results must be validated by the caller.
+ * @param[in] round Nonzero selects nearest-style thresholds; zero selects upward enclosure.
  */
 static double NiceNum(double x, int round) {
     double expt; /* Exponent of x */
@@ -3228,6 +3277,8 @@ static double NiceNum(double x, int round) {
  * eight entries. Other steps generate rounded successive values, stopping before a nonfinite value.
  * Uses ckalloc, so allocation failure is not a recoverable NULL result. Free the returned allocation
  * with ckfree.
+ *
+ * @param[in] sweepPtr Borrowed sweep recipe; zero step selects the fixed logarithmic minor-tick table.
  */
 static Ticks *GenerateTicks(TickSweep *sweepPtr) {
     static const double logTable[] = {0.301029995663981, 0.477121254719662, 0.602059991327962, 0.698970004336019,
@@ -3290,6 +3341,9 @@ static Ticks *GenerateTicks(TickSweep *sweepPtr) {
  * failure then returns NULL. Otherwise generates from majorSweep, supporting hidden Polar axes without
  * rectangular tick caches. The axis and prepared sweep are borrowed; callers free the result with
  * ckfree. Generation uses the fatal allocator rather than the copy path's attempted allocator.
+ *
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
  */
 Ticks *Rbc_AllocAxisMajorTicks(Axis *axisPtr) {
     Ticks *ticksPtr;
@@ -3330,6 +3384,11 @@ Ticks *Rbc_AllocAxisMajorTicks(Axis *axisPtr) {
  * decades. Applies endpoint loose policies and supported exponent bounds. Narrow minor sweeps use the
  * zero-step log table; wide sweeps use four fractions at 0.2 increments. Explicit major ticks disable
  * automatic minors. Writes axisRange and both sweep records, without allocating tick arrays.
+ *
+ * @param[in,out] axisPtr Borrowed axis supplying loose-endpoint and tick policies; mapping range and sweep
+ *   recipes are overwritten.
+ * @param[in] min Lower raw-data limit; logarithmic conversion is performed here only for LogScaleAxis.
+ * @param[in] max Upper raw-data limit; logarithmic conversion is performed here only for LogScaleAxis.
  */
 static void LogScaleAxis(Axis *axisPtr, double min, double max) {
     double logMin;
@@ -3464,6 +3523,11 @@ static void LogScaleAxis(Axis *axisPtr, double min, double max) {
  * Applies independent loose policies to mapping endpoints. Automatic minors subdivide the major
  * interval unless explicit major ticks are configured. Writes axisRange and sweep records; actual
  * arrays are generated later.
+ *
+ * @param[in,out] axisPtr Borrowed axis supplying loose-endpoint and tick policies; mapping range and sweep
+ *   recipes are overwritten.
+ * @param[in] min Lower raw-data limit; logarithmic conversion is performed here only for LogScaleAxis.
+ * @param[in] max Upper raw-data limit; logarithmic conversion is performed here only for LogScaleAxis.
  */
 static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
     double step;
@@ -3564,6 +3628,9 @@ static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
  * Replaces t1Ptr/t2Ptr only when their AXIS_CONFIG_MAJOR/MINOR flags are clear. Frees old generated
  * arrays and owns the new GenerateTicks results. Does not change explicit arrays, recompute sweeps or
  * report recoverable allocation errors.
+ *
+ * @param[in,out] axisPtr Borrowed axis with prepared sweeps; generated tick arrays are replaced while explicit
+ *   arrays remain owned by the axis.
  */
 static void SweepTicks(Axis *axisPtr) {
     if ((axisPtr->flags & AXIS_CONFIG_MAJOR) == 0) {
@@ -3590,6 +3657,9 @@ static void SweepTicks(Axis *axisPtr) {
  * scaling inputs by scroll limits and computes linear/log sweeps. Clears RESET_AXES and requests
  * geometry, layout, mapping and redraw; does not allocate tick caches or draw. Registered delete-
  * pending records are included because consumers may still reference them.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
  */
 void Rbc_ResetAxes(Graph *graphPtr) {
     Rbc_ChainLink *linkPtr;
@@ -3820,6 +3890,14 @@ static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
  * anchor and picking region. Accounts for plot and axis borders, alternate titles and line width.
  * Returns absolute baseline/major/minor/label positions in AxisInfo. A negative tick length swaps the
  * baseline and major endpoint to retain inward-tick behavior.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] margin Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector.
+ * @param[in] axisOffset Accumulated perpendicular margin-band offset from the plot edge, in pixels.
+ * @param[out] infoPtr Required AxisInfo output receiving absolute baseline, tick and label screen coordinates.
  */
 static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffset, AxisInfo *infoPtr) {
     int pad; /* Offset of axis from interior region. This
@@ -3959,6 +4037,13 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
  * Writes one Segment2D using logical orientation and track-aware coordinate mapping. The line argument
  * is the fixed screen coordinate perpendicular to the axis. Inputs are axis-space bounds, already
  * logarithmic when appropriate.
+ *
+ * @param[in] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
+ * @param[in] line Absolute baseline screen coordinate perpendicular to the axis.
+ * @param[out] segPtr Required single-segment output in display coordinates.
  */
 static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *segPtr) {
     double min;
@@ -3984,6 +4069,15 @@ static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *se
  * Writes the segment between the absolute line and tick screen coordinates. Chooses screen orientation
  * from logical class and inversion. Does not check range membership or convert raw logarithmic values;
  * the caller does so before mapping.
+ *
+ * @param[in] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
+ * @param[in] value Value in axis space; logarithmic axes use base-ten exponents.
+ * @param[in] tick Absolute tick-end screen coordinate perpendicular to the axis, not a tick length.
+ * @param[in] line Absolute baseline screen coordinate perpendicular to the axis.
+ * @param[out] segPtr Required single-segment output in display coordinates.
  */
 static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int line, Segment2D *segPtr) {
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
@@ -4005,6 +4099,14 @@ static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int
  * a fraction strictly inside 0..1, interpolates between adjacent entries, and rejects rounded results
  * outside that open interval. Otherwise adds majorSweep.step times fraction. Returns FALSE for
  * invalid/nonfinite results without assigning the output; TRUE writes an axis-space coordinate.
+ *
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
+ * @param[in] majorPtr Borrowed major-tick array with a readable entry at index.
+ * @param[in] index Major-array index in 0..nTicks-1; explicit interpolation additionally needs a following
+ *   entry.
+ * @param[in] fraction Minor interval fraction; explicit-major mode requires strictly between zero and one.
+ * @param[out] valuePtr Required minor-position output in axis space; assigned only on TRUE.
  */
 static int GetMinorTickPosition(const Axis *axisPtr, const Ticks *majorPtr, Tcl_Size index,
                                 double fraction, double *valuePtr) {
@@ -4047,6 +4149,14 @@ static int GetMinorTickPosition(const Axis *axisPtr, const Ticks *majorPtr, Tcl_
  * zero segments and returns without an interpreter error. Maps in-range major/minor ticks and label
  * anchors, including labelOffset. Saves the owned segment array only when nonempty; does not evaluate
  * label callbacks.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed axis with current ticks and matching measured labels; owned segments and
+ *   label positions are replaced.
+ * @param[in] offset Perpendicular offset from the plot edge in pixels, including preceding axes in this
+ *   margin/track.
+ * @param[in] margin Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector.
  */
 static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     Tcl_Size arraySize;
@@ -4196,6 +4306,13 @@ static double AdjustViewport(double offset, double windowSize) {
  * nearest boundary. Allows a zero-width view. On TRUE returns normalized endpoints and a world range
  * in linear or exponent coordinates. Outputs must not be consumed after FALSE; no live axis state is
  * modified.
+ *
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
+ * @param[out] rangePtr Required effective-world range in linear or exponent coordinates; may be written even on
+ *   FALSE.
+ * @param[out] viewMinNormPtr Required normalized lower-view output; assigned only on TRUE.
+ * @param[out] viewMaxNormPtr Required separate normalized upper-view output; assigned only on TRUE.
  */
 static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMinNormPtr, double *viewMaxNormPtr) {
     double worldMin;
@@ -4296,6 +4413,12 @@ static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMi
  * renderer interfaces, with native segment fallback. Screen strokes use projecting caps. When valid
  * scroll geometry exists, updates live min/max and queues scrollbar fractions; the Tcl callback is
  * deferred. Ends all renderer contexts before returning.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] drawable Borrowed compatible screen destination with graph-window coordinate origin.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
  */
 static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
@@ -4390,6 +4513,11 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
  * Borrows the export context and axis geometry; closes contexts it creates. Uses butt caps for
  * exported segments. Unlike DrawAxis, emits no axis border and performs no scrollbar update. Does not
  * reformat labels or refresh layout.
+ *
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match the current export
+ *   dimensions.
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
  */
 static void AxisExport(Rbc_ExportContext *exportPtr, Axis *axisPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -4426,6 +4554,13 @@ static void AxisExport(Rbc_ExportContext *exportPtr, Axis *axisPtr) {
  * Uses axis-space coordinates and logical orientation. The varying coordinate uses track-aware
  * mapping; the other dimension spans the current graph plot rectangle. Callers entering a track must
  * establish the desired viewport first.
+ *
+ * @param[in] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
+ * @param[in] value Value in axis space; logarithmic axes use base-ten exponents.
+ * @param[out] segPtr Required single-segment output in display coordinates.
  */
 static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D *segPtr) {
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
@@ -4448,6 +4583,14 @@ static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D
  * minor ticks, using checked capacity arithmetic and attempted segment allocation. Failure or empty
  * output leaves NULL/zero. Frees temporary ticks on all exits. Successful segments belong to the
  * caller and must be freed with ckfree.
+ *
+ * @param[in] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] axisPtr Borrowed prepared axis, or NULL for no segments; its caches are not changed.
+ * @param[in] minorGrid Nonzero includes minor ticks as well as major ticks.
+ * @param[out] segPtrPtr Required output initialized to NULL; successful nonempty output transfers an array to
+ *   free with ckfree.
+ * @param[out] nSegmentsPtr Required output initialized to zero; receives the number of returned segments.
  */
 void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, int minorGrid, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr) {
     Ticks *t1Ptr;
@@ -4549,6 +4692,11 @@ cleanup:
  * validity before continuing. Measures multiline/rotated labels, baseline, ticks and title using wide
  * size arithmetic, then stores clamped width or height for the orientation. Does not assign final
  * label anchors.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed configured axis whose labels/tick caches and dimensions are rebuilt;
+ *   callbacks can invalidate it.
  */
 static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
     Tcl_WideInt height;
@@ -4648,6 +4796,11 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
  * margins reserve the maximum summed thickness of any track rather than summing all tracks. Applies
  * minimum margin dimensions and clamps wide sums; the return value is not by itself a callback-
  * validity indicator.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] marginPtr Borrowed graph margin whose visible-axis count, thickness and title requirements are
+ *   updated.
  */
 static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
     Rbc_ChainLink *linkPtr;
@@ -4728,6 +4881,10 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
  * with finite positive ranges. Uses the grid-selected axes rather than primary x/y. Returns X/Y range
  * ratio, or its inverse when inverted, only if finite and positive. FALSE leaves the output untouched;
  * performs no layout.
+ *
+ * @param[in] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[out] aspectPtr Required positive physical width/height ratio output; assigned only on TRUE.
  */
 static int GetPolarAutoAspect(Graph *graphPtr, double *aspectPtr) {
     Grid *gridPtr;
@@ -4796,6 +4953,9 @@ static int GetPolarAutoAspect(Graph *graphPtr, double *aspectPtr) {
  * reserves adjoining alternate-title space and finally applies positive requested margin overrides.
  * Uses wide intermediate sizes and clamped storage. Callback invalidation returns early; callers must
  * not treat partial geometry as completed layout.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
  */
 static void ComputeMargins(Graph *graphPtr) {
     Tcl_WideInt left, right, top, bottom;
@@ -4991,6 +5151,9 @@ static void ComputeMargins(Graph *graphPtr) {
  * cavity with wide arithmetic and clamps it to at least one pixel. Plot padding defines mapping
  * offsets/ranges; stores reciprocals and title position. A one-pixel arithmetic range is not a
  * drawable-layout guarantee. Does not map axes or clear the caller layout flags.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
  */
 void Rbc_LayoutMargins(Graph *graphPtr) {
     Tcl_WideInt width, height;
@@ -5559,6 +5722,15 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
  *
  * Interns the axis name as a binding tag and forwards the already sliced argument vector. Returns the
  * binding subsystem Tcl status; does not evaluate an event binding here.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] margin Unused shared-handler argument; the axis is already resolved.
+ * @param[in] objc Number of entries in the already-sliced argument suffix.
+ * @param[in] objv Borrowed suffix: Optional sequence and script after the operation; forwarded unchanged to
+ *   binding configuration.
  */
 static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5572,6 +5744,14 @@ static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl
  *
  * Requires a live axis and initialized Tk option table. Uses the first sliced argument as the option
  * name and returns TCL_ERROR if Tk cannot resolve it.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] margin Unused shared-handler argument; the axis is already resolved.
+ * @param[in] objc Validated suffix count (one); not otherwise used by this handler.
+ * @param[in] objv Borrowed suffix: One option-name object at index 0; arity must have been validated.
  */
 static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *valueObjPtr;
@@ -5593,6 +5773,15 @@ static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl
  * Zero or one sliced argument returns Tk option metadata. Option/value pairs use ConfigureAxisOptions.
  * Success additionally invalidates backing and margins for an onscreen axis. This transaction covers
  * one axis, not a multi-axis command.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] margin Unused shared-handler argument; the axis is already resolved.
+ * @param[in] objc Number of entries in the already-sliced argument suffix.
+ * @param[in] objv Borrowed suffix: Zero entries for all metadata, one option for metadata, or option/value
+ *   pairs for mutation.
  */
 static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *infoObjPtr;
@@ -5637,6 +5826,11 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
  *
  * Copies linear axisRange endpoints or converts logarithmic exponents with LogAxisValue. Does not sync
  * vectors, reset ranges or validate conversion results. Callers control range freshness.
+ *
+ * @param[in] axisPtr Borrowed axis with the prepared range and caches described above; no mutation or reference
+ *   acquisition.
+ * @param[out] minPtr Required lower-limit output in raw data coordinates, including inverse log conversion.
+ * @param[out] maxPtr Required separate upper-limit output in raw data coordinates.
  */
 static void GetAxisLimits(Axis *axisPtr, double *minPtr, double *maxPtr) {
     if (axisPtr->logScale) {
@@ -5657,6 +5851,9 @@ static void GetAxisLimits(Axis *axisPtr, double *minPtr, double *maxPtr) {
  * limit changes contribute to RbcAxisLimitsChanged. Updates baselines and clears configure flags
  * before sending events, balancing temporary list references. The display caller must exclude
  * temporary export mappings; this function has no GRAPH_EXPORT guard of its own.
+ *
+ * @param[in,out] graphPtr Borrowed live graph after screen display, outside temporary export mapping;
+ *   notification baselines are advanced before event submission.
  */
 void Rbc_NotifyAxisChanges(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
@@ -5710,6 +5907,14 @@ void Rbc_NotifyAxisChanges(Graph *graphPtr) {
  * Synchronizes element vectors and resets pending axis ranges before reading data-space bounds.
  * Returns a two-element minimum/maximum list, not a four-coordinate graph rectangle. Requires a valid
  * borrowed axis and does not perform complete margin layout.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] margin Unused shared-handler argument; the axis is already resolved.
+ * @param[in] objc Unused suffix count; the query accepts zero arguments.
+ * @param[in] objv Borrowed suffix: Unused argument vector; this query accepts an empty suffix.
  */
 static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5735,6 +5940,14 @@ static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, T
  * horizontal/vertical inverse mapping from logical class and inversion. Returns TCL_ERROR for parsing
  * failure or a nonfinite result; success returns a Tcl double. Uses existing mapping geometry rather
  * than forcing complete layout.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] margin Unused shared-handler argument; the axis is already resolved.
+ * @param[in] objc Validated suffix count (one); not otherwise used by this handler.
+ * @param[in] objv Borrowed suffix: One integer screen-coordinate object at index 0.
  */
 static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5777,6 +5990,15 @@ static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size o
  * outside int range. Success truncates toward zero, preserving historical conversion. Uses existing
  * mapping geometry. Expression evaluation can execute Tcl; this handler does not revalidate its
  * borrowed axis after that evaluation.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in] margin Unused shared-handler argument; the axis is already resolved.
+ * @param[in] objc Validated suffix count (one); not otherwise used by this handler.
+ * @param[in] objv Borrowed suffix: One raw-data Tcl expression at index 0; evaluation may execute application
+ *   Tcl.
  */
 static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp;
@@ -5829,6 +6051,15 @@ static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
  * Y arrangement, which belongs to tracks. Validates every replacement name and type before changing
  * any chain. Failure leaves all margins unchanged. Success moves existing links as needed and
  * schedules full layout and redraw.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] axisPtr Incoming selected-axis value is ignored; the margin chain and replacement list determine
+ *   the axes.
+ * @param[in] margin Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector.
+ * @param[in] objc Number of entries in the already-sliced argument suffix.
+ * @param[in] objv Borrowed suffix: Empty suffix queries the margin; otherwise index 0 is the complete
+ *   replacement axis-name list.
  */
 static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5913,6 +6144,11 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
  *
  * With no tag argument returns the tag table in hash order. Otherwise interns the supplied tag and
  * forwards remaining arguments; the tag need not name an existing axis.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int BindVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -5941,6 +6177,11 @@ static int BindVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
  * Returns the axis name on success. Configuration failure destroys only a newly allocated record.
  * Failed revival restores pending deletion and the previous notification validity while preserving
  * the record and its consumers; ConfigureNewAxis rolls back its option transaction.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int CreateVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -5982,6 +6223,11 @@ error:
  *
  * Uses a borrowed live lookup and passes the option suffix to CgetOp. Returns the lookup or option-
  * query Tcl status.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int CgetVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -5999,6 +6245,11 @@ static int CgetVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
  * Validates names before the first option beginning with a dash, then configures them sequentially.
  * Earlier successful axes are not rolled back if a later configuration fails. Query results are
  * replaced by each successive axis result.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int ConfigureVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6043,6 +6294,11 @@ static int ConfigureVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const obj
  * Rejects track-owned axes until detached. Marks an active formatter traversal invalid before
  * deletion. Referenced records remain allocated but disappear from live name lookup. Processes names
  * sequentially, so earlier deletions survive a later error.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -6075,6 +6331,11 @@ static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
  * Checks the binding context before interpreting the picked object as an axis. Returns a value only
  * for current or detail with an eligible picked axis; otherwise returns TCL_OK without setting a new
  * result.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -6104,6 +6365,11 @@ static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
  *
  * Uses live borrowed lookup and forwards the argument suffix to InvTransformOp. Returns the lookup or
  * conversion status; acquires no axis reference.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int InvTransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6120,6 +6386,11 @@ static int InvTransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
  *
  * Uses live borrowed lookup and delegates synchronization and range reset to LimitsOp. Returns
  * TCL_ERROR for a missing axis; this wrapper does not acquire a reference or force full layout.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int LimitsVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6136,6 +6407,11 @@ static int LimitsVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
  *
  * Skips delete-pending records, returns each matching name once and preserves hash traversal order,
  * not display order. No patterns means all live names.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int NamesVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
@@ -6171,6 +6447,11 @@ static int NamesVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[])
  *
  * Uses live borrowed lookup and forwards the suffix to TransformOp, including its expression-
  * evaluation behavior. Returns the lookup or conversion status without acquiring an axis reference.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 static int TransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6190,6 +6471,12 @@ static int TransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const obj
  * advance by 90 percent of the view; units use scrollUnits and the current scale, or the full owning-
  * track extent. Validates reconstructed data limits before assigning reqMin/reqMax and scheduling
  * geometry/layout/range reset. Does not synchronize vectors or perform layout itself.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] objc Number of borrowed entries in the full command vector; arity is validated by dispatch.
+ * @param[in] objv Borrowed full command vector: axis name at index 3, optional scroll request starting at index
+ *   4.
  */
 static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
@@ -6290,6 +6577,16 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
  * ViewOp. Saves requested limits and graph flags, restoring them on a later axis error while retaining
  * REDRAW_PENDING because an idle callback may already be scheduled. Frees temporary limit storage and
  * name objects. Borrows the track and axis array; performs no independent reference acquisition.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] track Borrowed selected track and its axis array, required to remain valid through layout and
+ *   scrolling.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed command entries; this dispatcher validates its supported operation/request
+ *   arity.
+ * @param[in] objv Borrowed full track command vector; track name is at index 3, followed by optional -mapy axis
+ *   and a scroll request.
  */
 int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size start = 4, n, i;
@@ -6374,6 +6671,13 @@ usage:
  *
  * Validates operation and argument counts with the shared operation table, then forwards the complete
  * widget command vector. Handlers resolve names and apply their own lifetime and transaction rules.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed command entries; this dispatcher validates its supported operation/request
+ *   arity.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const AxisVirtualOpSpec axisOps[] = {
@@ -6405,9 +6709,16 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  * @ingroup axis_commands
  * @brief Dispatch a margin-axis operation.
  *
- * Validates operation and argument counts, selects the first eligible axis from the margin chain and
+ * Validates operation and argument counts, selects the first axis from the margin chain and
  * passes the suffix after the operation. UseOp can query or replace the chain; other handlers require
  * an appropriate selected axis.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] margin Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector.
+ * @param[in] objc Number of borrowed command entries; this dispatcher validates its supported operation/request
+ *   arity.
+ * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const AxisOpSpec axisOps[] = {{{"bind", 2, 5, "sequence command"}, BindOp},
@@ -6438,6 +6749,9 @@ int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]
  * margin offsets; track axes use per-track offsets and the full world rectangle inside an entered
  * viewport. Skips empty visible tracks and restores the graph viewport after each local axis. Requires
  * current ranges and measured labels.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
  */
 void Rbc_MapAxes(Graph *graphPtr) {
     Axis *axisPtr;
@@ -6488,6 +6802,9 @@ void Rbc_MapAxes(Graph *graphPtr) {
  * Returns true only when horizontal and vertical ranges exceed one pixel. Prevents drawing, exporting
  * or picking stale geometry and newly allocated labels with unmapped DBL_MAX anchors. Does not perform
  * layout.
+ *
+ * @param[in] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
  */
 static int AxisLayoutUsable(Graph *graphPtr) {
     return (graphPtr->hRange > 1) && (graphPtr->vRange > 1);
@@ -6500,6 +6817,12 @@ static int AxisLayoutUsable(Graph *graphPtr) {
  * Allocates a graph-sized temporary pixmap and GC, copies the visible band into it, draws the complete
  * axis there and copies only that band back. The band includes the axis margin; inversion switches the
  * clipped direction. Releases temporary resources. Empty bands return immediately.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] drawable Borrowed compatible screen destination with graph-window coordinate origin.
+ * @param[in,out] axisPtr Borrowed mapped axis with a non-NULL live owning track; drawing may queue scrollbar
+ *   updates.
  */
 static void DrawTrackAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     RbcTrack *track = axisPtr->track;
@@ -6530,6 +6853,10 @@ static void DrawTrackAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
  * Returns for collapsed plot geometry. Traverses margin chains, skipping hidden/offscreen axes and
  * tracks with collapsed visible rectangles. Uses DrawTrackAxis only for track-owned axes when track
  * scrolling is enabled; otherwise draws directly. Borrows all axis records and does not map them.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] drawable Borrowed compatible screen destination with graph-window coordinate origin.
  */
 void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
     Axis *axisPtr;
@@ -6566,6 +6893,11 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
  * Uses the same collapsed-layout and visibility checks as screen drawing. For scrolling local axes,
  * opens a renderer clip around the visible band including margins, exports the axis and closes the
  * scope. Requires geometry already mapped for the export dimensions.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match the current export
+ *   dimensions.
  */
 void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Axis *axisPtr;
@@ -6610,6 +6942,10 @@ void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
  * for descending axes. Measures/draws with limitsTextStyle and updates its rotation/anchor.
  * Logarithmic annotations currently receive exponent values; these are not the data-space limits
  * command results.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] drawable Borrowed compatible screen destination with graph-window coordinate origin.
  */
 void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
     Axis *axisPtr;
@@ -6696,6 +7032,11 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
  * Iterates formatted registry axes and formats axisRange endpoints with bounded snprintf. Uses
  * inversion-aware orientation, swaps descending endpoint strings and measures with limitsTextStyle,
  * matching screen placement. Ends its output context even when layout is collapsed.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match the current export
+ *   dimensions.
  */
 void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -6783,6 +7124,8 @@ void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
  *
  * Returns NULL for an empty chain. Performs no hidden/deletion filtering or reference acquisition;
  * callers must apply any additional eligibility requirements.
+ *
+ * @param[in] chainPtr Borrowed valid chain of axis pointers; no record reference is acquired.
  */
 Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr) {
     Rbc_ChainLink *linkPtr;
@@ -6802,6 +7145,11 @@ Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr) {
  * skips hidden/offscreen axes and collapsed or out-of-band scrolling tracks. Tests rotated label
  * polygons, then title polygon, then line region. Sets detail to label, title or line on the borrowed
  * returned record. Requires prepared geometry and does not acquire a reference.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] x Horizontal query coordinate in graph-window pixels.
+ * @param[in] y Vertical query coordinate in graph-window pixels.
  */
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
     Tcl_HashEntry *hPtr;
@@ -6886,6 +7234,10 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
  *
  * Returns a borrowed stable hash key. Its storage belongs to the graph and is released with the tag
  * table, not by individual binding operations.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in] tagName Borrowed NUL-terminated binding tag, copied by the hash table on first insertion.
  */
 static ClientData MakeAxisTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
@@ -6902,6 +7254,13 @@ static ClientData MakeAxisTag(Graph *graphPtr, char *tagName) {
  *
  * Borrows the graph, axis and destination list. Interned keys remain owned by the graph tag table. The
  * list is appended to rather than cleared; configured tags follow the name and class.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required range/layout freshness and callback boundaries are
+ *   described above.
+ * @param[in,out] axisPtr Borrowed live axis with the range, options and caches required above; no reference is
+ *   acquired.
+ * @param[in,out] list Caller-owned destination list; appends borrowed interned keys without clearing existing
+ *   entries.
  */
 void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list) {
     char **p;
@@ -6923,6 +7282,9 @@ void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list) {
  * Visits all registered configured axes, refreshes text GCs and title dimensions, and marks each
  * AXIS_DIRTY. Does not regenerate tick labels or directly schedule full graph layout; the font-change
  * caller owns subsequent invalidation.
+ *
+ * @param[in,out] graphPtr Borrowed graph with registered configured axes; caller schedules subsequent
+ *   geometry/layout invalidation.
  */
 void Rbc_AxisFontsChanged(Graph *graphPtr) {
     Tcl_HashSearch iter;

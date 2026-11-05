@@ -329,105 +329,249 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.BindOp">
 <span class="target" id="group__axis__commands_1gadfc34d7f91814028433ea32dc8ba9e68"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.BindOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or configure bindings for a selected margin axis. </p>
-<p>Interns the axis name as a binding tag and forwards the already sliced argument vector. Returns the binding subsystem Tcl status; does not evaluate an event binding here. </p>
+<p>Interns the axis name as a binding tag and forwards the already sliced argument vector. Returns the binding subsystem Tcl status; does not evaluate an event binding here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Unused shared-handler argument; the axis is already resolved. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of entries in the already-sliced argument suffix. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed suffix: Optional sequence and script after the operation; forwarded unchanged to binding configuration. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.CgetOp">
 <span class="target" id="group__axis__commands_1gaa42773a4db37df091f99319917d07126"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.CgetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return one initialized axis option value. </p>
-<p>Requires a live axis and initialized Tk option table. Uses the first sliced argument as the option name and returns TCL_ERROR if Tk cannot resolve it. </p>
+<p>Requires a live axis and initialized Tk option table. Uses the first sliced argument as the option name and returns TCL_ERROR if Tk cannot resolve it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Unused shared-handler argument; the axis is already resolved. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Validated suffix count (one); not otherwise used by this handler. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed suffix: One option-name object at index 0; arity must have been validated. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.ConfigureOp">
 <span class="target" id="group__axis__commands_1ga0359fc17ba0a7731ad0ced2fd6b27803"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or configure one resolved axis. </p>
-<p>Zero or one sliced argument returns Tk option metadata. Option/value pairs use ConfigureAxisOptions. Success additionally invalidates backing and margins for an onscreen axis. This transaction covers one axis, not a multi-axis command. </p>
+<p>Zero or one sliced argument returns Tk option metadata. Option/value pairs use ConfigureAxisOptions. Success additionally invalidates backing and margins for an onscreen axis. This transaction covers one axis, not a multi-axis command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Unused shared-handler argument; the axis is already resolved. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of entries in the already-sliced argument suffix. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed suffix: Zero entries for all metadata, one option for metadata, or option/value pairs for mutation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.UseOp">
 <span class="target" id="group__axis__commands_1ga6c6f2bd537fe9834fcaa3e116d4c588d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UseOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.UseOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or replace the axes displayed on a margin. </p>
-<p>Queries return chain order. Replacement chooses logical class using inversion and rejects trackgraph Y arrangement, which belongs to tracks. Validates every replacement name and type before changing any chain. Failure leaves all margins unchanged. Success moves existing links as needed and schedules full layout and redraw. </p>
+<p>Queries return chain order. Replacement chooses logical class using inversion and rejects trackgraph Y arrangement, which belongs to tracks. Validates every replacement name and type before changing any chain. Failure leaves all margins unchanged. Success moves existing links as needed and schedules full layout and redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Incoming selected-axis value is ignored; the margin chain and replacement list determine the axes. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of entries in the already-sliced argument suffix. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed suffix: Empty suffix queries the margin; otherwise index 0 is the complete replacement axis-name list. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.BindVirtualOp">
 <span class="target" id="group__axis__commands_1ga0067906d1d8ae7a70e21c44a678603bf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.BindVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>List interned axis tags or access one tag binding. </p>
-<p>With no tag argument returns the tag table in hash order. Otherwise interns the supplied tag and forwards remaining arguments; the tag need not name an existing axis. </p>
+<p>With no tag argument returns the tag table in hash order. Otherwise interns the supplied tag and forwards remaining arguments; the tag need not name an existing axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.CreateVirtualOp">
 <span class="target" id="group__axis__commands_1ga2fef4322b74f567dd736e398b7cb6157"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.CreateVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create or revive a named axis and apply its options. </p>
-<p>Returns the axis name on success. Configuration failure destroys only a newly allocated record. Failed revival restores pending deletion and the previous notification validity while preserving the record and its consumers; ConfigureNewAxis rolls back its option transaction. </p>
+<p>Returns the axis name on success. Configuration failure destroys only a newly allocated record. Failed revival restores pending deletion and the previous notification validity while preserving the record and its consumers; ConfigureNewAxis rolls back its option transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.CgetVirtualOp">
 <span class="target" id="group__axis__commands_1ga46fbb222f1c45238ec0c25daf20d4ccd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.CgetVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a named axis and delegate its option query. </p>
-<p>Uses a borrowed live lookup and passes the option suffix to CgetOp. Returns the lookup or option- query Tcl status. </p>
+<p>Uses a borrowed live lookup and passes the option suffix to CgetOp. Returns the lookup or option- query Tcl status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.ConfigureVirtualOp">
 <span class="target" id="group__axis__commands_1ga0629ea7c1cace5ad8bd949369116a16d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.ConfigureVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply a shared option suffix to one or more named axes. </p>
-<p>Validates names before the first option beginning with a dash, then configures them sequentially. Earlier successful axes are not rolled back if a later configuration fails. Query results are replaced by each successive axis result. </p>
+<p>Validates names before the first option beginning with a dash, then configures them sequentially. Earlier successful axes are not rolled back if a later configuration fails. Query results are replaced by each successive axis result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.DeleteVirtualOp">
 <span class="target" id="group__axis__commands_1ga7eb6b01d2148d81101528d6a586f7b35"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.DeleteVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Mark named axes for deletion and destroy unreferenced records. </p>
-<p>Rejects track-owned axes until detached. Marks an active formatter traversal invalid before deletion. Referenced records remain allocated but disappear from live name lookup. Processes names sequentially, so earlier deletions survive a later error. </p>
+<p>Rejects track-owned axes until detached. Marks an active formatter traversal invalid before deletion. Referenced records remain allocated but disappear from live name lookup. Processes names sequentially, so earlier deletions survive a later error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.GetOp">
 <span class="target" id="group__axis__commands_1ga29fb2406fcd8e10f466fdd37440b1cee"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.GetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Report the current axis name or picked detail. </p>
-<p>Checks the binding context before interpreting the picked object as an axis. Returns a value only for current or detail with an eligible picked axis; otherwise returns TCL_OK without setting a new result. </p>
+<p>Checks the binding context before interpreting the picked object as an axis. Returns a value only for current or detail with an eligible picked axis; otherwise returns TCL_OK without setting a new result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.NamesVirtualOp">
 <span class="target" id="group__axis__commands_1ga8a910658aba5b0cfab0748678a574e52"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NamesVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.NamesVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>List live axis names matching any supplied glob pattern. </p>
-<p>Skips delete-pending records, returns each matching name once and preserves hash traversal order, not display order. No patterns means all live names. </p>
+<p>Skips delete-pending records, returns each matching name once and preserves hash traversal order, not display order. No patterns means all live names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.Rbc_VirtualAxisOp">
 <span class="target" id="group__axis__commands_1ga1c32052041bfdc4543baa90085cd0d30"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VirtualAxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.Rbc_VirtualAxisOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch the named-axis command family. </p>
-<p>Validates operation and argument counts with the shared operation table, then forwards the complete widget command vector. Handlers resolve names and apply their own lifetime and transaction rules. </p>
+<p>Validates operation and argument counts with the shared operation table, then forwards the complete widget command vector. Handlers resolve names and apply their own lifetime and transaction rules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command entries; this dispatcher validates its supported operation/request arity. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.Rbc_AxisOp">
 <span class="target" id="group__axis__commands_1ga6508ebe315e11a9f4c99755deee762b7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.Rbc_AxisOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a margin-axis operation. </p>
-<p>Validates operation and argument counts, selects the first eligible axis from the margin chain and passes the suffix after the operation. UseOp can query or replace the chain; other handlers require an appropriate selected axis. </p>
+<p>Validates operation and argument counts, selects the first axis from the margin chain and passes the suffix after the operation. UseOp can query or replace the chain; other handlers require an appropriate selected axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command entries; this dispatcher validates its supported operation/request arity. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.MakeAxisTag">
 <span class="target" id="group__axis__commands_1gad3bd787237803827eda72a28ced70c59"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeAxisTag</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.MakeAxisTag" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intern a binding tag in the graph axis tag table. </p>
-<p>Returns a borrowed stable hash key. Its storage belongs to the graph and is released with the tag table, not by individual binding operations. </p>
+<p>Returns a borrowed stable hash key. Its storage belongs to the graph and is released with the tag table, not by individual binding operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>tagName</strong> – <strong>[in]</strong> Borrowed NUL-terminated binding tag, copied by the hash table on first insertion. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisCommands.Rbc_AppendAxisBindingTags">
 <span class="target" id="group__axis__commands_1ga63f6e2440b4912b8c764c385d6de0484"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendAxisBindingTags</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisCommands.Rbc_AppendAxisBindingTags" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append axis name, class and configured tags in binding order. </p>
-<p>Borrows the graph, axis and destination list. Interned keys remain owned by the graph tag table. The list is appended to rather than cleared; configured tags follow the name and class. </p>
+<p>Borrows the graph, axis and destination list. Interned keys remain owned by the graph tag table. The list is appended to rather than cleared; configured tags follow the name and class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>list</strong> – <strong>[inout]</strong> Caller-owned destination list; appends borrowed interned keys without clearing existing entries. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1139,21 +1283,49 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.RoundToStep">
 <span class="target" id="group__axis__ranges_1ga7f5f718b25ed1b048ac93d21bc3df2fb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RoundToStep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">step</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.RoundToStep" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round a finite value to a multiple of a finite nonzero step. </p>
-<p>Uses halfway-away-from-zero rounding without an integer conversion. Returns the original value if inputs, quotient or rounded product cannot be used safely; does not report a Tcl error. </p>
+<p>Uses halfway-away-from-zero rounding without an integer conversion. Returns the original value if inputs, quotient or rounded product cannot be used safely; does not report a Tcl error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Value to round; returned unchanged when the inputs or intermediate arithmetic are unusable. </p></li>
+<li><p><strong>step</strong> – <strong>[in]</strong> Finite nonzero rounding interval; invalid values leave the input value unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.GetLinearSweep">
 <span class="target" id="group__axis__ranges_1gafad8c32c6e546b4047c8f5cbe8b0a04a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLinearSweep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">step</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tickMinPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tickMaxPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nTicksPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GetLinearSweep" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute bounded enclosing tick endpoints and count. </p>
-<p>Requires finite endpoints and a positive finite step. Works in step units to avoid subtracting large raw endpoints. Rejects nonfinite quotients/products and counts outside 1..MAXTICKS before converting to Tcl_Size. Returns TRUE and assigns all outputs only on success; FALSE leaves outputs untouched. </p>
+<p>Requires finite endpoints and a positive finite step. Works in step units to avoid subtracting large raw endpoints. Rejects nonfinite quotients/products and counts outside 1..MAXTICKS before converting to Tcl_Size. Returns TRUE and assigns all outputs only on success; FALSE leaves outputs untouched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min</strong> – <strong>[in]</strong> Lower endpoint used to select mapping bounds and tick spacing. </p></li>
+<li><p><strong>max</strong> – <strong>[in]</strong> Upper endpoint in the same coordinate space as min. </p></li>
+<li><p><strong>step</strong> – <strong>[in]</strong> Positive finite interval in the same units as min/max; other values return FALSE. </p></li>
+<li><p><strong>tickMinPtr</strong> – <strong>[out]</strong> Required lower enclosing-tick output; assigned only on TRUE. </p></li>
+<li><p><strong>tickMaxPtr</strong> – <strong>[out]</strong> Required separate upper enclosing-tick output; assigned only on TRUE. </p></li>
+<li><p><strong>nTicksPtr</strong> – <strong>[out]</strong> Required tick-count output in 1..MAXTICKS; assigned only on TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.AutomaticLinearStep">
 <span class="target" id="group__axis__ranges_1ga035644b6515fece2f14dd79ca73b2e19"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AutomaticLinearStep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.AutomaticLinearStep" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select a practical automatic linear tick interval. </p>
-<p>First applies NiceNum to the representable positive span, aiming for DEF_NUM_TICKS intervals. If that fails, uses quarter-scaled endpoint subtraction to avoid span overflow. Returns a positive finite nice step when possible, otherwise 1.0; does not allocate or report errors. </p>
+<p>First applies NiceNum to the representable positive span, aiming for DEF_NUM_TICKS intervals. If that fails, uses quarter-scaled endpoint subtraction to avoid span overflow. Returns a positive finite nice step when possible, otherwise 1.0; does not allocate or report errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min</strong> – <strong>[in]</strong> Lower endpoint used to select mapping bounds and tick spacing. </p></li>
+<li><p><strong>max</strong> – <strong>[in]</strong> Upper endpoint in the same coordinate space as min. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1358,63 +1530,135 @@ Expands valueRange endpoints by comparison only; does not validate the extent, r
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.FixAxisRange">
 <span class="target" id="group__axis__ranges_1ga7ef1c208b33ad1f8a8628c4166228fa9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FixAxisRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.FixAxisRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve accumulated data bounds and requested display limits. </p>
-<p>Supplies empty-data defaults, expands degenerate ranges and repairs invalid logarithmic inputs before caching valueRange. Copies data limits into min/max, applies requested endpoints and adjusts automatic endpoints when necessary. Applies automatic window shifting only when neither requested endpoint is defined, clamping negative shiftBy to zero. Marks AXIS_DIRTY and updates previous limits when resolved min/max change. Does not generate ticks or map geometry. </p>
+<p>Supplies empty-data defaults, expands degenerate ranges and repairs invalid logarithmic inputs before caching valueRange. Copies data limits into min/max, applies requested endpoints and adjusts automatic endpoints when necessary. Applies automatic window shifting only when neither requested endpoint is defined, clamping negative shiftBy to zero. Marks AXIS_DIRTY and updates previous limits when resolved min/max change. Does not generate ticks or map geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis with accumulated valueRange and configured requested limits; resolved ranges and dirty state are updated. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.NiceNum">
 <span class="target" id="group__axis__ranges_1ga4543b2b49cdcfe17d12c2350c599a28f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NiceNum</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">round</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.NiceNum" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Choose a decimal 1/2/5/10 multiple near a positive magnitude. </p>
-<p>Uses Heckbert’s nice-number method (Graphics Gems, pages 61-63). The round argument selects nearest- style thresholds rather than upward enclosure. Expects a positive input; does not guarantee a finite positive result for extreme magnitudes, so scaling callers validate it. No graph state is changed. </p>
+<p>Uses Heckbert’s nice-number method (Graphics Gems, pages 61-63). The round argument selects nearest- style thresholds rather than upward enclosure. Expects a positive input; does not guarantee a finite positive result for extreme magnitudes, so scaling callers validate it. No graph state is changed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Positive magnitude to approximate; extreme results must be validated by the caller. </p></li>
+<li><p><strong>round</strong> – <strong>[in]</strong> Nonzero selects nearest-style thresholds; zero selects upward enclosure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.GenerateTicks">
 <span class="target" id="group__axis__ranges_1ga91be657b933e28521ed114798a49fccc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GenerateTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TickSweep</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sweepPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GenerateTicks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate values from an internal tick sweep. </p>
-<p>Returns an owned allocation, possibly with zero ticks. Invalid counts or nonfinite sweep fields produce an empty array. A zero step selects the fixed log10(2)..log10(9) table and allows at most eight entries. Other steps generate rounded successive values, stopping before a nonfinite value. Uses ckalloc, so allocation failure is not a recoverable NULL result. Free the returned allocation with ckfree. </p>
+<p>Returns an owned allocation, possibly with zero ticks. Invalid counts or nonfinite sweep fields produce an empty array. A zero step selects the fixed log10(2)..log10(9) table and allows at most eight entries. Other steps generate rounded successive values, stopping before a nonfinite value. Uses ckalloc, so allocation failure is not a recoverable NULL result. Free the returned allocation with ckfree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sweepPtr</strong> – <strong>[in]</strong> Borrowed sweep recipe; zero step selects the fixed logarithmic minor-tick table. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks">
 <span class="target" id="group__axis__ranges_1ga16ac594195545aead997aa4fa10765fd"></span><span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AllocAxisMajorTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return an independently owned major-tick array. </p>
-<p>Copies t1Ptr when present, whether explicit or cached generated ticks; size or attempted-allocation failure then returns NULL. Otherwise generates from majorSweep, supporting hidden Polar axes without rectangular tick caches. The axis and prepared sweep are borrowed; callers free the result with ckfree. Generation uses the fatal allocator rather than the copy path’s attempted allocator. </p>
+<p>Copies t1Ptr when present, whether explicit or cached generated ticks; size or attempted-allocation failure then returns NULL. Otherwise generates from majorSweep, supporting hidden Polar axes without rectangular tick caches. The axis and prepared sweep are borrowed; callers free the result with ckfree. Generation uses the fatal allocator rather than the copy path’s attempted allocator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.LogScaleAxis">
 <span class="target" id="group__axis__ranges_1ga3f8f1b75cd012339d3c1a96b3c2bf1a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LogScaleAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.LogScaleAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare logarithmic mapping bounds and tick sweeps. </p>
-<p>Repairs invalid positive inputs and collapsed logarithms, then selects major ticks in exponent space. Spans exceeding ten enclosing decades use a nice exponent interval; narrower spans use unit decades. Applies endpoint loose policies and supported exponent bounds. Narrow minor sweeps use the zero-step log table; wide sweeps use four fractions at 0.2 increments. Explicit major ticks disable automatic minors. Writes axisRange and both sweep records, without allocating tick arrays. </p>
+<p>Repairs invalid positive inputs and collapsed logarithms, then selects major ticks in exponent space. Spans exceeding ten enclosing decades use a nice exponent interval; narrower spans use unit decades. Applies endpoint loose policies and supported exponent bounds. Narrow minor sweeps use the zero-step log table; wide sweeps use four fractions at 0.2 increments. Explicit major ticks disable automatic minors. Writes axisRange and both sweep records, without allocating tick arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis supplying loose-endpoint and tick policies; mapping range and sweep recipes are overwritten. </p></li>
+<li><p><strong>min</strong> – <strong>[in]</strong> Lower raw-data limit; logarithmic conversion is performed here only for LogScaleAxis. </p></li>
+<li><p><strong>max</strong> – <strong>[in]</strong> Upper raw-data limit; logarithmic conversion is performed here only for LogScaleAxis. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.LinearScaleAxis">
 <span class="target" id="group__axis__ranges_1gae5d0e6dd7129ac9a8db109f27661ff14"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LinearScaleAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.LinearScaleAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare linear mapping bounds and tick sweeps. </p>
-<p>Tries a requested positive step, reducing overly large intervals by halves. Falls back to AutomaticLinearStep if the requested sweep is impractical, then to no major ticks if necessary. Applies independent loose policies to mapping endpoints. Automatic minors subdivide the major interval unless explicit major ticks are configured. Writes axisRange and sweep records; actual arrays are generated later. </p>
+<p>Tries a requested positive step, reducing overly large intervals by halves. Falls back to AutomaticLinearStep if the requested sweep is impractical, then to no major ticks if necessary. Applies independent loose policies to mapping endpoints. Automatic minors subdivide the major interval unless explicit major ticks are configured. Writes axisRange and sweep records; actual arrays are generated later.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis supplying loose-endpoint and tick policies; mapping range and sweep recipes are overwritten. </p></li>
+<li><p><strong>min</strong> – <strong>[in]</strong> Lower raw-data limit; logarithmic conversion is performed here only for LogScaleAxis. </p></li>
+<li><p><strong>max</strong> – <strong>[in]</strong> Upper raw-data limit; logarithmic conversion is performed here only for LogScaleAxis. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.SweepTicks">
 <span class="target" id="group__axis__ranges_1gabdbd51a764b737a514c5d3961691071a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SweepTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.SweepTicks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh generated tick caches while retaining explicit arrays. </p>
-<p>Replaces t1Ptr/t2Ptr only when their AXIS_CONFIG_MAJOR/MINOR flags are clear. Frees old generated arrays and owns the new GenerateTicks results. Does not change explicit arrays, recompute sweeps or report recoverable allocation errors. </p>
+<p>Replaces t1Ptr/t2Ptr only when their AXIS_CONFIG_MAJOR/MINOR flags are clear. Frees old generated arrays and owns the new GenerateTicks results. Does not change explicit arrays, recompute sweeps or report recoverable allocation errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis with prepared sweeps; generated tick arrays are replaced while explicit arrays remain owned by the axis. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.Rbc_ResetAxes">
 <span class="target" id="group__axis__ranges_1ga6c86ee613c4bf7f54baed6bae85bd28f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResetAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.Rbc_ResetAxes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Recompute data ranges and scaling sweeps for the graph. </p>
-<p>Prepares bar frequencies/stacks, resets every registered axis to accumulation sentinels and collects extents from elements that are neither hidden nor plotHidden. Applies Polar empty-grid fallbacks or Smith unit-circle bounds to mapped nonlogarithmic grid axes. Resolves requested ranges, constrains scaling inputs by scroll limits and computes linear/log sweeps. Clears RESET_AXES and requests geometry, layout, mapping and redraw; does not allocate tick caches or draw. Registered delete- pending records are included because consumers may still reference them. </p>
+<p>Prepares bar frequencies/stacks, resets every registered axis to accumulation sentinels and collects extents from elements that are neither hidden nor plotHidden. Applies Polar empty-grid fallbacks or Smith unit-circle bounds to mapped nonlogarithmic grid axes. Resolves requested ranges, constrains scaling inputs by scroll limits and computes linear/log sweeps. Clears RESET_AXES and requests geometry, layout, mapping and redraw; does not allocate tick caches or draw. Registered delete- pending records are included because consumers may still reference them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRanges.GetMinorTickPosition">
 <span class="target" id="group__axis__ranges_1ga937ef567ab5f35ab099a34faf1ac9485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMinorTickPosition</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">majorPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">fraction</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GetMinorTickPosition" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a minor fraction against a major interval. </p>
-<p>Requires a valid major array index. With explicit majors, requires a following distinct endpoint and a fraction strictly inside 0..1, interpolates between adjacent entries, and rejects rounded results outside that open interval. Otherwise adds majorSweep.step times fraction. Returns FALSE for invalid/nonfinite results without assigning the output; TRUE writes an axis-space coordinate. </p>
+<p>Requires a valid major array index. With explicit majors, requires a following distinct endpoint and a fraction strictly inside 0..1, interpolates between adjacent entries, and rejects rounded results outside that open interval. Otherwise adds majorSweep.step times fraction. Returns FALSE for invalid/nonfinite results without assigning the output; TRUE writes an axis-space coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+<li><p><strong>majorPtr</strong> – <strong>[in]</strong> Borrowed major-tick array with a readable entry at index. </p></li>
+<li><p><strong>index</strong> – <strong>[in]</strong> Major-array index in 0..nTicks-1; explicit interpolation additionally needs a following entry. </p></li>
+<li><p><strong>fraction</strong> – <strong>[in]</strong> Minor interval fraction; explicit-major mode requires strictly between zero and one. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required minor-position output in axis space; assigned only on TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1432,182 +1676,401 @@ Expands valueRange endpoints by comparison only; does not validate the extent, r
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.LayoutSize">
 <span class="target" id="group__axis__presentation_1ga24d9c7fd27339f6dd68b1323aedafa8b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LayoutSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.LayoutSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clamp a wide layout size to a nonnegative int. </p>
-<p>Returns zero for nonpositive input; otherwise uses Rbc_ClampToInt. Does not alter graph state. </p>
+<p>Returns zero for nonpositive input; otherwise uses Rbc_ClampToInt. Does not alter graph state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Wide integer layout extent in pixels, clamped before narrowing to int. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.LayoutRange">
 <span class="target" id="group__axis__presentation_1ga3f9175e8b063c3f0b0226b9da635ddb7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LayoutRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.LayoutRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clamp a wide layout range to a positive int. </p>
-<p>Returns one below the minimum usable scalar range; otherwise uses Rbc_ClampToInt. This arithmetic floor does not make collapsed plot geometry drawable. </p>
+<p>Returns one below the minimum usable scalar range; otherwise uses Rbc_ClampToInt. This arithmetic floor does not make collapsed plot geometry drawable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Wide integer layout extent in pixels, clamped before narrowing to int. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisRotatedSize">
 <span class="target" id="group__axis__presentation_1ga4961f43cc79d59cdddf0138df447be3f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisRotatedSize</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisRotatedSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round a rotated extent without overflowing int. </p>
-<p>Nonfinite or nonpositive inputs return zero. Values within half a unit of INT_MAX are saturated before ROUND adds its rounding offset; ordinary positive extents retain legacy rounding. </p>
+<p>Nonfinite or nonpositive inputs return zero. Values within half a unit of INT_MAX are saturated before ROUND adds its rounding offset; ordinary positive extents retain legacy rounding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Rotated pixel extent; nonfinite/nonpositive values return zero, excessive values saturate. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.FreeLabels">
 <span class="target" id="group__axis__presentation_1ga8913b4e8b3eba02de088319be58ff50c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLabels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.FreeLabels" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release every label in a chain and empty its links. </p>
-<p>Frees the owned TickLabel allocations, then resets the chain. The chain itself remains owned by the axis and reusable. Requires a valid chain. </p>
+<p>Frees the owned TickLabel allocations, then resets the chain. The chain itself remains owned by the axis and reusable. Requires a valid chain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chainPtr</strong> – <strong>[inout]</strong> Valid caller-owned chain whose owned TickLabel records and links are released; the chain itself remains reusable. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.NewTickLabel">
 <span class="target" id="group__axis__presentation_1ga77b75d99bdf4062f0fd327d280e8db61"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">TickLabel</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewTickLabel</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.NewTickLabel" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a label with its copied string inline. </p>
-<p>Checks allocation-size overflow and uses the fatal allocator. Initializes anchor coordinates to DBL_MAX to mark an unmapped label; dimensions are filled during geometry measurement. The caller owns the allocation and frees it with ckfree. </p>
+<p>Checks allocation-size overflow and uses the fatal allocator. Initializes anchor coordinates to DBL_MAX to mark an unmapped label; dimensions are filled during geometry measurement. The caller owns the allocation and frees it with ckfree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated label text, copied into the returned allocation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel">
 <span class="target" id="group__axis__presentation_1ga82a7017e92ebc3cad556645f2ff3bfee"></span><span class="n"><span class="pre">TickLabel</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AllocAxisTickLabel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Format and allocate one major-tick label. </p>
-<p>Produces the legacy numeric label first: exponent notation for logarithmic axes, NUMDIGITS significant digits otherwise. A nonempty formatter prefix receives widget path and that label. Preserves interpreter state, reports callback errors in the background and falls back to the numeric label. After evaluation checks graph validity without dereferencing the axis; invalidation frees the candidate and returns NULL. Callers must stop traversing cached axis/layout pointers on NULL. Successful labels are caller-owned. </p>
+<p>Produces the legacy numeric label first: exponent notation for logarithmic axes, NUMDIGITS significant digits otherwise. A nonempty formatter prefix receives widget path and that label. Preserves interpreter state, reports callback errors in the background and falls back to the numeric label. After evaluation checks graph validity without dereferencing the axis; invalidation frees the candidate and returns NULL. Callers must stop traversing cached axis/layout pointers on NULL. Successful labels are caller-owned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph kept alive by the caller through Tcl evaluation and subsequent callback-validity checks. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis supplying formatting state; may become invalid during Tcl evaluation and must not be reused after a NULL result. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Value in axis space; logarithmic axes use base-ten exponents. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisOffsets">
 <span class="target" id="group__axis__presentation_1ga28a89351f725073f4cdfc1cf8b826dbd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisOffsets</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">axisOffset</span></span>, <span class="n"><span class="pre">AxisInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">infoPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisOffsets" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute baseline, tick and label offsets for one margin band. </p>
-<p>Requires a concrete margin and prepared axis thickness. Updates title rotation/anchor/position, tick anchor and picking region. Accounts for plot and axis borders, alternate titles and line width. Returns absolute baseline/major/minor/label positions in AxisInfo. A negative tick length swaps the baseline and major endpoint to retain inward-tick behavior. </p>
+<p>Requires a concrete margin and prepared axis thickness. Updates title rotation/anchor/position, tick anchor and picking region. Accounts for plot and axis borders, alternate titles and line width. Returns absolute baseline/major/minor/label positions in AxisInfo. A negative tick length swaps the baseline and major endpoint to retain inward-tick behavior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector. </p></li>
+<li><p><strong>axisOffset</strong> – <strong>[in]</strong> Accumulated perpendicular margin-band offset from the plot edge, in pixels. </p></li>
+<li><p><strong>infoPtr</strong> – <strong>[out]</strong> Required AxisInfo output receiving absolute baseline, tick and label screen coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MakeAxisLine">
 <span class="target" id="group__axis__presentation_1ga6ecf41d27c8129bfd49f30da68dfa82a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeAxisLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">line</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MakeAxisLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map the baseline endpoints from the prepared axis range. </p>
-<p>Writes one Segment2D using logical orientation and track-aware coordinate mapping. The line argument is the fixed screen coordinate perpendicular to the axis. Inputs are axis-space bounds, already logarithmic when appropriate. </p>
+<p>Writes one Segment2D using logical orientation and track-aware coordinate mapping. The line argument is the fixed screen coordinate perpendicular to the axis. Inputs are axis-space bounds, already logarithmic when appropriate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+<li><p><strong>line</strong> – <strong>[in]</strong> Absolute baseline screen coordinate perpendicular to the axis. </p></li>
+<li><p><strong>segPtr</strong> – <strong>[out]</strong> Required single-segment output in display coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MakeTick">
 <span class="target" id="group__axis__presentation_1ga04a3e605528cea7b12272adc48189c73"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeTick</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">tick</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">line</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MakeTick" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map one axis-space value to a tick segment. </p>
-<p>Writes the segment between the absolute line and tick screen coordinates. Chooses screen orientation from logical class and inversion. Does not check range membership or convert raw logarithmic values; the caller does so before mapping. </p>
+<p>Writes the segment between the absolute line and tick screen coordinates. Chooses screen orientation from logical class and inversion. Does not check range membership or convert raw logarithmic values; the caller does so before mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Value in axis space; logarithmic axes use base-ten exponents. </p></li>
+<li><p><strong>tick</strong> – <strong>[in]</strong> Absolute tick-end screen coordinate perpendicular to the axis, not a tick length. </p></li>
+<li><p><strong>line</strong> – <strong>[in]</strong> Absolute baseline screen coordinate perpendicular to the axis. </p></li>
+<li><p><strong>segPtr</strong> – <strong>[out]</strong> Required single-segment output in display coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MapAxis">
 <span class="target" id="group__axis__presentation_1ga03167bd0b9fefadca5d14f8c25dbad3f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MapAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace cached axis segments and position measured labels. </p>
-<p>Requires prepared tick arrays and the matching filtered label chain when ticks are shown. Computes offsets, releases old segments, checks count/byte overflow and attempts allocation. Failure leaves zero segments and returns without an interpreter error. Maps in-range major/minor ticks and label anchors, including labelOffset. Saves the owned segment array only when nonempty; does not evaluate label callbacks. </p>
+<p>Requires prepared tick arrays and the matching filtered label chain when ticks are shown. Computes offsets, releases old segments, checks count/byte overflow and attempts allocation. Failure leaves zero segments and returns without an interpreter error. Maps in-range major/minor ticks and label anchors, including labelOffset. Saves the owned segment array only when nonempty; does not evaluate label callbacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis with current ticks and matching measured labels; owned segments and label positions are replaced. </p></li>
+<li><p><strong>offset</strong> – <strong>[in]</strong> Perpendicular offset from the plot edge in pixels, including preceding axes in this margin/track. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Concrete MARGIN_TOP, MARGIN_BOTTOM, MARGIN_LEFT or MARGIN_RIGHT selector. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.DrawAxis">
 <span class="target" id="group__axis__presentation_1ga9773ac635d7f9a6702c567660365bfd1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.DrawAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a mapped axis and queue its scrollbar update. </p>
-<p>Borrows prepared axis geometry. Draws its optional screen border, title, labels and segments through renderer interfaces, with native segment fallback. Screen strokes use projecting caps. When valid scroll geometry exists, updates live min/max and queues scrollbar fractions; the Tcl callback is deferred. Ends all renderer contexts before returning. </p>
+<p>Borrows prepared axis geometry. Draws its optional screen border, title, labels and segments through renderer interfaces, with native segment fallback. Screen strokes use projecting caps. When valid scroll geometry exists, updates live min/max and queues scrollbar fractions; the Tcl callback is deferred. Ends all renderer contexts before returning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination with graph-window coordinate origin. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisExport">
 <span class="target" id="group__axis__presentation_1ga907b2df6767af2d1adac044bd981cb45"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export mapped title, labels and strokes through the shared renderer. </p>
-<p>Borrows the export context and axis geometry; closes contexts it creates. Uses butt caps for exported segments. Unlike DrawAxis, emits no axis border and performs no scrollbar update. Does not reformat labels or refresh layout. </p>
+<p>Borrows the export context and axis geometry; closes contexts it creates. Uses butt caps for exported segments. Unlike DrawAxis, emits no axis border and performs no scrollbar update. Does not reformat labels or refresh layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match the current export dimensions. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.MakeGridLine">
 <span class="target" id="group__axis__presentation_1ga77911dd50c4758ef1fa0e000fa134e7f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeGridLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.MakeGridLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a tick into a full plot-spanning grid segment. </p>
-<p>Uses axis-space coordinates and logical orientation. The varying coordinate uses track-aware mapping; the other dimension spans the current graph plot rectangle. Callers entering a track must establish the desired viewport first. </p>
+<p>Uses axis-space coordinates and logical orientation. The varying coordinate uses track-aware mapping; the other dimension spans the current graph plot rectangle. Callers entering a track must establish the desired viewport first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Value in axis space; logarithmic axes use base-ten exponents. </p></li>
+<li><p><strong>segPtr</strong> – <strong>[out]</strong> Required single-segment output in display coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_GetAxisSegments">
 <span class="target" id="group__axis__presentation_1gabf3bf952fae62f6ab90cb0e61eefe15d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetAxisSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">minorGrid</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtrPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nSegmentsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate in-range grid segments for an optional axis. </p>
-<p>Initializes outputs to NULL and zero; NULL axes produce no segments. Borrows existing tick arrays or generates temporary ones without installing them on the axis. Includes major ticks and optionally minor ticks, using checked capacity arithmetic and attempted segment allocation. Failure or empty output leaves NULL/zero. Frees temporary ticks on all exits. Successful segments belong to the caller and must be freed with ckfree. </p>
+<p>Initializes outputs to NULL and zero; NULL axes produce no segments. Borrows existing tick arrays or generates temporary ones without installing them on the axis. Includes major ticks and optionally minor ticks, using checked capacity arithmetic and attempted segment allocation. Failure or empty output leaves NULL/zero. Frees temporary ticks on all exits. Successful segments belong to the caller and must be freed with ckfree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed prepared axis, or NULL for no segments; its caches are not changed. </p></li>
+<li><p><strong>minorGrid</strong> – <strong>[in]</strong> Nonzero includes minor ticks as well as major ticks. </p></li>
+<li><p><strong>segPtrPtr</strong> – <strong>[out]</strong> Required output initialized to NULL; successful nonempty output transfers an array to free with ckfree. </p></li>
+<li><p><strong>nSegmentsPtr</strong> – <strong>[out]</strong> Required output initialized to zero; receives the number of returned segments. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.GetAxisGeometry">
 <span class="target" id="group__axis__presentation_1ga0b22e7c2703234fe1c7ff2767dd70f5f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisGeometry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.GetAxisGeometry" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rebuild labels and measure the perpendicular axis thickness. </p>
-<p>Frees old labels, refreshes generated ticks when shown, filters major-label positions and allocates formatted labels. Stops immediately on formatter invalidation; callers must check graph callback validity before continuing. Measures multiline/rotated labels, baseline, ticks and title using wide size arithmetic, then stores clamped width or height for the orientation. Does not assign final label anchors. </p>
+<p>Frees old labels, refreshes generated ticks when shown, filters major-label positions and allocates formatted labels. Stops immediately on formatter invalidation; callers must check graph callback validity before continuing. Measures multiline/rotated labels, baseline, ticks and title using wide size arithmetic, then stores clamped width or height for the orientation. Does not assign final label anchors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed configured axis whose labels/tick caches and dimensions are rebuilt; callbacks can invalidate it. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.GetMarginGeometry">
 <span class="target" id="group__axis__presentation_1ga0f5f562741671bf59ebc86003136a36f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarginGeometry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Margin</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">marginPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.GetMarginGeometry" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Measure visible axes and alternate-title requirements in one margin. </p>
-<p>Optionally refreshes axis geometry when GET_AXIS_GEOMETRY is set, stopping with zero if a formatter invalidates layout. Stores visible count, thickness, title length and axesOffset. Track-owned Y margins reserve the maximum summed thickness of any track rather than summing all tracks. Applies minimum margin dimensions and clamps wide sums; the return value is not by itself a callback- validity indicator. </p>
+<p>Optionally refreshes axis geometry when GET_AXIS_GEOMETRY is set, stopping with zero if a formatter invalidates layout. Stores visible count, thickness, title length and axesOffset. Track-owned Y margins reserve the maximum summed thickness of any track rather than summing all tracks. Applies minimum margin dimensions and clamps wide sums; the return value is not by itself a callback- validity indicator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>marginPtr</strong> – <strong>[inout]</strong> Borrowed graph margin whose visible-axis count, thickness and title requirements are updated. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_MapAxes">
 <span class="target" id="group__axis__presentation_1gae88c6d158fcba37344cb8f0eff91c829"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_MapAxes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map visible margin axes after arranging track viewports. </p>
-<p>Calls Rbc_LayoutTracks, then maps nonhidden onscreen axes in margin order. Ordinary axes accumulate margin offsets; track axes use per-track offsets and the full world rectangle inside an entered viewport. Skips empty visible tracks and restores the graph viewport after each local axis. Requires current ranges and measured labels. </p>
+<p>Calls Rbc_LayoutTracks, then maps nonhidden onscreen axes in margin order. Ordinary axes accumulate margin offsets; track axes use per-track offsets and the full world rectangle inside an entered viewport. Skips empty visible tracks and restores the graph viewport after each local axis. Requires current ranges and measured labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.AxisLayoutUsable">
 <span class="target" id="group__axis__presentation_1gaf038dfd84a81d5d1f312a5d7cf19e470"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisLayoutUsable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.AxisLayoutUsable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check whether both plot ranges permit mapped presentation. </p>
-<p>Returns true only when horizontal and vertical ranges exceed one pixel. Prevents drawing, exporting or picking stale geometry and newly allocated labels with unmapped DBL_MAX anchors. Does not perform layout. </p>
+<p>Returns true only when horizontal and vertical ranges exceed one pixel. Prevents drawing, exporting or picking stale geometry and newly allocated labels with unmapped DBL_MAX anchors. Does not perform layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.DrawTrackAxis">
 <span class="target" id="group__axis__presentation_1gaa080b437abd21e56ecc5065727f6722e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTrackAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.DrawTrackAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Confine local axis output to its visible scrolling band. </p>
-<p>Allocates a graph-sized temporary pixmap and GC, copies the visible band into it, draws the complete axis there and copies only that band back. The band includes the axis margin; inversion switches the clipped direction. Releases temporary resources. Empty bands return immediately. </p>
+<p>Allocates a graph-sized temporary pixmap and GC, copies the visible band into it, draws the complete axis there and copies only that band back. The band includes the axis margin; inversion switches the clipped direction. Releases temporary resources. Empty bands return immediately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination with graph-window coordinate origin. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed mapped axis with a non-NULL live owning track; drawing may queue scrollbar updates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_DrawAxes">
 <span class="target" id="group__axis__presentation_1ga22c21b044f68764c197b0a5aa1846b80"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_DrawAxes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw eligible axes with scrolling-track clipping. </p>
-<p>Returns for collapsed plot geometry. Traverses margin chains, skipping hidden/offscreen axes and tracks with collapsed visible rectangles. Uses DrawTrackAxis only for track-owned axes when track scrolling is enabled; otherwise draws directly. Borrows all axis records and does not map them. </p>
+<p>Returns for collapsed plot geometry. Traverses margin chains, skipping hidden/offscreen axes and tracks with collapsed visible rectangles. Uses DrawTrackAxis only for track-owned axes when track scrolling is enabled; otherwise draws directly. Borrows all axis records and does not map them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination with graph-window coordinate origin. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AxesExport">
 <span class="target" id="group__axis__presentation_1ga731dcf08fef4f30f4afa0aee0528d6b8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxesExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AxesExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export eligible axes with scrolling-track clip scopes. </p>
-<p>Uses the same collapsed-layout and visibility checks as screen drawing. For scrolling local axes, opens a renderer clip around the visible band including margins, exports the axis and closes the scope. Requires geometry already mapped for the export dimensions. </p>
+<p>Uses the same collapsed-layout and visibility checks as screen drawing. For scrolling local axes, opens a renderer clip around the visible band including margins, exports the axis and closes the scope. Requires geometry already mapped for the export dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match the current export dimensions. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_DrawAxisLimits">
 <span class="target" id="group__axis__presentation_1gaa36f1b78bc3a9f260395d2809e09c9fd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawAxisLimits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_DrawAxisLimits" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw formatted range annotations around the plot edges. </p>
-<p>Iterates the axis registry in hash order, selecting nFormats rather than margin visibility. Formats axisRange endpoints with bounded snprintf, uses logical orientation plus inversion and swaps labels for descending axes. Measures/draws with limitsTextStyle and updates its rotation/anchor. Logarithmic annotations currently receive exponent values; these are not the data-space limits command results. </p>
+<p>Iterates the axis registry in hash order, selecting nFormats rather than margin visibility. Formats axisRange endpoints with bounded snprintf, uses logical orientation plus inversion and swaps labels for descending axes. Measures/draws with limitsTextStyle and updates its rotation/anchor. Logarithmic annotations currently receive exponent values; these are not the data-space limits command results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination with graph-window coordinate origin. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AxisLimitsExport">
 <span class="target" id="group__axis__presentation_1gac2a9942433d502558e350e831b322ea9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxisLimitsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AxisLimitsExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export formatted range annotations with screen-equivalent endpoint placement. </p>
-<p>Iterates formatted registry axes and formats axisRange endpoints with bounded snprintf. Uses inversion-aware orientation, swaps descending endpoint strings and measures with limitsTextStyle, matching screen placement. Ends its output context even when layout is collapsed. </p>
+<p>Iterates formatted registry axes and formats axisRange endpoints with bounded snprintf. Uses inversion-aware orientation, swaps descending endpoint strings and measures with limitsTextStyle, matching screen placement. Ends its output context even when layout is collapsed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match the current export dimensions. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_GetFirstAxis">
 <span class="target" id="group__axis__presentation_1ga84314ac61c64cb626cc06adddd8d1b89"></span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetFirstAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_GetFirstAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow the first record in an axis chain. </p>
-<p>Returns NULL for an empty chain. Performs no hidden/deletion filtering or reference acquisition; callers must apply any additional eligibility requirements. </p>
+<p>Returns NULL for an empty chain. Performs no hidden/deletion filtering or reference acquisition; callers must apply any additional eligibility requirements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chainPtr</strong> – <strong>[in]</strong> Borrowed valid chain of axis pointers; no record reference is acquired. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_NearestAxis">
 <span class="target" id="group__axis__presentation_1gad03b15ecdaed603b7bd1cf68d4affdcd"></span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NearestAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_NearestAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Pick the first axis whose label, title or region contains a point. </p>
-<p>Returns NULL for unusable layout or no hit. Iterates registry order, not nearest-distance order; skips hidden/offscreen axes and collapsed or out-of-band scrolling tracks. Tests rotated label polygons, then title polygon, then line region. Sets detail to label, title or line on the borrowed returned record. Requires prepared geometry and does not acquire a reference. </p>
+<p>Returns NULL for unusable layout or no hit. Iterates registry order, not nearest-distance order; skips hidden/offscreen axes and collapsed or out-of-band scrolling tracks. Tests rotated label polygons, then title polygon, then line region. Sets detail to label, title or line on the borrowed returned record. Requires prepared geometry and does not acquire a reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal query coordinate in graph-window pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical query coordinate in graph-window pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisPresentation.Rbc_AxisFontsChanged">
 <span class="target" id="group__axis__presentation_1ga881a50ab10f9704ba7b591f0388030dd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AxisFontsChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisPresentation.Rbc_AxisFontsChanged" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh configured axis styles after named-font changes. </p>
-<p>Visits all registered configured axes, refreshes text GCs and title dimensions, and marks each AXIS_DIRTY. Does not regenerate tick labels or directly schedule full graph layout; the font-change caller owns subsequent invalidation. </p>
+<p>Visits all registered configured axes, refreshes text GCs and title dimensions, and marks each AXIS_DIRTY. Does not regenerate tick labels or directly schedule full graph layout; the font-change caller owns subsequent invalidation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with registered configured axes; caller schedules subsequent geometry/layout invalidation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1625,21 +2088,46 @@ Expands valueRange endpoints by comparison only; does not validate the extent, r
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.ValidateAxisCommandPrefix">
 <span class="target" id="group__axis__layout__control_1ga09fa291e7f329e999a5a5009f2430042"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ValidateAxisCommandPrefix</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.ValidateAxisCommandPrefix" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate the list representation of an optional command prefix. </p>
-<p>NULL and empty lists succeed. Returns a Tcl parsing status for other values; does not evaluate the command, resolve its first word or retain list elements. </p>
+<p>NULL and empty lists succeed. Returns a Tcl parsing status for other values; does not evaluate the command, resolve its first word or retain list elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed command-prefix object, or NULL; an empty list is also accepted. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.NotifyAxisScrollbar">
 <span class="target" id="group__axis__layout__control_1gac243440efebe2d7221181d982638cd6a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NotifyAxisScrollbar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.NotifyAxisScrollbar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Deliver the latest queued scrollbar fractions at idle. </p>
-<p>Clears the pending flag before delivery and skips destroyed graphs, deleted axes and absent/empty prefixes. Copies the prefix and appends owned fraction objects before evaluation. Preserves graph/interpreter storage and interpreter state, evaluates globally and reports errors in the background. Does not dereference the axis after Tcl evaluation; destruction cancels outstanding idle delivery. </p>
+<p>Clears the pending flag before delivery and skips destroyed graphs, deleted axes and absent/empty prefixes. Copies the prefix and appends owned fraction objects before evaluation. Preserves graph/interpreter storage and interpreter state, evaluates globally and reports errors in the background. Does not dereference the axis after Tcl evaluation; destruction cancels outstanding idle delivery.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed Axis pointer registered for idle delivery; destruction must cancel the pending callback. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.UpdateAxisScrollbar">
 <span class="target" id="group__axis__layout__control_1ga7118c83f5ad474f9789f64b17280a1ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UpdateAxisScrollbar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">firstFract</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">lastFract</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.UpdateAxisScrollbar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Coalesce a scrollbar notification using the latest fractions. </p>
-<p>Suppresses updates during GRAPH_EXPORT. Otherwise replaces pending fraction values and schedules at most one idle callback for the axis. Does not evaluate Tcl, compare fractions with the previous delivery or retain a separate axis reference. </p>
+<p>Suppresses updates during GRAPH_EXPORT. Otherwise replaces pending fraction values and schedules at most one idle callback for the axis. Does not evaluate Tcl, compare fractions with the previous delivery or retain a separate axis reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>firstFract</strong> – <strong>[in]</strong> Latest screen-oriented first scrollbar fraction, copied without clamping. </p></li>
+<li><p><strong>lastFract</strong> – <strong>[in]</strong> Latest screen-oriented last scrollbar fraction, copied without clamping. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1662,91 +2150,208 @@ For views no larger than the world, constrains the offset to 0..1-windowSize. La
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.GetAxisScrollState">
 <span class="target" id="group__axis__layout__control_1ga45b20b6807eece1a09efc9035b696ddb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisScrollState</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">viewMinNormPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">viewMaxNormPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.GetAxisScrollState" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Derive a normalized current view and effective scroll world. </p>
-<p>Starts from valueRange and min/max, replaces missing world sentinels with view endpoints, then applies requested scroll bounds. Rejects nonfinite values, nonpositive logarithmic inputs and nonincreasing worlds. Intersects the view with the world, collapsing wholly outside views to the nearest boundary. Allows a zero-width view. On TRUE returns normalized endpoints and a world range in linear or exponent coordinates. Outputs must not be consumed after FALSE; no live axis state is modified. </p>
+<p>Starts from valueRange and min/max, replaces missing world sentinels with view endpoints, then applies requested scroll bounds. Rejects nonfinite values, nonpositive logarithmic inputs and nonincreasing worlds. Intersects the view with the world, collapsing wholly outside views to the nearest boundary. Allows a zero-width view. On TRUE returns normalized endpoints and a world range in linear or exponent coordinates. Outputs must not be consumed after FALSE; no live axis state is modified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+<li><p><strong>rangePtr</strong> – <strong>[out]</strong> Required effective-world range in linear or exponent coordinates; may be written even on FALSE. </p></li>
+<li><p><strong>viewMinNormPtr</strong> – <strong>[out]</strong> Required normalized lower-view output; assigned only on TRUE. </p></li>
+<li><p><strong>viewMaxNormPtr</strong> – <strong>[out]</strong> Required separate normalized upper-view output; assigned only on TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.GetPolarAutoAspect">
 <span class="target" id="group__axis__layout__control_1gaf59f1fc1566ae6b1a3cde3f9d391d922"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarAutoAspect</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aspectPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.GetPolarAutoAspect" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute a physical plot ratio for equal Polar data-unit scaling. </p>
-<p>Requires a Polar widget with automatic aspect enabled, a grid and two nonlogarithmic mapped axes with finite positive ranges. Uses the grid-selected axes rather than primary x/y. Returns X/Y range ratio, or its inverse when inverted, only if finite and positive. FALSE leaves the output untouched; performs no layout. </p>
+<p>Requires a Polar widget with automatic aspect enabled, a grid and two nonlogarithmic mapped axes with finite positive ranges. Uses the grid-selected axes rather than primary x/y. Returns X/Y range ratio, or its inverse when inverted, only if finite and positive. FALSE leaves the output untouched; performs no layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>aspectPtr</strong> – <strong>[out]</strong> Required positive physical width/height ratio output; assigned only on TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.ComputeMargins">
 <span class="target" id="group__axis__layout__control_1ga39c0fd55f26ccd84d59db382040dce02"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeMargins</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.ComputeMargins" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Combine axis, title, legend and aspect requirements into margins. </p>
-<p>Measures each margin and checks callback validity immediately afterward. Maps the legend against the estimated cavity, adds margin-hosted legend dimensions, applies automatic Polar or fixed aspect, reserves adjoining alternate-title space and finally applies positive requested margin overrides. Uses wide intermediate sizes and clamped storage. Callback invalidation returns early; callers must not treat partial geometry as completed layout. </p>
+<p>Measures each margin and checks callback validity immediately afterward. Maps the legend against the estimated cavity, adds margin-hosted legend dimensions, applies automatic Polar or fixed aspect, reserves adjoining alternate-title space and finally applies positive requested margin overrides. Uses wide intermediate sizes and clamped storage. Callback invalidation returns early; callers must not treat partial geometry as completed layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.Rbc_LayoutMargins">
 <span class="target" id="group__axis__layout__control_1gacb789c4bb24af2d39188db5fc8b52deb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LayoutMargins</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.Rbc_LayoutMargins" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute plot bounds, mapping scales and graph-title position. </p>
-<p>Calls ComputeMargins and stops on callback invalidation. Adds widget/plot insets, computes the cavity with wide arithmetic and clamps it to at least one pixel. Plot padding defines mapping offsets/ranges; stores reciprocals and title position. A one-pixel arithmetic range is not a drawable-layout guarantee. Does not map axes or clear the caller layout flags. </p>
+<p>Calls ComputeMargins and stops on callback invalidation. Adds widget/plot insets, computes the cavity with wide arithmetic and clamps it to at least one pixel. Plot padding defines mapping offsets/ranges; stores reciprocals and title position. A one-pixel arithmetic range is not a drawable-layout guarantee. Does not map axes or clear the caller layout flags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.GetAxisLimits">
 <span class="target" id="group__axis__layout__control_1ga37fc4b5baaccb01c346cb6a91228bb97"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLimits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.GetAxisLimits" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read prepared mapping bounds in data coordinates. </p>
-<p>Copies linear axisRange endpoints or converts logarithmic exponents with LogAxisValue. Does not sync vectors, reset ranges or validate conversion results. Callers control range freshness. </p>
+<p>Copies linear axisRange endpoints or converts logarithmic exponents with LogAxisValue. Does not sync vectors, reset ranges or validate conversion results. Callers control range freshness.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with the prepared range and caches described above; no mutation or reference acquisition. </p></li>
+<li><p><strong>minPtr</strong> – <strong>[out]</strong> Required lower-limit output in raw data coordinates, including inverse log conversion. </p></li>
+<li><p><strong>maxPtr</strong> – <strong>[out]</strong> Required separate upper-limit output in raw data coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges">
 <span class="target" id="group__axis__layout__control_1gad699546d9cecc675be63c4e7aafa7684"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NotifyAxisChanges</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit axis configuration and limit-change events after screen display. </p>
-<p>Collects names of configured live axes in registry order, comparing data-space limits against a separate notification baseline. Configuration or limit changes contribute to RbcAxisChanged; only limit changes contribute to RbcAxisLimitsChanged. Updates baselines and clears configure flags before sending events, balancing temporary list references. The display caller must exclude temporary export mappings; this function has no GRAPH_EXPORT guard of its own. </p>
+<p>Collects names of configured live axes in registry order, comparing data-space limits against a separate notification baseline. Configuration or limit changes contribute to RbcAxisChanged; only limit changes contribute to RbcAxisLimitsChanged. Updates baselines and clears configure flags before sending events, balancing temporary list references. The display caller must exclude temporary export mappings; this function has no GRAPH_EXPORT guard of its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed live graph after screen display, outside temporary export mapping; notification baselines are advanced before event submission. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.LimitsOp">
 <span class="target" id="group__axis__layout__control_1gae7c6a6abf84c1885831278eb4457520a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LimitsOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.LimitsOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the two prepared axis limits as Tcl doubles. </p>
-<p>Synchronizes element vectors and resets pending axis ranges before reading data-space bounds. Returns a two-element minimum/maximum list, not a four-coordinate graph rectangle. Requires a valid borrowed axis and does not perform complete margin layout. </p>
+<p>Synchronizes element vectors and resets pending axis ranges before reading data-space bounds. Returns a two-element minimum/maximum list, not a four-coordinate graph rectangle. Requires a valid borrowed axis and does not perform complete margin layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Unused shared-handler argument; the axis is already resolved. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Unused suffix count; the query accepts zero arguments. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed suffix: Unused argument vector; this query accepts an empty suffix. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.InvTransformOp">
 <span class="target" id="group__axis__layout__control_1ga8a85e0c33ab633e5fdd7505495b0bca7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvTransformOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.InvTransformOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert one integer screen coordinate to an axis value. </p>
-<p>Synchronizes vectors and resets pending ranges, parses the sliced argument as an int and chooses horizontal/vertical inverse mapping from logical class and inversion. Returns TCL_ERROR for parsing failure or a nonfinite result; success returns a Tcl double. Uses existing mapping geometry rather than forcing complete layout. </p>
+<p>Synchronizes vectors and resets pending ranges, parses the sliced argument as an int and chooses horizontal/vertical inverse mapping from logical class and inversion. Returns TCL_ERROR for parsing failure or a nonfinite result; success returns a Tcl double. Uses existing mapping geometry rather than forcing complete layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Unused shared-handler argument; the axis is already resolved. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Validated suffix count (one); not otherwise used by this handler. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed suffix: One integer screen-coordinate object at index 0. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.TransformOp">
 <span class="target" id="group__axis__layout__control_1ga09ada901ed61837994e4960f486a84f3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TransformOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.TransformOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate an axis value and return its integer screen coordinate. </p>
-<p>Synchronizes vectors and resets pending ranges before evaluating the sliced argument with Tcl_ExprDoubleObj. Rejects nonfinite input, nonpositive logarithmic values and mapped coordinates outside int range. Success truncates toward zero, preserving historical conversion. Uses existing mapping geometry. Expression evaluation can execute Tcl; this handler does not revalidate its borrowed axis after that evaluation. </p>
+<p>Synchronizes vectors and resets pending ranges before evaluating the sliced argument with Tcl_ExprDoubleObj. Rejects nonfinite input, nonpositive logarithmic values and mapped coordinates outside int range. Success truncates toward zero, preserving historical conversion. Uses existing mapping geometry. Expression evaluation can execute Tcl; this handler does not revalidate its borrowed axis after that evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed live axis with the range, options and caches required above; no reference is acquired. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Unused shared-handler argument; the axis is already resolved. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Validated suffix count (one); not otherwise used by this handler. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed suffix: One raw-data Tcl expression at index 0; evaluation may execute application Tcl. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.InvTransformVirtualOp">
 <span class="target" id="group__axis__layout__control_1ga4b1efc68b5edd52c1ab8b9a8e691b035"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvTransformVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.InvTransformVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a named axis for inverse transformation. </p>
-<p>Uses live borrowed lookup and forwards the argument suffix to InvTransformOp. Returns the lookup or conversion status; acquires no axis reference. </p>
+<p>Uses live borrowed lookup and forwards the argument suffix to InvTransformOp. Returns the lookup or conversion status; acquires no axis reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.LimitsVirtualOp">
 <span class="target" id="group__axis__layout__control_1ga554b00d57343a44f26923dfe30614784"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LimitsVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.LimitsVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a named axis and return its minimum/maximum pair. </p>
-<p>Uses live borrowed lookup and delegates synchronization and range reset to LimitsOp. Returns TCL_ERROR for a missing axis; this wrapper does not acquire a reference or force full layout. </p>
+<p>Uses live borrowed lookup and delegates synchronization and range reset to LimitsOp. Returns TCL_ERROR for a missing axis; this wrapper does not acquire a reference or force full layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.TransformVirtualOp">
 <span class="target" id="group__axis__layout__control_1ga26000b1d058a4f2c5ecf72ae1d3626db"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TransformVirtualOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.TransformVirtualOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a named axis for forward transformation. </p>
-<p>Uses live borrowed lookup and forwards the suffix to TransformOp, including its expression- evaluation behavior. Returns the lookup or conversion status without acquiring an axis reference. </p>
+<p>Uses live borrowed lookup and forwards the suffix to TransformOp, including its expression- evaluation behavior. Returns the lookup or conversion status without acquiring an axis reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget command vector; operation is at index 2 and operands begin at index 3. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisLayoutControl.ViewOp">
 <span class="target" id="group__axis__layout__control_1gae529fd973c6b073c70844cc8d840d4bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ViewOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.ViewOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or change the normalized viewport of one named axis. </p>
-<p>Parses a mutation request before lookup, derives current scroll state and converts its direction to screen orientation. Queries clamp returned fractions to 0..1. Moving an empty view is a no-op. Pages advance by 90 percent of the view; units use scrollUnits and the current scale, or the full owning- track extent. Validates reconstructed data limits before assigning reqMin/reqMax and scheduling geometry/layout/range reset. Does not synchronize vectors or perform layout itself. </p>
+<p>Parses a mutation request before lookup, derives current scroll state and converts its direction to screen orientation. Queries clamp returned fractions to 0..1. Moving an empty view is a no-op. Pages advance by 90 percent of the view; units use scrollUnits and the current scale, or the full owning- track extent. Validates reconstructed data limits before assigning reqMin/reqMax and scheduling geometry/layout/range reset. Does not synchronize vectors or perform layout itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed entries in the full command vector; arity is validated by dispatch. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command vector: axis name at index 3, optional scroll request starting at index 4. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1755,8 +2360,20 @@ For views no larger than the world, constrains the offset to 0..1-windowSize. La
 <dd><p>Apply local scrolling to selected track axes with limit rollback. </p>
 <p>Query or move the data viewport of a track-owned Y axis or axes.</p>
 <p>An optional -mapy must name a member of the track. Queries use the selected or first axis; mutations apply to all members unless selected. Parses requests and performs graph layout before invoking ViewOp. Saves requested limits and graph flags, restoring them on a later axis error while retaining REDRAW_PENDING because an idle callback may already be scheduled. Frees temporary limit storage and name objects. Borrows the track and axis array; performs no independent reference acquisition.</p>
-<p>Apply local scrolling to selected track axes with limit rollback.</p>
+<p>
+Apply local scrolling to selected track axes with limit rollback.</p>
 <p>Borrow graph, track and arguments; the enclosing widget command protects lifetime across layout callbacks. An optional -mapy selects one owned axis. Queries use the first selected axis; movement applies to all selected axes. Strict request parsing precedes layout. A later axis failure restores saved requested limits and flags, retaining any already scheduled redraw. Returns TCL_OK or TCL_ERROR with an interpreter result. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph; required range/layout freshness and callback boundaries are described above. </p></li>
+<li><p><strong>track</strong> – <strong>[inout]</strong> Borrowed selected track and its axis array, required to remain valid through layout and scrolling. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command entries; this dispatcher validates its supported operation/request arity. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full track command vector; track name is at index 3, followed by optional -mapy axis and a scroll request.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

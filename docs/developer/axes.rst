@@ -72,8 +72,19 @@ Dispatch and bindings
 ---------------------
 
 Named-axis dispatch receives the full widget command vector. Margin dispatch
-selects the first eligible axis and passes an argument suffix to its handler.
+selects the first axis in the margin chain and passes an argument suffix to its handler.
 Keep these conventions distinct when sharing command helpers.
+The full-vector handlers read the operation at index 2 and the first operand
+at index 3. Margin dispatch removes the first three entries before calling
+its selected handler. For example, :c:func:`rbcGrAxisCommands.CgetVirtualOp`
+resolves the name at index 3, then passes the option suffix beginning at index
+4 to :c:func:`rbcGrAxisCommands.CgetOp`, where the option is at index 0.
+
+:c:func:`rbcGrAxisLayoutControl.Rbc_TrackYViewOp` also receives a full vector,
+with the track name at index 3. It consumes optional ``-mapy axis`` entries
+before constructing a temporary named-axis view request. These arrays and
+objects are borrowed during dispatch; changing their offsets does not change
+ownership or acquire references to the resolved axes.
 
 Bindings use graph-owned interned keys for the axis name, logical class and
 configured tags, in that order. ``axis bind`` can create bindings for a tag
@@ -235,7 +246,7 @@ The range fields are not interchangeable:
    * - ``t1Ptr`` / ``t2Ptr``
      - Explicit or generated tick arrays, distinguished by configuration flags.
 
-``Rbc_ResetAxes`` prepares bar frequencies and stacks before collecting
+:c:func:`rbcGrAxisRanges.Rbc_ResetAxes` prepares bar frequencies and stacks before collecting
 extents. It excludes hidden and plot-hidden elements, but visits all registered
 axes, including pending deletions retained by consumers. Polar grid axes with
 no contributing data receive a symmetric fallback; Smith grid axes always
@@ -243,7 +254,7 @@ include the intrinsic unit-circle bounds in their accumulated nonlogarithmic
 range. Explicit requested limits are applied later and can still restrict the
 displayed region.
 
-``FixAxisRange`` supplies missing bounds, expands degenerate data and applies
+:c:func:`rbcGrAxisRanges.FixAxisRange` supplies missing bounds, expands degenerate data and applies
 requested endpoints. Automatic window shifting applies only when neither
 endpoint was requested. Reset then constrains the scaling inputs by configured
 scroll limits, selects linear or logarithmic scaling, and requests later layout
@@ -259,10 +270,10 @@ more than ``MAXTICKS`` or nonfinite sweep arithmetic is rejected internally
 and replaced by the automatic interval. If neither produces a usable sweep,
 the range is retained with no generated major ticks.
 
-``GetLinearSweep`` computes enclosing endpoints in units of the step. It
+:c:func:`rbcGrAxisRanges.GetLinearSweep` computes enclosing endpoints in units of the step. It
 validates the count while still represented as a double, before converting to
 ``Tcl_Size``. This avoids overflowing the raw endpoint difference or converting
-an unbounded count to an integer. ``RoundToStep`` similarly avoids integer
+an unbounded count to an integer. :c:func:`rbcGrAxisRanges.RoundToStep` similarly avoids integer
 rounding and retains the input when quotient/product arithmetic is unusable.
 
 Loose policy applies separately to each endpoint. ``tight`` keeps the resolved
@@ -284,7 +295,7 @@ Narrow logarithmic minor ticks use the eight offsets ``log10(2)`` through
 mean repeated coincident ticks. Wider logarithmic sweeps instead use four
 fractions at 0.2 increments between major ticks.
 
-``LogAxisValue`` converts back only within the interval bounded by ``DBL_MIN``
+:c:func:`rbcGrAxisRanges.LogAxisValue` converts back only within the interval bounded by ``DBL_MIN``
 and ``DBL_MAX`` and returns ``NAN`` outside it. Here ``DBL_MIN`` means the
 smallest positive *normal* double, not the smallest subnormal value. Exact
 endpoint handling avoids power-function rounding across these bounds.
@@ -292,7 +303,7 @@ endpoint handling avoids power-function rounding across these bounds.
 Explicit arrays and ownership
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``SweepTicks`` replaces generated arrays but preserves arrays selected by
+:c:func:`rbcGrAxisRanges.SweepTicks` replaces generated arrays but preserves arrays selected by
 ``AXIS_CONFIG_MAJOR`` or ``AXIS_CONFIG_MINOR``. Explicit major ticks disable
 automatic minor generation; an explicit minor list remains available. With
 explicit majors, minor fractions are placed between adjacent major entries,
@@ -300,9 +311,9 @@ including descending pairs. Equal endpoints, missing following endpoints,
 fractions outside the open interval and rounded positions outside it are
 rejected. No minor is extrapolated after the final explicit major.
 
-``GenerateTicks`` returns an owned allocation even for an empty sweep.
+:c:func:`rbcGrAxisRanges.GenerateTicks` returns an owned allocation even for an empty sweep.
 Invalid internal sweeps degrade to empty arrays rather than a layout error.
-Allocation itself uses the fatal Tcl allocator. ``Rbc_AllocAxisMajorTicks``
+Allocation itself uses the fatal Tcl allocator. :c:func:`rbcGrAxisRanges.Rbc_AllocAxisMajorTicks`
 always returns an independent array: it copies an existing cache or generates
 from the sweep when no cache exists, notably for hidden Polar axes. Its copy
 path uses attempted allocation and can return NULL. Callers must both check
@@ -312,7 +323,7 @@ an explicitly supplied list.
 Numerical mapping boundary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``SetAxisRange`` caches the endpoint difference and reciprocal. Very small
+:c:func:`rbcGrAxisRanges.SetAxisRange` caches the endpoint difference and reciprocal. Very small
 absolute spans receive a unit cached range without changing the endpoints.
 Overflow-sized spans are handled by half-scaled normalization/interpolation.
 These helpers do not establish a universal finite-result guarantee:
@@ -335,9 +346,9 @@ axis thickness. Mapping computes final anchors and cached segments for the
 current plot rectangle. Drawing and export consume those caches; they do not
 invoke the formatter again.
 
-``NewTickLabel`` stores a copied string in the label allocation and initializes
+:c:func:`rbcGrAxisPresentation.NewTickLabel` stores a copied string in the label allocation and initializes
 its anchor to ``DBL_MAX``. Measurement fills its dimensions, but only mapping
-replaces the anchor with a drawable position. ``AxisLayoutUsable`` prevents
+replaces the anchor with a drawable position. :c:func:`rbcGrAxisPresentation.AxisLayoutUsable` prevents
 screen drawing, export and picking when either plot range is at most one
 pixel, because mapping was skipped and the cached positions may be stale or
 uninitialized. This is particularly important during resizing with large or
@@ -353,9 +364,9 @@ restored. Callback errors are reported as background exceptions and normally
 fall back to the default label.
 
 A callback may also delete the axis, destroy the widget or replace layout
-resources. After evaluation, ``Rbc_AllocAxisTickLabel`` checks graph validity
+resources. After evaluation, :c:func:`rbcGrAxisPresentation.Rbc_AllocAxisTickLabel` checks graph validity
 without dereferencing the old axis pointer. Invalidation releases the newly
-allocated label and returns NULL. ``GetAxisGeometry`` must stop immediately;
+allocated label and returns NULL. :c:func:`rbcGrAxisPresentation.GetAxisGeometry` must stop immediately;
 its callers must check callback validity before resuming their own traversal.
 A callback error and callback invalidation are therefore different outcomes.
 Neither a numeric fallback nor preserved graph storage proves an old axis or
@@ -364,21 +375,21 @@ label-chain pointer is still valid.
 Geometry and picking
 ~~~~~~~~~~~~~~~~~~~~
 
-``GetAxisGeometry`` measures multiline text and rotated bounds, includes tick,
+:c:func:`rbcGrAxisPresentation.GetAxisGeometry` measures multiline text and rotated bounds, includes tick,
 baseline and title spacing, and stores the orientation-dependent thickness.
 Wide accumulators and clamped conversions protect the stored integer sizes.
-``GetMarginGeometry`` aggregates visible axes and alternate-title requirements.
+:c:func:`rbcGrAxisPresentation.GetMarginGeometry` aggregates visible axes and alternate-title requirements.
 For a trackgraph's local Y margin it reserves the maximum per-track sum;
 multiple axes within one track still occupy separate bands.
 
-``AxisOffsets`` chooses title/tick anchors and absolute perpendicular positions
+:c:func:`rbcGrAxisPresentation.AxisOffsets` chooses title/tick anchors and absolute perpendicular positions
 for the selected margin. Negative tick lengths preserve inward-tick behavior
-by exchanging the baseline and major-tick positions. ``MapAxis`` allocates
+by exchanging the baseline and major-tick positions. :c:func:`rbcGrAxisPresentation.MapAxis` allocates
 segments for the baseline and in-range major/minor ticks and positions the
 already measured labels. Count overflow or segment allocation failure leaves
 no segment array and is not reported as a Tcl command error.
 
-``Rbc_GetAxisSegments`` is a separate grid interface. It borrows cached ticks
+:c:func:`rbcGrAxisPresentation.Rbc_GetAxisSegments` is a separate grid interface. It borrows cached ticks
 when available and generates temporary ticks otherwise, including for axes
 without visible rectangular decorations. It returns a caller-owned segment
 array or NULL/zero, and always releases its temporary tick arrays. Grid
@@ -386,19 +397,19 @@ spanning uses the current plot viewport; callers requesting local track grids
 must establish that viewport first.
 
 Picking is containment, not a distance minimization despite the name
-``Rbc_NearestAxis``. It visits axes in registry order and tests tick-label
+:c:func:`rbcGrAxisPresentation.Rbc_NearestAxis`. It visits axes in registry order and tests tick-label
 polygons, title polygons and the axis line region, recording the matching
 ``detail``. It applies the visible scrolling-band checks used by presentation.
-A returned axis is borrowed. ``Rbc_GetFirstAxis`` is simpler still: it returns
+A returned axis is borrowed. :c:func:`rbcGrAxisPresentation.Rbc_GetFirstAxis` is simpler still: it returns
 the first chain entry without filtering hidden or pending-deletion records.
 
 Screen and document output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``DrawAxis`` uses the renderer interface for borders, native text and line
+:c:func:`rbcGrAxisPresentation.DrawAxis` uses the renderer interface for borders, native text and line
 segments, retaining the native segment fallback when no drawable context is
 available. It also computes scrollbar fractions and queues notification;
-it does not invoke the scroll command synchronously. ``AxisExport`` emits
+it does not invoke the scroll command synchronously. :c:func:`rbcGrAxisPresentation.AxisExport` emits
 cached title, labels and segments through the shared export renderer, without
 scrollbar work. Current screen strokes use projecting caps while exported
 strokes use butt caps; the optional screen axis border is not exported.
@@ -428,7 +439,7 @@ between limit annotations when the limits font is unchanged.
 Margin layout and aspect
 ------------------------
 
-``ComputeMargins`` measures axes first, checking formatter validity after each
+:c:func:`rbcGrAxisLayoutControl.ComputeMargins` measures axes first, checking formatter validity after each
 margin. It then reserves graph-title space, maps the legend against the
 estimated cavity and adds space for a margin-hosted legend. A legend in the
 plot, at explicit coordinates or in another window does not enlarge margins.
@@ -444,11 +455,11 @@ range ratio; inversion reverses it. This equalizes physical distance per data
 unit. Plot padding is removed for this calculation and restored afterward.
 An explicit fixed aspect instead constrains the outer plot cavity ratio.
 
-``Rbc_LayoutMargins`` adds widget/plot insets, stores plot bounds and derives
+:c:func:`rbcGrAxisLayoutControl.Rbc_LayoutMargins` adds widget/plot insets, stores plot bounds and derives
 mapping offsets, ranges and reciprocal scales after plot padding. Wide
 intermediates and clamped integer storage avoid wrapping dimensions. Its
 one-pixel minimum permits safe arithmetic during resizing; presentation still
-requires the stricter ``AxisLayoutUsable`` check. Layout does not itself map
+requires the stricter :c:func:`rbcGrAxisPresentation.AxisLayoutUsable` check. Layout does not itself map
 axis segments or certify that every requested decoration fits.
 
 Queries and freshness
@@ -470,17 +481,17 @@ ordinary numeric validation alone is not a lifetime guarantee.
 Scrolling state and local views
 -------------------------------
 
-``GetAxisScrollState`` derives its world from accumulated data bounds, falling
+:c:func:`rbcGrAxisLayoutControl.GetAxisScrollState` derives its world from accumulated data bounds, falling
 back to current view endpoints for missing sentinels and then applying explicit
 scroll bounds. It requires a finite increasing world. The current view is
 intersected with that world; a wholly outside view collapses to the nearest
 boundary, and a zero-width view remains valid. Logarithmic scrolling performs
 this arithmetic in exponent coordinates.
 
-``ViewOp`` converts normalized data endpoints into screen-oriented fractions.
+:c:func:`rbcGrAxisLayoutControl.ViewOp` converts normalized data endpoints into screen-oriented fractions.
 Queries clamp the pair to 0..1. Mutations use the shared scroll-request parser:
 ``moveto`` sets the offset, pages move by 90 percent of the current view, and
-units use the configured scroll increment. ``AdjustViewport`` applies the
+units use the configured scroll increment. :c:func:`rbcGrAxisLayoutControl.AdjustViewport` applies the
 canvas-style offset bounds. Reconstructed limits must be finite and increasing
 before they become requested axis limits. An empty view accepts movement as a
 no-op.
@@ -489,7 +500,7 @@ For ordinary axes the current implementation selects ``hScale`` or ``vScale``
 using its forward/reverse branch. Track-owned axes instead divide by their
 full world extent in the physical axis direction. These are the actual current
 formulas; the ordinary branch should not be assumed to use physical direction
-independently of descending state. ``ViewOp`` itself does not refresh layout.
+independently of descending state. :c:func:`rbcGrAxisLayoutControl.ViewOp` itself does not refresh layout.
 
 Track-local ``yview`` validates optional axis membership, performs graph layout
 and delegates to the same view handler. A query uses the selected or first
@@ -517,14 +528,14 @@ Scrollbar updates and axis-change events have separate mechanisms:
      - Last notified data-space limits and pending configure flag
      - Event name lists prepared after screen display.
 
-``UpdateAxisScrollbar`` suppresses temporary export updates and coalesces
-repeated screen updates. At idle, ``NotifyAxisScrollbar`` clears the pending
+:c:func:`rbcGrAxisLayoutControl.UpdateAxisScrollbar` suppresses temporary export updates and coalesces
+repeated screen updates. At idle, :c:func:`rbcGrAxisLayoutControl.NotifyAxisScrollbar` clears the pending
 flag, checks eligibility and copies all command arguments before Tcl
 execution. It preserves graph/interpreter storage and interpreter state and
 does not access the axis after evaluation. Errors are background exceptions;
 axis destruction cancels outstanding idle callbacks.
 
-``Rbc_NotifyAxisChanges`` uses a separate notification baseline because a query
+:c:func:`rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges` uses a separate notification baseline because a query
 can reset ranges before the next display. It skips deleted/unconfigured axes,
 collects names in registry order and updates baselines before submitting
 ``RbcAxisChanged`` and ``RbcAxisLimitsChanged``. Configuration changes contribute
