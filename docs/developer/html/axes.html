@@ -46,7 +46,7 @@
 <p><code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code> owns the graph’s named axis registry, option transactions,
 margin membership and axis commands. This chapter covers that control layer;
 <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> explains coordinate spaces and track viewports. The source
-contracts for this batch are in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>. The following sections cover option transactions, ranges, tick generation,
+contracts are in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>. The following sections cover option transactions, ranges, tick generation,
 label presentation, margin layout, scrolling and notifications.</p>
 <section id="names-references-and-margin-membership">
 <h2>Names, references and margin membership<a class="headerlink" href="#names-references-and-margin-membership" title="Link to this heading">¶</a></h2>
@@ -59,19 +59,19 @@ resources. Name lookup and reference acquisition are different operations:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NameToAxis</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.NameToAxis" title="rbcGrAxisRegistry.NameToAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.NameToAxis()</span></code></a></p></td>
 <td><p>Borrow a live record; reject pending deletion.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GetAxis</span></code> with no class</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.GetAxis" title="rbcGrAxisRegistry.GetAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.GetAxis()</span></code></a> with no class</p></td>
 <td><p>Borrow a live record without increasing its count.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GetAxis</span></code> with an X/Y class</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.GetAxis" title="rbcGrAxisRegistry.GetAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.GetAxis()</span></code></a> with an X/Y class</p></td>
 <td><p>Acquire a reference and enforce compatible logical axis type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FreeAxis</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.FreeAxis" title="rbcGrAxisRegistry.FreeAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.FreeAxis()</span></code></a></p></td>
 <td><p>Release one reference; destroy only if deletion is pending and count becomes zero.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DestroyAxis</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.DestroyAxis" title="rbcGrAxisRegistry.DestroyAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.DestroyAxis()</span></code></a></p></td>
 <td><p>Unconditionally release the record and resources.</p></td>
 </tr>
 </tbody>
@@ -96,8 +96,8 @@ track configuration; margin <code class="docutils literal notranslate"><span cla
 component-name normalization. Initialization failure releases partially
 installed Tk resources. Even an empty explicit option vector must pass through
 configuration so database defaults become derived axis state.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ConfigureAxisOptions</span></code> holds a Tk saved-options transaction and temporarily
-exposes the original argument vector and change mask to <code class="docutils literal notranslate"><span class="pre">ConfigureAxis</span></code>.
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisConfiguration.ConfigureAxisOptions" title="rbcGrAxisConfiguration.ConfigureAxisOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisConfiguration.ConfigureAxisOptions()</span></code></a> holds a Tk saved-options transaction and temporarily
+exposes the original argument vector and change mask to <a class="reference internal" href="axis-reference.html#c.rbcGrAxisConfiguration.ConfigureAxis" title="rbcGrAxisConfiguration.ConfigureAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisConfiguration.ConfigureAxis()</span></code></a>.
 The vector is borrowed, never retained after the call. Derived limits, ticks,
 loose ranges, pixels, shadows, binding tags and limit formats are prepared
 before committing any of them. Command-prefix validation does not execute
@@ -124,7 +124,7 @@ context before interpreting the current item as an axis.</p>
 </section>
 <section id="cleanup-and-failure-recovery">
 <h2>Cleanup and failure recovery<a class="headerlink" href="#cleanup-and-failure-recovery" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">DestroyAxis</span></code> cancels pending scrollbar notification and releases bindings,
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.DestroyAxis" title="rbcGrAxisRegistry.DestroyAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.DestroyAxis()</span></code></a> cancels pending scrollbar notification and releases bindings,
 margin links, registry membership, Tk options and derived resources. Text
 styles own their GCs, while options own configured fonts and foreground
 colours; separately allocated shadow colours require separate release.
@@ -153,31 +153,31 @@ to one configuration attempt, not persistent state on an axis.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Limits</p></td>
+<tr class="row-even"><td><p>Limits (<a class="reference internal" href="axis-reference.html#c.rbcGrAxisTransactions.PrepareAxisLimitTransaction" title="rbcGrAxisTransactions.PrepareAxisLimitTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisTransactions.PrepareAxisLimitTransaction()</span></code></a>)</p></td>
 <td><p>Four scalar values and a changed-field mask</p></td>
 <td><p>Replace only staged display/scroll limits.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Pixels</p></td>
+<tr class="row-odd"><td><p>Pixels (<a class="reference internal" href="axis-reference.html#c.rbcGrAxisTransactions.PrepareAxisPixelTransaction" title="rbcGrAxisTransactions.PrepareAxisPixelTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisTransactions.PrepareAxisPixelTransaction()</span></code></a>)</p></td>
 <td><p>Three integer values and a mask</p></td>
 <td><p>Replace widths and scroll increment.</p></td>
 </tr>
-<tr class="row-even"><td><p>Loose ranges</p></td>
+<tr class="row-even"><td><p>Loose ranges (<a class="reference internal" href="axis-reference.html#c.rbcGrAxisTransactions.PrepareAxisLooseTransaction" title="rbcGrAxisTransactions.PrepareAxisLooseTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisTransactions.PrepareAxisLooseTransaction()</span></code></a>)</p></td>
 <td><p>Two policy values and a staged flag</p></td>
 <td><p>Replace both endpoint policies together.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Ticks</p></td>
+<tr class="row-odd"><td><p>Ticks (<a class="reference internal" href="axis-reference.html#c.rbcGrAxisTransactions.PrepareAxisTickTransaction" title="rbcGrAxisTransactions.PrepareAxisTickTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisTransactions.PrepareAxisTickTransaction()</span></code></a>)</p></td>
 <td><p>Owned major/minor arrays and a mask</p></td>
 <td><p>Transfer arrays and update explicit-tick flags.</p></td>
 </tr>
-<tr class="row-even"><td><p>Shadows</p></td>
+<tr class="row-even"><td><p>Shadows (<a class="reference internal" href="axis-reference.html#c.rbcGrAxisTransactions.PrepareAxisShadowTransaction" title="rbcGrAxisTransactions.PrepareAxisShadowTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisTransactions.PrepareAxisShadowTransaction()</span></code></a>)</p></td>
 <td><p>Owned Tk colour references with offsets and a mask</p></td>
 <td><p>Transfer colours into text styles; release old references.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Binding tags</p></td>
+<tr class="row-odd"><td><p>Binding tags (<a class="reference internal" href="axis-reference.html#c.rbcGrAxisTransactions.PrepareAxisTagsTransaction" title="rbcGrAxisTransactions.PrepareAxisTagsTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisTransactions.PrepareAxisTagsTransaction()</span></code></a>)</p></td>
 <td><p>One owned string-list allocation and a staged flag</p></td>
 <td><p>Transfer the list and free the old allocation.</p></td>
 </tr>
-<tr class="row-even"><td><p>Limit formats</p></td>
+<tr class="row-even"><td><p>Limit formats (<a class="reference internal" href="axis-reference.html#c.rbcGrAxisTransactions.PrepareAxisFormatTransaction" title="rbcGrAxisTransactions.PrepareAxisFormatTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisTransactions.PrepareAxisFormatTransaction()</span></code></a>)</p></td>
 <td><p>One owned split-list allocation, count and staged flag</p></td>
 <td><p>Transfer the list/count and free the old allocation.</p></td>
 </tr>
@@ -201,6 +201,21 @@ therefore be checked separately from the pointer. Commit transfers owned
 storage, clears the transferred candidate fields and releases the old live
 resource. Cleanup then remains safe after a successful commit. Scalar-only
 transactions need no resource destructor.</p>
+<section id="transaction-argument-contracts">
+<h3>Transaction argument contracts<a class="headerlink" href="#transaction-argument-contracts" title="Link to this heading">¶</a></h3>
+<p>Preparation takes fresh caller-owned storage and initializes it; stage helpers
+instead take an initialized candidate and may replace an earlier candidate.
+Commit requires successful preparation of all affected families. It transfers
+owned resources or copies scalars, then clears staging state. These are distinct
+contracts even though each helper accepts a transaction pointer. The parameter
+sections in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a> identify the required state at each boundary.</p>
+<p>Lookup outputs also differ. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.NameToAxis" title="rbcGrAxisRegistry.NameToAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.NameToAxis()</span></code></a> clears its
+output on a failed lookup. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.GetAxis" title="rbcGrAxisRegistry.GetAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.GetAxis()</span></code></a> leaves the caller’s
+output unchanged on error. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj" title="rbcGrAxisRegistry.Rbc_GetAxisFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.Rbc_GetAxisFromObj()</span></code></a> sets it
+to NULL for an empty name, but retains the unchanged-on-error rule for nonempty
+names. Check the status before consuming an output, and release a reference
+only when a successful lookup requested a non-NULL logical class.</p>
+</section>
 <section id="parsing-policies">
 <h3>Parsing policies<a class="headerlink" href="#parsing-policies" title="Link to this heading">¶</a></h3>
 <p>Display and scroll limits accept finite Tcl expressions; empty values select
@@ -550,6 +565,7 @@ submission.</p>
 <li><a class="reference internal" href="#dispatch-and-bindings">Dispatch and bindings</a></li>
 <li><a class="reference internal" href="#cleanup-and-failure-recovery">Cleanup and failure recovery</a></li>
 <li><a class="reference internal" href="#option-transaction-internals">Option transaction internals</a><ul>
+<li><a class="reference internal" href="#transaction-argument-contracts">Transaction argument contracts</a></li>
 <li><a class="reference internal" href="#parsing-policies">Parsing policies</a></li>
 <li><a class="reference internal" href="#expression-evaluation-boundary">Expression evaluation boundary</a></li>
 </ul>

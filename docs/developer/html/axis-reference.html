@@ -58,63 +58,140 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.DestroyAxis">
 <span class="target" id="group__axis__registry_1gaf6e2ed24854bd88d0e5d3f717e4564af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.DestroyAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy an axis and all resources it owns. </p>
-<p>Cancels pending scrollbar notification, releases options and bindings, removes the margin link and registry entry when present, and frees styles, shadows, tick arrays, labels, formats, segments, tags and the record. Does not consult refCount; callers must ensure no consumers retain the record. </p>
+<p>Cancels pending scrollbar notification, releases options and bindings, removes the margin link and registry entry when present, and frees styles, shadows, tick arrays, labels, formats, segments, tags and the record. Does not consult refCount; callers must ensure no consumers retain the record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Owned axis consumed unconditionally; no consumer may retain it afterward, regardless of refCount. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.CreateAxis">
 <span class="target" id="group__axis__registry_1ga57a6b0c78cd816717827b0774ba65dad"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">margin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.CreateAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a registered axis or revive a pending deletion. </p>
-<p>Rejects names beginning with a dash and existing live names, returning NULL with an interpreter error. A new record owns a copied name and label chain but is not yet configured or linked to a margin. Revival returns the same record, clears deletePending and invalidates notified limits; it preserves references and existing resources. </p>
+<p>Rejects names beginning with a dash and existing live names, returning NULL with an interpreter error. A new record owns a copied name and label chain but is not yet configured or linked to a margin. Revival returns the same record, clears deletePending and invalidates notified limits; it preserves references and existing resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed NUL-terminated name copied for a new record; an existing pending-deletion record may be revived. </p></li>
+<li><p><strong>margin</strong> – <strong>[in]</strong> Initial margin selector used for defaults; does not insert the axis into a margin chain. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.NameToAxis">
 <span class="target" id="group__axis__registry_1ga3e6220a013b3b4f9a4f8e408dc885f35"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NameToAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.NameToAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Look up a live named axis without retaining it. </p>
-<p>Returns TCL_OK and a borrowed pointer. Missing and delete-pending axes return TCL_ERROR, set the interpreter result, and clear the output pointer. </p>
+<p>Returns TCL_OK and a borrowed pointer. Missing and delete-pending axes return TCL_ERROR, set the interpreter result, and clear the output pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed NUL-terminated axis name. </p></li>
+<li><p><strong>axisPtrPtr</strong> – <strong>[out]</strong> Required output receiving a borrowed live axis on success, or NULL on lookup failure; no reference is acquired. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.GetAxis">
 <span class="target" id="group__axis__registry_1ga5b0f31350a4f4f70e99652a2e12fcd81"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisName</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.GetAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Look up an axis and optionally acquire a typed reference. </p>
-<p>A NULL classUid performs a borrowed lookup. Otherwise establishes the logical X/Y class when unused or untyped, rejects a conflicting class, and increments refCount on success. Match each acquired reference with FreeAxis. The output pointer is assigned only on success. </p>
+<p>A NULL classUid performs a borrowed lookup. Otherwise establishes the logical X/Y class when unused or untyped, rejects a conflicting class, and increments refCount on success. Match each acquired reference with FreeAxis. The output pointer is assigned only on success.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisName</strong> – <strong>[in]</strong> Borrowed NUL-terminated name of a live axis in this graph. </p></li>
+<li><p><strong>classUid</strong> – <strong>[in]</strong> Interned logical X/Y class to acquire a reference, or NULL for a borrowed lookup. </p></li>
+<li><p><strong>axisPtrPtr</strong> – <strong>[out]</strong> Required output assigned only on success; borrowed for NULL classUid, otherwise owns one reference to release with FreeAxis. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.FreeAxis">
 <span class="target" id="group__axis__registry_1ga9261329cf78a600be1372535d1175e6a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.FreeAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release one acquired axis reference. </p>
-<p>Requires a positive reference count. Destroys the record when the count reaches zero and deletion is pending; an unreferenced live axis remains registered. </p>
+<p>Requires a positive reference count. Destroys the record when the count reaches zero and deletion is pending; an unreferenced live axis remains registered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Axis representing one acquired reference with positive refCount; may be destroyed when this reference is released. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_GetAxisFromObj">
 <span class="target" id="group__axis__registry_1ga5d7e37fed8d6621b88f9aad6ab1cf379"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetAxisFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowEmpty</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve an optional Tcl axis name with the requested reference policy. </p>
-<p>A NULL or empty object returns a NULL axis only when allowEmpty is true; otherwise it reports TCL_ERROR. Nonempty names delegate to GetAxis, including its typed-reference ownership and output- on-success rules. </p>
+<p>A NULL or empty object returns a NULL axis only when allowEmpty is true; otherwise it reports TCL_ERROR. Nonempty names delegate to GetAxis, including its typed-reference ownership and output- on-success rules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed axis-name object, or NULL/empty subject to allowEmpty. </p></li>
+<li><p><strong>classUid</strong> – <strong>[in]</strong> Interned logical X/Y class to acquire a reference, or NULL for a borrowed lookup. </p></li>
+<li><p><strong>allowEmpty</strong> – <strong>[in]</strong> Nonzero permits a NULL or empty name to resolve successfully to NULL. </p></li>
+<li><p><strong>axisPtrPtr</strong> – <strong>[out]</strong> Required output; empty names set NULL, successful typed lookup acquires one reference, and nonempty lookup errors leave it unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_FreeAxisReference">
 <span class="target" id="group__axis__registry_1ga0ddccc2cdf9e8589312fd0c980b7db7e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeAxisReference</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_FreeAxisReference" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an optional retained axis reference. </p>
-<p>Accepts NULL. A non-NULL argument must represent an acquired reference; release may destroy a delete-pending record. </p>
+<p>Accepts NULL. A non-NULL argument must represent an acquired reference; release may destroy a delete-pending record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Axis representing one acquired reference, or NULL; may become invalid during release. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_DestroyAxes">
 <span class="target" id="group__axis__registry_1ga5ae3cd102d86bc0a6b6df3f27c185448"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_DestroyAxes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Tear down the complete graph axis registry. </p>
-<p>Destroys records regardless of reference counts, then deletes registry and tag tables and axis chains. Clears each record hash pointer before destruction to keep hash iteration valid. Consumers must have been detached by graph teardown; this is not ordinary axis deletion. </p>
+<p>Destroys records regardless of reference counts, then deletes registry and tag tables and axis chains. Clears each record hash pointer before destruction to keep hash iteration valid. Consumers must have been detached by graph teardown; this is not ordinary axis deletion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Graph undergoing final teardown with initialized axis containers and all consumers detached; registry and chains are destroyed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisRegistry.Rbc_DefaultAxes">
 <span class="target" id="group__axis__registry_1ga396cb9143460c431917c14b8e9085360"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DefaultAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRegistry.Rbc_DefaultAxes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create and configure the four initial margin axes. </p>
-<p>Creates x, y, x2 and y2 with one reference each and the appropriate logical class. Polar axes start hidden before database options are applied. Success links each configured record to its chain. Failure returns TCL_ERROR with partial initialization left for graph teardown. </p>
+<p>Creates x, y, x2 and y2 with one reference each and the appropriate logical class. Polar axes start hidden before database options are applied. Success links each configured record to its chain. Failure returns TCL_ERROR with partial initialization left for graph teardown.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Graph under construction with initialized axis registry; receives four default axes and margin chains, including partial state on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -132,49 +209,109 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.InitAxisOptions">
 <span class="target" id="group__axis__configuration_1ga70280b786f2061b250783350a337e3a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitAxisOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.InitAxisOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize Tk options through the named Axis component. </p>
-<p>Returns TCL_OK if already initialized or successfully initialized. On initialization failure, frees partially installed Tk resources and the option table. The component resource name is temporary; the Axis retains the option table. </p>
+<p>Returns TCL_OK if already initialized or successfully initialized. On initialization failure, frees partially installed Tk resources and the option table. The component resource name is temporary; the Axis retains the option table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed named axis receiving its option table and defaults; already initialized axes are unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ResetAxisOptionContext">
 <span class="target" id="group__axis__configuration_1ga0f4297452cda2882721e0a869a638b41"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetAxisOptionContext</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ResetAxisOptionContext" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clear borrowed configuration arguments and the option mask. </p>
-<p>Does not free the caller-owned object vector or alter committed option values. </p>
+<p>Does not free the caller-owned object vector or alter committed option values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis whose temporary option vector/count/mask are cleared; committed options remain unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ConfigureAxisOptions">
 <span class="target" id="group__axis__configuration_1gad4b0d3a3c00cda5eee3cac0c5c847976"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureAxisOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ConfigureAxisOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply one axis option transaction and construct derived state. </p>
-<p>Requires initialized options and an even object count. Borrows objv only during ConfigureAxis, clearing that context before rollback or return. On failure restores Tk-managed options; on success releases saved options, marks configuration notification pending, and optionally returns the changed mask. Returns a Tcl status. </p>
+<p>Requires initialized options and an even object count. Borrows objv only during ConfigureAxis, clearing that context before rollback or return. On failure restores Tk-managed options; on success releases saved options, marks configuration notification pending, and optionally returns the changed mask. Returns a Tcl status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis with initialized Tk option table; candidate fields are rolled back on recoverable failure. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Even number of option/value entries, excluding widget and operation names; zero is allowed. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed option/value array of objc entries, valid through configuration and any expression evaluation. </p></li>
+<li><p><strong>maskPtr</strong> – <strong>[out]</strong> Optional changed-option mask output; assigned only on successful configuration. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ConfigureNewAxis">
 <span class="target" id="group__axis__configuration_1ga3057ed042ba205cf8a756be74ec33327"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureNewAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ConfigureNewAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize options and derive a usable axis configuration. </p>
-<p>Runs configuration even for an empty option vector so database defaults reach derived fields. Returns a Tcl status; the caller owns failure cleanup. An already initialized revived axis retains its option table. </p>
+<p>Runs configuration even for an empty option vector so database defaults reach derived fields. Returns a Tcl status; the caller owns failure cleanup. An already initialized revived axis retains its option table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> New or revived axis to initialize/configure; caller remains responsible for failure cleanup. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Even number of option/value entries, excluding widget and operation names; zero is allowed. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed option/value array of objc entries, valid through configuration and any expression evaluation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ReleaseAxisOptionResources">
 <span class="target" id="group__axis__configuration_1ga6787fd09abbfa5012ec9d24bae788958"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseAxisOptionResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ReleaseAxisOptionResources" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release Tk-owned option resources once. </p>
-<p>Clears borrowed transaction context and deletes the initialized option table. Does not release derived labels, geometry, shadow colours or text-style graphics contexts; DestroyAxis owns those resources. </p>
+<p>Clears borrowed transaction context and deletes the initialized option table. Does not release derived labels, geometry, shadow colours or text-style graphics contexts; DestroyAxis owns those resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis whose Tk option resources are released once; derived resources and record remain for separate cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ResetTextStyles">
 <span class="target" id="group__axis__configuration_1gae0cb6d5ab465c80dec3f867d761f0d72"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetTextStyles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ResetTextStyles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh text styles and replace the axis tick graphics context. </p>
-<p>Borrows configured fonts and colours. Allocates the new tick GC before releasing the old one; uses the existing native line-width conversion and projecting caps. </p>
+<p>Borrows configured fonts and colours. Allocates the new tick GC before releasing the old one; uses the existing native line-width conversion and projecting caps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed configured axis with valid fonts/colors; text styles and tick GC are refreshed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisConfiguration.ConfigureAxis">
 <span class="target" id="group__axis__configuration_1gad047ae44659e6b91a124a4c24fd346e7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisConfiguration.ConfigureAxis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate staged options before committing derived axis resources. </p>
-<p>Prepares limit, tick, loose-range, pixel, shadow, tag and format transactions as needed. Validates command prefixes without evaluating them. Recoverable errors free prepared resources before any commit. Success normalizes rotation, refreshes styles and title extents, marks axis and graph mapping dirty, and schedules redraw. The caller restores Tk-managed fields on error. </p>
+<p>Prepares limit, tick, loose-range, pixel, shadow, tag and format transactions as needed. Validates command prefixes without evaluating them. Recoverable errors free prepared resources before any commit. Success normalizes rotation, refreshes styles and title extents, marks axis and graph mapping dirty, and schedules redraw. The caller restores Tk-managed fields on error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Borrowed axis with candidate Tk fields, mask and original option vector installed by the saved-options wrapper. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -308,294 +445,640 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.IsAxisOption">
 <span class="target" id="group__axis__transactions_1ga7c6e7bb181cbc5e64aaae1deb2e716d2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsAxisOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.IsAxisOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare a validated option with its canonical name. </p>
-<p>Uses the axis option table to resolve abbreviations and synonyms. Returns false when resolution fails. This helper does not replace Tk option validation or report an interpreter error. </p>
+<p>Uses the axis option table to resolve abbreviations and synonyms. Returns false when resolution fails. This helper does not replace Tk option validation or report an interpreter error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+<li><p><strong>optionName</strong> – <strong>[in]</strong> Borrowed NUL-terminated canonical option name, including its leading dash. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.IsAxisBindTagsOption">
 <span class="target" id="group__axis__transactions_1gafc2cb9fc85d9dc790b6838091e010df5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsAxisBindTagsOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.IsAxisBindTagsOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Recognize the -bindtags option. </p>
-<p>Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous options. </p>
+<p>Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisTags">
 <span class="target" id="group__axis__transactions_1ga6cdf9fd382c61c83460a8571133a7dc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisTags</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTagsTransaction" title="AxisTagsTransaction"><span class="n"><span class="pre">AxisTagsTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisTags" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage a replacement binding-tag list. </p>
-<p>Parses into a new string-list allocation before releasing the previous candidate. Success owns the new allocation and sets staged; failure preserves the prior candidate. Does not alter live tags. </p>
+<p>Parses into a new string-list allocation before releasing the previous candidate. Success owns the new allocation and sets staged; failure preserves the prior candidate. Does not alter live tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl list of binding tags; its strings are copied into candidate storage. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed caller-owned candidate transaction; staged fields are updated only after successful parsing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.FreeAxisTagsTransaction">
 <span class="target" id="group__axis__transactions_1gaf33b31790c985dc338495be921980536"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxisTagsTransaction</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTagsTransaction" title="AxisTagsTransaction"><span class="n"><span class="pre">AxisTagsTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.FreeAxisTagsTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Discard an axis tags transaction. </p>
-<p>Releases owned tag-list allocation and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields. </p>
+<p>Releases owned tag-list allocation and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed transaction whose candidate resources are released and complete contents reset; record is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.PrepareAxisTagsTransaction">
 <span class="target" id="group__axis__transactions_1ga3df5ae0655f6a60239cf32a7943af286"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareAxisTagsTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTagsTransaction" title="AxisTagsTransaction"><span class="n"><span class="pre">AxisTagsTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.PrepareAxisTagsTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the axis tags option family. </p>
-<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction. </p>
+<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with candidate Tk fields and the original even-length option vector installed; derived fields are not committed here. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh caller-owned transaction storage, initialized here; must not already own resources. Success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.CommitAxisTagsTransaction">
 <span class="target" id="group__axis__transactions_1gaeb6a71d275c0acc08c5b1090461131b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitAxisTagsTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTagsTransaction" title="AxisTagsTransaction"><span class="n"><span class="pre">AxisTagsTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.CommitAxisTagsTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit prepared axis tags candidates. </p>
-<p>Transfers the staged list, clears its pointer and flag, then frees the old live list. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first. </p>
+<p>Transfers the staged list, clears its pointer and flag, then frees the old live list. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis receiving only staged derived fields; all option families must be validated before any commit. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared candidate transaction; transferred pointers and staging flags are cleared without freeing the record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.FreeAxisFormats">
 <span class="target" id="group__axis__transactions_1gac1db3e84c261b6491b42a5b5c710de99"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxisFormats</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">formats</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.FreeAxisFormats" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a split limit-format allocation. </p>
-<p>Accepts NULL. Frees the single allocation, not each string separately; cannot clear the caller pointer. </p>
+<p>Accepts NULL. Frees the single allocation, not each string separately; cannot clear the caller pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>formats</strong> – <strong>[in]</strong> Owned split-list allocation to release, or NULL; individual strings must not be freed separately. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.IsAxisLimitsFormatOption">
 <span class="target" id="group__axis__transactions_1gac42c5facc5238d8800951646bfb8843b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsAxisLimitsFormatOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.IsAxisLimitsFormatOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Recognize the -limitsformat option. </p>
-<p>Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous options. </p>
+<p>Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.ValidateAxisLimitFormat">
 <span class="target" id="group__axis__transactions_1ga39ef7127decc20f48b136930b251fa25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ValidateAxisLimitFormat</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.ValidateAxisLimitFormat" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a format string used with one double argument. </p>
-<p>Allows literal text, escaped percent signs and at most one a/A/e/E/f/F/g/G conversion, optionally with lowercase l. Rejects dynamic width/precision, other conversion types and excessive format length, width or precision above TICK_LABEL_SIZE. Zero conversions are allowed. Returns a Tcl status; it validates argument compatibility rather than guaranteeing the rendered output fits a label buffer. </p>
+<p>Allows literal text, escaped percent signs and at most one a/A/e/E/f/F/g/G conversion, optionally with lowercase l. Rejects dynamic width/precision, other conversion types and excessive format length, width or precision above TICK_LABEL_SIZE. Zero conversions are allowed. Returns a Tcl status; it validates argument compatibility rather than guaranteeing the rendered output fits a label buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>format</strong> – <strong>[in]</strong> Borrowed NUL-terminated printf-style format to validate for a single double argument. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisLimitsFormatsFromObj">
 <span class="target" id="group__axis__transactions_1gada97ef1d9d69b331d7d8dbb062842ff5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLimitsFormatsFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">formatsPtrPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nFormatsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisLimitsFormatsFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate zero, one or two validated limit formats. </p>
-<p>Initializes outputs to NULL and zero. NULL or an empty string succeeds without allocation. Splits the Tcl list, rejects more than two entries and validates each format. Failure frees the split allocation. Success transfers one allocation containing the pointer list and strings to the caller; free it with FreeAxisFormats. </p>
+<p>Initializes outputs to NULL and zero. NULL or an empty string succeeds without allocation. Splits the Tcl list, rejects more than two entries and validates each format. Failure frees the split allocation. Success transfers one allocation containing the pointer list and strings to the caller; free it with FreeAxisFormats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed list of zero to two format strings; NULL or empty selects no formats. </p></li>
+<li><p><strong>formatsPtrPtr</strong> – <strong>[out]</strong> Required output initialized to NULL; successful nonempty output transfers one allocation released by FreeAxisFormats. </p></li>
+<li><p><strong>nFormatsPtr</strong> – <strong>[out]</strong> Required output initialized to zero; receives the validated format count on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisLimitsFormats">
 <span class="target" id="group__axis__transactions_1ga815fe5c811a9e32faaca88a43705c3fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisLimitsFormats</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisFormatTransaction" title="AxisFormatTransaction"><span class="n"><span class="pre">AxisFormatTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisLimitsFormats" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage replacement axis-limit formats. </p>
-<p>Parses and validates the replacement before freeing previous staged formats. Success records the new allocation, count and staged flag; failure preserves the previous candidate. </p>
+<p>Parses and validates the replacement before freeing previous staged formats. Success records the new allocation, count and staged flag; failure preserves the previous candidate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed list of zero to two format strings; NULL or empty stages removal. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed caller-owned candidate transaction; staged fields are updated only after successful parsing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.FreeAxisFormatTransaction">
 <span class="target" id="group__axis__transactions_1gac55e8a465bd0485aab7c938589b33a1c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxisFormatTransaction</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrAxisTransactions.AxisFormatTransaction" title="AxisFormatTransaction"><span class="n"><span class="pre">AxisFormatTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.FreeAxisFormatTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Discard an axis format transaction. </p>
-<p>Releases owned format-list allocation and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields. </p>
+<p>Releases owned format-list allocation and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed transaction whose candidate resources are released and complete contents reset; record is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.PrepareAxisFormatTransaction">
 <span class="target" id="group__axis__transactions_1ga20bcf45ac76af707f2391897f294bab8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareAxisFormatTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisFormatTransaction" title="AxisFormatTransaction"><span class="n"><span class="pre">AxisFormatTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.PrepareAxisFormatTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the axis format option family. </p>
-<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction. </p>
+<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with candidate Tk fields and the original even-length option vector installed; derived fields are not committed here. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh caller-owned transaction storage, initialized here; must not already own resources. Success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.CommitAxisFormatTransaction">
 <span class="target" id="group__axis__transactions_1ga06586caca40fefee23e371bcc0e2c164"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitAxisFormatTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisFormatTransaction" title="AxisFormatTransaction"><span class="n"><span class="pre">AxisFormatTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.CommitAxisFormatTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit prepared axis format candidates. </p>
-<p>Transfers the staged format list and count, clears the candidate pointer/count/flag, then frees the old live allocation. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first. </p>
+<p>Transfers the staged format list and count, clears the candidate pointer/count/flag, then frees the old live allocation. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis receiving only staged derived fields; all option families must be validated before any commit. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared candidate transaction; transferred pointers and staging flags are cleared without freeing the record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisLimitOption">
 <span class="target" id="group__axis__transactions_1ga0f0895cbe7af5dd33bd033da9e23e02f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisLimitOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLimitOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisLimitOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify an axis limit option. </p>
-<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for display and scroll minima/maxima. Returns the NONE enum for unrelated or unresolved names; performs no allocation. </p>
+<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for display and scroll minima/maxima. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisLimitFromObj">
 <span class="target" id="group__axis__transactions_1ga7eb316b142cb5de2e50d95494efb8550"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLimitFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisLimitFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate an optional finite axis-limit expression. </p>
-<p>NULL or an empty object selects VALUE_UNDEFINED. Otherwise calls Tcl_ExprDoubleObj and rejects nonfinite results. Returns a Tcl status. Expression evaluation may execute Tcl substitutions; it is not a literal-only conversion and does not itself preserve graph or axis lifetime. The output is usable only on success. </p>
+<p>NULL or an empty object selects VALUE_UNDEFINED. Otherwise calls Tcl_ExprDoubleObj and rejects nonfinite results. Returns a Tcl status. Expression evaluation may execute Tcl substitutions; it is not a literal-only conversion and does not itself preserve graph or axis lifetime. The output is usable only on success.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed finite Tcl expression, or NULL/empty for VALUE_UNDEFINED; evaluation may execute Tcl. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required output receiving a finite limit or VALUE_UNDEFINED on success; unusable on error. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisPixelOption">
 <span class="target" id="group__axis__transactions_1ga42a30a5431075998f33cc0cfb6e40413"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisPixelOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisPixelOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify an axis pixel option. </p>
-<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for border width, line width and scroll increment. Returns the NONE enum for unrelated or unresolved names; performs no allocation. </p>
+<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for border width, line width and scroll increment. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisPixelOption">
 <span class="target" id="group__axis__transactions_1ga0aa97efd4296f777665d7f3b88efbbfd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisPixelTransaction" title="AxisPixelTransaction"><span class="n"><span class="pre">AxisPixelTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisPixelOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage one validated pixel-distance value. </p>
-<p>Border and line widths must be nonnegative; scroll increment must be positive. Uses Tk-window scaling through Rbc_GetPixelsFromObj. Success updates the selected scalar and mask only; an invalid internal enum panics. </p>
+<p>Border and line widths must be nonnegative; scroll increment must be positive. Uses Tk-window scaling through Rbc_GetPixelsFromObj. Success updates the selected scalar and mask only; an invalid internal enum panics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed screen-distance value interpreted using the graph window scaling. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid non-NONE selector for this option family; invalid internal selectors panic. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed caller-owned candidate transaction; staged fields are updated only after successful parsing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.PrepareAxisPixelTransaction">
 <span class="target" id="group__axis__transactions_1gace202283f02f8af736a0032b40cd4b69"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareAxisPixelTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisPixelTransaction" title="AxisPixelTransaction"><span class="n"><span class="pre">AxisPixelTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.PrepareAxisPixelTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the axis pixel option family. </p>
-<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. Contains only scalar candidates; no allocation cleanup is required on error. </p>
+<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. Contains only scalar candidates; no allocation cleanup is required on error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with candidate Tk fields and the original even-length option vector installed; derived fields are not committed here. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh caller-owned transaction storage, initialized here; must not already own resources. Success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.CommitAxisPixelTransaction">
 <span class="target" id="group__axis__transactions_1ga846ff0b57c6fe1eec16b1c027232fc04"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitAxisPixelTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisPixelTransaction" title="AxisPixelTransaction"><span class="n"><span class="pre">AxisPixelTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.CommitAxisPixelTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit prepared axis pixel candidates. </p>
-<p>Copies only masked values into borderWidth, lineWidth and scrollUnits, then clears the mask. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first. </p>
+<p>Copies only masked values into borderWidth, lineWidth and scrollUnits, then clears the mask. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis receiving only staged derived fields; all option families must be validated before any commit. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared candidate transaction; transferred pointers and staging flags are cleared without freeing the record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisLimit">
 <span class="target" id="group__axis__transactions_1ga77c89df3e9ebb83c2861372b3851e0ec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisLimit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisLimitOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLimitTransaction" title="AxisLimitTransaction"><span class="n"><span class="pre">AxisLimitTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisLimit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage one display or scroll limit. </p>
-<p>Evaluates the candidate before writing the selected scalar and setting its mask bit. Failure leaves the candidate unchanged. An invalid internal enum panics. Cross-field and logarithmic range validation belong to preparation. </p>
+<p>Evaluates the candidate before writing the selected scalar and setting its mask bit. Failure leaves the candidate unchanged. An invalid internal enum panics. Cross-field and logarithmic range validation belong to preparation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed finite Tcl expression, or NULL/empty for an automatic limit; evaluation may execute Tcl. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid non-NONE selector for this option family; invalid internal selectors panic. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed caller-owned candidate transaction; staged fields are updated only after successful parsing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.PrepareAxisLimitTransaction">
 <span class="target" id="group__axis__transactions_1gad52bd42eaa7fd71bca7eb3b47e9e2a3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareAxisLimitTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLimitTransaction" title="AxisLimitTransaction"><span class="n"><span class="pre">AxisLimitTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.PrepareAxisLimitTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the axis limit option family. </p>
-<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. Contains only scalar candidates; no allocation cleanup is required on error. Starts with current live limits, checks final display and scroll ordering, and requires defined limits to be positive for log scaling even when only logScale changed. </p>
+<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. Contains only scalar candidates; no allocation cleanup is required on error. Starts with current live limits, checks final display and scroll ordering, and requires defined limits to be positive for log scaling even when only logScale changed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with candidate Tk fields and the original even-length option vector installed; derived fields are not committed here. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh caller-owned transaction storage, initialized here; must not already own resources. Success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.CommitAxisLimitTransaction">
 <span class="target" id="group__axis__transactions_1ga41e8dc98dd13ebc89be68031be667caa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitAxisLimitTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLimitTransaction" title="AxisLimitTransaction"><span class="n"><span class="pre">AxisLimitTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.CommitAxisLimitTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit prepared axis limit candidates. </p>
-<p>Copies only masked requested/scroll limits into the live axis, then clears the mask. Validated but unstaged values remain untouched. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first. </p>
+<p>Copies only masked requested/scroll limits into the live axis, then clears the mask. Validated but unstaged values remain untouched. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis receiving only staged derived fields; all option families must be validated before any commit. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared candidate transaction; transferred pointers and staging flags are cleared without freeing the record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.FreeAxisTicks">
 <span class="target" id="group__axis__transactions_1ga70685ff507eca3467d6495c22abba920"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxisTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ticksPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.FreeAxisTicks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release one explicit tick allocation. </p>
-<p>Accepts NULL. Frees the allocation without modifying the caller pointer. </p>
+<p>Accepts NULL. Frees the allocation without modifying the caller pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ticksPtr</strong> – <strong>[in]</strong> Owned tick allocation to release, or NULL; the caller pointer is not cleared. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisTickOption">
 <span class="target" id="group__axis__transactions_1ga2a32791fc64330f2a8e70b64fe016258"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisTickOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisTickOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisTickOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify an axis tick option. </p>
-<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for major and minor tick lists. Returns the NONE enum for unrelated or unresolved names; performs no allocation. </p>
+<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for major and minor tick lists. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.IsAxisLooseOption">
 <span class="target" id="group__axis__transactions_1ga0dc1234f7b4c7f0ee4efb453092bf847"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsAxisLooseOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.IsAxisLooseOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Recognize the -loose option. </p>
-<p>Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous options. </p>
+<p>Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisLooseFromObj">
 <span class="target" id="group__axis__transactions_1gadea6992c0bf363a88667f75b07ccb1ca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLooseFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">looseMinPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">looseMaxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisLooseFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse one or two tick-range policies. </p>
-<p>Accepts Tcl booleans or the exact string always. One entry applies to both ends; two entries specify minimum then maximum. Returns TCL_ERROR for invalid list length or entries without assigning the output pair. Allocates no retained storage. </p>
+<p>Accepts Tcl booleans or the exact string always. One entry applies to both ends; two entries specify minimum then maximum. Returns TCL_ERROR for invalid list length or entries without assigning the output pair. Allocates no retained storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed list of one or two booleans or exact always keywords; NULL is not accepted. </p></li>
+<li><p><strong>looseMinPtr</strong> – <strong>[out]</strong> Required minimum-end policy output, assigned only after the complete input validates. </p></li>
+<li><p><strong>looseMaxPtr</strong> – <strong>[out]</strong> Required separate maximum-end policy output, assigned only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisLoose">
 <span class="target" id="group__axis__transactions_1ga8c8a3b2f8cc3fb5ca33c6caf99d06b25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisLoose</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLooseTransaction" title="AxisLooseTransaction"><span class="n"><span class="pre">AxisLooseTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisLoose" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage minimum and maximum tick-range policies. </p>
-<p>Parses the complete one/two-entry value before updating the scalar pair and setting staged. Failure preserves earlier candidates; no owned allocation is created. </p>
+<p>Parses the complete one/two-entry value before updating the scalar pair and setting staged. Failure preserves earlier candidates; no owned allocation is created.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed one- or two-entry loose-range policy list; NULL is not accepted. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed caller-owned candidate transaction; staged fields are updated only after successful parsing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.PrepareAxisLooseTransaction">
 <span class="target" id="group__axis__transactions_1ga668ac269efceab8e027d981b1c6fde6d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareAxisLooseTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLooseTransaction" title="AxisLooseTransaction"><span class="n"><span class="pre">AxisLooseTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.PrepareAxisLooseTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the axis loose option family. </p>
-<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. Contains only scalar candidates; no allocation cleanup is required on error. </p>
+<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. Contains only scalar candidates; no allocation cleanup is required on error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with candidate Tk fields and the original even-length option vector installed; derived fields are not committed here. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh caller-owned transaction storage, initialized here; must not already own resources. Success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.CommitAxisLooseTransaction">
 <span class="target" id="group__axis__transactions_1ga5f383a3bd4a279c8fc9644012ff270fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitAxisLooseTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLooseTransaction" title="AxisLooseTransaction"><span class="n"><span class="pre">AxisLooseTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.CommitAxisLooseTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit prepared axis loose candidates. </p>
-<p>Copies the staged minimum/maximum policies and clears staged. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first. </p>
+<p>Copies the staged minimum/maximum policies and clears staged. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis receiving only staged derived fields; all option families must be validated before any commit. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared candidate transaction; transferred pointers and staging flags are cleared without freeing the record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetTicksByteCount">
 <span class="target" id="group__axis__transactions_1ga9f721210e6d93046840d6a7df7654553"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTicksByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nTicks</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetTicksByteCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the allocation size for a variable-length tick array. </p>
-<p>Rejects negative counts and size_t overflow using offsetof(Ticks, values). Writes the byte count only on TCL_OK. Does not impose MAXTICKS or report an interpreter error; the caller applies those policies. </p>
+<p>Rejects negative counts and size_t overflow using offsetof(Ticks, values). Writes the byte count only on TCL_OK. Does not impose MAXTICKS or report an interpreter error; the caller applies those policies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nTicks</strong> – <strong>[in]</strong> Requested number of double entries; negative or unrepresentable counts fail. </p></li>
+<li><p><strong>sizePtr</strong> – <strong>[out]</strong> Required byte-size output, including the Ticks header; assigned only on TCL_OK. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisTicksFromObj">
 <span class="target" id="group__axis__transactions_1ga08bf3a6e72c2bef6c580cba77d9e5f8b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisTicksFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ticksPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisTicksFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate explicit ticks from a list of finite expressions. </p>
-<p>NULL or an empty list returns TCL_OK with a NULL output. Rejects more than MAXTICKS entries, overflow, allocation failure and invalid/nonfinite expressions. Evaluates entries in input order with Tcl_ExprDoubleObj; no sorting or deduplication is performed. Frees partial storage on failure and leaves the output NULL. Successful nonempty storage belongs to the caller. Expression evaluation can execute Tcl substitutions; this helper supplies no graph lifetime guard. </p>
+<p>NULL or an empty list returns TCL_OK with a NULL output. Rejects more than MAXTICKS entries, overflow, allocation failure and invalid/nonfinite expressions. Evaluates entries in input order with Tcl_ExprDoubleObj; no sorting or deduplication is performed. Frees partial storage on failure and leaves the output NULL. Successful nonempty storage belongs to the caller. Expression evaluation can execute Tcl substitutions; this helper supplies no graph lifetime guard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed list of finite Tcl expressions; NULL or empty selects automatic ticks. Evaluation may execute Tcl. </p></li>
+<li><p><strong>ticksPtrPtr</strong> – <strong>[out]</strong> Required output initialized to NULL; success transfers any nonempty allocation, released by FreeAxisTicks. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisTicks">
 <span class="target" id="group__axis__transactions_1gac681897cde0434f0f7678cbb63c6b5e3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisTickOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTickTransaction" title="AxisTickTransaction"><span class="n"><span class="pre">AxisTickTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisTicks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage a major or minor explicit tick allocation. </p>
-<p>Parses and allocates the replacement before releasing an earlier candidate for that option. NULL is a valid staged candidate selecting automatic ticks. Success sets the mask; failure retains previous candidates. Invalid internal enums free the new allocation and panic. </p>
+<p>Parses and allocates the replacement before releasing an earlier candidate for that option. NULL is a valid staged candidate selecting automatic ticks. Success sets the mask; failure retains previous candidates. Invalid internal enums free the new allocation and panic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving conversion diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed list of finite Tcl expressions; NULL or empty stages automatic ticks. Evaluation may execute Tcl. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid non-NONE selector for this option family; invalid internal selectors panic. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed caller-owned candidate transaction; staged fields are updated only after successful parsing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.FreeAxisTickTransaction">
 <span class="target" id="group__axis__transactions_1gadf6bc6263399de9d2868c991f006a275"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxisTickTransaction</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTickTransaction" title="AxisTickTransaction"><span class="n"><span class="pre">AxisTickTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.FreeAxisTickTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Discard an axis tick transaction. </p>
-<p>Releases owned major and minor tick allocations and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields. </p>
+<p>Releases owned major and minor tick allocations and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed transaction whose candidate resources are released and complete contents reset; record is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.PrepareAxisTickTransaction">
 <span class="target" id="group__axis__transactions_1gac30e05a81c0d8f27cb2da27ebab33073"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareAxisTickTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTickTransaction" title="AxisTickTransaction"><span class="n"><span class="pre">AxisTickTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.PrepareAxisTickTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the axis tick option family. </p>
-<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction. </p>
+<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with candidate Tk fields and the original even-length option vector installed; derived fields are not committed here. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh caller-owned transaction storage, initialized here; must not already own resources. Success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.CommitAxisTickTransaction">
 <span class="target" id="group__axis__transactions_1gaf3c78c22865f593f1d314dc7fd31e814"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitAxisTickTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTickTransaction" title="AxisTickTransaction"><span class="n"><span class="pre">AxisTickTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.CommitAxisTickTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit prepared axis tick candidates. </p>
-<p>Transfers masked candidates into t1Ptr/t2Ptr, updates AXIS_CONFIG_MAJOR/MINOR according to non-NULL candidates, releases old arrays and clears transferred pointers and mask. A staged NULL restores automatic tick generation. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first. </p>
+<p>Transfers masked candidates into t1Ptr/t2Ptr, updates AXIS_CONFIG_MAJOR/MINOR according to non-NULL candidates, releases old arrays and clears transferred pointers and mask. A staged NULL restores automatic tick generation. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis receiving only staged derived fields; all option families must be validated before any commit. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared candidate transaction; transferred pointers and staging flags are cleared without freeing the record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.FreeAxisShadow">
 <span class="target" id="group__axis__transactions_1ga698fcbff1ea2db91c5b0fb0adcebc4ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxisShadow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Shadow</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.FreeAxisShadow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an owned shadow colour and reset its fields. </p>
-<p>The Shadow record must be valid, with an owned Tk colour or NULL. Releases the colour reference, then clears colour and offset. Does not free the Shadow record itself. </p>
+<p>The Shadow record must be valid, with an owned Tk colour or NULL. Releases the colour reference, then clears colour and offset. Does not free the Shadow record itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shadowPtr</strong> – <strong>[inout]</strong> Caller-owned Shadow record containing an owned Tk color or NULL; color and offset are cleared. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisShadowOption">
 <span class="target" id="group__axis__transactions_1ga5a411431e50f29bcaec2315e4ffc826e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisShadowOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisShadowOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisShadowOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify an axis shadow option. </p>
-<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for limits, tick and title shadows. Returns the NONE enum for unrelated or unresolved names; performs no allocation. </p>
+<p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for limits, tick and title shadows. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object resolved through the axis option table, including abbreviations and synonyms. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisShadow">
 <span class="target" id="group__axis__transactions_1ga0f425a1696b74b777a5f92afaed56f8e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisShadow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisShadowOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisShadowTransaction" title="AxisShadowTransaction"><span class="n"><span class="pre">AxisShadowTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisShadow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage one owned shadow colour and offset. </p>
-<p>Acquires and validates a new shadow before releasing an earlier candidate for the same option. Success transfers the new colour reference into the transaction and sets its mask. Invalid internal enums release the new colour and panic. </p>
+<p>Acquires and validates a new shadow before releasing an earlier candidate for the same option. Success transfers the new colour reference into the transaction and sets its mask. Invalid internal enums release the new colour and panic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed shadow color/offset option value; successful parsing acquires a separate color reference. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid non-NONE selector for this option family; invalid internal selectors panic. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed caller-owned candidate transaction; staged fields are updated only after successful parsing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.FreeAxisShadowTransaction">
 <span class="target" id="group__axis__transactions_1gaab4f38f974eadca84ad8f611828a0bab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeAxisShadowTransaction</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrAxisTransactions.AxisShadowTransaction" title="AxisShadowTransaction"><span class="n"><span class="pre">AxisShadowTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.FreeAxisShadowTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Discard an axis shadow transaction. </p>
-<p>Releases owned three shadow colour references and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields. </p>
+<p>Releases owned three shadow colour references and zeroes the complete transaction. Requires initialized or zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter live axis fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized or zeroed transaction whose candidate resources are released and complete contents reset; record is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.PrepareAxisShadowTransaction">
 <span class="target" id="group__axis__transactions_1gad181062804615cb3ef3a33d23c8fd974"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareAxisShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisShadowTransaction" title="AxisShadowTransaction"><span class="n"><span class="pre">AxisShadowTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.PrepareAxisShadowTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the axis shadow option family. </p>
-<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction. </p>
+<p>Initializes fresh transaction storage; do not pass an existing owning transaction. Examines the borrowed even-length option vector, identifies explicit options, and on first configuration parses effective defaults only for options not explicitly overridden. Processes every explicit occurrence in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status without committing live derived fields. On error releases all candidates owned by this transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph supplying the registry, interpreter and Tk resource context. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with candidate Tk fields and the original even-length option vector installed; derived fields are not committed here. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh caller-owned transaction storage, initialized here; must not already own resources. Success requires commit or cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.CommitAxisShadowTransaction">
 <span class="target" id="group__axis__transactions_1gaa76ec1867c33167b8693aada66051d7e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitAxisShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisShadowTransaction" title="AxisShadowTransaction"><span class="n"><span class="pre">AxisShadowTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.CommitAxisShadowTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit prepared axis shadow candidates. </p>
-<p>Transfers masked colours and offsets into the three text styles, clears transferred candidate fields, releases old colours and clears the mask. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first. </p>
+<p>Transfers masked colours and offsets into the three text styles, clears transferred candidate fields, releases old colours and clears the mask. Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared all option families first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis receiving only staged derived fields; all option families must be validated before any commit. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared candidate transaction; transferred pointers and staging flags are cleared without freeing the record. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

@@ -527,6 +527,10 @@ static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFrac
  *
  * Uses the axis option table to resolve abbreviations and synonyms. Returns false when resolution
  * fails. This helper does not replace Tk option validation or report an interpreter error.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
+ * @param[in] optionName Borrowed NUL-terminated canonical option name, including its leading dash.
  */
 static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
     const char *name;
@@ -935,6 +939,9 @@ static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr) {
  *
  * Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous
  * options.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
  */
 static int IsAxisBindTagsOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-bindtags"); }
 
@@ -944,6 +951,11 @@ static int IsAxisBindTagsOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "
  *
  * Parses into a new string-list allocation before releasing the previous candidate. Success owns the
  * new allocation and sets staged; failure preserves the prior candidate. Does not alter live tags.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed Tcl list of binding tags; its strings are copied into candidate storage.
+ * @param[in,out] transactionPtr Initialized or zeroed caller-owned candidate transaction; staged fields are
+ *   updated only after successful parsing.
  */
 static int StageAxisTags(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTagsTransaction *transactionPtr) {
     char **newTags;
@@ -967,6 +979,9 @@ static int StageAxisTags(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTagsTransactio
  * Releases owned tag-list allocation and zeroes the complete transaction. Requires initialized or
  * zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter
  * live axis fields.
+ *
+ * @param[in,out] transactionPtr Initialized or zeroed transaction whose candidate resources are released and
+ *   complete contents reset; record is retained.
  */
 static void FreeAxisTagsTransaction(AxisTagsTransaction *transactionPtr) {
     if (transactionPtr->tags != NULL) {
@@ -984,6 +999,12 @@ static void FreeAxisTagsTransaction(AxisTagsTransaction *transactionPtr) {
  * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
  * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
  * without committing live derived fields. On error releases all candidates owned by this transaction.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisPtr Borrowed axis with candidate Tk fields and the original even-length option vector
+ *   installed; derived fields are not committed here.
+ * @param[out] transactionPtr Fresh caller-owned transaction storage, initialized here; must not already own
+ *   resources. Success requires commit or cleanup.
  */
 static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -1033,6 +1054,11 @@ error:
  * Transfers the staged list, clears its pointer and flag, then frees the old live list. Unstaged
  * options are unchanged. Performs no parsing, callback evaluation or recoverable validation; the
  * caller must have prepared all option families first.
+ *
+ * @param[in,out] axisPtr Live axis receiving only staged derived fields; all option families must be validated
+ *   before any commit.
+ * @param[in,out] transactionPtr Successfully prepared candidate transaction; transferred pointers and staging
+ *   flags are cleared without freeing the record.
  */
 static void CommitAxisTagsTransaction(Axis *axisPtr, AxisTagsTransaction *transactionPtr) {
     char **oldTags;
@@ -1055,6 +1081,9 @@ static void CommitAxisTagsTransaction(Axis *axisPtr, AxisTagsTransaction *transa
  *
  * Accepts NULL. Frees the single allocation, not each string separately; cannot clear the caller
  * pointer.
+ *
+ * @param[in] formats Owned split-list allocation to release, or NULL; individual strings must not be freed
+ *   separately.
  */
 static void FreeAxisFormats(char **formats) {
     if (formats != NULL) {
@@ -1068,6 +1097,9 @@ static void FreeAxisFormats(char **formats) {
  *
  * Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous
  * options.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
  */
 static int IsAxisLimitsFormatOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-limitsformat"); }
 
@@ -1080,6 +1112,9 @@ static int IsAxisLimitsFormatOption(Tcl_Obj *objPtr) { return IsAxisOption(objPt
  * length, width or precision above TICK_LABEL_SIZE. Zero conversions are allowed. Returns a Tcl
  * status; it validates argument compatibility rather than guaranteeing the rendered output fits a
  * label buffer.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] format Borrowed NUL-terminated printf-style format to validate for a single double argument.
  */
 static int ValidateAxisLimitFormat(Tcl_Interp *interp, const char *format) {
     const char *p;
@@ -1194,6 +1229,12 @@ static int ValidateAxisLimitFormat(Tcl_Interp *interp, const char *format) {
  * the Tcl list, rejects more than two entries and validates each format. Failure frees the split
  * allocation. Success transfers one allocation containing the pointer list and strings to the caller;
  * free it with FreeAxisFormats.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed list of zero to two format strings; NULL or empty selects no formats.
+ * @param[out] formatsPtrPtr Required output initialized to NULL; successful nonempty output transfers one
+ *   allocation released by FreeAxisFormats.
+ * @param[out] nFormatsPtr Required output initialized to zero; receives the validated format count on success.
  */
 static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***formatsPtrPtr, int *nFormatsPtr) {
     const char *string;
@@ -1240,6 +1281,11 @@ static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char
  *
  * Parses and validates the replacement before freeing previous staged formats. Success records the new
  * allocation, count and staged flag; failure preserves the previous candidate.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed list of zero to two format strings; NULL or empty stages removal.
+ * @param[in,out] transactionPtr Initialized or zeroed caller-owned candidate transaction; staged fields are
+ *   updated only after successful parsing.
  */
 static int StageAxisLimitsFormats(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisFormatTransaction *transactionPtr) {
     char **newFormats;
@@ -1264,6 +1310,9 @@ static int StageAxisLimitsFormats(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisForma
  * Releases owned format-list allocation and zeroes the complete transaction. Requires initialized or
  * zeroed storage. Safe after commit because transferred ownership has been cleared; does not alter
  * live axis fields.
+ *
+ * @param[in,out] transactionPtr Initialized or zeroed transaction whose candidate resources are released and
+ *   complete contents reset; record is retained.
  */
 static void FreeAxisFormatTransaction(AxisFormatTransaction *transactionPtr) {
     FreeAxisFormats(transactionPtr->formats);
@@ -1279,6 +1328,12 @@ static void FreeAxisFormatTransaction(AxisFormatTransaction *transactionPtr) {
  * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
  * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
  * without committing live derived fields. On error releases all candidates owned by this transaction.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisPtr Borrowed axis with candidate Tk fields and the original even-length option vector
+ *   installed; derived fields are not committed here.
+ * @param[out] transactionPtr Fresh caller-owned transaction storage, initialized here; must not already own
+ *   resources. Success requires commit or cleanup.
  */
 static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisFormatTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -1328,6 +1383,11 @@ error:
  * Transfers the staged format list and count, clears the candidate pointer/count/flag, then frees the
  * old live allocation. Unstaged options are unchanged. Performs no parsing, callback evaluation or
  * recoverable validation; the caller must have prepared all option families first.
+ *
+ * @param[in,out] axisPtr Live axis receiving only staged derived fields; all option families must be validated
+ *   before any commit.
+ * @param[in,out] transactionPtr Successfully prepared candidate transaction; transferred pointers and staging
+ *   flags are cleared without freeing the record.
  */
 static void CommitAxisFormatTransaction(Axis *axisPtr, AxisFormatTransaction *transactionPtr) {
     char **oldFormats;
@@ -1351,6 +1411,10 @@ static void CommitAxisFormatTransaction(Axis *axisPtr, AxisFormatTransaction *tr
  * Returns TCL_OK if already initialized or successfully initialized. On initialization failure, frees
  * partially installed Tk resources and the option table. The component resource name is temporary; the
  * Axis retains the option table.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Borrowed named axis receiving its option table and defaults; already initialized axes
+ *   are unchanged.
  */
 static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
     char *componentName;
@@ -1394,6 +1458,9 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
  * @brief Clear borrowed configuration arguments and the option mask.
  *
  * Does not free the caller-owned object vector or alter committed option values.
+ *
+ * @param[in,out] axisPtr Borrowed axis whose temporary option vector/count/mask are cleared; committed options
+ *   remain unchanged.
  */
 static void ResetAxisOptionContext(Axis *axisPtr) {
     axisPtr->optionMask = 0;
@@ -1409,6 +1476,14 @@ static void ResetAxisOptionContext(Axis *axisPtr) {
  * clearing that context before rollback or return. On failure restores Tk-managed options; on success
  * releases saved options, marks configuration notification pending, and optionally returns the changed
  * mask. Returns a Tcl status.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Borrowed axis with initialized Tk option table; candidate fields are rolled back on
+ *   recoverable failure.
+ * @param[in] objc Even number of option/value entries, excluding widget and operation names; zero is allowed.
+ * @param[in] objv Borrowed option/value array of objc entries, valid through configuration and any expression
+ *   evaluation.
+ * @param[out] maskPtr Optional changed-option mask output; assigned only on successful configuration.
  */
 static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
@@ -1457,6 +1532,13 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, T
  * Runs configuration even for an empty option vector so database defaults reach derived fields.
  * Returns a Tcl status; the caller owns failure cleanup. An already initialized revived axis retains
  * its option table.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr New or revived axis to initialize/configure; caller remains responsible for failure
+ *   cleanup.
+ * @param[in] objc Even number of option/value entries, excluding widget and operation names; zero is allowed.
+ * @param[in] objv Borrowed option/value array of objc entries, valid through configuration and any expression
+ *   evaluation.
  */
 static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (InitAxisOptions(graphPtr, axisPtr) != TCL_OK) {
@@ -1477,6 +1559,10 @@ static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_O
  * Clears borrowed transaction context and deletes the initialized option table. Does not release
  * derived labels, geometry, shadow colours or text-style graphics contexts; DestroyAxis owns those
  * resources.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Borrowed axis whose Tk option resources are released once; derived resources and
+ *   record remain for separate cleanup.
  */
 static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->tkResourcesReleased) {
@@ -1503,6 +1589,9 @@ static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
  * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for display and
  * scroll minima/maxima. Returns the NONE enum for unrelated or unresolved names; performs no
  * allocation.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
  */
 static AxisLimitOption GetAxisLimitOption(Tcl_Obj *objPtr) {
     const char *name;
@@ -1534,6 +1623,12 @@ static AxisLimitOption GetAxisLimitOption(Tcl_Obj *objPtr) {
  * nonfinite results. Returns a Tcl status. Expression evaluation may execute Tcl substitutions; it is
  * not a literal-only conversion and does not itself preserve graph or axis lifetime. The output is
  * usable only on success.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed finite Tcl expression, or NULL/empty for VALUE_UNDEFINED; evaluation may execute
+ *   Tcl.
+ * @param[out] valuePtr Required output receiving a finite limit or VALUE_UNDEFINED on success; unusable on
+ *   error.
  */
 static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr) {
     Tcl_Size length;
@@ -1564,6 +1659,9 @@ static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valu
  * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for border
  * width, line width and scroll increment. Returns the NONE enum for unrelated or unresolved names;
  * performs no allocation.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
  */
 static AxisPixelOption GetAxisPixelOption(Tcl_Obj *objPtr) {
     const char *name;
@@ -1591,6 +1689,12 @@ static AxisPixelOption GetAxisPixelOption(Tcl_Obj *objPtr) {
  * Border and line widths must be nonnegative; scroll increment must be positive. Uses Tk-window
  * scaling through Rbc_GetPixelsFromObj. Success updates the selected scalar and mask only; an invalid
  * internal enum panics.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] objPtr Borrowed screen-distance value interpreted using the graph window scaling.
+ * @param[in] option Valid non-NONE selector for this option family; invalid internal selectors panic.
+ * @param[in,out] transactionPtr Initialized or zeroed caller-owned candidate transaction; staged fields are
+ *   updated only after successful parsing.
  */
 static int StageAxisPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, AxisPixelOption option,
                                 AxisPixelTransaction *transactionPtr) {
@@ -1642,6 +1746,12 @@ static int StageAxisPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, AxisPixelOptio
  * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
  * without committing live derived fields. Contains only scalar candidates; no allocation cleanup is
  * required on error.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisPtr Borrowed axis with candidate Tk fields and the original even-length option vector
+ *   installed; derived fields are not committed here.
+ * @param[out] transactionPtr Fresh caller-owned transaction storage, initialized here; must not already own
+ *   resources. Success requires commit or cleanup.
  */
 static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixelTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -1712,6 +1822,11 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
  * Copies only masked values into borderWidth, lineWidth and scrollUnits, then clears the mask.
  * Unstaged options are unchanged. Performs no parsing, callback evaluation or recoverable validation;
  * the caller must have prepared all option families first.
+ *
+ * @param[in,out] axisPtr Live axis receiving only staged derived fields; all option families must be validated
+ *   before any commit.
+ * @param[in,out] transactionPtr Successfully prepared candidate transaction; transferred pointers and staging
+ *   flags are cleared without freeing the record.
  */
 static void CommitAxisPixelTransaction(Axis *axisPtr, AxisPixelTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_BORDER_WIDTH)) {
@@ -1733,6 +1848,13 @@ static void CommitAxisPixelTransaction(Axis *axisPtr, AxisPixelTransaction *tran
  * Evaluates the candidate before writing the selected scalar and setting its mask bit. Failure leaves
  * the candidate unchanged. An invalid internal enum panics. Cross-field and logarithmic range
  * validation belong to preparation.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed finite Tcl expression, or NULL/empty for an automatic limit; evaluation may
+ *   execute Tcl.
+ * @param[in] option Valid non-NONE selector for this option family; invalid internal selectors panic.
+ * @param[in,out] transactionPtr Initialized or zeroed caller-owned candidate transaction; staged fields are
+ *   updated only after successful parsing.
  */
 static int StageAxisLimit(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLimitOption option,
                           AxisLimitTransaction *transactionPtr) {
@@ -1774,6 +1896,12 @@ static int StageAxisLimit(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLimitOption o
  * without committing live derived fields. Contains only scalar candidates; no allocation cleanup is
  * required on error. Starts with current live limits, checks final display and scroll ordering, and
  * requires defined limits to be positive for log scaling even when only logScale changed.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisPtr Borrowed axis with candidate Tk fields and the original even-length option vector
+ *   installed; derived fields are not committed here.
+ * @param[out] transactionPtr Fresh caller-owned transaction storage, initialized here; must not already own
+ *   resources. Success requires commit or cleanup.
  */
 static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimitTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -1901,6 +2029,11 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
  * Copies only masked requested/scroll limits into the live axis, then clears the mask. Validated but
  * unstaged values remain untouched. Unstaged options are unchanged. Performs no parsing, callback
  * evaluation or recoverable validation; the caller must have prepared all option families first.
+ *
+ * @param[in,out] axisPtr Live axis receiving only staged derived fields; all option families must be validated
+ *   before any commit.
+ * @param[in,out] transactionPtr Successfully prepared candidate transaction; transferred pointers and staging
+ *   flags are cleared without freeing the record.
  */
 static void CommitAxisLimitTransaction(Axis *axisPtr, AxisLimitTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MIN)) {
@@ -2056,6 +2189,8 @@ TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) 
  * @brief Release one explicit tick allocation.
  *
  * Accepts NULL. Frees the allocation without modifying the caller pointer.
+ *
+ * @param[in] ticksPtr Owned tick allocation to release, or NULL; the caller pointer is not cleared.
  */
 static void FreeAxisTicks(Ticks *ticksPtr) {
     if (ticksPtr != NULL) {
@@ -2069,6 +2204,9 @@ static void FreeAxisTicks(Ticks *ticksPtr) {
  *
  * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for major and
  * minor tick lists. Returns the NONE enum for unrelated or unresolved names; performs no allocation.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
  */
 static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
     const char *name;
@@ -2092,6 +2230,9 @@ static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
  *
  * Delegates canonical-name matching to IsAxisOption after Tk has rejected unknown or ambiguous
  * options.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
  */
 static int IsAxisLooseOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-loose"); }
 
@@ -2102,6 +2243,11 @@ static int IsAxisLooseOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-lo
  * Accepts Tcl booleans or the exact string always. One entry applies to both ends; two entries specify
  * minimum then maximum. Returns TCL_ERROR for invalid list length or entries without assigning the
  * output pair. Allocates no retained storage.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed list of one or two booleans or exact always keywords; NULL is not accepted.
+ * @param[out] looseMinPtr Required minimum-end policy output, assigned only after the complete input validates.
+ * @param[out] looseMaxPtr Required separate maximum-end policy output, assigned only on success.
  */
 static int GetAxisLooseFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *looseMinPtr, int *looseMaxPtr) {
     Tcl_Obj **valueObjv;
@@ -2145,6 +2291,11 @@ static int GetAxisLooseFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *looseMi
  *
  * Parses the complete one/two-entry value before updating the scalar pair and setting staged. Failure
  * preserves earlier candidates; no owned allocation is created.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed one- or two-entry loose-range policy list; NULL is not accepted.
+ * @param[in,out] transactionPtr Initialized or zeroed caller-owned candidate transaction; staged fields are
+ *   updated only after successful parsing.
  */
 static int StageAxisLoose(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLooseTransaction *transactionPtr) {
     int looseMin;
@@ -2169,6 +2320,12 @@ static int StageAxisLoose(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLooseTransact
  * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
  * without committing live derived fields. Contains only scalar candidates; no allocation cleanup is
  * required on error.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisPtr Borrowed axis with candidate Tk fields and the original even-length option vector
+ *   installed; derived fields are not committed here.
+ * @param[out] transactionPtr Fresh caller-owned transaction storage, initialized here; must not already own
+ *   resources. Success requires commit or cleanup.
  */
 static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLooseTransaction *transactionPtr) {
     int explicitlySpecified;
@@ -2215,6 +2372,11 @@ static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLoose
  * Copies the staged minimum/maximum policies and clears staged. Unstaged options are unchanged.
  * Performs no parsing, callback evaluation or recoverable validation; the caller must have prepared
  * all option families first.
+ *
+ * @param[in,out] axisPtr Live axis receiving only staged derived fields; all option families must be validated
+ *   before any commit.
+ * @param[in,out] transactionPtr Successfully prepared candidate transaction; transferred pointers and staging
+ *   flags are cleared without freeing the record.
  */
 static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *transactionPtr) {
     if (!transactionPtr->staged) {
@@ -2232,6 +2394,9 @@ static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *tran
  * Rejects negative counts and size_t overflow using offsetof(Ticks, values). Writes the byte count
  * only on TCL_OK. Does not impose MAXTICKS or report an interpreter error; the caller applies those
  * policies.
+ *
+ * @param[in] nTicks Requested number of double entries; negative or unrepresentable counts fail.
+ * @param[out] sizePtr Required byte-size output, including the Ticks header; assigned only on TCL_OK.
  */
 static int GetTicksByteCount(Tcl_Size nTicks, size_t *sizePtr) {
     size_t headerSize;
@@ -2256,6 +2421,12 @@ static int GetTicksByteCount(Tcl_Size nTicks, size_t *sizePtr) {
  * with Tcl_ExprDoubleObj; no sorting or deduplication is performed. Frees partial storage on failure
  * and leaves the output NULL. Successful nonempty storage belongs to the caller. Expression evaluation
  * can execute Tcl substitutions; this helper supplies no graph lifetime guard.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed list of finite Tcl expressions; NULL or empty selects automatic ticks. Evaluation
+ *   may execute Tcl.
+ * @param[out] ticksPtrPtr Required output initialized to NULL; success transfers any nonempty allocation,
+ *   released by FreeAxisTicks.
  */
 static int GetAxisTicksFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Ticks **ticksPtrPtr) {
     Tcl_Obj **exprObjv;
@@ -2315,6 +2486,13 @@ static int GetAxisTicksFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Ticks **tick
  * Parses and allocates the replacement before releasing an earlier candidate for that option. NULL is
  * a valid staged candidate selecting automatic ticks. Success sets the mask; failure retains previous
  * candidates. Invalid internal enums free the new allocation and panic.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving conversion diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed list of finite Tcl expressions; NULL or empty stages automatic ticks. Evaluation
+ *   may execute Tcl.
+ * @param[in] option Valid non-NONE selector for this option family; invalid internal selectors panic.
+ * @param[in,out] transactionPtr Initialized or zeroed caller-owned candidate transaction; staged fields are
+ *   updated only after successful parsing.
  */
 static int StageAxisTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTickOption option,
                           AxisTickTransaction *transactionPtr) {
@@ -2359,6 +2537,9 @@ static int StageAxisTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTickOption op
  * Releases owned major and minor tick allocations and zeroes the complete transaction. Requires
  * initialized or zeroed storage. Safe after commit because transferred ownership has been cleared;
  * does not alter live axis fields.
+ *
+ * @param[in,out] transactionPtr Initialized or zeroed transaction whose candidate resources are released and
+ *   complete contents reset; record is retained.
  */
 static void FreeAxisTickTransaction(AxisTickTransaction *transactionPtr) {
     FreeAxisTicks(transactionPtr->majorTicksPtr);
@@ -2375,6 +2556,12 @@ static void FreeAxisTickTransaction(AxisTickTransaction *transactionPtr) {
  * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
  * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
  * without committing live derived fields. On error releases all candidates owned by this transaction.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisPtr Borrowed axis with candidate Tk fields and the original even-length option vector
+ *   installed; derived fields are not committed here.
+ * @param[out] transactionPtr Fresh caller-owned transaction storage, initialized here; must not already own
+ *   resources. Success requires commit or cleanup.
  */
 static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -2441,6 +2628,11 @@ error:
  * candidates, releases old arrays and clears transferred pointers and mask. A staged NULL restores
  * automatic tick generation. Unstaged options are unchanged. Performs no parsing, callback evaluation
  * or recoverable validation; the caller must have prepared all option families first.
+ *
+ * @param[in,out] axisPtr Live axis receiving only staged derived fields; all option families must be validated
+ *   before any commit.
+ * @param[in,out] transactionPtr Successfully prepared candidate transaction; transferred pointers and staging
+ *   flags are cleared without freeing the record.
  */
 static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MAJOR)) {
@@ -2477,6 +2669,9 @@ static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transa
  *
  * The Shadow record must be valid, with an owned Tk colour or NULL. Releases the colour reference,
  * then clears colour and offset. Does not free the Shadow record itself.
+ *
+ * @param[in,out] shadowPtr Caller-owned Shadow record containing an owned Tk color or NULL; color and offset
+ *   are cleared.
  */
 static void FreeAxisShadow(Shadow *shadowPtr) {
     if (shadowPtr->color != NULL) {
@@ -2493,6 +2688,9 @@ static void FreeAxisShadow(Shadow *shadowPtr) {
  * Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for limits,
  * tick and title shadows. Returns the NONE enum for unrelated or unresolved names; performs no
  * allocation.
+ *
+ * @param[in] objPtr Borrowed option-name object resolved through the axis option table, including abbreviations
+ *   and synonyms.
  */
 static AxisShadowOption GetAxisShadowOption(Tcl_Obj *objPtr) {
     const char *name;
@@ -2520,6 +2718,13 @@ static AxisShadowOption GetAxisShadowOption(Tcl_Obj *objPtr) {
  * Acquires and validates a new shadow before releasing an earlier candidate for the same option.
  * Success transfers the new colour reference into the transaction and sets its mask. Invalid internal
  * enums release the new colour and panic.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] objPtr Borrowed shadow color/offset option value; successful parsing acquires a separate color
+ *   reference.
+ * @param[in] option Valid non-NONE selector for this option family; invalid internal selectors panic.
+ * @param[in,out] transactionPtr Initialized or zeroed caller-owned candidate transaction; staged fields are
+ *   updated only after successful parsing.
  */
 static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption option,
                            AxisShadowTransaction *transactionPtr) {
@@ -2572,6 +2777,9 @@ static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption op
  * Releases owned three shadow colour references and zeroes the complete transaction. Requires
  * initialized or zeroed storage. Safe after commit because transferred ownership has been cleared;
  * does not alter live axis fields.
+ *
+ * @param[in,out] transactionPtr Initialized or zeroed transaction whose candidate resources are released and
+ *   complete contents reset; record is retained.
  */
 static void FreeAxisShadowTransaction(AxisShadowTransaction *transactionPtr) {
     FreeAxisShadow(&transactionPtr->limitsShadow);
@@ -2589,6 +2797,12 @@ static void FreeAxisShadowTransaction(AxisShadowTransaction *transactionPtr) {
  * effective defaults only for options not explicitly overridden. Processes every explicit occurrence
  * in caller order, so a bad earlier value cannot be hidden by a later valid one. Returns a Tcl status
  * without committing live derived fields. On error releases all candidates owned by this transaction.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisPtr Borrowed axis with candidate Tk fields and the original even-length option vector
+ *   installed; derived fields are not committed here.
+ * @param[out] transactionPtr Fresh caller-owned transaction storage, initialized here; must not already own
+ *   resources. Success requires commit or cleanup.
  */
 static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShadowTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -2665,6 +2879,11 @@ error:
  * fields, releases old colours and clears the mask. Unstaged options are unchanged. Performs no
  * parsing, callback evaluation or recoverable validation; the caller must have prepared all option
  * families first.
+ *
+ * @param[in,out] axisPtr Live axis receiving only staged derived fields; all option families must be validated
+ *   before any commit.
+ * @param[in,out] transactionPtr Successfully prepared candidate transaction; transferred pointers and staging
+ *   flags are cleared without freeing the record.
  */
 static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_LIMITS)) {
@@ -3503,6 +3722,10 @@ void Rbc_ResetAxes(Graph *graphPtr) {
  *
  * Borrows configured fonts and colours. Allocates the new tick GC before releasing the old one; uses
  * the existing native line-width conversion and projecting caps.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Borrowed configured axis with valid fonts/colors; text styles and tick GC are
+ *   refreshed.
  */
 static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
     GC newGC;
@@ -3530,6 +3753,10 @@ static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
  * Cancels pending scrollbar notification, releases options and bindings, removes the margin link and
  * registry entry when present, and frees styles, shadows, tick arrays, labels, formats, segments, tags
  * and the record. Does not consult refCount; callers must ensure no consumers retain the record.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Owned axis consumed unconditionally; no consumer may retain it afterward, regardless
+ *   of refCount.
  */
 static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->scrollNotifyPending) {
@@ -4823,6 +5050,10 @@ void Rbc_LayoutMargins(Graph *graphPtr) {
  * command prefixes without evaluating them. Recoverable errors free prepared resources before any
  * commit. Success normalizes rotation, refreshes styles and title extents, marks axis and graph
  * mapping dirty, and schedules redraw. The caller restores Tk-managed fields on error.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Borrowed axis with candidate Tk fields, mask and original option vector installed by
+ *   the saved-options wrapper.
  */
 static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     AxisLimitTransaction limitTransaction;
@@ -5040,6 +5271,11 @@ error:
  * error. A new record owns a copied name and label chain but is not yet configured or linked to a
  * margin. Revival returns the same record, clears deletePending and invalidates notified limits; it
  * preserves references and existing resources.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] name Borrowed NUL-terminated name copied for a new record; an existing pending-deletion record may
+ *   be revived.
+ * @param[in] margin Initial margin selector used for defaults; does not insert the axis into a margin chain.
  */
 static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     Axis *axisPtr;
@@ -5105,6 +5341,11 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
  *
  * Returns TCL_OK and a borrowed pointer. Missing and delete-pending axes return TCL_ERROR, set the
  * interpreter result, and clear the output pointer.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] name Borrowed NUL-terminated axis name.
+ * @param[out] axisPtrPtr Required output receiving a borrowed live axis on success, or NULL on lookup failure;
+ *   no reference is acquired.
  */
 static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr) {
     Tcl_HashEntry *hPtr;
@@ -5132,6 +5373,12 @@ static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr) {
  * A NULL classUid performs a borrowed lookup. Otherwise establishes the logical X/Y class when unused
  * or untyped, rejects a conflicting class, and increments refCount on success. Match each acquired
  * reference with FreeAxis. The output pointer is assigned only on success.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] axisName Borrowed NUL-terminated name of a live axis in this graph.
+ * @param[in] classUid Interned logical X/Y class to acquire a reference, or NULL for a borrowed lookup.
+ * @param[out] axisPtrPtr Required output assigned only on success; borrowed for NULL classUid, otherwise owns
+ *   one reference to release with FreeAxis.
  */
 static int GetAxis(Graph *graphPtr, const char *axisName, Rbc_Uid classUid, Axis **axisPtrPtr) {
     Axis *axisPtr;
@@ -5160,6 +5407,10 @@ static int GetAxis(Graph *graphPtr, const char *axisName, Rbc_Uid classUid, Axis
  *
  * Requires a positive reference count. Destroys the record when the count reaches zero and deletion is
  * pending; an unreferenced live axis remains registered.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Axis representing one acquired reference with positive refCount; may be destroyed when
+ *   this reference is released.
  */
 static void FreeAxis(Graph *graphPtr, Axis *axisPtr) {
     axisPtr->refCount--;
@@ -5175,6 +5426,13 @@ static void FreeAxis(Graph *graphPtr, Axis *axisPtr) {
  * A NULL or empty object returns a NULL axis only when allowEmpty is true; otherwise it reports
  * TCL_ERROR. Nonempty names delegate to GetAxis, including its typed-reference ownership and output-
  * on-success rules.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in] objPtr Borrowed axis-name object, or NULL/empty subject to allowEmpty.
+ * @param[in] classUid Interned logical X/Y class to acquire a reference, or NULL for a borrowed lookup.
+ * @param[in] allowEmpty Nonzero permits a NULL or empty name to resolve successfully to NULL.
+ * @param[out] axisPtrPtr Required output; empty names set NULL, successful typed lookup acquires one reference,
+ *   and nonempty lookup errors leave it unchanged.
  */
 int Rbc_GetAxisFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid classUid, int allowEmpty, Axis **axisPtrPtr) {
     if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
@@ -5195,6 +5453,9 @@ int Rbc_GetAxisFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid classUid, int a
  *
  * Accepts NULL. A non-NULL argument must represent an acquired reference; release may destroy a
  * delete-pending record.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph supplying the registry, interpreter and Tk resource context.
+ * @param[in,out] axisPtr Axis representing one acquired reference, or NULL; may become invalid during release.
  */
 void Rbc_FreeAxisReference(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr != NULL) {
@@ -5209,6 +5470,9 @@ void Rbc_FreeAxisReference(Graph *graphPtr, Axis *axisPtr) {
  * Destroys records regardless of reference counts, then deletes registry and tag tables and axis
  * chains. Clears each record hash pointer before destruction to keep hash iteration valid. Consumers
  * must have been detached by graph teardown; this is not ordinary axis deletion.
+ *
+ * @param[in,out] graphPtr Graph undergoing final teardown with initialized axis containers and all consumers
+ *   detached; registry and chains are destroyed.
  */
 void Rbc_DestroyAxes(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
@@ -5236,6 +5500,9 @@ void Rbc_DestroyAxes(Graph *graphPtr) {
  * Creates x, y, x2 and y2 with one reference each and the appropriate logical class. Polar axes start
  * hidden before database options are applied. Success links each configured record to its chain.
  * Failure returns TCL_ERROR with partial initialization left for graph teardown.
+ *
+ * @param[in,out] graphPtr Graph under construction with initialized axis registry; receives four default axes
+ *   and margin chains, including partial state on failure.
  */
 int Rbc_DefaultAxes(Graph *graphPtr) {
     static char *axisNames[4] = {"x", "y", "x2", "y2"};

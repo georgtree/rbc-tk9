@@ -4,7 +4,7 @@ Axis ownership and commands
 ``rbcGrAxis.c`` owns the graph's named axis registry, option transactions,
 margin membership and axis commands. This chapter covers that control layer;
 :doc:`mapping` explains coordinate spaces and track viewports. The source
-contracts for this batch are in :doc:`axis-reference`. The following sections cover option transactions, ranges, tick generation,
+contracts are in :doc:`axis-reference`. The following sections cover option transactions, ranges, tick generation,
 label presentation, margin layout, scrolling and notifications.
 
 Names, references and margin membership
@@ -18,15 +18,15 @@ resources. Name lookup and reference acquisition are different operations:
 
    * - Operation
      - Ownership effect
-   * - ``NameToAxis``
+   * - :c:func:`rbcGrAxisRegistry.NameToAxis`
      - Borrow a live record; reject pending deletion.
-   * - ``GetAxis`` with no class
+   * - :c:func:`rbcGrAxisRegistry.GetAxis` with no class
      - Borrow a live record without increasing its count.
-   * - ``GetAxis`` with an X/Y class
+   * - :c:func:`rbcGrAxisRegistry.GetAxis` with an X/Y class
      - Acquire a reference and enforce compatible logical axis type.
-   * - ``FreeAxis``
+   * - :c:func:`rbcGrAxisRegistry.FreeAxis`
      - Release one reference; destroy only if deletion is pending and count becomes zero.
-   * - ``DestroyAxis``
+   * - :c:func:`rbcGrAxisRegistry.DestroyAxis`
      - Unconditionally release the record and resources.
 
 An unreferenced live axis stays registered. A delete-pending referenced axis
@@ -53,8 +53,8 @@ component-name normalization. Initialization failure releases partially
 installed Tk resources. Even an empty explicit option vector must pass through
 configuration so database defaults become derived axis state.
 
-``ConfigureAxisOptions`` holds a Tk saved-options transaction and temporarily
-exposes the original argument vector and change mask to ``ConfigureAxis``.
+:c:func:`rbcGrAxisConfiguration.ConfigureAxisOptions` holds a Tk saved-options transaction and temporarily
+exposes the original argument vector and change mask to :c:func:`rbcGrAxisConfiguration.ConfigureAxis`.
 The vector is borrowed, never retained after the call. Derived limits, ticks,
 loose ranges, pixels, shadows, binding tags and limit formats are prepared
 before committing any of them. Command-prefix validation does not execute
@@ -85,7 +85,7 @@ context before interpreting the current item as an axis.
 Cleanup and failure recovery
 -------------------------------
 
-``DestroyAxis`` cancels pending scrollbar notification and releases bindings,
+:c:func:`rbcGrAxisRegistry.DestroyAxis` cancels pending scrollbar notification and releases bindings,
 margin links, registry membership, Tk options and derived resources. Text
 styles own their GCs, while options own configured fonts and foreground
 colours; separately allocated shadow colours require separate release.
@@ -116,25 +116,25 @@ to one configuration attempt, not persistent state on an axis.
    * - Family
      - Candidate ownership
      - Commit effect
-   * - Limits
+   * - Limits (:c:func:`rbcGrAxisTransactions.PrepareAxisLimitTransaction`)
      - Four scalar values and a changed-field mask
      - Replace only staged display/scroll limits.
-   * - Pixels
+   * - Pixels (:c:func:`rbcGrAxisTransactions.PrepareAxisPixelTransaction`)
      - Three integer values and a mask
      - Replace widths and scroll increment.
-   * - Loose ranges
+   * - Loose ranges (:c:func:`rbcGrAxisTransactions.PrepareAxisLooseTransaction`)
      - Two policy values and a staged flag
      - Replace both endpoint policies together.
-   * - Ticks
+   * - Ticks (:c:func:`rbcGrAxisTransactions.PrepareAxisTickTransaction`)
      - Owned major/minor arrays and a mask
      - Transfer arrays and update explicit-tick flags.
-   * - Shadows
+   * - Shadows (:c:func:`rbcGrAxisTransactions.PrepareAxisShadowTransaction`)
      - Owned Tk colour references with offsets and a mask
      - Transfer colours into text styles; release old references.
-   * - Binding tags
+   * - Binding tags (:c:func:`rbcGrAxisTransactions.PrepareAxisTagsTransaction`)
      - One owned string-list allocation and a staged flag
      - Transfer the list and free the old allocation.
-   * - Limit formats
+   * - Limit formats (:c:func:`rbcGrAxisTransactions.PrepareAxisFormatTransaction`)
      - One owned split-list allocation, count and staged flag
      - Transfer the list/count and free the old allocation.
 
@@ -158,6 +158,23 @@ therefore be checked separately from the pointer. Commit transfers owned
 storage, clears the transferred candidate fields and releases the old live
 resource. Cleanup then remains safe after a successful commit. Scalar-only
 transactions need no resource destructor.
+
+Transaction argument contracts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Preparation takes fresh caller-owned storage and initializes it; stage helpers
+instead take an initialized candidate and may replace an earlier candidate.
+Commit requires successful preparation of all affected families. It transfers
+owned resources or copies scalars, then clears staging state. These are distinct
+contracts even though each helper accepts a transaction pointer. The parameter
+sections in :doc:`axis-reference` identify the required state at each boundary.
+
+Lookup outputs also differ. :c:func:`rbcGrAxisRegistry.NameToAxis` clears its
+output on a failed lookup. :c:func:`rbcGrAxisRegistry.GetAxis` leaves the caller's
+output unchanged on error. :c:func:`rbcGrAxisRegistry.Rbc_GetAxisFromObj` sets it
+to NULL for an empty name, but retains the unchanged-on-error rule for nonempty
+names. Check the status before consuming an output, and release a reference
+only when a successful lookup requested a non-NULL logical class.
 
 Parsing policies
 ~~~~~~~~~~~~~~~~
