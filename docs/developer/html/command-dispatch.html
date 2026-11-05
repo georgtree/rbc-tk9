@@ -95,6 +95,14 @@ Check nested paths independently. A header or stride change should also pass
 <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code>. Reference documentation describes the common selector;
 the individual Tcl command manuals remain the source for user-facing syntax.</p>
 </section>
+<section id="lookup-inputs-and-output">
+<h2>Lookup inputs and output<a class="headerlink" href="#lookup-inputs-and-output" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="dispatch-reference.html#c.Rbc_GetOpIndexFromObj" title="Rbc_GetOpIndexFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetOpIndexFromObj()</span></code></a> receives the byte stride of a persistent typed
+table and a nonnegative operation-word index. Argument limits count the entire
+command, including widget and operation words. The returned integer index is
+assigned only after both name lookup and arity validation succeed; the caller
+then dispatches through its own typed entry.</p>
+</section>
 </section>
 
 
@@ -112,6 +120,7 @@ the individual Tcl command manuals remain the source for user-facing syntax.</p>
 <li><a class="reference internal" href="#argument-counts-and-diagnostics">Argument counts and diagnostics</a></li>
 <li><a class="reference internal" href="#selection-versus-execution">Selection versus execution</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+<li><a class="reference internal" href="#lookup-inputs-and-output">Lookup inputs and output</a></li>
 </ul>
 </li>
 </ul>

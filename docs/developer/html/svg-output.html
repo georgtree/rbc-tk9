@@ -187,7 +187,7 @@ command and uses SVG <code class="docutils literal notranslate"><span class="pre
 attribute result is retained while interpreter state is restored. That restores
 the Tcl result, not widget lifetime: replacing the global font command with a
 mutating script is outside this helper’s resource-lifetime guarantee.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish</span></code> runs after drawing has registered all used faces. It hashes
+<p><a class="reference internal" href="svg-reference.html#c.Rbc_SvgFontsFinish" title="Rbc_SvgFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish()</span></code></a> runs after drawing has registered all used faces. It hashes
 the current document and original font bytes into a deterministic family prefix,
 replaces temporary family attributes, and emits base64 Unicode font programs in
 CSS font-face definitions. This reduces family collisions between inline SVG
@@ -195,6 +195,13 @@ documents with different character maps; it is not a security hash or a general
 namespace for clip/pattern identifiers. The operation mutates the document buffer
 and belongs to one finalization pass. Font-program failure can leave partial
 output, which the outer export command must reject.</p>
+</section>
+<section id="font-finalization-failure-boundary">
+<h2>Font-finalization failure boundary<a class="headerlink" href="#font-finalization-failure-boundary" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="svg-reference.html#c.Rbc_SvgFontsFinish" title="Rbc_SvgFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish()</span></code></a> runs once after text collection. Embedding-disabled
+output is unchanged. With embedding enabled, font names may already have been
+rewritten and definitions partly appended when font-program creation fails;
+discard that incomplete export rather than treating the operation as rollback.</p>
 </section>
 </section>
 
@@ -217,6 +224,7 @@ output, which the outer export command must reject.</p>
 <li><a class="reference internal" href="#raster-encoding">Raster encoding</a></li>
 <li><a class="reference internal" href="#text-and-integration-boundaries">Text and integration boundaries</a></li>
 <li><a class="reference internal" href="#text-placement-and-font-finalization">Text placement and font finalization</a></li>
+<li><a class="reference internal" href="#font-finalization-failure-boundary">Font-finalization failure boundary</a></li>
 </ul>
 </li>
 </ul>

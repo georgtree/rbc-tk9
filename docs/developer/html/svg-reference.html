@@ -450,6 +450,20 @@ The cache is context-local and assumes an unchanged style. Tiles use photo pixel
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SvgFontsFinish">
+<span class="target" id="group__svg__backend_1ga3df396ab549a642b33ab08f1b344d990"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SvgFontsFinish</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SvgFontsFinish" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Finalize document-local embedded SVG font definitions. </p>
+<p>Returns TCL_OK immediately when embedding is disabled. Otherwise renames font references using a content hash and appends font programs in a style definition. Returns TCL_ERROR on font-program failure; discard the incomplete export. Call once after text collection and before closing the SVG document. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed SVG export context with its body buffer and collected fallback faces; may be partially modified on failure. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.SvgEmbeddedText">
 <span class="target" id="group__svg__backend_1ga287bfe63a5e4447ddb35630bc2ad9139"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SvgEmbeddedText</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SvgEmbeddedText" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit positioned Unicode spans using embedded fallback faces. </p>
@@ -689,6 +703,7 @@ The cache is context-local and assumes an unchanged style. Tiles use photo pixel
 <li><a class="reference internal" href="#c.SvgTkImage"><code class="docutils literal notranslate"><span class="pre">SvgTkImage()</span></code></a></li>
 <li><a class="reference internal" href="#c.SvgFillPattern"><code class="docutils literal notranslate"><span class="pre">SvgFillPattern()</span></code></a></li>
 <li><a class="reference internal" href="#c.SvgSymbolPoints"><code class="docutils literal notranslate"><span class="pre">SvgSymbolPoints()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SvgFontsFinish"><code class="docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish()</span></code></a></li>
 <li><a class="reference internal" href="#c.SvgEmbeddedText"><code class="docutils literal notranslate"><span class="pre">SvgEmbeddedText()</span></code></a></li>
 <li><a class="reference internal" href="#c.SvgText"><code class="docutils literal notranslate"><span class="pre">SvgText()</span></code></a></li>
 <li><a class="reference internal" href="#c.SvgPhoto"><code class="docutils literal notranslate"><span class="pre">SvgPhoto()</span></code></a></li>

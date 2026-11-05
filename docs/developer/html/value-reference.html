@@ -475,6 +475,21 @@ replacement and printer ownership differences.</p>
 </dl>
 </dd></dl>
 
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GraphExtents">
+<span class="target" id="group__rbc_gr_misc__internals_1gac89de613745d557e6de52ffba71a01dc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GraphExtents" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read the padded mapping viewport as a clipping rectangle. </p>
+<p>For a scrolling active track, intersects the padded rectangle with its visible bounds. Does not install a renderer clip or normalize an empty intersection. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current mapping offsets, ranges and padding; enter the owning track before calling. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[out]</strong> Required output receiving double-precision screen-coordinate bounds. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </dd></dl>
 
@@ -516,6 +531,7 @@ replacement and printer ownership differences.</p>
 <li><a class="reference internal" href="#c.StringToColorPair"><code class="docutils literal notranslate"><span class="pre">StringToColorPair()</span></code></a></li>
 <li><a class="reference internal" href="#c.NameOfColor"><code class="docutils literal notranslate"><span class="pre">NameOfColor()</span></code></a></li>
 <li><a class="reference internal" href="#c.ColorPairToString"><code class="docutils literal notranslate"><span class="pre">ColorPairToString()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GraphExtents"><code class="docutils literal notranslate"><span class="pre">Rbc_GraphExtents()</span></code></a></li>
 </ul>
 </li>
 </ul>

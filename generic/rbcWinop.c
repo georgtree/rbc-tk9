@@ -1327,23 +1327,14 @@ static int WinopCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
     return winOps[index].proc(Tk_MainWindow(interp), interp, objc, objv);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Register the rbc::winop Tcl object command.
  *
- * Rbc_WinopInit --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns TCL_OK. Registers the static dispatcher without client data or a delete
+ * callback; does not create a window.
+ * @param[in,out] interp Borrowed interpreter with the RBC namespace and Tk initialized; see @ref
+ *   rbc_interp_argument.
  */
 int Rbc_WinopInit(Tcl_Interp *interp) {
     Tcl_CreateObjCommand2(interp, "rbc::winop", WinopCmd, NULL, NULL);

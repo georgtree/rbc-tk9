@@ -384,6 +384,56 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 </dl>
 </dd></dl>
 
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.Rbc_DrawableToColorImage">
+<span class="target" id="group__x11__image__helpers_1ga5de111faea25d4155c062496db057e17"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawableToColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">inputGamma</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.Rbc_DrawableToColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Capture a compatible X drawable into owned RGBA pixels. </p>
+<p>Returns an owned color image released with Rbc_FreeColorImage, or NULL when capture fails. Output alpha is opaque. Does not own or alter the drawable. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed Tk window supplying display, visual and colormap compatible with drawable. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed readable X drawable containing the entire requested rectangle. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Source rectangle left coordinate in drawable pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Source rectangle top coordinate in drawable pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive source width in pixels; nonpositive values return NULL. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive source height in pixels; nonpositive values return NULL. </p></li>
+<li><p><strong>inputGamma</strong> – <strong>[in]</strong> Finite positive input gamma used for channel conversion; invalid values return NULL. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.Rbc_PhotoImageMask">
+<span class="target" id="group__x11__image__helpers_1gad3fa40b5419da4693990afc0dfe7348e"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoImageMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.Rbc_PhotoImageMask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build an X11 one-bit opacity mask when transparent pixels exist. </p>
+<p>Returns an owned pixmap released with Tk_FreePixmap, or None for fully opaque input. Alpha zero clears a mask bit; any nonzero alpha sets it. Source pixels are read without modification. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed Tk window supplying the bitmap display; realized only when a mask is needed. </p></li>
+<li><p><strong>src</strong> – <strong>[in]</strong> Borrowed photo block with positive dimensions, valid pixel storage, pitch, pixelSize and a readable alpha offset. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcX11Image.Rbc_ColorImageMask">
+<span class="target" id="group__x11__image__helpers_1ga60f0540d4903cd78163dcaa44a113f41"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.Rbc_ColorImageMask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build an X11 one-bit opacity mask when transparent pixels exist. </p>
+<p>Returns an owned pixmap released with Tk_FreePixmap, or None for fully opaque input. Alpha zero clears a mask bit; any nonzero alpha sets it. Source pixels are read without modification. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed Tk window supplying the bitmap display; realized only when a mask is needed. </p></li>
+<li><p><strong>image</strong> – <strong>[in]</strong> Borrowed color image with valid dimensions and RGBA storage. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </dd></dl>
 
@@ -425,6 +475,9 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 <li><a class="reference internal" href="#c.rbcX11Image.CountBits"><code class="docutils literal notranslate"><span class="pre">CountBits()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcX11Image.ComputeMasks"><code class="docutils literal notranslate"><span class="pre">ComputeMasks()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcX11Image.XGetImageErrorProc"><code class="docutils literal notranslate"><span class="pre">XGetImageErrorProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.Rbc_DrawableToColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawableToColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.Rbc_PhotoImageMask"><code class="docutils literal notranslate"><span class="pre">Rbc_PhotoImageMask()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcX11Image.Rbc_ColorImageMask"><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageMask()</span></code></a></li>
 </ul>
 </li>
 </ul>

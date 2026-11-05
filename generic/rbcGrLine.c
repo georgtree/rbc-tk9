@@ -5035,6 +5035,21 @@ static int AppendSourcePixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size m
     return TRUE;
 }
 
+/**
+ * @ingroup line_decimation
+ * @brief Map representative points from pixel buckets into an owned screen buffer.
+ *
+ * Returns TRUE for completed mapping, including empty output. Returns FALSE when
+ * capacity, allocation or source-order constraints require the ordinary mapper.
+ * Initializes output pointers/count to empty and releases temporary allocations on
+ * fallback. Successful arrays transfer to the caller for ckfree cleanup; source
+ * vectors are not modified. Buckets preserve first/minimum/maximum/last indices.
+ * @param[in] graphPtr Borrowed graph with current axis mapping and the owning track viewport selected.
+ * @param[in] linePtr Borrowed eligible real Cartesian line element; caller checks fast-path applicability before
+ *   entry.
+ * @param[out] mapPtr Required output with no owned screen arrays on entry; receives owned points, original indices
+ *   and an optional break array.
+ */
 static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
     Tcl_Size nPoints;

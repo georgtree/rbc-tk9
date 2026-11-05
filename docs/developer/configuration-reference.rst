@@ -25,3 +25,8 @@ Option lookup and metadata
 .. doxygenfunction:: Rbc_GetComponentOptionInfo
 
 .. doxygenfunction:: Rbc_GetCanonicalOptionName
+
+Relative child lookup
+---------------------
+
+.. doxygenfunction:: Rbc_FindChild

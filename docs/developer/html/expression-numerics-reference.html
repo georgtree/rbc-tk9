@@ -1019,14 +1019,28 @@ Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Perform
 <dt class="sig sig-object c" id="c.Rbc_VecMin">
 <span class="target" id="group__expression__numerics_1ga6d1b94c657073e5af722d2a671049e48"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VecMin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VecMin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Scan the full real vector for its finite minimum. </p>
-<p>Requires real storage and a live record. Ignores first/last selection and nonfinite values, stores the result in the min cache and returns it. Empty or entirely nonfinite input returns NaN. Does not update extrema indices, clear cache-invalid flags, allocate storage or send notifications. </p>
+<p>Requires real storage and a live record. Ignores first/last selection and nonfinite values, stores the result in the min cache and returns it. Empty or entirely nonfinite input returns NaN. Does not update extrema indices, clear cache-invalid flags, allocate storage or send notifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[inout]</strong> Borrowed live real vector; reads its complete value array and overwrites the corresponding extrema cache. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VecMax">
 <span class="target" id="group__expression__numerics_1gaab52987204929e85d348895b1f9f6919"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VecMax</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VecMax" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Scan the full real vector for its finite maximum. </p>
-<p>Requires real storage and a live record. Ignores first/last selection and nonfinite values, stores the result in the max cache and returns it. Empty or entirely nonfinite input returns NaN. Does not update extrema indices, clear cache-invalid flags, allocate storage or send notifications. </p>
+<p>Requires real storage and a live record. Ignores first/last selection and nonfinite values, stores the result in the max cache and returns it. Empty or entirely nonfinite input returns NaN. Does not update extrema indices, clear cache-invalid flags, allocate storage or send notifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[inout]</strong> Borrowed live real vector; reads its complete value array and overwrites the corresponding extrema cache. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

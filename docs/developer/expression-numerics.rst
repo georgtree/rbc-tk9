@@ -226,3 +226,11 @@ Legacy scalar conventions remain deliberate distinctions:
 double without converting to an integer, and :c:func:`Fmod` implements
 a floor-based remainder with a zero-divisor result of zero. These names must
 not be treated as aliases for the corresponding C library routines.
+
+Full-storage extrema inputs
+---------------------------
+
+:c:func:`Rbc_VecMin` and :c:func:`Rbc_VecMax` require real vector storage and
+scan the complete array, ignoring the current first/last selection. They update
+the corresponding scalar cache but do not publish notifications, update extrema
+indices or clear invalidation flags. Empty or wholly nonfinite input returns NaN.

@@ -237,3 +237,17 @@ The private ``make test-image`` harness tests every sample for five-, six-,
 eight- and ten-bit channels at multiple bit positions. These X11-only cases use
 the actual mask helper and do not require a 30-bit display server. They run in
 the existing photo test file and skip on Windows; the public C API is unchanged.
+
+X11 capture and opacity-mask inputs
+-----------------------------------
+
+:c:func:`rbcX11Image.Rbc_DrawableToColorImage` borrows a compatible window and
+drawable, captures the complete requested rectangle and returns owned opaque
+RGBA storage. Width, height and gamma must be positive, with finite gamma.
+Release successful output with :c:func:`Rbc_FreeColorImage`.
+
+:c:func:`rbcX11Image.Rbc_PhotoImageMask` reads a supplied photo block, including
+its stride and alpha offset. :c:func:`rbcX11Image.Rbc_ColorImageMask` reads RBC
+RGBA pixels. Both treat zero alpha as transparent and nonzero alpha as opaque.
+On X11, fully opaque input returns None; otherwise the returned bitmap belongs
+to the caller and requires Tk_FreePixmap.

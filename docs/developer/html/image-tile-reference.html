@@ -677,6 +677,44 @@ rules.</p>
 </dl>
 </dd></dl>
 
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageStorage.Rbc_SetRegion">
+<span class="target" id="group__image__storage__internals_1ga16e3b0facc84f1e0b8526f9ae8b6d1a8"></span><span class="n"><span class="pre">Region2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetRegion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Region2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">regionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.Rbc_SetRegion" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set inclusive integer bounds from an origin and size. </p>
+<p>Computes endpoints in wide arithmetic and panics if either cannot fit int. Does not normalize nonpositive sizes or allocate a region. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Left coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Top coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Pixel width; right is x+width-1. Positive sizes describe a nonempty region. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Pixel height; bottom is y+height-1. </p></li>
+<li><p><strong>regionPtr</strong> – <strong>[out]</strong> Required caller-owned region record, also returned by the function. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcImageStorage.TempImageChangedProc">
+<span class="target" id="group__image__storage__internals_1gaa023c3edc11e0d0ede3b3fd0134eb49f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TempImageChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.TempImageChangedProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Ignore notifications from the internally managed temporary photo. </p>
+<p>This callback does not schedule redraw, retain data or release the image token. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Caller-supplied callback data; unused and not dereferenced. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Changed image rectangle X origin; unused. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Changed image rectangle Y origin; unused. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Changed rectangle width; unused. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Changed rectangle height; unused. </p></li>
+<li><p><strong>imageWidth</strong> – <strong>[in]</strong> Current complete image width; unused. </p></li>
+<li><p><strong>imageHeight</strong> – <strong>[in]</strong> Current complete image height; unused. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </dd></dl>
 
@@ -771,6 +809,8 @@ rules.</p>
 <li><a class="reference internal" href="#c.rbcImageStorage.MapNearestCoordinate"><code class="docutils literal notranslate"><span class="pre">MapNearestCoordinate()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageStorage.MapVirtualCoordinate"><code class="docutils literal notranslate"><span class="pre">MapVirtualCoordinate()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageStorage.Rbc_GammaCorrectColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_GammaCorrectColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageStorage.Rbc_SetRegion"><code class="docutils literal notranslate"><span class="pre">Rbc_SetRegion()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageStorage.TempImageChangedProc"><code class="docutils literal notranslate"><span class="pre">TempImageChangedProc()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#drawable-snapshot-to-photo">Drawable snapshot to photo</a><ul>

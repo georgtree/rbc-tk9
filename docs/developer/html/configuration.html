@@ -148,6 +148,16 @@ they form one ownership protocol. Existing tests should cover rejected values
 without losing the previous live configuration, resource-database defaults,
 metadata consistency and destruction after partial setup.</p>
 </section>
+<section id="root-and-nested-child-lookup">
+<h2>Root and nested child lookup<a class="headerlink" href="#root-and-nested-child-lookup" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="configuration-reference.html#c.Rbc_FindChild" title="Rbc_FindChild"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindChild()</span></code></a> joins a relative child name to a borrowed parent path.
+The root parent <code class="docutils literal notranslate"><span class="pre">.</span></code> needs no extra separator: <code class="docutils literal notranslate"><span class="pre">child</span></code> resolves to <code class="docutils literal notranslate"><span class="pre">.child</span></code>.
+Other parents add one dot; <code class="docutils literal notranslate"><span class="pre">.container</span></code> plus <code class="docutils literal notranslate"><span class="pre">child</span></code> resolves to
+<code class="docutils literal notranslate"><span class="pre">.container.child</span></code>. Dotted relative names can select descendants. Missing
+windows and a NULL parent return NULL; successful results remain Tk-owned.
+This also preserves the real-child path used by
+<a class="reference internal" href="configuration-reference.html#c.Rbc_InitComponentOptions" title="Rbc_InitComponentOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitComponentOptions()</span></code></a> before its anonymous proxy fallback.</p>
+</section>
 </section>
 
 
@@ -166,6 +176,7 @@ metadata consistency and destruction after partial setup.</p>
 <li><a class="reference internal" href="#transactions">Transactions</a></li>
 <li><a class="reference internal" href="#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li><a class="reference internal" href="#cleanup-boundaries">Cleanup boundaries</a></li>
+<li><a class="reference internal" href="#root-and-nested-child-lookup">Root and nested child lookup</a></li>
 </ul>
 </li>
 </ul>

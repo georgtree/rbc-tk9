@@ -191,6 +191,12 @@ source/destination dimensions, and toplevel snapshots on both platforms.
 These tests need a Tk display. Pixel algorithms alone cannot validate native
 capture, wrapper handling or photo client notifications.</p>
 </section>
+<section id="command-registration">
+<h2>Command registration<a class="headerlink" href="#command-registration" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="winop-reference.html#c.Rbc_WinopInit" title="Rbc_WinopInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_WinopInit()</span></code></a> registers the static dispatcher on an interpreter with
+Tk and the RBC namespace initialized. It creates no window and installs no
+client-data ownership or deletion callback.</p>
+</section>
 </section>
 
 
@@ -209,6 +215,7 @@ capture, wrapper handling or photo client notifications.</p>
 <li><a class="reference internal" href="#photo-operation-ownership">Photo-operation ownership</a></li>
 <li><a class="reference internal" href="#failure-and-callback-boundaries">Failure and callback boundaries</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+<li><a class="reference internal" href="#command-registration">Command registration</a></li>
 </ul>
 </li>
 </ul>

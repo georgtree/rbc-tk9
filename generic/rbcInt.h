@@ -175,6 +175,15 @@ typedef struct {
  * indexPtr, not a function pointer; the caller dispatches through its typed table.
  * minArgs/maxArgs count all objc words; maxArgs <= 0 means unbounded. Leave the
  * output unchanged on error and set an interpreter diagnostic.
+ *
+ * @param[in,out] interp Borrowed result interpreter; see @ref rbc_interp_argument.
+ * @param[in] specArr Persistent NULL-name-terminated table with Rbc_OpSpecHeader as the first field of each entry;
+ *   Tcl may cache this address.
+ * @param[in] specSize Byte stride of one complete typed entry, at least sizeof(Rbc_OpSpecHeader).
+ * @param[in] operPos Nonnegative index of the operation word in the full command array.
+ * @param[in] objc Number of objects in objv; counts every word when validating operation arity.
+ * @param[in] objv Borrowed full command array; see @ref rbc_command_arguments.
+ * @param[out] indexPtr Required output receiving the selected table index only on success.
  */
 int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size specSize, Tcl_Size operPos, Tcl_Size objc,
                           Tcl_Obj *const objv[], int *indexPtr);
@@ -185,6 +194,16 @@ int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size spec
  * pixel and dimensions above two, draw an outer edge before delegating the inset
  * to Tk_Draw3DRectangle. Edge GCs differ between X11 and Windows. This shared
  * Tk utility does not establish a graph renderer context or clipping region.
+ *
+ * @param[in] tkwin Borrowed Tk window supplying display and compatible resources.
+ * @param[in] drawable Borrowed destination drawable.
+ * @param[in] border Borrowed Tk border supplying relief colors.
+ * @param[in] x Rectangle left edge in drawable pixels.
+ * @param[in] y Rectangle top edge in drawable pixels.
+ * @param[in] width Rectangle width in pixels.
+ * @param[in] height Rectangle height in pixels.
+ * @param[in] borderWidth Requested border thickness in pixels.
+ * @param[in] relief Tk relief selector passed through to native/Tk border drawing.
  */
 void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief);
@@ -202,6 +221,12 @@ void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
 
 #include "rbcDefaults.h"
 
+/**
+ * @brief Convert integer width to the native thin-line convention.
+ *
+ * Returns a native GC line width. Does not convert physical units or mutate a GC.
+ * @param[in] width Requested integer width; values at most one map to zero, larger values are unchanged.
+ */
 static inline int Rbc_NativeLineWidth(int width) {
     if (width <= 1) {
         /*
@@ -285,6 +310,10 @@ int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashes
  * Read at most RBC_MAX_DASH_VALUES bytes, stopping at zero, and call XSetDashes.
  * Borrow the descriptor; do not alter a shared Tk GC unless its owner explicitly
  * permits mutation. This helper does not select the GC line style.
+ *
+ * @param[in] display Borrowed display owning gc.
+ * @param[in,out] gc Caller-mutable GC receiving dash bytes and offset; ownership is unchanged.
+ * @param[in] dashesPtr Borrowed dash descriptor with a readable RBC_MAX_DASH_VALUES array and pixel offset.
  */
 void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr);
 Rbc_Dashes *Rbc_GetDashes(GC gc);
@@ -641,6 +670,10 @@ void Rbc_InitHexTable(char *table);
  * at matching depth, otherwise a temporary 1x1 pixmap. Release that temporary
  * pixmap before returning. The caller owns the GC and must use
  * Rbc_FreePrivateGC(), not Tk_FreeGC(). Does not force window realization.
+ *
+ * @param[in] tkwin Borrowed Tk window supplying screen and depth; need not be realized.
+ * @param[in] gcMask XCreateGC mask selecting the fields to read from valuePtr.
+ * @param[in] valuePtr Borrowed XGCValues with all mask-selected fields initialized.
  */
 GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr);
 /**
@@ -648,6 +681,11 @@ GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr);
  *
  * Pass gcMask and valuePtr to XCreateGC. The caller owns the returned GC;
  * release it with Rbc_FreePrivateGC(). No Tk GC-cache reference is created.
+ *
+ * @param[in] display Borrowed display owning drawable.
+ * @param[in] drawable Borrowed valid drawable supplying GC depth compatibility.
+ * @param[in] gcMask XCreateGC mask selecting fields in valuePtr.
+ * @param[in] valuePtr Borrowed XGCValues with all selected fields initialized.
  */
 GC Rbc_GetPrivateGCFromDrawable(Display *display, Drawable drawable, unsigned long gcMask, XGCValues *valuePtr);
 /**
@@ -655,6 +693,9 @@ GC Rbc_GetPrivateGCFromDrawable(Display *display, Drawable drawable, unsigned lo
  *
  * Borrow display. Do not pass a Tk_GetGC cache reference or reuse the GC
  * after release. No resource-ownership tracking or NULL check is performed.
+ *
+ * @param[in] display Borrowed display that owns gc.
+ * @param[in] gc Owned non-NULL private GC consumed by XFreeGC; never a Tk GC-cache reference.
  */
 void Rbc_FreePrivateGC(Display *display, GC gc);
 /**
@@ -734,6 +775,15 @@ void Rbc_GetBoundingBox(int width, int height, double theta, double *widthPtr, d
 void Rbc_InitEpsCanvasItem(Tcl_Interp *interp);
 void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, int *transXPtr, int *transYPtr);
 Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor anchor);
+/**
+ * @brief Resolve a relative child path beneath a borrowed parent window.
+ *
+ * Returns a borrowed window or NULL when lookup fails. The root parent uses a
+ * single leading dot. No window is created or retained, and lookup has no result
+ * interpreter. A dotted relative name can resolve a deeper descendant.
+ * @param[in] parent Borrowed parent window, or NULL to return NULL immediately.
+ * @param[in] name Borrowed NUL-terminated relative child path, without a leading dot; not retained.
+ */
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
 /**
  * @brief Roll back options after validation of a successful Tk_SetOptions fails.
@@ -792,6 +842,9 @@ int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window pro
  * limit. Reserve four protocol words, convert to bytes and divide by elemSize.
  * Return zero for zero element size, unusable limits or multiplication overflow;
  * clamp the count to INT_MAX. Callers still own request batching and headers.
+ *
+ * @param[in] display Borrowed live display queried for the protocol request limit.
+ * @param[in] elemSize Bytes per element; zero returns zero rather than dividing.
  */
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
 Window Rbc_GetRealWindowId(Tk_Window tkwin);

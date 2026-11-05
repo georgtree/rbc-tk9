@@ -222,6 +222,16 @@ the existing cache and metric-based pruning; converted inputs still recover
 original indices and coordinates, including samples omitted from reduced symbols.</p>
 </section>
 </section>
+<section id="pixel-bucket-output-ownership">
+<h2>Pixel-bucket output ownership<a class="headerlink" href="#pixel-bucket-output-ownership" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="decimation-reference.html#c.BuildPixelDecimatedScreenPoints" title="BuildPixelDecimatedScreenPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildPixelDecimatedScreenPoints()</span></code></a> requires the caller to select an
+eligible real Cartesian element and its track viewport. It initializes an empty
+output and attempts to return representative mapped points, original indices
+and optional discontinuity flags. TRUE includes a successfully empty result;
+FALSE requests ordinary mapping after temporary allocations are released.
+Successful arrays transfer to the caller, which releases them with ckfree.
+Do not pass an output record still owning arrays.</p>
+</section>
 </section>
 
 
@@ -244,6 +254,7 @@ original indices and coordinates, including samples omitted from reduced symbols
 <li><a class="reference internal" href="#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
 </ul>

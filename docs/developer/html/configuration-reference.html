@@ -176,6 +176,24 @@ Resolves synonyms through their clientData canonical name. Use the same specific
 </dd></dl>
 
 </section>
+<section id="relative-child-lookup">
+<h2>Relative child lookup<a class="headerlink" href="#relative-child-lookup" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FindChild">
+<span class="target" id="rbc_int_8h_1a56c415d18257a124b035d29e06e67db4"></span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FindChild</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">parent</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FindChild" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a relative child path beneath a borrowed parent window. </p>
+<p>Returns a borrowed window or NULL when lookup fails. The root parent uses a single leading dot. No window is created or retained, and lookup has no result interpreter. A dotted relative name can resolve a deeper descendant. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> – <strong>[in]</strong> Borrowed parent window, or NULL to return NULL immediately. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed NUL-terminated relative child path, without a leading dot; not retained. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -202,6 +220,10 @@ Resolves synonyms through their clientData canonical name. Use the same specific
 <li><a class="reference internal" href="#c.Rbc_GetComponentOptionIndex"><code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentOptionIndex()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_GetComponentOptionInfo"><code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentOptionInfo()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_GetCanonicalOptionName"><code class="docutils literal notranslate"><span class="pre">Rbc_GetCanonicalOptionName()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#relative-child-lookup">Relative child lookup</a><ul>
+<li><a class="reference internal" href="#c.Rbc_FindChild"><code class="docutils literal notranslate"><span class="pre">Rbc_FindChild()</span></code></a></li>
 </ul>
 </li>
 </ul>

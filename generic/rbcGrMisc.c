@@ -242,32 +242,15 @@ static const char *ColorPairToString(ClientData clientData, Tk_Window tkwin, cha
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcGrMisc_internals
+ * @brief Read the padded mapping viewport as a clipping rectangle.
  *
- * Rbc_GraphExtents --
- *
- *      Generates a bounding box representing the plotting area of
- *      the graph. This data structure is used to clip the points and
- *      line segments of the line element.
- *
- *      The clip region is the plotting area plus such arbitrary extra
- *      space.  The reason we clip with a bounding box larger than the
- *      plot area is so that symbols will be drawn even if their center
- *      point isn't in the plotting area.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Extents2D *extsPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The bounding box is filled with the dimensions of the plotting
- *      area.
- *
- *----------------------------------------------------------------------
+ * For a scrolling active track, intersects the padded rectangle with its visible
+ * bounds. Does not install a renderer clip or normalize an empty intersection.
+ * @param[in] graphPtr Borrowed graph with current mapping offsets, ranges and padding; enter the owning track before
+ *   calling.
+ * @param[out] extsPtr Required output receiving double-precision screen-coordinate bounds.
  */
 void Rbc_GraphExtents(Graph *graphPtr, Extents2D *extsPtr) {
     extsPtr->left = (double)graphPtr->hOffset - (double)graphPtr->padX.side1;

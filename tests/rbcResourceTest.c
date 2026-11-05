@@ -91,6 +91,23 @@ static int ColorPairTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, 
     return TCL_OK;
 }
 
+/* Exercise the linked production helper; no copied path-construction logic. */
+static int FindChildTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tk_Window parent = NULL, child;
+    (void)data;
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "parent relativeName");
+        return TCL_ERROR;
+    }
+    if (Tcl_GetCharLength(objv[1]) > 0) {
+        parent = Tk_NameToWindow(interp, Tcl_GetString(objv[1]), Tk_MainWindow(interp));
+        if (parent == NULL) return TCL_ERROR;
+    }
+    child = Rbc_FindChild(parent, Tcl_GetString(objv[2]));
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(child == NULL ? "" : Tk_PathName(child), -1));
+    return TCL_OK;
+}
+
 static int ResourceTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     const char *op;
     Tk_Window window = Tk_MainWindow(interp);
@@ -283,6 +300,7 @@ DLLEXPORT int Rbcresourcetest_Init(Tcl_Interp *interp) {
         return TCL_ERROR;
     }
     Rbc_InitEpsCanvasItem(interp);
+    Tcl_CreateObjCommand2(interp, "::rbcfindchildtest", FindChildTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcpstexttest", PsTextTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcpsrastertest", PsRasterTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcpslinetest", PsLineTestCmd, NULL, NULL);

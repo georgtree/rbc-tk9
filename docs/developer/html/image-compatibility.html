@@ -145,6 +145,16 @@ not prove the client reference was released. Private-layout checks need the
 supported Tk versions and both native platforms; documentation generation
 cannot validate that ABI boundary.</p>
 </section>
+<section id="image-region-and-notification-arguments">
+<h2>Image region and notification arguments<a class="headerlink" href="#image-region-and-notification-arguments" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.Rbc_SetRegion" title="rbcImageStorage.Rbc_SetRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.Rbc_SetRegion()</span></code></a> writes inclusive integer endpoints:
+<code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">width</span> <span class="pre">-</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">bottom</span> <span class="pre">=</span> <span class="pre">y</span> <span class="pre">+</span> <span class="pre">height</span> <span class="pre">-</span> <span class="pre">1</span></code>. It checks endpoint
+overflow but does not normalize nonpositive sizes. Its returned pointer is the
+same caller-owned record.</p>
+<p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.TempImageChangedProc" title="rbcImageStorage.TempImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.TempImageChangedProc()</span></code></a> intentionally ignores every Tk
+notification argument. It neither dereferences client data nor schedules
+redraw; temporary-image owners manage updates themselves.</p>
+</section>
 </section>
 
 
@@ -165,6 +175,7 @@ cannot validate that ABI boundary.</p>
 <li><a class="reference internal" href="#callbacks-and-interpreter-state">Callbacks and interpreter state</a></li>
 <li><a class="reference internal" href="#private-cleanup-tests">Private cleanup tests</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+<li><a class="reference internal" href="#image-region-and-notification-arguments">Image region and notification arguments</a></li>
 </ul>
 </li>
 </ul>

@@ -34,6 +34,14 @@ int Rbc_ClampToInt(Tcl_WideInt value) {
 }
 
 #ifndef HAVE_STRTOLOWER
+/**
+ * @ingroup rbcUtil_internals
+ * @brief Lowercase a writable NUL-terminated byte string in place.
+ *
+ * This fallback does not perform Tcl Unicode case conversion or change byte length.
+ * @param[in,out] s Required writable byte string; each unsigned byte is converted with the current C locale tolower
+ *   mapping.
+ */
 void strtolower(register char *s) {
     while (*s != '\0') {
         *s = tolower(UCHAR(*s));

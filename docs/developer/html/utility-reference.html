@@ -218,6 +218,20 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
+<dt class="sig sig-object c" id="c.strtolower">
+<span class="target" id="group__rbc_util__internals_1ga8021fcf7265ca5b8ae631d17f31ba15b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strtolower</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">s</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.strtolower" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lowercase a writable NUL-terminated byte string in place. </p>
+<p>This fallback does not perform Tcl Unicode case conversion or change byte length. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> – <strong>[inout]</strong> Required writable byte string; each unsigned byte is converted with the current C locale tolower mapping. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DictionaryCompare">
 <span class="target" id="group__rbc_util__internals_1gaa7df6b97d37de13c623a91c199fe3bdc"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DictionaryCompare</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">left</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DictionaryCompare" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare names using numeric runs and case-insensitive Unicode letters. </p>
@@ -309,6 +323,7 @@
 <li><a class="reference internal" href="#c.Rbc_InitHexTable"><code class="docutils literal notranslate"><span class="pre">Rbc_InitHexTable()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_RandomDouble"><code class="docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a></li>
 <li><a class="reference internal" href="#ordering-stdio-and-fatal-diagnostics">Ordering, stdio and fatal diagnostics</a><ul>
+<li><a class="reference internal" href="#c.strtolower"><code class="docutils literal notranslate"><span class="pre">strtolower()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_DictionaryCompare"><code class="docutils literal notranslate"><span class="pre">Rbc_DictionaryCompare()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_Assert"><code class="docutils literal notranslate"><span class="pre">Rbc_Assert()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_Panic"><code class="docutils literal notranslate"><span class="pre">Rbc_Panic()</span></code></a></li>

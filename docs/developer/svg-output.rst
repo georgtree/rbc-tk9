@@ -168,7 +168,7 @@ attribute result is retained while interpreter state is restored. That restores
 the Tcl result, not widget lifetime: replacing the global font command with a
 mutating script is outside this helper's resource-lifetime guarantee.
 
-``Rbc_SvgFontsFinish`` runs after drawing has registered all used faces. It hashes
+:c:func:`Rbc_SvgFontsFinish` runs after drawing has registered all used faces. It hashes
 the current document and original font bytes into a deterministic family prefix,
 replaces temporary family attributes, and emits base64 Unicode font programs in
 CSS font-face definitions. This reduces family collisions between inline SVG
@@ -176,3 +176,11 @@ documents with different character maps; it is not a security hash or a general
 namespace for clip/pattern identifiers. The operation mutates the document buffer
 and belongs to one finalization pass. Font-program failure can leave partial
 output, which the outer export command must reject.
+
+Font-finalization failure boundary
+----------------------------------
+
+:c:func:`Rbc_SvgFontsFinish` runs once after text collection. Embedding-disabled
+output is unchanged. With embedding enabled, font names may already have been
+rewritten and definitions partly appended when font-program creation fails;
+discard that incomplete export rather than treating the operation as rollback.

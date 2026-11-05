@@ -2763,27 +2763,17 @@ int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceCo
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup image_storage_internals
+ * @brief Set inclusive integer bounds from an origin and size.
  *
- * Rbc_SetRegion --
- *
- *      TODO: Description
- *
- * Parameters:
- *      int x
- *      int y
- *      int width
- *      int height
- *      Region2D *regionPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Computes endpoints in wide arithmetic and panics if either cannot fit int.
+ * Does not normalize nonpositive sizes or allocate a region.
+ * @param[in] x Left coordinate in pixels.
+ * @param[in] y Top coordinate in pixels.
+ * @param[in] width Pixel width; right is x+width-1. Positive sizes describe a nonempty region.
+ * @param[in] height Pixel height; bottom is y+height-1.
+ * @param[out] regionPtr Required caller-owned region record, also returned by the function.
  */
 Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr) {
     regionPtr->left = x;
@@ -3011,32 +3001,18 @@ GC Tk_ImageGetPhotoGC(Tk_Image photoImage) {
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup image_storage_internals
+ * @brief Ignore notifications from the internally managed temporary photo.
  *
- * TempImageChangedProc
- *
- *      The image is over-written each time it's resized.  We always
- *      resample from the color image we saved when the photo image
- *      was specified (-image option). So we only worry if the image
- *      is deleted.
- *
- * Parameters:
- *      ClientData clientData
- *      int x - Not used.
- *      int y - Not used.
- *      int width - Not used.
- *      int height - Not used.
- *      int imageWidth - Not used.
- *      int imageHeight - Not used.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * This callback does not schedule redraw, retain data or release the image token.
+ * @param[in] clientData Caller-supplied callback data; unused and not dereferenced.
+ * @param[in] x Changed image rectangle X origin; unused.
+ * @param[in] y Changed image rectangle Y origin; unused.
+ * @param[in] width Changed rectangle width; unused.
+ * @param[in] height Changed rectangle height; unused.
+ * @param[in] imageWidth Current complete image width; unused.
+ * @param[in] imageHeight Current complete image height; unused.
  */
 static void TempImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                                  int imageHeight) {

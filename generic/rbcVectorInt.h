@@ -508,6 +508,9 @@ typedef double(ScalarProc)(VectorObject *vPtr);
  * nonfinite values, stores the result in the min cache and returns it. Empty
  * or entirely nonfinite input returns NaN. Does not update extrema indices,
  * clear cache-invalid flags, allocate storage or send notifications.
+ *
+ * @param[in,out] vecPtr Borrowed live real vector; reads its complete value array and overwrites the corresponding
+ *   extrema cache.
  */
 double Rbc_VecMin(Rbc_Vector *vecPtr);
 /**
@@ -518,6 +521,9 @@ double Rbc_VecMin(Rbc_Vector *vecPtr);
  * nonfinite values, stores the result in the max cache and returns it. Empty
  * or entirely nonfinite input returns NaN. Does not update extrema indices,
  * clear cache-invalid flags, allocate storage or send notifications.
+ *
+ * @param[in,out] vecPtr Borrowed live real vector; reads its complete value array and overwrites the corresponding
+ *   extrema cache.
  */
 double Rbc_VecMax(Rbc_Vector *vecPtr);
 /**

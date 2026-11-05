@@ -119,3 +119,14 @@ reconfiguration. Review custom option set, restore and free procedures together:
 they form one ownership protocol. Existing tests should cover rejected values
 without losing the previous live configuration, resource-database defaults,
 metadata consistency and destruction after partial setup.
+
+Root and nested child lookup
+----------------------------
+
+:c:func:`Rbc_FindChild` joins a relative child name to a borrowed parent path.
+The root parent ``.`` needs no extra separator: ``child`` resolves to ``.child``.
+Other parents add one dot; ``.container`` plus ``child`` resolves to
+``.container.child``. Dotted relative names can select descendants. Missing
+windows and a NULL parent return NULL; successful results remain Tk-owned.
+This also preserves the real-child path used by
+:c:func:`Rbc_InitComponentOptions` before its anonymous proxy fallback.

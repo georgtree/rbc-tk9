@@ -177,6 +177,12 @@ cleanup paths. The assertion function is compiled only in non-NDEBUG builds.
 Do not use either for expected malformed user input; that belongs in a
 recoverable parser with a diagnostic and explicit cleanup.</p>
 </section>
+<section id="byte-string-case-conversion">
+<h2>Byte-string case conversion<a class="headerlink" href="#byte-string-case-conversion" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="utility-reference.html#c.strtolower" title="strtolower"><code class="xref c c-func docutils literal notranslate"><span class="pre">strtolower()</span></code></a> is a platform fallback for a writable NUL-terminated byte
+string. It uses the C locale’s unsigned-byte case mapping in place; it is not
+Tcl Unicode conversion and does not allocate a replacement string.</p>
+</section>
 </section>
 
 
@@ -196,6 +202,7 @@ recoverable parser with a diagnostic and explicit cleanup.</p>
 <li><a class="reference internal" href="#other-utility-boundaries">Other utility boundaries</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#dictionary-ordering-and-fatal-diagnostics">Dictionary ordering and fatal diagnostics</a></li>
+<li><a class="reference internal" href="#byte-string-case-conversion">Byte-string case conversion</a></li>
 </ul>
 </li>
 </ul>

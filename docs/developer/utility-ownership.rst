@@ -138,3 +138,10 @@ abort, rather than returning TCL_ERROR or invoking the ordinary ownership
 cleanup paths. The assertion function is compiled only in non-NDEBUG builds.
 Do not use either for expected malformed user input; that belongs in a
 recoverable parser with a diagnostic and explicit cleanup.
+
+Byte-string case conversion
+----------------------------
+
+:c:func:`strtolower` is a platform fallback for a writable NUL-terminated byte
+string. It uses the C locale's unsigned-byte case mapping in place; it is not
+Tcl Unicode conversion and does not allocate a replacement string.

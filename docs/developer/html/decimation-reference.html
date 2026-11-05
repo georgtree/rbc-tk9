@@ -104,6 +104,22 @@ Exact Y changes rebuild affected summaries; X changes invalidate ordering. Growt
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.BuildPixelDecimatedScreenPoints">
+<span class="target" id="group__line__decimation_1gab1f1c4c96cc95f51e943b53c04568e8b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BuildPixelDecimatedScreenPoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BuildPixelDecimatedScreenPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map representative points from pixel buckets into an owned screen buffer. </p>
+<p>Returns TRUE for completed mapping, including empty output. Returns FALSE when capacity, allocation or source-order constraints require the ordinary mapper. Initializes output pointers/count to empty and releases temporary allocations on fallback. Successful arrays transfer to the caller for ckfree cleanup; source vectors are not modified. Buckets preserve first/minimum/maximum/last indices. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current axis mapping and the owning track viewport selected. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed eligible real Cartesian line element; caller checks fast-path applicability before entry. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[out]</strong> Required output with no owned screen arrays on entry; receives owned points, original indices and an optional break array. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.BuildCachedPixelDecimatedScreenPoints">
 <span class="target" id="group__line__decimation_1gab40fc32ca92a9381e432bd60982fedbc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BuildCachedPixelDecimatedScreenPoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BuildCachedPixelDecimatedScreenPoints" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build reduced mapped geometry from source-domain summaries. </p>
@@ -411,6 +427,7 @@ complete mappings. The namespace is documentation-only.</p>
 <li><a class="reference internal" href="#c.CanPixelDecimateLine"><code class="docutils literal notranslate"><span class="pre">CanPixelDecimateLine()</span></code></a></li>
 <li><a class="reference internal" href="#c.LineNeedsPixelDecimation"><code class="docutils literal notranslate"><span class="pre">LineNeedsPixelDecimation()</span></code></a></li>
 <li><a class="reference internal" href="#c.RefreshLineDecimateCache"><code class="docutils literal notranslate"><span class="pre">RefreshLineDecimateCache()</span></code></a></li>
+<li><a class="reference internal" href="#c.BuildPixelDecimatedScreenPoints"><code class="docutils literal notranslate"><span class="pre">BuildPixelDecimatedScreenPoints()</span></code></a></li>
 <li><a class="reference internal" href="#c.BuildCachedPixelDecimatedScreenPoints"><code class="docutils literal notranslate"><span class="pre">BuildCachedPixelDecimatedScreenPoints()</span></code></a></li>
 <li><a class="reference internal" href="#c.DecimatePointsByPixels"><code class="docutils literal notranslate"><span class="pre">DecimatePointsByPixels()</span></code></a></li>
 <li><a class="reference internal" href="#source-summaries-and-bucket-searches">Source summaries and bucket searches</a><ul>

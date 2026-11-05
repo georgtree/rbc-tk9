@@ -274,6 +274,18 @@ eight- and ten-bit channels at multiple bit positions. These X11-only cases use
 the actual mask helper and do not require a 30-bit display server. They run in
 the existing photo test file and skip on Windows; the public C API is unchanged.</p>
 </section>
+<section id="x11-capture-and-opacity-mask-inputs">
+<h2>X11 capture and opacity-mask inputs<a class="headerlink" href="#x11-capture-and-opacity-mask-inputs" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_DrawableToColorImage" title="rbcX11Image.Rbc_DrawableToColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_DrawableToColorImage()</span></code></a> borrows a compatible window and
+drawable, captures the complete requested rectangle and returns owned opaque
+RGBA storage. Width, height and gamma must be positive, with finite gamma.
+Release successful output with <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
+<p><a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_PhotoImageMask" title="rbcX11Image.Rbc_PhotoImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_PhotoImageMask()</span></code></a> reads a supplied photo block, including
+its stride and alpha offset. <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_ColorImageMask" title="rbcX11Image.Rbc_ColorImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_ColorImageMask()</span></code></a> reads RBC
+RGBA pixels. Both treat zero alpha as transparent and nonzero alpha as opaque.
+On X11, fully opaque input returns None; otherwise the returned bitmap belongs
+to the caller and requires Tk_FreePixmap.</p>
+</section>
 </section>
 
 
@@ -295,6 +307,7 @@ the existing photo test file and skip on Windows; the public C API is unchanged.
 <li><a class="reference internal" href="#failure-and-platform-differences">Failure and platform differences</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#x11-capture-dimensions-and-visual-channels">X11 capture dimensions and visual channels</a></li>
+<li><a class="reference internal" href="#x11-capture-and-opacity-mask-inputs">X11 capture and opacity-mask inputs</a></li>
 </ul>
 </li>
 </ul>

@@ -49,42 +49,101 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.Rbc_GetPrivateGC">
 <span class="target" id="rbc_int_8h_1a951ec6fd067f78c5ab360508da919c0e"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPrivateGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="n"><span class="pre">gcMask</span></span>, <span class="n"><span class="pre">XGCValues</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPrivateGC" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an unshared GC compatible with a Tk window depth. </p>
-<p>Borrow tkwin and XGCValues. For an unrealized window use the root drawable at matching depth, otherwise a temporary 1x1 pixmap. Release that temporary pixmap before returning. The caller owns the GC and must use <a class="reference internal" href="#rbc_int_8h_1a569f02c16274d93b31e193f6df872158"><span class="std std-ref">Rbc_FreePrivateGC()</span></a>, not Tk_FreeGC(). Does not force window realization. </p>
+<p>Borrow tkwin and XGCValues. For an unrealized window use the root drawable at matching depth, otherwise a temporary 1x1 pixmap. Release that temporary pixmap before returning. The caller owns the GC and must use <a class="reference internal" href="#rbc_int_8h_1a569f02c16274d93b31e193f6df872158"><span class="std std-ref">Rbc_FreePrivateGC()</span></a>, not Tk_FreeGC(). Does not force window realization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed Tk window supplying screen and depth; need not be realized. </p></li>
+<li><p><strong>gcMask</strong> – <strong>[in]</strong> XCreateGC mask selecting the fields to read from valuePtr. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[in]</strong> Borrowed XGCValues with all mask-selected fields initialized. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetPrivateGCFromDrawable">
 <span class="target" id="rbc_int_8h_1aaf47b731b33514877456cd51ecfe51ac"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPrivateGCFromDrawable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="n"><span class="pre">gcMask</span></span>, <span class="n"><span class="pre">XGCValues</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPrivateGCFromDrawable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an unshared GC using a borrowed compatible drawable. </p>
-<p>Pass gcMask and valuePtr to XCreateGC. The caller owns the returned GC; release it with <a class="reference internal" href="#rbc_int_8h_1a569f02c16274d93b31e193f6df872158"><span class="std std-ref">Rbc_FreePrivateGC()</span></a>. No Tk GC-cache reference is created. </p>
+<p>Pass gcMask and valuePtr to XCreateGC. The caller owns the returned GC; release it with <a class="reference internal" href="#rbc_int_8h_1a569f02c16274d93b31e193f6df872158"><span class="std std-ref">Rbc_FreePrivateGC()</span></a>. No Tk GC-cache reference is created.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning drawable. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed valid drawable supplying GC depth compatibility. </p></li>
+<li><p><strong>gcMask</strong> – <strong>[in]</strong> XCreateGC mask selecting fields in valuePtr. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[in]</strong> Borrowed XGCValues with all selected fields initialized. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreePrivateGC">
 <span class="target" id="rbc_int_8h_1a569f02c16274d93b31e193f6df872158"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePrivateGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePrivateGC" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a non-NULL private GC with XFreeGC. </p>
-<p>Borrow display. Do not pass a Tk_GetGC cache reference or reuse the GC after release. No resource-ownership tracking or NULL check is performed. </p>
+<p>Borrow display. Do not pass a Tk_GetGC cache reference or reuse the GC after release. No resource-ownership tracking or NULL check is performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display that owns gc. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Owned non-NULL private GC consumed by XFreeGC; never a Tk GC-cache reference. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SetDashes">
 <span class="target" id="rbc_int_8h_1a9048afa1583009f3e54722d80049833e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetDashes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetDashes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Set dash bytes and offset on a caller-mutable GC. </p>
-<p>Read at most RBC_MAX_DASH_VALUES bytes, stopping at zero, and call XSetDashes. Borrow the descriptor; do not alter a shared Tk GC unless its owner explicitly permits mutation. This helper does not select the GC line style. </p>
+<p>Read at most RBC_MAX_DASH_VALUES bytes, stopping at zero, and call XSetDashes. Borrow the descriptor; do not alter a shared Tk GC unless its owner explicitly permits mutation. This helper does not select the GC line style.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning gc. </p></li>
+<li><p><strong>gc</strong> – <strong>[inout]</strong> Caller-mutable GC receiving dash bytes and offset; ownership is unchanged. </p></li>
+<li><p><strong>dashesPtr</strong> – <strong>[in]</strong> Borrowed dash descriptor with a readable RBC_MAX_DASH_VALUES array and pixel offset. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_MaxRequestSize">
 <span class="target" id="rbc_int_8h_1aeb5db42358b4e98eba0999dabd8949c0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MaxRequestSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">elemSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MaxRequestSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Estimate how many elemSize-byte records fit in an X request. </p>
-<p>Use the extended limit when supported and nonzero, otherwise the ordinary limit. Reserve four protocol words, convert to bytes and divide by elemSize. Return zero for zero element size, unusable limits or multiplication overflow; clamp the count to INT_MAX. Callers still own request batching and headers. </p>
+<p>Use the extended limit when supported and nonzero, otherwise the ordinary limit. Reserve four protocol words, convert to bytes and divide by elemSize. Return zero for zero element size, unusable limits or multiplication overflow; clamp the count to INT_MAX. Callers still own request batching and headers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed live display queried for the protocol request limit. </p></li>
+<li><p><strong>elemSize</strong> – <strong>[in]</strong> Bytes per element; zero returns zero rather than dividing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_Draw3DRectangle">
 <span class="target" id="rbc_int_8h_1a48779938d3d96544a1d650986888ecbc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Draw3DRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Draw3DRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw the legacy RBC native relief border inside a rectangle. </p>
-<p>Borrow window, drawable and border. For raised/sunken borders wider than one pixel and dimensions above two, draw an outer edge before delegating the inset to Tk_Draw3DRectangle. Edge GCs differ between X11 and Windows. This shared Tk utility does not establish a graph renderer context or clipping region. </p>
+<p>Borrow window, drawable and border. For raised/sunken borders wider than one pixel and dimensions above two, draw an outer edge before delegating the inset to Tk_Draw3DRectangle. Edge GCs differ between X11 and Windows. This shared Tk utility does not establish a graph renderer context or clipping region.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed Tk window supplying display and compatible resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed Tk border supplying relief colors. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Rectangle left edge in drawable pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Rectangle top edge in drawable pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in pixels. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Requested border thickness in pixels. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief selector passed through to native/Tk border drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -201,6 +260,23 @@ These are private implementation interfaces.</p>
 <p>The Windows handle lookup is extracted separately in
 <a class="reference internal" href="native-windows-reference.html"><span class="doc">Windows native backend C reference</span></a>.</p>
 </section>
+<section id="native-stroke-setup">
+<h2>Native stroke setup<a class="headerlink" href="#native-stroke-setup" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_NativeLineWidth">
+<span class="target" id="rbc_int_8h_1a0bd6453192b5301e814b5980de0a3221"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeLineWidth</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativeLineWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert integer width to the native thin-line convention. </p>
+<p>Returns a native GC line width. Does not convert physical units or mutate a GC. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> – <strong>[in]</strong> Requested integer width; values at most one map to zero, larger values are unchanged. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -228,6 +304,10 @@ These are private implementation interfaces.</p>
 <li><a class="reference internal" href="#c.rbcWindowHelpers.rbcGetParent"><code class="docutils literal notranslate"><span class="pre">rbcGetParent()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowHelpers.GetWindowId"><code class="docutils literal notranslate"><span class="pre">GetWindowId()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowHelpers.AssocDataCleanup"><code class="docutils literal notranslate"><span class="pre">AssocDataCleanup()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#native-stroke-setup">Native stroke setup</a><ul>
+<li><a class="reference internal" href="#c.Rbc_NativeLineWidth"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeLineWidth()</span></code></a></li>
 </ul>
 </li>
 </ul>

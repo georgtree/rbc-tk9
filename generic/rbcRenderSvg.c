@@ -920,9 +920,17 @@ static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
 }
 
 /* Preserve Tk layout and baseline positions while keeping SVG text editable. */
-/* Define document-local webfonts after collecting the used fallback faces.
- * Hash the text document so inline SVG documents do not share incompatible
- * character maps merely because their font resource numbers happen to match. */
+/**
+ * @ingroup svg_backend
+ * @brief Finalize document-local embedded SVG font definitions.
+ *
+ * Returns TCL_OK immediately when embedding is disabled. Otherwise renames font
+ * references using a content hash and appends font programs in a style definition.
+ * Returns TCL_ERROR on font-program failure; discard the incomplete export. Call
+ * once after text collection and before closing the SVG document.
+ * @param[in,out] token Borrowed SVG export context with its body buffer and collected fallback faces; may be
+ *   partially modified on failure.
+ */
 int Rbc_SvgFontsFinish(Rbc_ExportContext *token) {
     Rbc_ExportFont *font;
     const unsigned char *bytes = (const unsigned char *)Tcl_DStringValue(token->buffer);

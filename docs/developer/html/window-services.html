@@ -168,6 +168,19 @@ payload replacement, repeated deletion and the X11 parent-query fallback. The
 private harness injects parent-query failure only on X11; other tests also run
 on Windows. Ordinary suite runs skip it unless RBC_RESOURCE_TEST_LIB is set.</p>
 </section>
+<section id="resource-and-stroke-argument-boundaries">
+<h2>Resource and stroke argument boundaries<a class="headerlink" href="#resource-and-stroke-argument-boundaries" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGC" title="Rbc_GetPrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGC()</span></code></a> and <a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGCFromDrawable" title="Rbc_GetPrivateGCFromDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGCFromDrawable()</span></code></a> create
+uncached, caller-owned GCs. Their value masks select which XGCValues fields
+must be initialized. Release these GCs with <a class="reference internal" href="window-service-reference.html#c.Rbc_FreePrivateGC" title="Rbc_FreePrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePrivateGC()</span></code></a>;
+a cached Tk GC is a different ownership contract.</p>
+<p><a class="reference internal" href="window-service-reference.html#c.Rbc_NativeLineWidth" title="Rbc_NativeLineWidth"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NativeLineWidth()</span></code></a> maps widths at most one to the native zero-width
+representation. <a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a> changes dash bytes and offset on a
+caller-mutable GC without choosing its line style.
+<a class="reference internal" href="window-service-reference.html#c.Rbc_MaxRequestSize" title="Rbc_MaxRequestSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MaxRequestSize()</span></code></a> returns a record count, using a byte size per record,
+not a byte allocation size. <a class="reference internal" href="window-service-reference.html#c.Rbc_Draw3DRectangle" title="Rbc_Draw3DRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Draw3DRectangle()</span></code></a> takes drawable pixel
+coordinates and preserves the native relief border policy.</p>
+</section>
 </section>
 
 
@@ -187,6 +200,7 @@ on Windows. Ordinary suite runs skip it unless RBC_RESOURCE_TEST_LIB is set.</p>
 <li><a class="reference internal" href="#window-instance-associations">Window instance associations</a></li>
 <li><a class="reference internal" href="#identifier-and-table-lifetime-details">Identifier and table lifetime details</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+<li><a class="reference internal" href="#resource-and-stroke-argument-boundaries">Resource and stroke argument boundaries</a></li>
 </ul>
 </li>
 </ul>

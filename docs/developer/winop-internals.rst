@@ -149,3 +149,10 @@ Check direct and nested dispatch separately, invalid kernels and regions,
 source/destination dimensions, and toplevel snapshots on both platforms.
 These tests need a Tk display. Pixel algorithms alone cannot validate native
 capture, wrapper handling or photo client notifications.
+
+Command registration
+--------------------
+
+:c:func:`Rbc_WinopInit` registers the static dispatcher on an interpreter with
+Tk and the RBC namespace initialized. It creates no window and installs no
+client-data ownership or deletion callback.

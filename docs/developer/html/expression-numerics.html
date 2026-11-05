@@ -258,6 +258,13 @@ double without converting to an integer, and <a class="reference internal" href=
 a floor-based remainder with a zero-divisor result of zero. These names must
 not be treated as aliases for the corresponding C library routines.</p>
 </section>
+<section id="full-storage-extrema-inputs">
+<h2>Full-storage extrema inputs<a class="headerlink" href="#full-storage-extrema-inputs" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMin" title="Rbc_VecMin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMin()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMax" title="Rbc_VecMax"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMax()</span></code></a> require real vector storage and
+scan the complete array, ignoring the current first/last selection. They update
+the corresponding scalar cache but do not publish notifications, update extrema
+indices or clear invalidation flags. Empty or wholly nonfinite input returns NaN.</p>
+</section>
 </section>
 
 
@@ -278,6 +285,7 @@ not be treated as aliases for the corresponding C library routines.</p>
 <li><a class="reference internal" href="#complex-elementary-functions">Complex elementary functions</a></li>
 <li><a class="reference internal" href="#scalar-ownership-and-dispatch">Scalar ownership and dispatch</a></li>
 <li><a class="reference internal" href="#return-values-and-mutation-boundaries">Return values and mutation boundaries</a></li>
+<li><a class="reference internal" href="#full-storage-extrema-inputs">Full-storage extrema inputs</a></li>
 </ul>
 </li>
 </ul>

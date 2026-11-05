@@ -192,40 +192,19 @@ static int XGetImageErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     return 0;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup x11_image_helpers
+ * @brief Capture a compatible X drawable into owned RGBA pixels.
  *
- * Rbc_DrawableToColorImage --
- *
- *      Takes a snapshot of an X drawable (pixmap or window) and
- *    converts it to a color image.
- *
- *    The trick here is to efficiently convert the pixel values
- *    (indices into the color table) into RGB color values.  In the
- *    days of 8-bit displays, it was simpler to get RGB values for
- *    all 256 indices into the colormap.  Instead we'll build a
- *    hashtable of unique pixels and from that an array of pixels to
- *    pass to XQueryColors.  For TrueColor visuals, we'll simple
- *    compute the colors from the pixel.
- *
- *    [I don't know how much faster it would be to take advantage
- *    of all the different visual types.  This pretty much depends
- *    on the size of the image and the number of colors it uses.]
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      register int x - -
- *      register int y - Offset of image from the drawable's origin.
- *      int width - -
- *      int height - Dimension of the image.  Image must be completely contained by the drawable.
- *      double inputGamma
- *
- * Results:
- *      Returns a color image of the drawable.  If an error occurred,
- *    NULL is returned.
- *
- *----------------------------------------------------------------------
+ * Returns an owned color image released with Rbc_FreeColorImage, or NULL when
+ * capture fails. Output alpha is opaque. Does not own or alter the drawable.
+ * @param[in] tkwin Borrowed Tk window supplying display, visual and colormap compatible with drawable.
+ * @param[in] drawable Borrowed readable X drawable containing the entire requested rectangle.
+ * @param[in] x Source rectangle left coordinate in drawable pixels.
+ * @param[in] y Source rectangle top coordinate in drawable pixels.
+ * @param[in] width Positive source width in pixels; nonpositive values return NULL.
+ * @param[in] height Positive source height in pixels; nonpositive values return NULL.
+ * @param[in] inputGamma Finite positive input gamma used for channel conversion; invalid values return NULL.
  */
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, register int x, register int y, int width,
                                         int height, double inputGamma) {
@@ -364,6 +343,17 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
     return image;
 }
 
+/**
+ * @ingroup x11_image_helpers
+ * @brief Build an X11 one-bit opacity mask when transparent pixels exist.
+ *
+ * Returns an owned pixmap released with Tk_FreePixmap, or None for fully opaque
+ * input. Alpha zero clears a mask bit; any nonzero alpha sets it. Source pixels
+ * are read without modification.
+ * @param[in] tkwin Borrowed Tk window supplying the bitmap display; realized only when a mask is needed.
+ * @param[in] src Borrowed photo block with positive dimensions, valid pixel storage, pitch, pixelSize and a readable
+ *   alpha offset.
+ */
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     Pixmap bitmap;
     size_t bytesPerLine;
@@ -415,6 +405,16 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     return bitmap;
 }
 
+/**
+ * @ingroup x11_image_helpers
+ * @brief Build an X11 one-bit opacity mask when transparent pixels exist.
+ *
+ * Returns an owned pixmap released with Tk_FreePixmap, or None for fully opaque
+ * input. Alpha zero clears a mask bit; any nonzero alpha sets it. Source pixels
+ * are read without modification.
+ * @param[in] tkwin Borrowed Tk window supplying the bitmap display; realized only when a mask is needed.
+ * @param[in] image Borrowed color image with valid dimensions and RGBA storage.
+ */
 Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     Pixmap bitmap;
     size_t bytesPerLine;

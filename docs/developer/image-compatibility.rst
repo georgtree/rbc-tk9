@@ -118,3 +118,15 @@ both image names and retained instances: removing a registry name alone does
 not prove the client reference was released. Private-layout checks need the
 supported Tk versions and both native platforms; documentation generation
 cannot validate that ABI boundary.
+
+Image region and notification arguments
+---------------------------------------
+
+:c:func:`rbcImageStorage.Rbc_SetRegion` writes inclusive integer endpoints:
+``right = x + width - 1`` and ``bottom = y + height - 1``. It checks endpoint
+overflow but does not normalize nonpositive sizes. Its returned pointer is the
+same caller-owned record.
+
+:c:func:`rbcImageStorage.TempImageChangedProc` intentionally ignores every Tk
+notification argument. It neither dereferences client data nor schedules
+redraw; temporary-image owners manage updates themselves.

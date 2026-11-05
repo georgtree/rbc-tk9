@@ -195,3 +195,14 @@ samples. Their lengths can also be shorter than the complex point count.
 The cache gate runs before inspecting those arrays. Cartesian X/Y inputs retain
 the existing cache and metric-based pruning; converted inputs still recover
 original indices and coordinates, including samples omitted from reduced symbols.
+
+Pixel-bucket output ownership
+-----------------------------
+
+:c:func:`BuildPixelDecimatedScreenPoints` requires the caller to select an
+eligible real Cartesian element and its track viewport. It initializes an empty
+output and attempts to return representative mapped points, original indices
+and optional discontinuity flags. TRUE includes a successfully empty result;
+FALSE requests ordinary mapping after temporary allocations are released.
+Successful arrays transfer to the caller, which releases them with ckfree.
+Do not pass an output record still owning arrays.

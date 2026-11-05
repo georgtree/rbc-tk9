@@ -437,6 +437,20 @@ These are private implementation interfaces.</p>
 </dl>
 </dd></dl>
 
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_WinopInit">
+<span class="target" id="group__winop__commands_1gad0c8c024b7c60bed50230c95701cbb50"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinopInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_WinopInit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Register the rbc::winop Tcl object command. </p>
+<p>Returns TCL_OK. Registers the static dispatcher without client data or a delete callback; does not create a window. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter with the RBC namespace and Tk initialized; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </dd></dl>
 
@@ -476,6 +490,7 @@ These are private implementation interfaces.</p>
 <li><a class="reference internal" href="#c.SubsampleOp"><code class="docutils literal notranslate"><span class="pre">SubsampleOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.ImageOp"><code class="docutils literal notranslate"><span class="pre">ImageOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.WinopCmd"><code class="docutils literal notranslate"><span class="pre">WinopCmd()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_WinopInit"><code class="docutils literal notranslate"><span class="pre">Rbc_WinopInit()</span></code></a></li>
 </ul>
 </li>
 </ul>

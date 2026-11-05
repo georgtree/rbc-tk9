@@ -105,6 +105,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="decimation-reference.html#c.BuildCachedPixelDecimatedScreenPoints">BuildCachedPixelDecimatedScreenPoints (C function)</a>
 </li>
+      <li><a href="decimation-reference.html#c.BuildPixelDecimatedScreenPoints">BuildPixelDecimatedScreenPoints (C function)</a>
+</li>
       <li><a href="vector-storage-private-reference.html#c.BuildQualifiedName">BuildQualifiedName (C function)</a>
 </li>
   </ul></td>
@@ -1061,6 +1063,8 @@
 </li>
       <li><a href="postscript-reference.html#c.Rbc_FileToPostScript">Rbc_FileToPostScript (C function)</a>
 </li>
+      <li><a href="configuration-reference.html#c.Rbc_FindChild">Rbc_FindChild (C function)</a>
+</li>
       <li><a href="track-reference.html#c.Rbc_FindTrack">Rbc_FindTrack (C function)</a>
 </li>
       <li><a href="utility-reference.html#c.Rbc_FindUid">Rbc_FindUid (C function)</a>
@@ -1187,6 +1191,8 @@
 </li>
       <li><a href="export-reference.html#c.Rbc_GraphExportOp">Rbc_GraphExportOp (C function)</a>
 </li>
+      <li><a href="value-reference.html#c.Rbc_GraphExtents">Rbc_GraphExtents (C function)</a>
+</li>
       <li><a href="grid-reference.html#c.Rbc_GridExport">Rbc_GridExport (C function)</a>
 </li>
       <li><a href="mapping-reference.html#c.Rbc_HMap">Rbc_HMap (C function)</a>
@@ -1280,6 +1286,8 @@
       <li><a href="native-reference.html#c.Rbc_NativeCreateClip">Rbc_NativeCreateClip (C function)</a>
 </li>
       <li><a href="native-reference.html#c.Rbc_NativeDestroyClip">Rbc_NativeDestroyClip (C function)</a>
+</li>
+      <li><a href="window-service-reference.html#c.Rbc_NativeLineWidth">Rbc_NativeLineWidth (C function)</a>
 </li>
       <li><a href="native-reference.html#c.Rbc_NativePopClip">Rbc_NativePopClip (C function)</a>
 </li>
@@ -1693,6 +1701,8 @@
 </li>
       <li><a href="pen-reference.html#c.Rbc_StyleMap">Rbc_StyleMap (C function)</a>
 </li>
+      <li><a href="svg-reference.html#c.Rbc_SvgFontsFinish">Rbc_SvgFontsFinish (C function)</a>
+</li>
       <li><a href="element-reference.html#c.Rbc_SyncElemDataOptionObjects">Rbc_SyncElemDataOptionObjects (C function)</a>
 </li>
       <li><a href="image-tile-reference.html#c.Rbc_TilePolygon">Rbc_TilePolygon (C function)</a>
@@ -1810,6 +1820,8 @@
       <li><a href="fft-reference.html#c.Rbc_VectorWindowOp">Rbc_VectorWindowOp (C function)</a>
 </li>
       <li><a href="mapping-reference.html#c.Rbc_VMap">Rbc_VMap (C function)</a>
+</li>
+      <li><a href="winop-reference.html#c.Rbc_WinopInit">Rbc_WinopInit (C function)</a>
 </li>
       <li><a href="utility-reference.html#c.RbcCalloc">RbcCalloc (C function)</a>
 </li>
@@ -3381,6 +3393,10 @@
 </li>
       <li><a href="image-tile-reference.html#c.rbcImageStorage.Rbc_GammaCorrectColorImage">rbcImageStorage.Rbc_GammaCorrectColorImage (C function)</a>
 </li>
+      <li><a href="image-tile-reference.html#c.rbcImageStorage.Rbc_SetRegion">rbcImageStorage.Rbc_SetRegion (C function)</a>
+</li>
+      <li><a href="image-tile-reference.html#c.rbcImageStorage.TempImageChangedProc">rbcImageStorage.TempImageChangedProc (C function)</a>
+</li>
       <li><a href="initialization-reference.html#c.rbcInitialization.FreeInitData">rbcInitialization.FreeInitData (C function)</a>
 </li>
       <li><a href="initialization-reference.html#c.rbcInitialization.InitPackageStubs">rbcInitialization.InitPackageStubs (C function)</a>
@@ -3943,6 +3959,12 @@
 </li>
       <li><a href="image-transform-reference.html#c.rbcX11Image.GetUnixImagePixelCount">rbcX11Image.GetUnixImagePixelCount (C function)</a>
 </li>
+      <li><a href="image-transform-reference.html#c.rbcX11Image.Rbc_ColorImageMask">rbcX11Image.Rbc_ColorImageMask (C function)</a>
+</li>
+      <li><a href="image-transform-reference.html#c.rbcX11Image.Rbc_DrawableToColorImage">rbcX11Image.Rbc_DrawableToColorImage (C function)</a>
+</li>
+      <li><a href="image-transform-reference.html#c.rbcX11Image.Rbc_PhotoImageMask">rbcX11Image.Rbc_PhotoImageMask (C function)</a>
+</li>
       <li><a href="image-transform-reference.html#c.rbcX11Image.ShiftCount">rbcX11Image.ShiftCount (C function)</a>
 </li>
       <li><a href="image-transform-reference.html#c.rbcX11Image.XGetImageErrorProc">rbcX11Image.XGetImageErrorProc (C function)</a>
@@ -4073,10 +4095,10 @@
 </li>
       <li><a href="element-reference.html#c.StageElemTags">StageElemTags (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="expression-numerics-reference.html#c.StdDeviation">StdDeviation (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="value-reference.html#c.StringToColorPair">StringToColorPair (C function)</a>
 </li>
       <li><a href="value-reference.html#c.StringToDistance">StringToDistance (C function)</a>
@@ -4086,6 +4108,8 @@
       <li><a href="winop-reference.html#c.StringToWindow">StringToWindow (C function)</a>
 </li>
       <li><a href="cairo-reference.html#c.StrokeRenderPath">StrokeRenderPath (C function)</a>
+</li>
+      <li><a href="utility-reference.html#c.strtolower">strtolower (C function)</a>
 </li>
       <li><a href="winop-reference.html#c.SubsampleOp">SubsampleOp (C function)</a>
 </li>

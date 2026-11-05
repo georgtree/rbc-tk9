@@ -60,6 +60,25 @@ namespace eval resources.lifecycle {
             } -result $expected
     }
 
+    foreach {case parent name expected} {
+        1 . resourceChild .resourceChild
+        2 .resourceChild nested .resourceChild.nested
+        3 . resourceChild.nested .resourceChild.nested
+        4 . __rbc_missing_child__ {}
+        5 .resourceChild __rbc_missing_child__ {}
+        6 {} resourceChild {}
+    } {
+        test RBC.resources.lifecycle.A.4.$case {relative child lookup handles root, nested and absent windows} \
+            -constraints resourceHarness -setup {
+                frame .resourceChild
+                frame .resourceChild.nested
+            } -body {
+                ::rbcfindchildtest $parent $name
+            } -cleanup {
+                destroy .resourceChild
+            } -result $expected
+    }
+
 }
 cleanupTests
 if {$resourceAvailable} {destroy .}

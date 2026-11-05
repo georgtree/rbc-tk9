@@ -131,3 +131,18 @@ renderer changes also need the appropriate component drawing tests.
 payload replacement, repeated deletion and the X11 parent-query fallback. The
 private harness injects parent-query failure only on X11; other tests also run
 on Windows. Ordinary suite runs skip it unless RBC_RESOURCE_TEST_LIB is set.
+
+Resource and stroke argument boundaries
+---------------------------------------
+
+:c:func:`Rbc_GetPrivateGC` and :c:func:`Rbc_GetPrivateGCFromDrawable` create
+uncached, caller-owned GCs. Their value masks select which XGCValues fields
+must be initialized. Release these GCs with :c:func:`Rbc_FreePrivateGC`;
+a cached Tk GC is a different ownership contract.
+
+:c:func:`Rbc_NativeLineWidth` maps widths at most one to the native zero-width
+representation. :c:func:`Rbc_SetDashes` changes dash bytes and offset on a
+caller-mutable GC without choosing its line style.
+:c:func:`Rbc_MaxRequestSize` returns a record count, using a byte size per record,
+not a byte allocation size. :c:func:`Rbc_Draw3DRectangle` takes drawable pixel
+coordinates and preserves the native relief border policy.

@@ -36,3 +36,8 @@ Window lookup and table cleanup internals
 
 The Windows handle lookup is extracted separately in
 :doc:`native-windows-reference`.
+
+Native stroke setup
+-------------------
+
+.. doxygenfunction:: Rbc_NativeLineWidth

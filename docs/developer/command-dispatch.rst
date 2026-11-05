@@ -61,3 +61,12 @@ missing arguments and excess arguments in the existing component test family.
 Check nested paths independently. A header or stride change should also pass
 ``make test-headers``. Reference documentation describes the common selector;
 the individual Tcl command manuals remain the source for user-facing syntax.
+
+Lookup inputs and output
+------------------------
+
+:c:func:`Rbc_GetOpIndexFromObj` receives the byte stride of a persistent typed
+table and a nonnegative operation-word index. Argument limits count the entire
+command, including widget and operation words. The returned integer index is
+assigned only after both name lookup and arity validation succeed; the caller
+then dispatches through its own typed entry.

@@ -548,7 +548,8 @@ Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     if (!parent) {
         return NULL;
     }
-    pathNamePtr = Tcl_ObjPrintf("%s.%s", Tk_PathName(parent), name);
+    pathNamePtr = Tcl_ObjPrintf("%s%s%s", Tk_PathName(parent),
+                                (strcmp(Tk_PathName(parent), ".") == 0) ? "" : ".", name);
     result = Tk_NameToWindow(NULL, Tcl_GetString(pathNamePtr), parent);
     Tcl_BounceRefCount(pathNamePtr);
     return result;
