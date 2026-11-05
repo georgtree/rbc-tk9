@@ -6,6 +6,20 @@ static lifecycle helpers are documented next to their definitions. This section
 covers lifecycle callbacks, option transactions, command routing and screen
 composition helpers.
 
+Widget ownership and layout records
+-----------------------------------
+
+.. doxygentypedef:: Graph
+
+.. doxygenstruct:: GraphStruct
+   :members:
+
+.. doxygenstruct:: Component
+   :members:
+
+.. doxygenstruct:: Margin
+   :members:
+
 Shared entry points
 -------------------
 

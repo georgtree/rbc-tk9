@@ -30,3 +30,14 @@ fixed-point arithmetic.
    :members:
 
 .. c:namespace-pop::
+
+Contribution workspace records
+------------------------------
+
+These image-local records are distinct from the element palette
+:c:type:`Weight` interval in :doc:`pen-reference`.
+
+.. doxygenunion:: ResampleWeight
+
+.. doxygenstruct:: Sample
+   :members:

@@ -43,7 +43,7 @@
             
   <section id="bar-elements">
 <h1>Bar elements<a class="headerlink" href="#bar-elements" title="Link to this heading">¶</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code> implements bar elements through the shared <code class="docutils literal notranslate"><span class="pre">ElementProcs</span></code>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code> implements bar elements through the shared <a class="reference internal" href="element-reference.html#c.ElementProcs" title="ElementProcs"><code class="xref c c-type docutils literal notranslate"><span class="pre">ElementProcs</span></code></a>
 interface. Source data and axis transactions follow <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>; screen
 mapping uses the axis/track scope described in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>. The contracts in
 <a class="reference internal" href="bar-reference.html"><span class="doc">Bar element C reference</span></a> cover the concrete module from construction through
@@ -164,7 +164,7 @@ rejecting nonfinite pairs and nonpositive Y on logarithmic Y axes. A key contain
 the original X and both axis pointers; signed zero is normalized. Offsets,
 alignment, width and pen identity do not form part of the key. Repeated X values
 inside one element can therefore participate in a group as well.</p>
-<p>Only duplicate keys receive persistent <code class="docutils literal notranslate"><span class="pre">FreqInfo</span></code> records. <code class="docutils literal notranslate"><span class="pre">freqArr</span></code> owns
+<p>Only duplicate keys receive persistent <a class="reference internal" href="bar-reference.html#c.FreqInfo" title="FreqInfo"><code class="xref c c-type docutils literal notranslate"><span class="pre">FreqInfo</span></code></a> records. <code class="docutils literal notranslate"><span class="pre">freqArr</span></code> owns
 these records; hash values borrow pointers into it. <code class="docutils literal notranslate"><span class="pre">nStacks</span></code> counts duplicate
 keys, not just groups currently drawn in stacked mode. Ordinary normal mode
 needs no table. Trackgraphs still build one because individual tracks may select

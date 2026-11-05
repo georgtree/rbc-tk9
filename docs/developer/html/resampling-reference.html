@@ -103,7 +103,7 @@
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ResizeColorSubimage">
 <span class="target" id="rbc_image_8h_1a9ad5e55b22d25cde36076c991bc753b6"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResizeColorSubimage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionY</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResizeColorSubimage" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Sample a region of a virtually resized source without allocating the full resize. </p>
+<dd><p><a class="reference internal" href="#struct_sample"><span class="std std-ref">Sample</span></a> a region of a virtually resized source without allocating the full resize. </p>
 <p>Here x and y are virtual destination coordinates, width and height are the returned region size, and destWidth/destHeight are the virtual full size. Nearest-neighbour coordinates clamp to source edges, including regions beyond the virtual image. Borrow src and free the result with <a class="reference internal" href="image-tile-reference.html#group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. Negative region dimensions panic; empty regions return immediately. A nonempty region requires positive virtual dimensions. Empty source images leave zero-initialized output.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -358,7 +358,7 @@ fixed-point arithmetic.</p>
 <dt class="sig sig-object c" id="c.rbcImageResampling.GetSampleRecordSize">
 <span class="target" id="group__image__resample__internals_1ga201fa28b9928606299046bc2a01f98b0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSampleRecordSize</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nWeights</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.GetSampleRecordSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute storage for one variable-sized contribution record. </p>
-<p>Requires a positive weight count. Includes the first Weight already in Sample and checks extra storage against SIZE_MAX before multiplying. Returns a byte stride; invalid count or representational overflow panics. Does not allocate or initialize a record.</p>
+<p>Requires a positive weight count. Includes the first <a class="reference internal" href="#union_resample_weight"><span class="std std-ref">ResampleWeight</span></a> already in <a class="reference internal" href="#struct_sample"><span class="std std-ref">Sample</span></a> and checks extra storage against SIZE_MAX before multiplying. Returns a byte stride; invalid count or representational overflow panics. Does not allocate or initialize a record.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -403,7 +403,7 @@ fixed-point arithmetic.</p>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.ComputeWeights">
-<span class="target" id="group__image__resample__internals_1gab674c3680a4de6a71f8589228ebdc8a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeWeights</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtr</span></span>, <span class="n"><span class="pre">Sample</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.ComputeWeights" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__image__resample__internals_1gab674c3680a4de6a71f8589228ebdc8a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeWeights</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtr</span></span>, <a class="reference internal" href="#c.Sample" title="Sample"><span class="n"><span class="pre">Sample</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.ComputeWeights" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate normalized fixed-point contributions for one output axis. </p>
 <p>Requires positive dimensions and a non-NULL filter with a valid procedure and finite nonnegative support. Invalid geometry panics. Returns the byte stride between records and writes an owned zero-allocated array to samplePtrPtr; caller frees it with ckfree. One record per destination coordinate stores the clipped source start/count. Downsampling expands support by inverse scale; weights use a half-pixel offset. Float weights are summed in double, normalized unless the sum is zero, then overwritten in the union by fixed-point ints using a scale of 16384 and +0.5 before truncation. Custom kernels must yield finite, representable normalized weights; there is no general validation of callback results.</p>
 <dl class="field-list simple">
@@ -454,6 +454,61 @@ fixed-point arithmetic.</p>
 </dd></dl>
 
 </section>
+<section id="contribution-workspace-records">
+<h2>Contribution workspace records<a class="headerlink" href="#contribution-workspace-records" title="Link to this heading">¶</a></h2>
+<p>These image-local records are distinct from the element palette
+<a class="reference internal" href="pen-reference.html#c.Weight" title="Weight"><code class="xref c c-type docutils literal notranslate"><span class="pre">Weight</span></code></a> interval in <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a>.</p>
+<dl class="c union">
+<dt class="sig sig-object c" id="c.ResampleWeight">
+<span class="target" id="union_resample_weight"></span><span class="k"><span class="pre">union</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResampleWeight</span></span></span><a class="headerlink" href="#c.ResampleWeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>One image-resampling coefficient, in floating or fixed-point form. </p>
+<p>The resampling phase selects the representation; the two members share storage. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ResampleWeight.i">
+<span class="target" id="union_resample_weight_1a72c07d5cc4c16b4e3a8e0236b474c82e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">i</span></span></span><a class="headerlink" href="#c.ResampleWeight.i" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fixed-point coefficient scaled by 16384. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ResampleWeight.f">
+<span class="target" id="union_resample_weight_1a77e9d75753e648eec5ac880a86beb515"></span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">f</span></span></span><a class="headerlink" href="#c.ResampleWeight.f" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Floating coefficient used while constructing/normalizing weights. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Sample">
+<span class="target" id="struct_sample"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Sample</span></span></span><a class="headerlink" href="#c.Sample" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Contribution record for one destination image sample. </p>
+<p>Stored in an owned resampling workspace with extra trailing coefficient storage; ComputeSampleSize determines the byte stride between records. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Sample.count">
+<span class="target" id="struct_sample_1abfaa5661c18d7aa59e4fab85761d50f3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">count</span></span></span><a class="headerlink" href="#c.Sample.count" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of source samples contributing to this destination. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Sample.start">
+<span class="target" id="struct_sample_1ae2fb74eb49ee47e6a273941aff9de1da"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">start</span></span></span><a class="headerlink" href="#c.Sample.start" title="Link to this definition">¶</a><br /></dt>
+<dd><p>First contributing source sample index. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Sample.weights">
+<span class="target" id="struct_sample_1a60a5a3dbadc6e7d4dab04290216fa3dd"></span><a class="reference internal" href="#c.ResampleWeight" title="ResampleWeight"><span class="n"><span class="pre">ResampleWeight</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">weights</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Sample.weights" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Inline first coefficient; allocated storage contains count entries. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -493,6 +548,20 @@ fixed-point arithmetic.</p>
 <li><a class="reference internal" href="#c.rbcImageResampling.ComputeWeights"><code class="docutils literal notranslate"><span class="pre">ComputeWeights()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageResampling.ZoomImageVertically"><code class="docutils literal notranslate"><span class="pre">ZoomImageVertically()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageResampling.ZoomImageHorizontally"><code class="docutils literal notranslate"><span class="pre">ZoomImageHorizontally()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#contribution-workspace-records">Contribution workspace records</a><ul>
+<li><a class="reference internal" href="#c.ResampleWeight"><code class="docutils literal notranslate"><span class="pre">ResampleWeight</span></code></a><ul>
+<li><a class="reference internal" href="#c.ResampleWeight.i"><code class="docutils literal notranslate"><span class="pre">i</span></code></a></li>
+<li><a class="reference internal" href="#c.ResampleWeight.f"><code class="docutils literal notranslate"><span class="pre">f</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Sample"><code class="docutils literal notranslate"><span class="pre">Sample</span></code></a><ul>
+<li><a class="reference internal" href="#c.Sample.count"><code class="docutils literal notranslate"><span class="pre">count</span></code></a></li>
+<li><a class="reference internal" href="#c.Sample.start"><code class="docutils literal notranslate"><span class="pre">start</span></code></a></li>
+<li><a class="reference internal" href="#c.Sample.weights"><code class="docutils literal notranslate"><span class="pre">weights</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

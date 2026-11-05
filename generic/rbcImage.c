@@ -913,22 +913,29 @@ int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, Resampl
 #define uchar2si(b) (((int)(b)) << 14)
 #define si2int(s) (((s) + 8192) >> 14)
 
+/** @brief One image-resampling coefficient, in floating or fixed-point form.
+ * The resampling phase selects the representation; the two members share storage.
+ */
 typedef union {
-    int i; /* Fixed point, scaled integer. */
-    float f;
-} Weight;
+    int i; /**< Fixed-point coefficient scaled by 16384. */
+    float f; /**< Floating coefficient used while constructing/normalizing weights. */
+} ResampleWeight;
 
+/** @brief Contribution record for one destination image sample.
+ * Stored in an owned resampling workspace with extra trailing coefficient
+ * storage; ComputeSampleSize determines the byte stride between records.
+ */
 typedef struct {
-    int count; /* Number of samples. */
-    int start;
-    Weight weights[1]; /* Array of weights. */
+    int count; /**< Number of source samples contributing to this destination. */
+    int start; /**< First contributing source sample index. */
+    ResampleWeight weights[1]; /**< Inline first coefficient; allocated storage contains count entries. */
 } Sample;
 
 /**
  * @brief Compute storage for one variable-sized contribution record.
  * @ingroup image_resample_internals
  *
- * Requires a positive weight count. Includes the first Weight already in
+ * Requires a positive weight count. Includes the first ResampleWeight already in
  * Sample and checks extra storage against SIZE_MAX before multiplying.
  * Returns a byte stride; invalid count or representational overflow panics.
  * Does not allocate or initialize a record.
@@ -944,10 +951,10 @@ static size_t GetSampleRecordSize(int nWeights) {
     }
     size = sizeof(Sample);
     extraWeights = (size_t)nWeights - 1u;
-    if (extraWeights > (SIZE_MAX - size) / sizeof(Weight)) {
+    if (extraWeights > (SIZE_MAX - size) / sizeof(ResampleWeight)) {
         Tcl_Panic("GetSampleRecordSize: sample size overflow");
     }
-    return size + (extraWeights * sizeof(Weight));
+    return size + (extraWeights * sizeof(ResampleWeight));
 }
 
 /**
@@ -1056,7 +1063,7 @@ static void GetFilterBounds(int srcWidth, double center, double radius, int *lef
 static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filterPtr, Sample **samplePtrPtr) {
     Sample *samples;
     Sample *s;
-    Weight *weight;
+    ResampleWeight *weight;
     double scale;
     double center;
     double radius;
@@ -1177,7 +1184,7 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
     int srcWidth, srcHeight;
     register Pix32 *srcColumnPtr;
     register Pix32 *srcPtr, *destPtr;
-    register Weight *weight;
+    register ResampleWeight *weight;
     int x, i;
     size_t size; /* Size of sample. */
 
@@ -1233,7 +1240,7 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
  */
 static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr) {
     Sample *samples, *s, *endPtr;
-    Weight *weight;
+    ResampleWeight *weight;
     int destWidth;
     int64_t red, green, blue, alpha;
     int srcWidth, srcHeight;

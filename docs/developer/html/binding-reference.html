@@ -47,27 +47,139 @@
 the owning component supplies their lifetime. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for event
 order, picking priority, callback reentry and the distinction between objects
 and binding keys.</p>
+<section id="binding-table-state">
+<h2>Binding table state<a class="headerlink" href="#binding-table-state" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct">
+<span class="target" id="struct_rbc___bind_table_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BindTableStruct</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned event-binding table with borrowed picked-object state. </p>
+<p>The owner must defer destruction while dispatch or repicking is active, and clear object bindings before releasing objects. Item/context fields never retain component records. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.flags">
+<span class="target" id="struct_rbc___bind_table_struct_1a8e5181f5324e4712a310b5de6e14b05d"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">flags</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.flags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Binding-dispatch state bits used to guard repicking and synthetic transitions. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.bindingTable">
+<span class="target" id="struct_rbc___bind_table_struct_1a2c67b942fe6570fdab51b6019a400e40"></span><span class="n"><span class="pre">Tk_BindingTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bindingTable</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.bindingTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned eagerly created Tk binding table; tag keys are pointer identities supplied by tagProc. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.currentItem">
+<span class="target" id="struct_rbc___bind_table_struct_1a69e153a2138c0dbc39d972b6eb5f83b2"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">currentItem</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.currentItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed current picked object, or NULL. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.currentContext">
+<span class="target" id="struct_rbc___bind_table_struct_1a6cbf4462b8598aeac2e8b0ba86e0f5cd"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">currentContext</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.currentContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed context identifying the current picked object kind. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.newItem">
+<span class="target" id="struct_rbc___bind_table_struct_1ae3497f7676286ff54bbffa975c5e9f53"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">newItem</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.newItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed pending Enter target, exposed while delivering Leave so deletion can invalidate it. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.newContext">
+<span class="target" id="struct_rbc___bind_table_struct_1a5548fbed1194bdfc91f5034464dc9ce3"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">newContext</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.newContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed context of the pending picked object. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.focusItem">
+<span class="target" id="struct_rbc___bind_table_struct_1a4d26d2aa0f0ee1d058f39f5e8ce852ca"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">focusItem</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.focusItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed object selected for keyboard/focus event dispatch, or NULL. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.focusContext">
+<span class="target" id="struct_rbc___bind_table_struct_1a2a6e8e0e2edf49164da672bd57bc8ccc"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">focusContext</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.focusContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed context of the focus object. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.pickEvent">
+<span class="target" id="struct_rbc___bind_table_struct_1a8a0694c504b7e607a0bcae9eebf9b2dc"></span><span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pickEvent</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.pickEvent" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The event upon which the current choice of the current item is based. </p>
+<p>Must be saved so that if the current item is deleted, we can pick another. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.activePick">
+<span class="target" id="struct_rbc___bind_table_struct_1ae0167d917ef574dc2bbb6dbd991c83b9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">activePick</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.activePick" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The pick event has been initialized so that we can repick it. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.state">
+<span class="target" id="struct_rbc___bind_table_struct_1a8994af0cb466d7b9f18491a36a9f15f7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">state</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.state" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last known modifier state. </p>
+<p>Used to defer picking a new current object while buttons are down. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.clientData">
+<span class="target" id="struct_rbc___bind_table_struct_1a22810aef1ad012b90c98fef1c5b90b9b"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clientData</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.clientData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owner passed to the picker and preserved by dispatch as required. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.tkwin">
+<span class="target" id="struct_rbc___bind_table_struct_1a316e969cf9d1b8440ab65e4f8b02ebde"></span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tkwin</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.tkwin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed window on which event handlers are installed; must remain valid for handler removal. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.pickProc">
+<span class="target" id="struct_rbc___bind_table_struct_1ac3b55d517f4f9d1994022a20141c457a"></span><a class="reference internal" href="#c.Rbc_BindPickProc" title="Rbc_BindPickProc"><span class="n"><span class="pre">Rbc_BindPickProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">pickProc</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.pickProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed picker callback returning an object and its context from screen coordinates. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_BindTableStruct.tagProc">
+<span class="target" id="struct_rbc___bind_table_struct_1a768e163ab11daee80851e5f12e16a06c"></span><a class="reference internal" href="#c.Rbc_BindTagProc" title="Rbc_BindTagProc"><span class="n"><span class="pre">Rbc_BindTagProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">tagProc</span></span></span><a class="headerlink" href="#c.Rbc_BindTableStruct.tagProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed tag collector callback appending stable tag keys to the supplied temporary list. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 <section id="shared-interface">
 <h2>Shared interface<a class="headerlink" href="#shared-interface" title="Link to this heading">¶</a></h2>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.Rbc_BindTable">
-<span class="target" id="rbc_bind_8h_1a3aede8175ecbed07e2ecedd452cc5abd"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_BindTableStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BindTable</span></span></span><a class="headerlink" href="#c.Rbc_BindTable" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_bind_8h_1a3aede8175ecbed07e2ecedd452cc5abd"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_BindTableStruct" title="Rbc_BindTableStruct"><span class="n"><span class="pre">Rbc_BindTableStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BindTable</span></span></span><a class="headerlink" href="#c.Rbc_BindTable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Owner-managed binding table; destroy with <a class="reference internal" href="#rbc_bind_8h_1a2049ba31c0b8a3ec0d00c8ab8c4ba3ef"><span class="std std-ref">Rbc_DestroyBindingTable()</span></a>. </p>
 </dd></dl>
 
-<p>Callback signatures are included verbatim from the header:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="n">ClientData</span><span class="p">(</span><span class="n">Rbc_BindPickProc</span><span class="p">)(</span><span class="n">ClientData</span><span class="w"> </span><span class="n">clientData</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">ClientData</span><span class="w"> </span><span class="o">*</span><span class="n">contextPtr</span><span class="p">);</span>
-</pre></div>
-</div>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">Rbc_BindTagProc</span><span class="p">)(</span><span class="n">Rbc_BindTable</span><span class="w"> </span><span class="n">bindTable</span><span class="p">,</span><span class="w"> </span><span class="n">ClientData</span><span class="w"> </span><span class="n">object</span><span class="p">,</span><span class="w"> </span><span class="n">ClientData</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_List</span><span class="w"> </span><span class="n">list</span><span class="p">);</span>
-</pre></div>
-</div>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_BindPickProc">
+<span class="target" id="rbc_bind_8h_1ae0289038535158d5fa7d8b217413bbc6"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BindPickProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">contextPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_BindPickProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a borrowed object at window-relative pixel coordinates. </p>
+<p>clientData is the owner supplied at construction. Set contextPtr to the object’s type or owner context; object and context together identify the target. Return NULL for no hit. The callback must not destroy the binding table. Any callback-capable layout it performs needs owner lifetime protection. </p>
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_BindTagProc">
+<span class="target" id="rbc_bind_8h_1a8e6386bf8ed6a03374c673eb2b997067"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BindTagProc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">bindTable</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">context</span></span>, <span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_BindTagProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append ordered binding-key pointers for a borrowed object/context. </p>
+<p>list is a temporary one-word-key list owned by dispatch. Append keys without destroying the list or transferring ownership of the key storage. Keys must remain valid for Tk_BindEvent; this callback should not evaluate Tcl scripts. </p>
+</dd></dl>
+
 <p>The picker writes an object context alongside its returned pointer. The tag
 collector appends stable keys to the temporary list supplied by dispatch;
 neither callback acquires ownership of its arguments.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_CreateBindingTable">
-<span class="target" id="rbc_bind_8h_1a1f8347a0bf2c92a1de0ba4f76697e858"></span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateBindingTable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Rbc_BindPickProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pickProc</span></span>, <span class="n"><span class="pre">Rbc_BindTagProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateBindingTable" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_bind_8h_1a1f8347a0bf2c92a1de0ba4f76697e858"></span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateBindingTable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="#c.Rbc_BindPickProc" title="Rbc_BindPickProc"><span class="n"><span class="pre">Rbc_BindPickProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pickProc</span></span>, <a class="reference internal" href="#c.Rbc_BindTagProc" title="Rbc_BindTagProc"><span class="n"><span class="pre">Rbc_BindTagProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateBindingTable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create an empty binding table and register its Tk event handler. </p>
 <p>
 Owner destruction must cooperate with Tcl_Preserve/Tcl_Release and defer freeing this table while dispatch is active. Construction does not select an initial current item or retain the owner/window. </p>
@@ -176,7 +288,7 @@ Preserves Tk bindings, owner, current/focus targets and the saved pick event. Do
 <h2>Internal dispatch callbacks<a class="headerlink" href="#internal-dispatch-callbacks" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.DoEvent">
-<span class="target" id="group__binding__callbacks_1ga1587335ef70e22cfb85cbeeecb2c7432"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DoEvent</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_BindTableStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bindPtr</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">item</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">context</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DoEvent" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__binding__callbacks_1ga1587335ef70e22cfb85cbeeecb2c7432"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DoEvent</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTableStruct" title="Rbc_BindTableStruct"><span class="n"><span class="pre">Rbc_BindTableStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bindPtr</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">item</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">context</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DoEvent" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Collect binding keys and synchronously dispatch one event through Tk. </p>
 <p>
 Key events prefer an explicit focus object. Skips absent/dead windows and absent objects. Calls tagProc (or supplies all/item keys), copies keys to a stack array of up to 32 entries or an allocated array, then calls Tk_BindEvent. Releases only temporary list/array storage. Scripts can delete components; this helper does not preserve the owner or binding table itself. </p>
@@ -194,7 +306,7 @@ Key events prefer an explicit focus object. Skips absent/dead windows and absent
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PickCurrentItem">
-<span class="target" id="group__binding__callbacks_1ga47a78d6a7639bb27ad6946cde58ba50e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PickCurrentItem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_BindTableStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bindPtr</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PickCurrentItem" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__binding__callbacks_1ga47a78d6a7639bb27ad6946cde58ba50e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PickCurrentItem</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTableStruct" title="Rbc_BindTableStruct"><span class="n"><span class="pre">Rbc_BindTableStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bindPtr</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PickCurrentItem" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Update the current object/context and synthesize crossing events. </p>
 <p>
 Saves pointer state for later repicks. LeaveNotify clears the hit without calling pickProc. Both object and context participate in target comparison. Publishes the pending target before Leave so Rbc_DeleteBindings can cancel its subsequent Enter. Recursive repick during Leave saves the event but returns without another transition. Button state controls grab behavior. </p>
@@ -280,8 +392,31 @@ Pending full mapping can invoke axis format callbacks. Local legend rectangles e
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Binding and picking C reference</a><ul>
+<li><a class="reference internal" href="#binding-table-state">Binding table state</a><ul>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_BindTableStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.flags"><code class="docutils literal notranslate"><span class="pre">flags</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.bindingTable"><code class="docutils literal notranslate"><span class="pre">bindingTable</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.currentItem"><code class="docutils literal notranslate"><span class="pre">currentItem</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.currentContext"><code class="docutils literal notranslate"><span class="pre">currentContext</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.newItem"><code class="docutils literal notranslate"><span class="pre">newItem</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.newContext"><code class="docutils literal notranslate"><span class="pre">newContext</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.focusItem"><code class="docutils literal notranslate"><span class="pre">focusItem</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.focusContext"><code class="docutils literal notranslate"><span class="pre">focusContext</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.pickEvent"><code class="docutils literal notranslate"><span class="pre">pickEvent</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.activePick"><code class="docutils literal notranslate"><span class="pre">activePick</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.clientData"><code class="docutils literal notranslate"><span class="pre">clientData</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.tkwin"><code class="docutils literal notranslate"><span class="pre">tkwin</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.pickProc"><code class="docutils literal notranslate"><span class="pre">pickProc</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTableStruct.tagProc"><code class="docutils literal notranslate"><span class="pre">tagProc</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shared-interface">Shared interface</a><ul>
 <li><a class="reference internal" href="#c.Rbc_BindTable"><code class="docutils literal notranslate"><span class="pre">Rbc_BindTable</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindPickProc"><code class="docutils literal notranslate"><span class="pre">Rbc_BindPickProc</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_BindTagProc"><code class="docutils literal notranslate"><span class="pre">Rbc_BindTagProc</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_CreateBindingTable"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateBindingTable()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_DestroyBindingTable"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyBindingTable()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ConfigureBindingsFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_ConfigureBindingsFromObj()</span></code></a></li>

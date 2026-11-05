@@ -59,130 +59,187 @@
 
 #define NumberOfXYPoints(e) MIN((e)->x.nValues, (e)->y.nValues)
 
-/*
- * -------------------------------------------------------------------
- *
- * Weight --
- *
- *    Designates a range of values by a minimum and maximum limit.
- *
- * -------------------------------------------------------------------
+/** @brief Cached numeric interval used for palette selection.
+ * SetWeight initializes the endpoints and SetRange uses DBL_EPSILON when the endpoints do not form a positive interval.
  */
 typedef struct {
-    double min, max, range;
+    double min; /**< Lower interval endpoint in weight units. */
+    double max; /**< Upper interval endpoint in weight units. */
+    double range; /**< Positive cached extent; max-min or DBL_EPSILON. */
 } Weight;
 
 #define SetRange(l) ((l).range = ((l).max > (l).min) ? ((l).max - (l).min) : DBL_EPSILON)
 #define SetScale(l) ((l).scale = 1.0 / (l).range)
 #define SetWeight(l, lo, hi) ((l).min = (lo), (l).max = (hi), SetRange(l))
 
-/*
- * An element has one or more vectors plus several attributes, such as
- * line style, thickness, color, and symbol type.  It has an
- * identifier which distinguishes it among the list of all elements.
+/** @brief Palette entry and per-pen slices of mapped element geometry.
+ * Named pen references are released with the palette; normal/default entries can borrow an embedded pen. Error-segment pointers borrow slices of element-owned storage.
  */
 typedef struct {
-    Weight weight; /* Weight range where this pen is valid. */
-    Pen *penPtr; /* Pen to use. */
-    Segment2D *xErrorBars; /* Point to start of this pen's X-error bar
-                            * segments in the element's array. */
-    Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
-                            * segments in the element's array. */
-    Tcl_Size xErrorBarCnt; /* # of error bars for this pen. */
-    Tcl_Size yErrorBarCnt; /* # of error bars for this pen. */
-    int errorBarCapWidth; /* Length of the cap ends on each
-                           * error bar. */
-    int symbolSize; /* Size of the pen's symbol scaled to
-                     * the current graph size. */
+    Weight weight; /**< Weight range where this pen is valid. */
+    Pen *penPtr; /**< Selected pen; reference ownership follows the palette entry creation path. */
+    Segment2D *xErrorBars; /**< Borrowed start of this style X-error segment slice. */
+    Segment2D *yErrorBars; /**< Borrowed start of this style Y-error segment slice. */
+    Tcl_Size xErrorBarCnt; /**< Number of mapped X-error segments in this style slice. */
+    Tcl_Size yErrorBarCnt; /**< Number of mapped Y-error segments in this style slice. */
+    int errorBarCapWidth; /**< Mapped cap length in display pixels. */
+    int symbolSize; /**< Mapped symbol size in display pixels. */
 } PenStyle;
 
+/** @brief Resolved error-bar drawing policy.
+ * The concrete pen owns configured resources; this record does not own element data or mapped segment arrays.
+ */
 typedef struct {
-    XColor *color; /* Color of error bar */
-    int lineWidth; /* Width of the error bar segments. */
-    GC gc;
-    int show; /* Flags for errorbars: none, x, y, or both */
+    XColor *color; /**< Tk-managed error-stroke color or the concrete pen fallback selector. */
+    int lineWidth; /**< Stroke width in display pixels. */
+    GC gc; /**< Configured error-stroke GC released with the concrete pen. */
+    int show; /**< SHOW_X/SHOW_Y visibility mask, or neither for no errors. */
 } ErrorBarAttributes;
 
+/** @brief Input query and mutable closest-element result.
+ * A search callback improves the current candidate in place. Result element pointers are borrowed and valid only while the graph/components remain live.
+ */
 typedef struct {
-    int halo; /* Maximal distance a candidate point
-               * can be from the sample window
-               * coordinate */
-    int mode; /* Indicates whether to find the closest
-               * data point or the closest point on the
-               * trace by interpolating the line segments.
-               * Can also be SEARCH_AUTO, indicating to
-               * choose how to search.*/
-    int x, y; /* Screen coordinates of test point */
-    int along; /* Indicates to let search run along a
-                * particular axis: x, y, or both. */
-    /* Output */
-    Element *elemPtr; /* Name of the closest element */
-    Point2D point; /* Graph coordinates of closest point */
-    Tcl_Size index; /* Index of closest data point */
-    double dist; /* Distance in screen coordinates */
+    int halo; /**< Maximum accepted distance in display pixels. */
+    int mode; /**<
+     * Indicates whether to find the closest data point or the closest point on the trace by interpolating the line
+     * segments. Can also be SEARCH_AUTO, indicating to choose how to search.
+     */
+    int x; /**< Test-point X in display pixels. */
+    int y; /**< Test-point Y in display pixels. */
+    int along; /**< Indicates to let search run along a particular axis: x, y, or both. */
+    Element *elemPtr; /**< Borrowed winning element pointer, or NULL before a match. */
+    Point2D point; /**< Winning point in graph data coordinates, possibly interpolated. */
+    Tcl_Size index; /**< Original source-point index associated with the candidate. */
+    double dist; /**< Current candidate distance in display pixels. */
 } ClosestSearch;
 
+/** @brief Draw mapped normal or active element geometry to a screen drawable.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ */
 typedef void(ElementDrawProc)(Graph *graphPtr, Drawable drawable, Element *elemPtr);
+/** @brief Append mapped normal or active element geometry to a document.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] exportPtr Borrowed initialized document context; output is appended without transferring ownership.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ */
 typedef void(ElementExportProc)(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr);
+/** @brief Release concrete element resources before generic record reclamation.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ */
 typedef void(ElementDestroyProc)(Graph *graphPtr, Element *elemPtr);
+/** @brief Validate element option state and prepare concrete resources.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ * @return TCL_OK on success or TCL_ERROR with graph interpreter diagnostics.
+ */
 typedef int(ElementConfigProc)(Graph *graphPtr, Element *elemPtr);
+/** @brief Rebuild mapped element geometry after data or layout changes.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ */
 typedef void(ElementMapProc)(Graph *graphPtr, Element *elemPtr);
+/** @brief Compute source-data extents for automatic axis limits.
+ * @param[in] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ * @param[out] extsPtr Required caller-owned source-data bounds.
+ */
 typedef void(ElementExtentsProc)(Element *elemPtr, Extents2D *extsPtr);
+/** @brief Improve the caller closest-point candidate using mapped geometry.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ * @param[inout] searchPtr Borrowed query and current candidate; update only according to the concrete closest-search rules.
+ */
 typedef void(ElementClosestProc)(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr);
+/** @brief Draw a concrete element legend sample on the screen.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ * @param[in] x Mapped sample X coordinate in display pixels.
+ * @param[in] y Mapped sample Y coordinate in display pixels.
+ * @param[in] symbolSize Requested legend symbol size in display pixels.
+ * @param[in] width Available screen target width in pixels.
+ * @param[in] height Available screen target height in pixels.
+ */
 typedef void(ElementDrawSymbolProc)(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int symbolSize,
                                     int width, int height);
+/** @brief Append a concrete element legend sample to a document.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] exportPtr Borrowed initialized document context; output is appended without transferring ownership.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ * @param[in] x Mapped sample X coordinate in display pixels.
+ * @param[in] y Mapped sample Y coordinate in display pixels.
+ * @param[in] symSize Requested legend symbol size in display pixels.
+ */
 typedef void(ElementSymbolExportProc)(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y,
                                             int symSize);
+/** @brief Report the concrete element source-point count.
+ * @param[in] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ * @return Number of source points; does not transfer or allocate data storage.
+ */
 typedef Tcl_Size(ElementPointCountProc)(Element *elemPtr);
 /* Append owned values to a private result dictionary; never write Tcl variables
  * or run callbacks. The caller publishes it after all element reads finish. */
+/** @brief Append concrete closest-point fields to a private result dictionary.
+ * Do not run Tcl callbacks or publish Tcl variables while reading element state.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] elemPtr Borrowed concrete element; generic lifecycle code owns record reclamation.
+ * @param[in] searchPtr Borrowed completed closest-search result; not modified.
+ * @param[inout] resultObjPtr Caller-owned private result dictionary; append owned Tcl values without writing variables or running callbacks.
+ * @return Tcl status; the caller publishes the dictionary only after element reads finish.
+ */
 typedef int(ElementClosestInfoProc)(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr,
                                     Tcl_Obj *resultObjPtr);
 
+/** @brief Immutable operation table for a concrete element type.
+ * Callbacks borrow graph and element pointers; table dispatch does not itself protect against callback deletion. Optional entries must be checked by their caller before use.
+ */
 typedef struct {
-    ElementClosestProc *closestProc;
-    ElementConfigProc *configProc;
-    ElementDestroyProc *destroyProc;
-    ElementDrawProc *drawActiveProc;
-    ElementDrawProc *drawNormalProc;
-    ElementDrawSymbolProc *drawSymbolProc;
-    ElementExtentsProc *extentsProc;
-    ElementExportProc *exportActiveProc;
-    ElementExportProc *exportNormalProc;
-    ElementSymbolExportProc *exportSymbolProc;
-    ElementMapProc *mapProc;
-    ElementPointCountProc *pointCountProc;
-    ElementClosestInfoProc *closestInfoProc;    
+    ElementClosestProc *closestProc; /**<
+     * Improve a ClosestSearch candidate using this concrete element; the search and element are borrowed.
+     */
+    ElementConfigProc *configProc; /**<
+     * Validate configured values and rebuild concrete resources; returns Tcl status.
+     */
+    ElementDestroyProc *destroyProc; /**<
+     * Release concrete element resources; generic lifecycle code owns registry and record teardown.
+     */
+    ElementDrawProc *drawActiveProc; /**< Draw active element geometry to the borrowed screen drawable. */
+    ElementDrawProc *drawNormalProc; /**< Draw normal element geometry to the borrowed screen drawable. */
+    ElementDrawSymbolProc *drawSymbolProc; /**< Draw a legend sample using borrowed element/style resources. */
+    ElementExtentsProc *extentsProc; /**< Write source-data limits to caller-owned Extents2D storage. */
+    ElementExportProc *exportActiveProc; /**< Append active geometry to the borrowed document context. */
+    ElementExportProc *exportNormalProc; /**< Append normal geometry to the borrowed document context. */
+    ElementSymbolExportProc *exportSymbolProc; /**<
+     * Append the element legend sample to the borrowed document context.
+     */
+    ElementMapProc *mapProc; /**< Rebuild element-owned screen geometry from current data and axis mapping. */
+    ElementPointCountProc *pointCountProc; /**<
+     * Return the concrete element source-point count without transferring storage.
+     */
+    ElementClosestInfoProc *closestInfoProc; /**<
+     * Append concrete closest-point fields to the caller result object; returns Tcl status.
+     */
 } ElementProcs;
 
-/*
- * The data structure below contains information pertaining to a line
- * vector.  It consists of an array of floating point data values and
- * for convenience, the number and minimum/maximum values.
+/** @brief Element data slot backed by a list copy or an observed RBC vector.
+ * List-backed slots own value storage; vector-backed slots retain a client token and borrow current vector storage. Free through Rbc_FreeElemVector rather than freeing valueArr unconditionally.
  */
-
 typedef struct {
-    Rbc_Vector *vecPtr;
-    double *valueArr;
-    Tcl_Size nValues;
-    Tcl_Size arraySize;
-    double min, max;
-    Rbc_VectorId clientId; /* If non-NULL, a client token identifying the
-                            * external vector. */
-    Element *elemPtr; /* Element associated with vector. */
-    /*
-     * Change information received from an external named vector.
-     *
-     * changePending is set when at least one notification has arrived
-     * since the element was last mapped.
-     *
-     * changeAll means that no exact source range is available.
-     */
-    int changePending;
-    int changeAll;
-    Tcl_Size changedFirst;
-    Tcl_Size changedLast;    
-
+    Rbc_Vector *vecPtr; /**< Borrowed external RBC vector record when vector-backed, otherwise NULL. */
+    double *valueArr; /**< Owned list-value array or borrowed external vector values; ownership follows clientId. */
+    Tcl_Size nValues; /**< Number of available scalar values in this slot. */
+    Tcl_Size arraySize; /**< Allocated or external storage capacity associated with valueArr. */
+    double min; /**< Cached minimum value used for element limits. */
+    double max; /**< Cached maximum value used for element limits. */
+    Rbc_VectorId clientId; /**< Owned observation token for an external vector, or NULL for list-backed data. */
+    Element *elemPtr; /**< Borrowed element receiving data-change notifications. */
+    int changePending; /**< Nonzero after at least one notification since the last mapping. */
+    int changeAll; /**< Nonzero when notifications do not provide an exact source range. */
+    Tcl_Size changedFirst; /**< First source index covered by the accumulated change range. */
+    Tcl_Size changedLast; /**< Last source index covered by the accumulated change range. */
 } ElemVector;
 
 typedef struct {
@@ -225,110 +282,85 @@ typedef struct {
     Rbc_Chain *palette;
 } ElemStylesTransaction;
 
+/** @brief Shared prefix of graph element implementations.
+ * Element is the typedef for this record. The graph owns registered elements; concrete records extend this prefix. Data slots, named-pen references and mapped geometry have distinct cleanup paths.
+ */
 struct ElementStruct {
-    char *name;         /* Identifier to refer the element.
-                         * Used in the "insert", "delete", or
-                         * "show", commands. */
-    Rbc_Uid classUid;   /* Type of element */
-    Graph *graphPtr;    /* Graph widget of element*/
-    unsigned int flags; /* Indicates if the entire element is
-                         * active, or if coordinates need to
-                         * be calculated */
-    char **tags;
-    int hidden;     /* If non-zero, don't display the element. */
-    int plotHidden; /* If non-zero, don't plot the element, but keep it
-                     * in the display list and legend. */
-    Tcl_HashEntry *hashPtr;
-    char *label;             /* Label displayed in legend */
-    int labelRelief;         /* Relief of label in legend. */
-    Tcl_Obj *trackObjPtr;
-    RbcTrack *track;
-    Axis2D axes;             /* X-axis and Y-axis mapping the element */
-    ElemVector x, y, w;      /* Contains array of floating point
-                              * graph coordinate values. Also holds
-                              * min/max and the number of
-                              * coordinates */
-    ElemVector xError;       /* Relative/symmetric X error values. */
-    ElemVector yError;       /* Relative/symmetric Y error values. */
-    ElemVector xHigh, xLow;  /* Absolute/asymmetric X-coordinate high/low error values. */
-    ElemVector yHigh, yLow;  /* Absolute/asymmetric Y-coordinate high/low error values. */
-    Tcl_Size *activeIndices; /* Array of indices (malloc-ed) which
-                              * indicate which data points are
-                              * active (drawn with "active"
-                              * colors). */
-    Tcl_Size nActiveIndices; /* Number of active data points.
-                              * Special case: if nActiveIndices < 0
-                              * and the active bit is set in
-                              * "flags", then all data points are
-                              * drawn active. */
-    ElementProcs *procsPtr;
-    /*
-     * Modern option-table configuration.
+    char *name; /**< Element identifier used by the graph registry and widget subcommands. */
+    Rbc_Uid classUid; /**< Type of element */
+    Graph *graphPtr; /**< Borrowed owning graph; does not retain the widget. */
+    unsigned int flags; /**< Indicates if the entire element is active, or if coordinates need to be calculated */
+    char **tags; /**< Owned configured binding-tag list; tag keys are resolved during dispatch. */
+    int hidden; /**< If non-zero, don't display the element. */
+    int plotHidden; /**< If non-zero, don't plot the element, but keep it in the display list and legend. */
+    Tcl_HashEntry *hashPtr; /**< Registry entry referring to this record; NULL after detachment. */
+    char *label; /**< Tk option-managed legend label. */
+    int labelRelief; /**< Relief of label in legend. */
+    Tcl_Obj *trackObjPtr; /**< Tk option-managed Tcl representation for track; released with option state. */
+    RbcTrack *track; /**< Borrowed owning track, or NULL for an ordinary graph element. */
+    Axis2D axes; /**< Retained X/Y axis references, released during element cleanup. */
+    ElemVector x; /**< X-coordinate data slot. */
+    ElemVector y; /**< Y-coordinate data slot. */
+    ElemVector w; /**< Palette weight data slot. */
+    ElemVector xError; /**< Symmetric X-error magnitude data slot. */
+    ElemVector yError; /**< Symmetric Y-error magnitude data slot. */
+    ElemVector xHigh; /**< Explicit high X-error endpoint data slot. */
+    ElemVector xLow; /**< Explicit low X-error endpoint data slot. */
+    ElemVector yHigh; /**< Explicit high Y-error endpoint data slot. */
+    ElemVector yLow; /**< Explicit low Y-error endpoint data slot. */
+    Tcl_Size *activeIndices; /**<
+     * Array of indices (malloc-ed) which indicate which data points are active (drawn with "active" colors).
      */
-    const Tk_OptionSpec *optionSpecs;
-    Tk_OptionTable optionTable;
-    /*
-     * Information about the current Tk_SetOptions transaction.
-     *
-     * These fields are valid only while the concrete configProc is
-     * executing. optionObjv points into the caller's argument vector
-     * and must never be retained after configProc returns.
+    Tcl_Size nActiveIndices; /**<
+     * Number of active data points. Special case: if nActiveIndices < 0 and the active bit is set in "flags", then
+     * all data points are drawn active.
      */
-    int optionMask;
-    Tcl_Size optionObjc;
-    Tcl_Obj *const *optionObjv;
-    /*
-     * Indicates that the element has completed its first successful
-     * modern configuration. Concrete configuration procedures can use
-     * this to distinguish Tk_InitOptions defaults from later configure
-     * operations.
+    ElementProcs *procsPtr; /**< Borrowed immutable concrete-element operation table. */
+    const Tk_OptionSpec *optionSpecs; /**< Borrowed immutable option specifications for the concrete component type. */
+    Tk_OptionTable optionTable; /**<
+     * Tk option table associated with this record; managed by its configuration lifecycle.
      */
-    int optionsConfigured;
-    /*
-     * Tcl representations for common element options that require
-     * additional validation or conversion after Tk_SetOptions.
+    int optionMask; /**< Change mask from the current option transaction. */
+    Tcl_Size optionObjc; /**< Number of objects in the current borrowed configure argument slice. */
+    Tcl_Obj *const *optionObjv; /**<
+     * Borrowed configure arguments, valid only during the synchronous configuration transaction.
      */
-    Tcl_Obj *activePenObjPtr;
-    Tcl_Obj *bindTagsObjPtr;
-    Tcl_Obj *dataObjPtr;
-    Tcl_Obj *mapXObjPtr;
-    Tcl_Obj *mapYObjPtr;
-    Tcl_Obj *normalPenObjPtr;
-    Tcl_Obj *stateObjPtr;
-    Tcl_Obj *stylesObjPtr;
-    Tcl_Obj *weightsObjPtr;
-    Tcl_Obj *xObjPtr;
-    Tcl_Obj *yObjPtr;
-    Tcl_Obj *xErrorObjPtr;
-    Tcl_Obj *xHighObjPtr;
-    Tcl_Obj *xLowObjPtr;
-    Tcl_Obj *yErrorObjPtr;
-    Tcl_Obj *yHighObjPtr;
-    Tcl_Obj *yLowObjPtr;
-    int optionsInitialized;
-    int tkResourcesReleased;
-    Segment2D *xErrorBars;  /* Point to start of this pen's X-error bar
-                             * segments in the element's array. */
-    Segment2D *yErrorBars;  /* Point to start of this pen's Y-error bar
-                             * segments in the element's array. */
-    Tcl_Size xErrorBarCnt;  /* # of error bars for this pen. */
-    Tcl_Size yErrorBarCnt;  /* # of error bars for this pen. */
-    Tcl_Size *xErrorToData; /* Maps error bar segments back to the data
-                             * point. */
-    Tcl_Size *yErrorToData; /* Maps error bar segments back to the data
-                             * point. */
-    int errorBarCapWidth;   /* Length of cap on error bars */
-    Pen *activePenPtr;      /* Standard Pens */
-    Pen *normalPenPtr;
-    Rbc_Chain *palette; /* Palette of pens. */
-    /* Symbol scaling */
-    int scaleSymbols;      /* If non-zero, the symbols will scale
-                            * in size as the graph is zoomed
-                            * in/out.  */
-    double xRange, yRange; /* Initial X-axis and Y-axis ranges:
-                            * used to scale the size of element's
-                            * symbol. */
-    int state;
+    int optionsConfigured; /**< Nonzero after the first successful configuration. */
+    Tcl_Obj *activePenObjPtr; /**< Tk option-managed Tcl representation for active pen; released with option state. */
+    Tcl_Obj *bindTagsObjPtr; /**< Tk option-managed Tcl representation for bind tags; released with option state. */
+    Tcl_Obj *dataObjPtr; /**< Tk option-managed Tcl representation for data; released with option state. */
+    Tcl_Obj *mapXObjPtr; /**< Tk option-managed Tcl representation for map x; released with option state. */
+    Tcl_Obj *mapYObjPtr; /**< Tk option-managed Tcl representation for map y; released with option state. */
+    Tcl_Obj *normalPenObjPtr; /**< Tk option-managed Tcl representation for normal pen; released with option state. */
+    Tcl_Obj *stateObjPtr; /**< Tk option-managed Tcl representation for state; released with option state. */
+    Tcl_Obj *stylesObjPtr; /**< Tk option-managed Tcl representation for styles; released with option state. */
+    Tcl_Obj *weightsObjPtr; /**< Tk option-managed Tcl representation for weights; released with option state. */
+    Tcl_Obj *xObjPtr; /**< Tk option-managed Tcl representation for x; released with option state. */
+    Tcl_Obj *yObjPtr; /**< Tk option-managed Tcl representation for y; released with option state. */
+    Tcl_Obj *xErrorObjPtr; /**< Tk option-managed Tcl representation for x error; released with option state. */
+    Tcl_Obj *xHighObjPtr; /**< Tk option-managed Tcl representation for x high; released with option state. */
+    Tcl_Obj *xLowObjPtr; /**< Tk option-managed Tcl representation for x low; released with option state. */
+    Tcl_Obj *yErrorObjPtr; /**< Tk option-managed Tcl representation for y error; released with option state. */
+    Tcl_Obj *yHighObjPtr; /**< Tk option-managed Tcl representation for y high; released with option state. */
+    Tcl_Obj *yLowObjPtr; /**< Tk option-managed Tcl representation for y low; released with option state. */
+    int optionsInitialized; /**< Nonzero once Tk option initialization has completed. */
+    int tkResourcesReleased; /**< Nonzero after the guarded Tk-resource release pass. */
+    Segment2D *xErrorBars; /**< Owned mapped X-error segment array, including cap segments. */
+    Segment2D *yErrorBars; /**< Owned mapped Y-error segment array, including cap segments. */
+    Tcl_Size xErrorBarCnt; /**< Number of initialized X-error Segment2D records. */
+    Tcl_Size yErrorBarCnt; /**< Number of initialized Y-error Segment2D records. */
+    Tcl_Size *xErrorToData; /**< Owned mapping from each X-error segment to its original data-point index. */
+    Tcl_Size *yErrorToData; /**< Owned mapping from each Y-error segment to its original data-point index. */
+    int errorBarCapWidth; /**< Length of cap on error bars */
+    Pen *activePenPtr; /**< Retained named active pen, or NULL when no active pen is selected. */
+    Pen *normalPenPtr; /**< Selected normal pen; a named pen is retained, an embedded default pen is borrowed. */
+    Rbc_Chain *palette; /**<
+     * Owned chain of per-weight pen styles, with named-pen references and borrowed geometry slices.
+     */
+    int scaleSymbols; /**< If non-zero, the symbols will scale in size as the graph is zoomed in/out. */
+    double xRange; /**< Initial X-axis range used for symbol scaling. */
+    double yRange; /**< Initial Y-axis range used for symbol scaling. */
+    int state; /**< Element display state selector, maintained with derived visibility flags. */
 };
 
 #define NumberOfPoints(e)                                                                                              \

@@ -257,7 +257,7 @@ Initializes hasLengthPtr false and lengthPtr zero. Rejects nonfinite bounds or s
 <li><p><strong>componentName</strong> – <strong>[in]</strong> Borrowed component label used in zero-step diagnostics. </p></li>
 <li><p><strong>start</strong> – <strong>[in]</strong> First component value, required finite. </p></li>
 <li><p><strong>finish</strong> – <strong>[in]</strong> Last requested component bound, required finite. </p></li>
-<li><p><strong>step</strong> – <strong>[in]</strong> Component increment, required finite; zero is allowed only for constant bounds. </p></li>
+<li><p><strong>step</strong> – <strong>[in]</strong> <a class="reference internal" href="graph-reference.html#struct_component"><span class="std std-ref">Component</span></a> increment, required finite; zero is allowed only for constant bounds. </p></li>
 <li><p><strong>hasLengthPtr</strong> – <strong>[out]</strong> Required constraint flag, initialized false; may change before a later size error. </p></li>
 <li><p><strong>lengthPtr</strong> – <strong>[out]</strong> Required count output, initialized zero; consume both outputs only on TCL_OK. </p></li>
 </ul>

@@ -44,8 +44,8 @@
   <section id="grid-mapping-and-inheritance">
 <h1>Grid mapping and inheritance<a class="headerlink" href="#grid-mapping-and-inheritance" title="Link to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">rbcGrGrid.c</span></code> owns grid options, axis references, segment caches and dispatch
-to screen or document output. A global <code class="docutils literal notranslate"><span class="pre">Grid</span></code> belongs to the graph. A track
-can own a local <code class="docutils literal notranslate"><span class="pre">Grid</span></code> and always has separate X/Y segment caches for its
+to screen or document output. A global <a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> belongs to the graph. A track
+can own a local <a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> and always has separate X/Y segment caches for its
 plot rectangle. See <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a> for the shared interfaces.</p>
 <section id="configuration-and-axis-selection">
 <h2>Configuration and axis selection<a class="headerlink" href="#configuration-and-axis-selection" title="Link to this heading">¶</a></h2>
@@ -54,7 +54,7 @@ references and representation-specific tick lists before committing active
 state. Axis lookup acquires references that must be released on failure or
 replacement. Local grids require a shared X axis and a Y axis owned by the
 same track; either mapping can be empty to disable that direction.</p>
-<p>The global grid uses the named <code class="docutils literal notranslate"><span class="pre">grid</span></code>/<code class="docutils literal notranslate"><span class="pre">Grid</span></code> option-database component.
+<p>The global grid uses the named <code class="docutils literal notranslate"><span class="pre">grid</span></code>/<a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> option-database component.
 Local-grid initialization follows a different path: it initializes a local
 record and copies the effective inherited options into it. Do not infer a
 separate named option-database child merely from the nested Tcl command.

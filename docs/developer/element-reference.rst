@@ -3,6 +3,23 @@ Element data C reference
 
 These interfaces are private. See :doc:`elements` for ownership and ordering.
 
+Element ownership, data and picking records
+-------------------------------------------
+
+.. doxygentypedef:: Element
+
+.. doxygenstruct:: ElementStruct
+   :members:
+
+.. doxygenstruct:: ElemVector
+   :members:
+
+.. doxygenstruct:: ClosestSearch
+   :members:
+
+.. doxygenstruct:: ErrorBarAttributes
+   :members:
+
 Data slots
 ----------
 
@@ -24,14 +41,34 @@ Common data transactions
 Type dispatch signatures
 ------------------------
 
-The callback declarations and table are included directly to retain their exact
-C signatures. They borrow the graph and element; the table does not provide
-lifetime protection or make arbitrary Tcl callback reentry safe.
+Callbacks borrow graph and element records; dispatch does not itself retain
+components or protect against arbitrary Tcl callback reentry. The concrete
+operation's contract supplies any additional restrictions.
 
-.. literalinclude:: ../../generic/rbcGrElem.h
-   :language: c
-   :start-at: typedef void(ElementDrawProc)
-   :end-at: } ElementProcs;
+.. doxygentypedef:: ElementDrawProc
+
+.. doxygentypedef:: ElementExportProc
+
+.. doxygentypedef:: ElementDestroyProc
+
+.. doxygentypedef:: ElementConfigProc
+
+.. doxygentypedef:: ElementMapProc
+
+.. doxygentypedef:: ElementExtentsProc
+
+.. doxygentypedef:: ElementClosestProc
+
+.. doxygentypedef:: ElementDrawSymbolProc
+
+.. doxygentypedef:: ElementSymbolExportProc
+
+.. doxygentypedef:: ElementPointCountProc
+
+.. doxygentypedef:: ElementClosestInfoProc
+
+.. doxygenstruct:: ElementProcs
+   :members:
 
 Configuration transaction internals
 -----------------------------------

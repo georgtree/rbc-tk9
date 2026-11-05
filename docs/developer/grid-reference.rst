@@ -4,6 +4,18 @@ Grid C reference
 These private entry points borrow the graph and require the preparation or
 cleanup context described in :doc:`grids`.
 
+Grid configuration and mapped caches
+------------------------------------
+
+.. doxygenstruct:: Grid
+   :members:
+
+.. doxygenstruct:: GridSegments
+   :members:
+
+.. doxygenstruct:: PolarLabelAnchor
+   :members:
+
 Mapping and output
 ------------------
 

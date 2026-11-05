@@ -180,7 +180,7 @@ nor a lookup result transfers ownership of the static record.</p>
 </section>
 <section id="contribution-layout-and-rounding">
 <h2>Contribution layout and rounding<a class="headerlink" href="#contribution-layout-and-rounding" title="Link to this heading">¶</a></h2>
-<p>Each Sample stores a source start index, count and variable-length Weight
+<p>Each Sample stores a source start index, count and variable-length ResampleWeight
 array. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> returns the byte stride, which must be used to advance
 between records; ordinary Sample pointer arithmetic would be incorrect.
 <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetSampleRecordSize" title="rbcImageResampling.GetSampleRecordSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetSampleRecordSize()</span></code></a> accounts for the first inline weight and checks extra

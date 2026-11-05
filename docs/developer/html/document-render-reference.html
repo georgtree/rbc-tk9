@@ -60,7 +60,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderCreatePostscript">
 <span class="target" id="group__export__backend_1gaf6d26fa6803d2777c67cb6213bc8a18e"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderCreatePostscript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderCreatePostscript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Allocate a zeroed PostScript renderer borrowing an initialized token. </p>
+<dd><p>Allocate a zeroed <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> renderer borrowing an initialized token. </p>
 <p>Requires backendData to hold a live PsToken. Owns only the returned context; release through Rbc_RenderEnd. Does not begin a page, load the prolog or own the export buffer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -102,17 +102,17 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderPostscriptStroke">
 <span class="target" id="group__export__backend_1ga4c39dcb0bf845a6e62c13be315cd87d2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptStroke</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptStroke" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Emit PostScript line attributes and remember whether dashes are enabled. </p>
-<p>Requires a PostScript context. Delegates width/color/dash conversion to the token and borrows input resources. Dash-background procedure setup is separate.</p>
+<dd><p>Emit <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> line attributes and remember whether dashes are enabled. </p>
+<p>Requires a <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> context. Delegates width/color/dash conversion to the token and borrows input resources. Dash-background procedure setup is separate.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ctx</strong> – <strong>[inout]</strong> Live export renderer context; borrowed document state remains owned by its caller. </p></li>
-<li><p><strong>color</strong> – <strong>[in]</strong> Non-NULL borrowed foreground passed to the legacy PostScript line-attribute helper. </p></li>
-<li><p><strong>lineWidth</strong> – <strong>[in]</strong> Stroke width in display pixels, using legacy PostScript normalization. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Non-NULL borrowed foreground passed to the legacy <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> line-attribute helper. </p></li>
+<li><p><strong>lineWidth</strong> – <strong>[in]</strong> Stroke width in display pixels, using legacy <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> normalization. </p></li>
 <li><p><strong>dashes</strong> – <strong>[in]</strong> Optional borrowed dash pattern; NULL selects a solid stroke. </p></li>
-<li><p><strong>capStyle</strong> – <strong>[in]</strong> X cap-style constant converted to PostScript line-cap state. </p></li>
-<li><p><strong>joinStyle</strong> – <strong>[in]</strong> X join-style constant converted to PostScript line-join state. </p></li>
+<li><p><strong>capStyle</strong> – <strong>[in]</strong> X cap-style constant converted to <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> line-cap state. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> X join-style constant converted to <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> line-join state. </p></li>
 </ul>
 </dd>
 </dl>
@@ -121,7 +121,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderPostscriptSymbol">
 <span class="target" id="group__export__backend_1ga48147556f4cf400505a35c515910fc1f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptSymbol</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderSymbolStyle" title="Rbc_RenderSymbolStyle"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptSymbol" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Define a legacy PostScript symbol batch and its size correction. </p>
+<dd><p>Define a legacy <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> symbol batch and its size correction. </p>
 <p>Requires a valid symbol type, live graph and valid bitmap resources when selected. Defines DrawSymbolProc in the document dictionary, chooses a prolog macro, and emits outline width/dashes. Finish this batch before another context redefines that procedure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -137,7 +137,7 @@ ownership of the source image, font or mapped point array.</p>
 <dt class="sig sig-object c" id="c.Rbc_RenderPostscriptBarSymbol">
 <span class="target" id="group__export__backend_1ga7eef1829d60f98bd4feba39db54b83b1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptBarSymbol</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptBarSymbol" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Define the unscaled square procedure used for bar legend samples. </p>
-<p>Requires a PostScript fill context and live graph for stipples. Borrows style resources, emits DrawSymbolProc and records size. Retains the legacy solid/stipple fallback and ignores image-tile opacity.</p>
+<p>Requires a <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> fill context and live graph for stipples. Borrows style resources, emits DrawSymbolProc and records size. Retains the legacy solid/stipple fallback and ignores image-tile opacity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -167,7 +167,7 @@ ownership of the source image, font or mapped point array.</p>
 <dt class="sig sig-object c" id="c.Rbc_RenderExportLineStyle">
 <span class="target" id="group__export__backend_1ga0a2c78573ec34747becc54a19264d8f1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportLineStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">cap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">join</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportLineStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Cache PDF/SVG cap and join settings for later drawing. </p>
-<p>Requires an export context using the shared state layout. Emits nothing and does not affect existing output; PostScript has its own immediate setter.</p>
+<p>Requires an export context using the shared state layout. Emits nothing and does not affect existing output; <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> has its own immediate setter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -786,7 +786,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptClipBegin">
 <span class="target" id="group__postscript__backend_1gabe9386ca78e3a7d0bfcfbf8d87994009"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptClipBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptClipBegin" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Open a saved rectangular PostScript clip. </p>
+<dd><p>Open a saved rectangular <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> clip. </p>
 <p>Emits gsave and a closed path followed by clip/newpath. Common renderer depth tracking owns pairing; PostScriptClipEnd closes this scope.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -804,7 +804,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptClipEnd">
 <span class="target" id="group__postscript__backend_1gab0e40bb9e42ce319bb2b71274e18c754"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptClipEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptClipEnd" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Restore one rectangular PostScript clipping scope. </p>
+<dd><p>Restore one rectangular <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> clipping scope. </p>
 <p>Emits grestore without changing common clip depth. Requires a matching begin.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -818,7 +818,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptPolyline">
 <span class="target" id="group__postscript__backend_1ga3ed66cbaf1f3629c81d2fd14b5f7d4bf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptPolyline" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Stroke a connected path in bounded PostScript batches. </p>
+<dd><p>Stroke a connected path in bounded <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> batches. </p>
 <p>Fewer than two points is a no-op. Splits at 1500 path components and restarts at the shared vertex. Invokes the current DashesProc before each foreground stroke; caller ordering must preserve that document-level definition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -856,8 +856,8 @@ ownership of the source image, font or mapped point array.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
-<li><p><strong>capStyle</strong> – <strong>[in]</strong> X/Tk line cap constant passed to the PostScript conversion helper. </p></li>
-<li><p><strong>joinStyle</strong> – <strong>[in]</strong> X/Tk line join constant passed to the PostScript conversion helper. </p></li>
+<li><p><strong>capStyle</strong> – <strong>[in]</strong> X/Tk line cap constant passed to the <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> conversion helper. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> X/Tk line join constant passed to the <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> conversion helper. </p></li>
 </ul>
 </dd>
 </dl>
@@ -988,7 +988,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptText">
 <span class="target" id="group__postscript__backend_1gae8df62f91586048aeaa79c4243952998"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptText</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptText" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Delegate mapped text to the legacy PostScript text writer. </p>
+<dd><p>Delegate mapped text to the legacy <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> text writer. </p>
 <p>Borrows the string and TextStyle. Uses token font/color maps and legacy encoding, not the PDF/SVG document font pipeline.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1040,7 +1040,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptWindow">
 <span class="target" id="group__postscript__backend_1ga9204fc2e20ef97f53f9f1588b2a8a686"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptWindow</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptWindow" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Delegate window capture to the legacy PostScript writer. </p>
+<dd><p>Delegate window capture to the legacy <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> writer. </p>
 <p>Borrows the live window. Capture behavior and errors belong to Rbc_WindowToPostScript; this adapter does not introduce a clipping container.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1063,7 +1063,7 @@ ownership of the source image, font or mapped point array.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
-<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed background color interpreted by the legacy PostScript color-map policy. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed background color interpreted by the legacy <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> color-map policy. </p></li>
 <li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
 <li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
 </ul>
@@ -1299,7 +1299,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.PostscriptRenderContext">
 <span class="target" id="struct_postscript_render_context"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostscriptRenderContext</span></span></span><a class="headerlink" href="#c.PostscriptRenderContext" title="Link to this definition">¶</a><br /></dt>
-<dd><p>PostScript context borrowing the token and prolog; does not own document output. </p>
+<dd><p><a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> context borrowing the token and prolog; does not own document output. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="c var">
@@ -1311,7 +1311,7 @@ ownership of the source image, font or mapped point array.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.PostscriptRenderContext.psToken">
 <span class="target" id="struct_postscript_render_context_1a7bf08fbd322ce3913645169f8b1450ba"></span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">psToken</span></span></span><a class="headerlink" href="#c.PostscriptRenderContext.psToken" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Borrowed PostScript token used for legacy primitive emission. </p>
+<dd><p>Borrowed <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> token used for legacy primitive emission. </p>
 </dd></dl>
 
 <dl class="c var">

@@ -7,6 +7,15 @@ rendering and cleanup. These routines belong to ``rbcGrBar.c``. The exported
 vector stubs API. Namespaces below disambiguate private documentation symbols;
 they do not change C linkage.
 
+Bar grouping state
+------------------
+
+.. doxygenstruct:: FreqKey
+   :members:
+
+.. doxygenstruct:: FreqInfo
+   :members:
+
 Configuration and pens
 -----------------------
 

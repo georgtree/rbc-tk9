@@ -4,6 +4,12 @@ PostScript token C reference
 These private services are declared in ``rbcPs.h`` and implemented in
 ``rbcPs.c``. See :doc:`postscript-output` for ownership and prolog requirements.
 
+Persistent graph PostScript configuration
+-----------------------------------------
+
+.. doxygenstruct:: PostScript
+   :members:
+
 Token allocation and borrowed buffers
 -------------------------------------
 

@@ -46,11 +46,11 @@
 <p><code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> owns shared element commands, common data transactions and
 iteration over the graph’s element display list. Concrete element modules
 supply configuration, extents, mapping, drawing, export and closest-point
-operations through <code class="docutils literal notranslate"><span class="pre">ElementProcs</span></code>. The private records and declarations live
+operations through <a class="reference internal" href="element-reference.html#c.ElementProcs" title="ElementProcs"><code class="xref c c-type docutils literal notranslate"><span class="pre">ElementProcs</span></code></a>. The private records and declarations live
 in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.h</span></code>; see <a class="reference internal" href="element-reference.html"><span class="doc">Element data C reference</span></a> for selected contracts.</p>
 <section id="data-slots">
 <h2>Data slots<a class="headerlink" href="#data-slots" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ElemVector</span></code> represents one common data input: X, Y, weights or an error-bar
+<p><a class="reference internal" href="element-reference.html#c.ElemVector" title="ElemVector"><code class="xref c c-type docutils literal notranslate"><span class="pre">ElemVector</span></code></a> represents one common data input: X, Y, weights or an error-bar
 input. Its ownership depends on how it was populated:</p>
 <table class="docutils align-default">
 <thead>
@@ -127,11 +127,11 @@ component implementation.</p>
 </section>
 <section id="type-dispatch-and-display-order">
 <h2>Type dispatch and display order<a class="headerlink" href="#type-dispatch-and-display-order" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ElementProcs</span></code> separates shared command behavior from element-specific work.
+<p><a class="reference internal" href="element-reference.html#c.ElementProcs" title="ElementProcs"><code class="xref c c-type docutils literal notranslate"><span class="pre">ElementProcs</span></code></a> separates shared command behavior from element-specific work.
 Extents describe data bounds for axis scaling; mapping prepares display
 geometry; normal and active drawing consume it. Export and legend-symbol
 operations have separate callbacks. Closest-point callbacks report through
-<code class="docutils literal notranslate"><span class="pre">ClosestSearch</span></code>, including data coordinates and an original data index.</p>
+<a class="reference internal" href="element-reference.html#c.ClosestSearch" title="ClosestSearch"><code class="xref c c-type docutils literal notranslate"><span class="pre">ClosestSearch</span></code></a>, including data coordinates and an original data index.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.Rbc_MapElements" title="rbcGrElemLifecycle.Rbc_MapElements"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.Rbc_MapElements()</span></code></a> walks the display list, skipping hidden and plot-hidden
 elements. It remaps when the graph requests all items or the element has
 <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code> set. Each mapping call runs within a paired track viewport scope,

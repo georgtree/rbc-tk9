@@ -4,6 +4,29 @@ Pen and palette C reference
 These private services distinguish counted named-pen references from borrowed
 normal-palette entries. See :doc:`pens` for lifetime and selection rules.
 
+Pen ownership and palette records
+---------------------------------
+
+.. doxygentypedef:: Pen
+
+.. doxygenstruct:: PenStruct
+   :members:
+
+.. doxygenstruct:: Weight
+   :members:
+
+.. doxygenstruct:: PenStyle
+   :members:
+
+Pen lifecycle callback types
+----------------------------
+
+.. doxygentypedef:: PenCreateProc
+
+.. doxygentypedef:: PenConfigureProc
+
+.. doxygentypedef:: PenDestroyProc
+
 Named pen references
 --------------------
 

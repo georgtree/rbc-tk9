@@ -6,22 +6,20 @@ the owning component supplies their lifetime. See :doc:`bindings` for event
 order, picking priority, callback reentry and the distinction between objects
 and binding keys.
 
+Binding table state
+-------------------
+
+.. doxygenstruct:: Rbc_BindTableStruct
+   :members:
+
 Shared interface
 ----------------
 
 .. doxygentypedef:: Rbc_BindTable
 
-Callback signatures are included verbatim from the header:
+.. doxygentypedef:: Rbc_BindPickProc
 
-.. literalinclude:: ../../generic/rbcBind.h
-   :language: c
-   :start-at: typedef ClientData(Rbc_BindPickProc)
-   :end-at: typedef ClientData(Rbc_BindPickProc)
-
-.. literalinclude:: ../../generic/rbcBind.h
-   :language: c
-   :start-at: typedef void(Rbc_BindTagProc)
-   :end-at: typedef void(Rbc_BindTagProc)
+.. doxygentypedef:: Rbc_BindTagProc
 
 The picker writes an object context alongside its returned pointer. The tag
 collector appends stable keys to the temporary list supplied by dispatch;

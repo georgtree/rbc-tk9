@@ -102,43 +102,34 @@ typedef enum {
 #define NORMAL_PEN (TK_CONFIG_USER_BIT << 7)
 #define ALL_PENS (NORMAL_PEN | ACTIVE_PEN)
 
+/** @brief Polar label anchor policy.
+ * An automatic anchor is resolved from geometry; the stored Tk anchor applies when automatic selection is off.
+ */
 typedef struct {
-    Tk_Anchor anchor;
-    int isAuto;
+    Tk_Anchor anchor; /**< Explicit Tk anchor selector. */
+    int isAuto; /**< Nonzero selects geometry-dependent anchoring. */
 } PolarLabelAnchor;
 
 typedef enum { POLAR_REPRESENTATION_POLAR, POLAR_REPRESENTATION_SMITH } PolarRepresentation;
 typedef enum { SMITH_GRID_IMPEDANCE, SMITH_GRID_ADMITTANCE, SMITH_GRID_BOTH } SmithGridMode;
 
-/*
- * -------------------------------------------------------------------
- *
- * FreqInfo --
- *
- * -------------------------------------------------------------------
+/** @brief Accumulated state for bars sharing a grouping key.
+ * Stored in the graph-owned frequency array and indexed by its frequency table; mapping resets count and lastY.
  */
 typedef struct {
-    Tcl_Size freq; /* Number of occurrences of x-coordinate */
-    Axis2D axes;   /* Indicates which x and y axis are mapped to
-                    * the x-value */
-    double sum;    /* Sum of the ordinates of each duplicate
-                    * abscissa */
-    Tcl_Size count;
-    double lastY;
-
+    Tcl_Size freq; /**< Number of bars sharing the abscissa and axes. */
+    Axis2D axes; /**< Borrowed axis pair for this group. */
+    double sum; /**< Sum of grouped ordinates used when determining stacked limits. */
+    Tcl_Size count; /**< Number of group entries already placed during the current mapping pass. */
+    double lastY; /**< Previous stacked ordinate used to place the next bar. */
 } FreqInfo;
 
-/*
- * -------------------------------------------------------------------
- *
- * FreqKey --
- *
- *
- * -------------------------------------------------------------------
+/** @brief Bar grouping key for an abscissa and axis pair.
+ * Axis identities distinguish otherwise equal X values belonging to different mappings.
  */
 typedef struct {
-    double value; /* Duplicated abscissa */
-    Axis2D axes;  /* Axis mapping of element */
+    double value; /**< Abscissa in source data units. */
+    Axis2D axes; /**< Borrowed axis pair participating in this group. */
 } FreqKey;
 
 /*
@@ -167,159 +158,179 @@ typedef enum BarModes {
 typedef struct PenStruct Pen;
 typedef struct MarkerStruct Marker;
 
+/** @brief Allocate and initialize the common prefix of a concrete pen.
+ * @return New pen record for the caller lifecycle; allocation policy belongs to the concrete constructor.
+ */
 typedef Pen *(PenCreateProc)(void);
+/** @brief Validate configured pen state and rebuild concrete drawing resources.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] penPtr Borrowed concrete pen whose resource state may be updated or released by this hook.
+ * @return TCL_OK on success or TCL_ERROR with interpreter diagnostics.
+ */
 typedef int(PenConfigureProc)(Graph *graphPtr, Pen *penPtr);
+/** @brief Release concrete pen drawing resources without freeing the common record.
+ * @param[inout] graphPtr Borrowed live owning graph; the callback must respect its current lifecycle phase.
+ * @param[inout] penPtr Borrowed concrete pen whose resource state may be updated or released by this hook.
+ */
 typedef void(PenDestroyProc)(Graph *graphPtr, Pen *penPtr);
 
+/** @brief Common prefix of concrete drawing pens.
+ * Named pens use counted references and deferred deletion; element-embedded pens follow their concrete owner lifetime. Keep this prefix compatible with concrete pen records.
+ */
 struct PenStruct {
-    char *name;
-    Rbc_Uid classUid;
-    char *typeId;
-    unsigned int flags;
-    int refCount;
-    Tcl_HashEntry *hashPtr;
-    const Tk_OptionSpec *optionSpecs;
-    Tk_OptionTable optionTable;
-    int optionsInitialized;
-    int tkResourcesReleased;
-    PenConfigureProc *configProc;
-    PenDestroyProc *destroyProc;
+    char *name; /**< Named-pen identifier; embedded/default pens need not have a registry name. */
+    Rbc_Uid classUid; /**< Interned component class identifier. */
+    char *typeId; /**< Concrete pen type identifier used for compatibility checks. */
+    unsigned int flags; /**< Pen state bits, including PEN_DELETE_PENDING. */
+    int refCount; /**< Number of retained named-pen references. */
+    Tcl_HashEntry *hashPtr; /**< Registry entry referring to this record; NULL after detachment. */
+    const Tk_OptionSpec *optionSpecs; /**< Borrowed immutable option specifications for the concrete component type. */
+    Tk_OptionTable optionTable; /**<
+     * Tk option table associated with this record; managed by its configuration lifecycle.
+     */
+    int optionsInitialized; /**< Nonzero once Tk option initialization has completed. */
+    int tkResourcesReleased; /**< Nonzero after the guarded Tk-resource release pass. */
+    PenConfigureProc *configProc; /**< Concrete configuration hook; rebuilds resources for the owning graph. */
+    PenDestroyProc *destroyProc; /**<
+     * Concrete resource-release hook; generic pen teardown manages the record lifetime.
+     */
 };
 
 typedef enum { PS_MONO_BACKGROUND, PS_MONO_FOREGROUND } MonoAttribute;
 
-/*
- * PostScript --
- *
- *     Structure contains information specific to the outputting of
- *    PostScript commands to print the graph.
- *
+/** @brief Persistent graph PostScript options and computed page placement.
+ * Tk option cleanup releases configured objects and resources. Export temporarily computes bounding-box and scale fields; the graph owns this record.
  */
 typedef struct {
-    /*
-     * Modern Tk option state.
+    Tk_OptionTable optionTable; /**<
+     * Tk option table associated with this record; managed by its configuration lifecycle.
      */
-    Tk_OptionTable optionTable;
-    /*
-     * Original Tcl representations.
+    Tcl_Obj *colorModeObjPtr; /**< Tk option-managed Tcl representation for color mode; released with option state. */
+    Tcl_Obj *heightObjPtr; /**< Tk option-managed Tcl representation for height; released with option state. */
+    Tcl_Obj *padXObjPtr; /**< Tk option-managed Tcl representation for pad x; released with option state. */
+    Tcl_Obj *padYObjPtr; /**< Tk option-managed Tcl representation for pad y; released with option state. */
+    Tcl_Obj *paperHeightObjPtr; /**<
+     * Tk option-managed Tcl representation for paper height; released with option state.
      */
-    Tcl_Obj *colorModeObjPtr;
-    Tcl_Obj *heightObjPtr;
-    Tcl_Obj *padXObjPtr;
-    Tcl_Obj *padYObjPtr;
-    Tcl_Obj *paperHeightObjPtr;
-    Tcl_Obj *paperWidthObjPtr;
-    Tcl_Obj *previewFormatObjPtr;
-    Tcl_Obj *widthObjPtr;
-    /* User configurable fields */
-    int decorations; /* If non-zero, print graph with
-                      * color background and 3D borders */
-
-    int reqWidth, reqHeight; /* If greater than zero, represents the
-                              * requested dimensions of the printed graph */
-    int reqPaperWidth;
-    int reqPaperHeight;    /* Requested dimensions for the PostScript
-                            * page. Can constrain the size of the graph
-                            * if the graph (plus padding) is larger than
-                            * the size of the page. */
-    Rbc_Pad padX, padY;    /* Requested padding on the exterior of the
-                            * graph. This forms the bounding box for
-                            * the page. */
-    PsColorMode colorMode; /* Selects the color mode for PostScript page
-                            * (0=monochrome, 1=greyscale, 2=color) */
-    char *colorVarName;    /* If non-NULL, is the name of a Tcl array
-                            * variable containing X to PostScript color
-                            * translations */
-    char *fontVarName;     /* If non-NULL, is the name of a Tcl array
-                            * variable containing X to PostScript font
-                            * translations */
-    int landscape;         /* If non-zero, orient the page 90 degrees */
-    int center;            /* If non-zero, center the graph on the page */
-    int maxpect;           /* If non-zero, indicates to scale the graph
-                            * so that it fills the page (maintaining the
-                            * aspect ratio of the graph) */
-    int addPreview;        /* If non-zero, generate a preview image and
-                            * add it to the PostScript output */
-    int footer;            /* If non-zero, a footer with the title, date
-                            * and user will be added to the PostScript
-                            * output outside of the bounding box. */
-    int previewFormat;     /* Format of EPS preview:
-                            * PS_PREVIEW_WMF, PS_PREVIEW_EPSI, or
-                            * PS_PREVIEW_TIFF. */
-    /* Computed fields */
-    int left, bottom; /* Bounding box of PostScript plot. */
-    int right, top;
-    double pageScale; /* Scale of page. Set if "-maxpect" option
-                       * is set, otherwise 1.0. */
+    Tcl_Obj *paperWidthObjPtr; /**< Tk option-managed Tcl representation for paper width; released with option state. */
+    Tcl_Obj *previewFormatObjPtr; /**<
+     * Tk option-managed Tcl representation for preview format; released with option state.
+     */
+    Tcl_Obj *widthObjPtr; /**< Tk option-managed Tcl representation for width; released with option state. */
+    int decorations; /**< If non-zero, print graph with color background and 3D borders */
+    int reqWidth; /**< Requested graph width in pixels; nonpositive values use the current graph size. */
+    int reqHeight; /**< Requested graph height in pixels; nonpositive values use the current graph size. */
+    int reqPaperWidth; /**< Requested page width in pixels before PostScript page conversion. */
+    int reqPaperHeight; /**< Requested page height in pixels before PostScript page conversion. */
+    Rbc_Pad padX; /**< Requested horizontal exterior padding in pixels. */
+    Rbc_Pad padY; /**< Requested vertical exterior padding in pixels. */
+    PsColorMode colorMode; /**< Selects the color mode for PostScript page (0=monochrome, 1=greyscale, 2=color) */
+    char *colorVarName; /**<
+     * If non-NULL, is the name of a Tcl array variable containing X to PostScript color translations
+     */
+    char *fontVarName; /**<
+     * If non-NULL, is the name of a Tcl array variable containing X to PostScript font translations
+     */
+    int landscape; /**< If non-zero, orient the page 90 degrees */
+    int center; /**< If non-zero, center the graph on the page */
+    int maxpect; /**<
+     * If non-zero, indicates to scale the graph so that it fills the page (maintaining the aspect ratio of the
+     * graph)
+     */
+    int addPreview; /**< If non-zero, generate a preview image and add it to the PostScript output */
+    int footer; /**<
+     * If non-zero, a footer with the title, date and user will be added to the PostScript output outside of the
+     * bounding box.
+     */
+    int previewFormat; /**< Format of EPS preview: PS_PREVIEW_WMF, PS_PREVIEW_EPSI, or PS_PREVIEW_TIFF. */
+    int left; /**< Computed page bounding-box left coordinate. */
+    int bottom; /**< Computed page bounding-box bottom coordinate. */
+    int right; /**< Computed page bounding-box right coordinate. */
+    int top; /**< Computed page bounding-box top coordinate. */
+    double pageScale; /**< Scale of page. Set if "-maxpect" option is set, otherwise 1.0. */
 } PostScript;
 
-/*
- * -------------------------------------------------------------------
- *
- * Grid
- *
- *    Contains attributes of describing how to draw grids (at major
- *    ticks) in the graph.  Grids may be mapped to either/both x and
- *    y axis.
- *
- * -------------------------------------------------------------------
+/** @brief Owned mapped grid segment storage.
+ * Used for graph and track grid caches; coordinates are display pixels, not source tick values.
+ */
+struct GridSegments {
+    Segment2D *segments; /**< Owned mapped endpoint-pair array; NULL when empty. */
+    Tcl_Size nSegments; /**< Number of initialized Segment2D entries. */
+};
+
+/** @brief Graph or track grid options and mapped drawing caches.
+ * Tk option state owns Tcl representations and color resources; derived tick arrays and segment caches are released by grid cleanup. Owner pointers are borrowed; selected axes carry references released by grid cleanup.
  */
 typedef struct {
-    /*
-     * Modern Tk option state.
+    Tk_OptionTable optionTable; /**<
+     * Tk option table associated with this record; managed by its configuration lifecycle.
      */
-    Tk_OptionTable optionTable;
-    Graph *graphPtr;
-    RbcTrack *track; /* Non-NULL for an independently configured track grid. */
-    int optionsConfigured;
-    Tcl_Size optionObjc;
-    Tcl_Obj *const *optionObjv;
-    /*
-     * Original Tcl option values. These are owned and reference-counted
-     * by Tk_InitOptions(), Tk_SetOptions(), and Tk_FreeConfigOptions().
+    Graph *graphPtr; /**< Borrowed owning graph; does not retain the widget. */
+    RbcTrack *track; /**< Borrowed owning track, or NULL for the graph-wide grid. */
+    int optionsConfigured; /**< Nonzero after the first successful configuration. */
+    Tcl_Size optionObjc; /**< Number of objects in the current borrowed configure argument slice. */
+    Tcl_Obj *const *optionObjv; /**<
+     * Borrowed configure arguments, valid only during the synchronous configuration transaction.
      */
-    Tcl_Obj *angleMajorTicksObjPtr;
-    Tcl_Obj *angleMinorTicksObjPtr;
-    Tcl_Obj *angleCommandObjPtr;
-    Tcl_Obj *smithRealCommandObjPtr;
-    Tcl_Obj *smithImagCommandObjPtr;
-    Tcl_Obj *smithRealMajorTicksObjPtr;
-    Tcl_Obj *smithRealMinorTicksObjPtr;
-    Tcl_Obj *smithImagMajorTicksObjPtr;
-    Tcl_Obj *smithImagMinorTicksObjPtr;
-    Tcl_Obj *dashesObjPtr;
-    Tcl_Obj *lineWidthObjPtr;
-    Tcl_Obj *mapXObjPtr;
-    Tcl_Obj *mapYObjPtr;
-    /*
-     * Derived/internal state.
+    Tcl_Obj *angleMajorTicksObjPtr; /**<
+     * Tk option-managed Tcl representation for angle major ticks; released with option state.
      */
-    SmithGridMode smithGrid;
-    PolarLabelAnchor radialLabelAnchor;
-    PolarLabelAnchor angleLabelAnchor;
-    double *angleMajorTicks;
-    Tcl_Size nAngleMajorTicks;
-    double *angleMinorTicks;
-    Tcl_Size nAngleMinorTicks;
-    double *smithRealMajorTicks;
-    Tcl_Size nSmithRealMajorTicks;
-    double *smithRealMinorTicks;
-    Tcl_Size nSmithRealMinorTicks;
-    double *smithImagMajorTicks;
-    Tcl_Size nSmithImagMajorTicks;
-    double *smithImagMinorTicks;
-    Tcl_Size nSmithImagMinorTicks;
-    GC gc; /* Graphics context for the grid. */
-    Axis2D axes;
-    int hidden;    /* If non-zero, grid isn't displayed. */
-    int minorGrid; /* If non-zero, draw minor grid lines. */
-    Rbc_Dashes dashes; /* Parsed dash pattern. */
-    int lineWidth;     /* Line width in pixels. */
-    XColor *colorPtr;  /* Grid colour. */
-    struct GridSegments {
-        Segment2D *segments;
-        Tcl_Size nSegments;
-    } x, y;
+    Tcl_Obj *angleMinorTicksObjPtr; /**<
+     * Tk option-managed Tcl representation for angle minor ticks; released with option state.
+     */
+    Tcl_Obj *angleCommandObjPtr; /**<
+     * Tk option-managed Tcl representation for angle command; released with option state.
+     */
+    Tcl_Obj *smithRealCommandObjPtr; /**<
+     * Tk option-managed Tcl representation for smith real command; released with option state.
+     */
+    Tcl_Obj *smithImagCommandObjPtr; /**<
+     * Tk option-managed Tcl representation for smith imag command; released with option state.
+     */
+    Tcl_Obj *smithRealMajorTicksObjPtr; /**<
+     * Tk option-managed Tcl representation for smith real major ticks; released with option state.
+     */
+    Tcl_Obj *smithRealMinorTicksObjPtr; /**<
+     * Tk option-managed Tcl representation for smith real minor ticks; released with option state.
+     */
+    Tcl_Obj *smithImagMajorTicksObjPtr; /**<
+     * Tk option-managed Tcl representation for smith imag major ticks; released with option state.
+     */
+    Tcl_Obj *smithImagMinorTicksObjPtr; /**<
+     * Tk option-managed Tcl representation for smith imag minor ticks; released with option state.
+     */
+    Tcl_Obj *dashesObjPtr; /**< Tk option-managed Tcl representation for dashes; released with option state. */
+    Tcl_Obj *lineWidthObjPtr; /**< Tk option-managed Tcl representation for line width; released with option state. */
+    Tcl_Obj *mapXObjPtr; /**< Tk option-managed Tcl representation for map x; released with option state. */
+    Tcl_Obj *mapYObjPtr; /**< Tk option-managed Tcl representation for map y; released with option state. */
+    SmithGridMode smithGrid; /**< Impedance, admittance or combined Smith-grid selector. */
+    PolarLabelAnchor radialLabelAnchor; /**< Anchor policy for radial labels. */
+    PolarLabelAnchor angleLabelAnchor; /**< Anchor policy for angular labels. */
+    double *angleMajorTicks; /**< Owned parsed major angle tick values; paired with nAngleMajorTicks. */
+    Tcl_Size nAngleMajorTicks; /**< Number of initialized values in angleMajorTicks. */
+    double *angleMinorTicks; /**< Owned parsed minor angle tick values; paired with nAngleMinorTicks. */
+    Tcl_Size nAngleMinorTicks; /**< Number of initialized values in angleMinorTicks. */
+    double *smithRealMajorTicks; /**< Owned parsed major Smith real tick values; paired with nSmithRealMajorTicks. */
+    Tcl_Size nSmithRealMajorTicks; /**< Number of initialized values in smithRealMajorTicks. */
+    double *smithRealMinorTicks; /**< Owned parsed minor Smith real tick values; paired with nSmithRealMinorTicks. */
+    Tcl_Size nSmithRealMinorTicks; /**< Number of initialized values in smithRealMinorTicks. */
+    double *smithImagMajorTicks; /**<
+     * Owned parsed major Smith imaginary tick values; paired with nSmithImagMajorTicks.
+     */
+    Tcl_Size nSmithImagMajorTicks; /**< Number of initialized values in smithImagMajorTicks. */
+    double *smithImagMinorTicks; /**<
+     * Owned parsed minor Smith imaginary tick values; paired with nSmithImagMinorTicks.
+     */
+    Tcl_Size nSmithImagMinorTicks; /**< Number of initialized values in smithImagMinorTicks. */
+    GC gc; /**< Graphics context for the grid. */
+    Axis2D axes; /**< Retained X/Y axis references used for Cartesian grid selection. */
+    int hidden; /**< If non-zero, grid isn't displayed. */
+    int minorGrid; /**< If non-zero, draw minor grid lines. */
+    Rbc_Dashes dashes; /**< Parsed dash pattern. */
+    int lineWidth; /**< Line width in pixels. */
+    XColor *colorPtr; /**< Grid colour. */
+    struct GridSegments x; /**< Owned mapped grid segments associated with the selected X axis. */
+    struct GridSegments y; /**< Owned mapped grid segments associated with the selected Y axis. */
 } Grid;
 
 /*
@@ -334,20 +345,19 @@ typedef struct {
  */
 typedef struct CrosshairsStruct Crosshairs;
 
+/** @brief Computed and requested layout for one graph margin.
+ * Axis chains are shared with the graph axis layout; margin output variables can invoke Tcl traces when updated.
+ */
 typedef struct {
-    int width, height; /* Extents of the margin */
-    int axesOffset;
-    int axesTitleLength; /* Width of the widest title to be shown.
-                          * Multiple titles are displayed in
-                          * another margin. This is the minimum
-                          * space requirement. */
-    Tcl_Size nAxes;      /* Number of axes to be displayed */
-    Rbc_Chain *axes;     /* Extra axes associated with this margin */
-    char *varName;       /* If non-NULL, name of variable to be
-                          * updated when the margin size changes */
-    int reqSize;         /* Requested size of margin */
-    int site;            /* Indicates where margin is located:
-                          * left/right/top/bottom. */
+    int width; /**< Computed horizontal margin extent in pixels. */
+    int height; /**< Computed vertical margin extent in pixels. */
+    int axesOffset; /**< Pixel offset used when laying out successive margin axes. */
+    int axesTitleLength; /**< Maximum axis title length contributing to the margin requirement. */
+    Tcl_Size nAxes; /**< Number of displayed axes in this margin. */
+    Rbc_Chain *axes; /**< Borrowed axis chain selected from the graph axis chains. */
+    char *varName; /**< Optional Tcl variable name receiving the computed margin size. */
+    int reqSize; /**< Requested margin thickness in pixels. */
+    int site; /**< MARGIN_BOTTOM, MARGIN_LEFT, MARGIN_TOP or MARGIN_RIGHT. */
 } Margin;
 
 #define MARGIN_NONE -1
@@ -361,200 +371,190 @@ typedef struct {
 #define topMargin margins[MARGIN_TOP]
 #define bottomMargin margins[MARGIN_BOTTOM]
 
-/*
- * -------------------------------------------------------------------
- *
- * Graph --
- *
- *    Top level structure containing everything pertaining to
- *    the graph.
- *
- * -------------------------------------------------------------------
+/** @brief Graph-owned registry, painter order and binding-tag storage.
+ * The graph initializes and destroys these containers; component teardown releases the records they index.
+ */
+struct Component {
+    Tcl_HashTable table; /**< Name-to-component registry; entries index the owning graph component records. */
+    Rbc_Chain *displayList; /**< Owned chain of borrowed component pointers in traversal/painter order. */
+    Tcl_HashTable tagTable; /**<
+     * Owned binding-tag registry; tag identities must remain valid during binding dispatch.
+     */
+};
+
+/** @brief Shared widget owner for graph, bar, strip, polar and track plots.
+ * Graph is the typedef for this record. It owns component registries, layout and screen caches. Tcl callbacks can destroy the Tk window before deferred record cleanup; borrowed interp/display pointers do not extend their lifetime.
  */
 struct GraphStruct {
-    int axisFormatActive;          /* Synchronous label callback is running. */
-    int axisFormatInvalid;         /* Callback invalidated the current geometry. */
-    struct GraphRedrawSettle *redrawSettle; /* Pending exposure/resize geometry samples. */
-    unsigned int flags;   /* Flags;  see below for definitions. */
-    Tcl_Interp *interp;   /* Interpreter associated with graph */
-    Tk_Window tkwin;      /* Window that embodies the graph.  NULL
-                           * means that the window has been
-                           * destroyed but the data structures
-                           * haven't yet been cleaned up. */
-    Display *display;     /* Display containing widget; needed,
-                           * among other things, to release
-                           * resources after tkwin has already gone
-                           * away. */
-    Tcl_Command cmdToken; /* Token for graph's widget command. */
-    /*
-     * Modern Tk option state.
+    int axisFormatActive; /**< Nonzero during a synchronous axis label callback. */
+    int axisFormatInvalid; /**< Nonzero when a label callback invalidates the current mapping. */
+    struct GraphRedrawSettle *redrawSettle; /**< Owned pending resize/exposure settling state, or NULL. */
+    unsigned int flags; /**< Flags; see below for definitions. */
+    Tcl_Interp *interp; /**< Borrowed interpreter owning the widget command. */
+    Tk_Window tkwin; /**<
+     * Window that embodies the graph. NULL means that the window has been destroyed but the data structures
+     * haven't yet been cleaned up.
      */
-    Tk_OptionTable optionTable;
-    /*
-     * Anonymous Tk window used to perform option-database lookup for
-     * graph pseudo-components without creating a temporary child window
-     * for every element, marker, pen, etc.
+    Display *display; /**< Borrowed display retained for resource cleanup after tkwin is gone. */
+    Tcl_Command cmdToken; /**< Token for graph's widget command. */
+    Tk_OptionTable optionTable; /**<
+     * Tk option table associated with this record; managed by its configuration lifecycle.
      */
-    Tk_Window optionProxy;
-    /*
-     * Original Tcl representations for values requiring additional
-     * conversion or validation.
+    Tk_Window optionProxy; /**< Owned anonymous Tk option-database lookup window for graph pseudo-components. */
+    Tcl_Obj *barModeObjPtr; /**< Tk option-managed Tcl representation for bar mode; released with option state. */
+    Tcl_Obj *borderWidthObjPtr; /**<
+     * Tk option-managed Tcl representation for border width; released with option state.
      */
-    Tcl_Obj *barModeObjPtr;
-    Tcl_Obj *borderWidthObjPtr;
-    Tcl_Obj *bottomMarginObjPtr;
-    Tcl_Obj *haloObjPtr;
-    Tcl_Obj *heightObjPtr;
-    Tcl_Obj *highlightWidthObjPtr;
-    Tcl_Obj *leftMarginObjPtr;
-    Tcl_Obj *plotBorderWidthObjPtr;
-    Tcl_Obj *plotPadXObjPtr;
-    Tcl_Obj *plotPadYObjPtr;
-    Tcl_Obj *rightMarginObjPtr;
-    Tcl_Obj *shadowObjPtr;
-    Tcl_Obj *tileObjPtr;
-    Tcl_Obj *topMarginObjPtr;
-    Tcl_Obj *widthObjPtr;
-    /*
-     * Temporary context for a modern option transaction.
+    Tcl_Obj *bottomMarginObjPtr; /**<
+     * Tk option-managed Tcl representation for bottom margin; released with option state.
      */
-    unsigned int optionMask;
-    Tcl_Size optionObjc;
-    Tcl_Obj *const *optionObjv;
-    int optionsConfigured;
-    int optionsInitialized;
-    int tkResourcesReleased;
-    char *data; /* This value isn't used in C code.
-                 * It may be used in Tcl bindings to
-                 * associate extra data. */
-    Tk_Cursor cursor;
-    int inset;                /* Sum of focus highlight and 3-D
-                               * border.  Indicates how far to
-                               * offset the graph from outside
-                               * edge of the window. */
-    int borderWidth;          /* Width of the exterior border */
-    int relief;               /* Relief of the exterior border */
-    Tk_3DBorder border;       /* 3-D border used to delineate the plot
-                               * surface and outer edge of window */
-    int highlightWidth;       /* Width in pixels of highlight to draw
-                               * around widget when it has the focus.
-                               * <= 0 means don't draw a highlight. */
-    XColor *highlightBgColor; /* Color for drawing traversal highlight
-                               * area when highlight is off. */
-    XColor *highlightColor;   /* Color for drawing traversal highlight. */
-    char *title;
-    int titleX, titleY;
-    TextStyle titleTextStyle; /* Graph title */
-    char *takeFocus;
-    int reqWidth, reqHeight; /* Requested size of graph window */
-    int width, height;       /* Size of graph window or exported
-                              * page */
-    Tcl_HashTable penTable;  /* Table of pens */
-    struct Component {
-        Tcl_HashTable table;    /* Hash table of ids. */
-        Rbc_Chain *displayList; /* Display list. */
-        Tcl_HashTable tagTable; /* Table of bind tags. */
-    } elements, markers, axes;
-    Rbc_Uid classUid; /* Default element type */
-    Rbc_BindTable bindTable;
-    int nextMarkerId;        /* Tracks next marker identifier available */
-    Rbc_Chain *axisChain[4]; /* Chain of axes for each of the
-                              * margins.  They're separate from the
-                              * margin structures to make it easier
-                              * to invert the X-Y axes by simply
-                              * switching chain pointers.
-                              */
-    Margin margins[4];
-    int pdfWidth, pdfHeight, pdfDecorations, pdfEmbedFonts; /* Independent PDF output options. */
-    int svgWidth, svgHeight, svgDecorations, svgEmbedFonts; /* Independent SVG output options. */
-    PostScript *postscript; /* PostScript options: see rbcGrPS.c */
-    Legend *legend;         /* Legend information: see rbcGrLegd.c */
-    Rbc_BindTable trackLegendBindings; /* Shared event routing for local legends. */
-    Crosshairs *crosshairs; /* Crosshairs information: see rbcGrHairs.c */
-    Grid *gridPtr;          /* Grid attribute information */
-    int halo;               /* Maximum distance allowed between points
-                             * when searching for a point */
-    int inverted;           /* If non-zero, indicates the x and y axis
-                             * positions should be inverted. */
-    Rbc_Tile tile;
-    GC drawGC;           /* Used for drawing on the margins. This
-                          * includes the axis lines */
-    GC fillGC;           /* Used to fill the background of the
-                          * margins. The fill is governed by
-                          * the background color or the tiled
-                          * pixmap. */
-    int plotBorderWidth; /* Width of interior 3-D border. */
-    int plotRelief;      /* 3-d effect: TK_RELIEF_RAISED etc. */
-    XColor *plotBg;      /* Color of plotting surface */
-    GC plotFillGC;       /* Used to fill the plotting area with a
-                          * solid background color. The fill color
-                          * is stored in "plotBg". */
-    double aspect;       /* If non-zero, force plot to conform to aspect ratio W/H */
-    int polarAutoAspect; /* If non-zero, Polar/Smith layout preserves
-                          * equal physical X/Y data-unit scales. */
-    /*
-     * Polar-specific presentation options.
+    Tcl_Obj *haloObjPtr; /**< Tk option-managed Tcl representation for halo; released with option state. */
+    Tcl_Obj *heightObjPtr; /**< Tk option-managed Tcl representation for height; released with option state. */
+    Tcl_Obj *highlightWidthObjPtr; /**<
+     * Tk option-managed Tcl representation for highlight width; released with option state.
      */
-    PolarRepresentation representation;
-    XColor *trackSeparatorColor; /* NULL disables visible track dividers. */
-    int trackSeparatorWidth;
-    int trackScroll;         /* Preserve requested track sizes instead of fitting. */
-    Tcl_Obj *trackScrollCmdObj;
-    double trackOffset, trackExtent;
-    double trackFirst, trackLast; /* Last notified scrollbar fractions. */
-    int trackResize;         /* Enable the optional Trackgraph class drag bindings. */
-    int trackGraph;          /* Named, vertically stacked plot regions. */
-    RbcTrack *tracks;
-    RbcTrack *activeTrack;
-    int left, right; /* Coordinates of plot bounding box. */
-    int top, bottom;
-    Rbc_Pad padX;        /* Vertical padding for plotarea */
-    int vRange, vOffset; /* Vertical axis range and offset from the
-                          * left side of the graph window. Used to
-                          * transform coordinates to vertical
-                          * axes. */
-    Rbc_Pad padY;        /* Horizontal padding for plotarea */
-    int hRange, hOffset; /* Horizontal axis range and offset from
-                          * the top of the graph window. Used to
-                          * transform horizontal axes */
-    double vScale, hScale;
-    int antialias;                         /* Rbc_Antialias; applies to Cairo geometry. */
-    struct Rbc_RenderTarget *renderTarget; /* Active, synchronous marker drawing target. */
-    int renderer;                          /* Rbc_Renderer selected by -renderer. */
-    int doubleBuffer;                      /* If non-zero, draw the graph into a pixmap
-                                            * first to reduce flashing. */
-    int backingStore;                      /* If non-zero, cache elements by drawing
-                                            * them into a pixmap */
-    Pixmap backPixmap;                     /* Pixmap used to cache elements
-                                            * displayed.  If *backingStore* is
-                                            * non-zero, each element is drawn
-                                            * into this pixmap before it is
-                                            * copied onto the screen.  The pixmap
-                                            * then acts as a cache (only the
-                                            * pixmap is redisplayed if the none
-                                            * of elements have changed). This is
-                                            * done so that markers can be redrawn
-                                            * quickly over elements without
-                                            * redrawing each element. */
-    int backWidth, backHeight;             /* Size of element backing store pixmap. */
-    /*
-     * barchart specific information
+    Tcl_Obj *leftMarginObjPtr; /**< Tk option-managed Tcl representation for left margin; released with option state. */
+    Tcl_Obj *plotBorderWidthObjPtr; /**<
+     * Tk option-managed Tcl representation for plot border width; released with option state.
      */
-    double baseline;         /* Baseline from bar chart.  */
-    double barWidth;         /* Default width of each bar in graph units.
-                              * The default width is 1.0 units. */
-    BarMode mode;            /* Mode describing how to display bars
-                              * with the same x-coordinates. Mode can
-                              * be "stack", "align", or "normal" */
-    FreqInfo *freqArr;       /* Contains information about duplicate
-                              * x-values in bar elements (malloc-ed).
-                              * This information can also be accessed
-                              * by the frequency hash table */
-    Tcl_HashTable freqTable; /* */
-    Tcl_Size nStacks;        /* Number of entries in frequency array.
-                              * If zero, indicates nothing special needs
-                              * to be done for "stack" or "align" modes */
-    char *dataCmd;           /* New data callback? */
+    Tcl_Obj *plotPadXObjPtr; /**< Tk option-managed Tcl representation for plot pad x; released with option state. */
+    Tcl_Obj *plotPadYObjPtr; /**< Tk option-managed Tcl representation for plot pad y; released with option state. */
+    Tcl_Obj *rightMarginObjPtr; /**<
+     * Tk option-managed Tcl representation for right margin; released with option state.
+     */
+    Tcl_Obj *shadowObjPtr; /**< Tk option-managed Tcl representation for shadow; released with option state. */
+    Tcl_Obj *tileObjPtr; /**< Tk option-managed Tcl representation for tile; released with option state. */
+    Tcl_Obj *topMarginObjPtr; /**< Tk option-managed Tcl representation for top margin; released with option state. */
+    Tcl_Obj *widthObjPtr; /**< Tk option-managed Tcl representation for width; released with option state. */
+    unsigned int optionMask; /**< Change mask from the current option transaction. */
+    Tcl_Size optionObjc; /**< Number of objects in the current borrowed configure argument slice. */
+    Tcl_Obj *const *optionObjv; /**<
+     * Borrowed configure arguments, valid only during the synchronous configuration transaction.
+     */
+    int optionsConfigured; /**< Nonzero after the first successful configuration. */
+    int optionsInitialized; /**< Nonzero once Tk option initialization has completed. */
+    int tkResourcesReleased; /**< Nonzero after the guarded Tk-resource release pass. */
+    char *data; /**< Tk option-managed application data string; interpreted by Tcl bindings, not C drawing code. */
+    Tk_Cursor cursor; /**< Tk option-managed widget cursor. */
+    int inset; /**<
+     * Sum of focus highlight and 3-D border. Indicates how far to offset the graph from outside edge of the
+     * window.
+     */
+    int borderWidth; /**< Width of the exterior border */
+    int relief; /**< Relief of the exterior border */
+    Tk_3DBorder border; /**< 3-D border used to delineate the plot surface and outer edge of window */
+    int highlightWidth; /**<
+     * Width in pixels of highlight to draw around widget when it has the focus. <= 0 means don't draw a highlight.
+     */
+    XColor *highlightBgColor; /**< Color for drawing traversal highlight area when highlight is off. */
+    XColor *highlightColor; /**< Color for drawing traversal highlight. */
+    char *title; /**< Tk option-managed graph title string. */
+    int titleX; /**< Mapped title anchor X in widget pixels. */
+    int titleY; /**< Mapped title anchor Y in widget pixels. */
+    TextStyle titleTextStyle; /**< Graph title */
+    char *takeFocus; /**< Tk option-managed focus traversal script/value. */
+    int reqWidth; /**< Requested widget width in pixels. */
+    int reqHeight; /**< Requested widget height in pixels. */
+    int width; /**< Current drawing width in pixels; temporarily changed during resized export. */
+    int height; /**< Current drawing height in pixels; temporarily changed during resized export. */
+    Tcl_HashTable penTable; /**< Table of pens */
+    struct Component elements; /**< Owned element registry, display order and binding tags. */
+    struct Component markers; /**< Owned marker registry, display order and binding tags. */
+    struct Component axes; /**< Owned axis registry, display order and binding tags. */
+    Rbc_Uid classUid; /**< Default element type */
+    Rbc_BindTable bindTable; /**< Owned component binding/picking table; component pointers in it are borrowed. */
+    int nextMarkerId; /**< Tracks next marker identifier available */
+    Rbc_Chain *axisChain[4]; /**<
+     * Chain of axes for each of the margins. They're separate from the margin structures to make it easier to
+     * invert the X-Y axes by simply switching chain pointers.
+     */
+    Margin margins[4]; /**< Four margin records indexed by MARGIN_* constants. */
+    int pdfWidth; /**< Requested PDF export width in pixels. */
+    int pdfHeight; /**< Requested PDF export height in pixels. */
+    int pdfDecorations; /**< Nonzero includes PDF plot decorations. */
+    int pdfEmbedFonts; /**< Nonzero embeds PDF font resources. */
+    int svgWidth; /**< Requested SVG export width in pixels. */
+    int svgHeight; /**< Requested SVG export height in pixels. */
+    int svgDecorations; /**< Nonzero includes SVG plot decorations. */
+    int svgEmbedFonts; /**< Nonzero embeds SVG font resources. */
+    PostScript *postscript; /**< Owned PostScript configuration record. */
+    Legend *legend; /**< Owned global legend record. */
+    Rbc_BindTable trackLegendBindings; /**<
+     * Owned binding table shared by local legends; picked records remain borrowed.
+     */
+    Crosshairs *crosshairs; /**< Owned crosshair state. */
+    Grid *gridPtr; /**< Owned graph-wide grid configuration and caches. */
+    int halo; /**< Maximum distance allowed between points when searching for a point */
+    int inverted; /**< If non-zero, indicates the x and y axis positions should be inverted. */
+    Rbc_Tile tile; /**< Retained tile client token for widget backgrounds. */
+    GC drawGC; /**< Used for drawing on the margins. This includes the axis lines */
+    GC fillGC; /**<
+     * Used to fill the background of the margins. The fill is governed by the background color or the tiled
+     * pixmap.
+     */
+    int plotBorderWidth; /**< Width of interior 3-D border. */
+    int plotRelief; /**< 3-d effect: TK_RELIEF_RAISED etc. */
+    XColor *plotBg; /**< Color of plotting surface */
+    GC plotFillGC; /**<
+     * Used to fill the plotting area with a solid background color. The fill color is stored in "plotBg".
+     */
+    double aspect; /**< If non-zero, force plot to conform to aspect ratio W/H */
+    int polarAutoAspect; /**< If non-zero, Polar/Smith layout preserves equal physical X/Y data-unit scales. */
+    PolarRepresentation representation; /**< Polar or Smith presentation selector; data coordinates remain Cartesian. */
+    XColor *trackSeparatorColor; /**< NULL disables visible track dividers. */
+    int trackSeparatorWidth; /**< Track divider stroke width in pixels. */
+    int trackScroll; /**< Preserve requested track sizes instead of fitting. */
+    Tcl_Obj *trackScrollCmdObj; /**< Retained Tcl scrollbar callback prefix, or NULL; governed by widget options. */
+    double trackOffset; /**< Track-stack scroll offset in pixels along the stacking direction. */
+    double trackExtent; /**< Total laid-out track-stack extent in pixels. */
+    double trackFirst; /**< First fraction last reported to the track scrollbar callback. */
+    double trackLast; /**< Last fraction last reported to the track scrollbar callback. */
+    int trackResize; /**< Enable the optional Trackgraph class drag bindings. */
+    int trackGraph; /**< Named, vertically stacked plot regions. */
+    RbcTrack *tracks; /**< Owned linked track records. */
+    RbcTrack *activeTrack; /**< Borrowed track temporarily selected for component mapping/drawing, or NULL. */
+    int left; /**< Left edge of the plot bounding box in widget pixels. */
+    int right; /**< Right edge of the plot bounding box in widget pixels. */
+    int top; /**< Top edge of the plot bounding box in widget pixels. */
+    int bottom; /**< Bottom edge of the plot bounding box in widget pixels. */
+    Rbc_Pad padX; /**< Horizontal plot padding in pixels (left and right). */
+    int vRange; /**< Positive vertical mapping span in pixels. */
+    int vOffset; /**< Vertical mapping origin below the top plot padding, in pixels. */
+    Rbc_Pad padY; /**< Vertical plot padding in pixels (top and bottom). */
+    int hRange; /**< Positive horizontal mapping span in pixels. */
+    int hOffset; /**< Horizontal mapping origin after the left plot padding, in pixels. */
+    double vScale; /**< Reciprocal of vRange for normalized inverse mapping. */
+    double hScale; /**< Reciprocal of hRange for normalized inverse mapping. */
+    int antialias; /**< Rbc_Antialias; applies to Cairo geometry. */
+    struct Rbc_RenderTarget *renderTarget; /**<
+     * Borrowed active synchronous renderer marker-pass target; released by the pass owner.
+     */
+    int renderer; /**< Rbc_Renderer selected by -renderer. */
+    int doubleBuffer; /**< If non-zero, draw the graph into a pixmap first to reduce flashing. */
+    int backingStore; /**< If non-zero, cache elements by drawing them into a pixmap */
+    Pixmap backPixmap; /**<
+     * Pixmap used to cache elements displayed. If *backingStore* is non-zero, each element is drawn into this
+     * pixmap before it is copied onto the screen. The pixmap then acts as a cache (only the pixmap is redisplayed
+     * if the none of elements have changed). This is done so that markers can be redrawn quickly over elements
+     * without redrawing each element.
+     */
+    int backWidth; /**< Allocated backing-store width in pixels. */
+    int backHeight; /**< Allocated backing-store height in pixels. */
+    double baseline; /**< Baseline from bar chart. */
+    double barWidth; /**< Graph-level fallback bar width in data units. */
+    BarMode mode; /**< BarMode selector for coincident bars, including overlap. */
+    FreqInfo *freqArr; /**<
+     * Contains information about duplicate x-values in bar elements (malloc-ed). This information can also be
+     * accessed by the frequency hash table
+     */
+    Tcl_HashTable freqTable; /**<
+     * Group-key index into the graph-owned freqArr; does not separately own the array entries.
+     */
+    Tcl_Size nStacks; /**<
+     * Number of entries in frequency array. If zero, indicates nothing special needs to be done for "stack" or
+     * "align" modes
+     */
+    char *dataCmd; /**< Tk option-managed data-command string; currently stored but not invoked by C code. */
 };
 
 /*

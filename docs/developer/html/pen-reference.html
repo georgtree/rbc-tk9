@@ -45,11 +45,232 @@
 <h1>Pen and palette C reference<a class="headerlink" href="#pen-and-palette-c-reference" title="Link to this heading">¶</a></h1>
 <p>These private services distinguish counted named-pen references from borrowed
 normal-palette entries. See <a class="reference internal" href="pens.html"><span class="doc">Pens and style palettes</span></a> for lifetime and selection rules.</p>
+<section id="pen-ownership-and-palette-records">
+<h2>Pen ownership and palette records<a class="headerlink" href="#pen-ownership-and-palette-records" title="Link to this heading">¶</a></h2>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Pen">
+<span class="target" id="rbc_graph_8h_1adff7f4a36d03e12a6a40b48cef3d1c9e"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.PenStruct" title="PenStruct"><span class="n"><span class="pre">PenStruct</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Pen</span></span></span><a class="headerlink" href="#c.Pen" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.PenStruct">
+<span class="target" id="struct_pen_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PenStruct</span></span></span><a class="headerlink" href="#c.PenStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common prefix of concrete drawing pens. </p>
+<p>Named pens use counted references and deferred deletion; element-embedded pens follow their concrete owner lifetime. Keep this prefix compatible with concrete pen records. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.name">
+<span class="target" id="struct_pen_struct_1a3639aa20e3cb3549460bdece96c531e3"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><a class="headerlink" href="#c.PenStruct.name" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Named-pen identifier; embedded/default pens need not have a registry name. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.classUid">
+<span class="target" id="struct_pen_struct_1a376797b02b8a3c0f0a781e063504e81a"></span><span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">classUid</span></span></span><a class="headerlink" href="#c.PenStruct.classUid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Interned component class identifier. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.typeId">
+<span class="target" id="struct_pen_struct_1a0c09c4b2d04a46e3ff7bfdb0d30daa4c"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">typeId</span></span></span><a class="headerlink" href="#c.PenStruct.typeId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Concrete pen type identifier used for compatibility checks. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.flags">
+<span class="target" id="struct_pen_struct_1ad497809d2cf9f698568af60f9fb75b36"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">flags</span></span></span><a class="headerlink" href="#c.PenStruct.flags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pen state bits, including PEN_DELETE_PENDING. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.refCount">
+<span class="target" id="struct_pen_struct_1ad4edd251c0f22cd0b0a6e5ddf3e25a5a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">refCount</span></span></span><a class="headerlink" href="#c.PenStruct.refCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of retained named-pen references. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.hashPtr">
+<span class="target" id="struct_pen_struct_1a5279b81228f2af0e1874e73105d58bb9"></span><span class="n"><span class="pre">Tcl_HashEntry</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hashPtr</span></span></span><a class="headerlink" href="#c.PenStruct.hashPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Registry entry referring to this record; NULL after detachment. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.optionSpecs">
+<span class="target" id="struct_pen_struct_1afc61a1d8aae2e7334183977f72e68e41"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">optionSpecs</span></span></span><a class="headerlink" href="#c.PenStruct.optionSpecs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed immutable option specifications for the concrete component type. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.optionTable">
+<span class="target" id="struct_pen_struct_1ad6a13ba328adbee55934eb3f13001058"></span><span class="n"><span class="pre">Tk_OptionTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">optionTable</span></span></span><a class="headerlink" href="#c.PenStruct.optionTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option table associated with this record; managed by its configuration lifecycle. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.optionsInitialized">
+<span class="target" id="struct_pen_struct_1a36efb940599f9ed019b999e2d4b868d8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">optionsInitialized</span></span></span><a class="headerlink" href="#c.PenStruct.optionsInitialized" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero once Tk option initialization has completed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.tkResourcesReleased">
+<span class="target" id="struct_pen_struct_1a8bfe6a27cc58ed65433e5504af76728f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tkResourcesReleased</span></span></span><a class="headerlink" href="#c.PenStruct.tkResourcesReleased" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero after the guarded Tk-resource release pass. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.configProc">
+<span class="target" id="struct_pen_struct_1abeca9804adf863902b24aa71ba9ef1b8"></span><a class="reference internal" href="#c.PenConfigureProc" title="PenConfigureProc"><span class="n"><span class="pre">PenConfigureProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">configProc</span></span></span><a class="headerlink" href="#c.PenStruct.configProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Concrete configuration hook; rebuilds resources for the owning graph. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStruct.destroyProc">
+<span class="target" id="struct_pen_struct_1ab4503cda22410fd3561f9a051b25013e"></span><a class="reference internal" href="#c.PenDestroyProc" title="PenDestroyProc"><span class="n"><span class="pre">PenDestroyProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">destroyProc</span></span></span><a class="headerlink" href="#c.PenStruct.destroyProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Concrete resource-release hook; generic pen teardown manages the record lifetime. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Weight">
+<span class="target" id="struct_weight"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Weight</span></span></span><a class="headerlink" href="#c.Weight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Cached numeric interval used for palette selection. </p>
+<p>SetWeight initializes the endpoints and SetRange uses DBL_EPSILON when the endpoints do not form a positive interval. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Weight.min">
+<span class="target" id="struct_weight_1a2832960e8569372b98570e721a6b95b7"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">min</span></span></span><a class="headerlink" href="#c.Weight.min" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower interval endpoint in weight units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Weight.max">
+<span class="target" id="struct_weight_1adb03dce573a6b1e714dcef3ad321e867"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">max</span></span></span><a class="headerlink" href="#c.Weight.max" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Upper interval endpoint in weight units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Weight.range">
+<span class="target" id="struct_weight_1a4181f4ee01c785376b8d3a1fae055946"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">range</span></span></span><a class="headerlink" href="#c.Weight.range" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Positive cached extent; max-min or DBL_EPSILON. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.PenStyle">
+<span class="target" id="struct_pen_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PenStyle</span></span></span><a class="headerlink" href="#c.PenStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Palette entry and per-pen slices of mapped element geometry. </p>
+<p>Named pen references are released with the palette; normal/default entries can borrow an embedded pen. Error-segment pointers borrow slices of element-owned storage. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.weight">
+<span class="target" id="struct_pen_style_1abb2713d1f48110c2c6e213e86e741bb2"></span><a class="reference internal" href="#c.Weight" title="Weight"><span class="n"><span class="pre">Weight</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">weight</span></span></span><a class="headerlink" href="#c.PenStyle.weight" title="Link to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#struct_weight"><span class="std std-ref">Weight</span></a> range where this pen is valid. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.penPtr">
+<span class="target" id="struct_pen_style_1ab5e4855561c6a3ca2da380378229edcf"></span><a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">penPtr</span></span></span><a class="headerlink" href="#c.PenStyle.penPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Selected pen; reference ownership follows the palette entry creation path. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.xErrorBars">
+<span class="target" id="struct_pen_style_1a029dd362cb9f2e1ca81e9cc6068fc3eb"></span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">xErrorBars</span></span></span><a class="headerlink" href="#c.PenStyle.xErrorBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed start of this style X-error segment slice. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.yErrorBars">
+<span class="target" id="struct_pen_style_1a59bf4bc50b8e4451da68a1b252ed1f68"></span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">yErrorBars</span></span></span><a class="headerlink" href="#c.PenStyle.yErrorBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed start of this style Y-error segment slice. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.xErrorBarCnt">
+<span class="target" id="struct_pen_style_1aebe07fcf5cda370c6b43c96ff681069f"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">xErrorBarCnt</span></span></span><a class="headerlink" href="#c.PenStyle.xErrorBarCnt" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of mapped X-error segments in this style slice. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.yErrorBarCnt">
+<span class="target" id="struct_pen_style_1a04860ea6c28de19707f5f69f521802ed"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">yErrorBarCnt</span></span></span><a class="headerlink" href="#c.PenStyle.yErrorBarCnt" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of mapped Y-error segments in this style slice. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.errorBarCapWidth">
+<span class="target" id="struct_pen_style_1ae75f56d6faafc1d3827bf166320b7797"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">errorBarCapWidth</span></span></span><a class="headerlink" href="#c.PenStyle.errorBarCapWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mapped cap length in display pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PenStyle.symbolSize">
+<span class="target" id="struct_pen_style_1a555d1b85dfcc0c044f6d27674f899d9b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">symbolSize</span></span></span><a class="headerlink" href="#c.PenStyle.symbolSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mapped symbol size in display pixels. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="pen-lifecycle-callback-types">
+<h2>Pen lifecycle callback types<a class="headerlink" href="#pen-lifecycle-callback-types" title="Link to this heading">¶</a></h2>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.PenCreateProc">
+<span class="target" id="rbc_graph_8h_1abd56cddbd682e0b51f299fef39f67d87"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PenCreateProc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PenCreateProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate and initialize the common prefix of a concrete pen. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New pen record for the caller lifecycle; allocation policy belongs to the concrete constructor. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.PenConfigureProc">
+<span class="target" id="rbc_graph_8h_1a09fcb75fb3a6766cf55c3316be5286a3"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PenConfigureProc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PenConfigureProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate configured pen state and rebuild concrete drawing resources. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Param graphPtr<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>[inout]</strong> Borrowed live owning graph; the callback must respect its current lifecycle phase. </p>
+</dd>
+<dt class="field-even">Param penPtr<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>[inout]</strong> Borrowed concrete pen whose resource state may be updated or released by this hook. </p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TCL_OK on success or TCL_ERROR with interpreter diagnostics. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.PenDestroyProc">
+<span class="target" id="rbc_graph_8h_1a925f038aed0960e1895b9ceca322c9fd"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PenDestroyProc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PenDestroyProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release concrete pen drawing resources without freeing the common record. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Param graphPtr<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>[inout]</strong> Borrowed live owning graph; the callback must respect its current lifecycle phase. </p>
+</dd>
+<dt class="field-even">Param penPtr<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>[inout]</strong> Borrowed concrete pen whose resource state may be updated or released by this hook. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="named-pen-references">
 <h2>Named pen references<a class="headerlink" href="#named-pen-references" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetPen">
-<span class="target" id="rbc_graph_8h_1a7c5d22851e15c8bbd559d7fc3959a1d4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPen" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_graph_8h_1a7c5d22851e15c8bbd559d7fc3959a1d4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a reference to a named pen of a compatible concrete type. </p>
 <p>
 Pair each successful acquisition with Rbc_FreePen. The returned pointer is graph-owned and must not outlive graph teardown. </p>
@@ -70,7 +291,7 @@ Pair each successful acquisition with Rbc_FreePen. The returned pointer is graph
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreePen">
-<span class="target" id="rbc_graph_8h_1a715720df37fcd849b306805f52a59dfa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePen" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_graph_8h_1a715720df37fcd849b306805f52a59dfa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release one acquired named-pen reference. </p>
 <p>
 Decrements refCount and destroys the pen only when it reaches zero and PEN_DELETE_PENDING is set. Does not request deletion of a live named pen. Do not use for an uncounted embedded pen or a palette’s borrowed first entry. </p>
@@ -89,7 +310,7 @@ Decrements refCount and destroys the pen only when it reaches zero and PEN_DELET
 <h2>Graph resource teardown<a class="headerlink" href="#graph-resource-teardown" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ReleasePenTkResources">
-<span class="target" id="rbc_graph_8h_1a97afde0e0e3d17052d389720a5bb6ed4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleasePenTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleasePenTkResources" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_graph_8h_1a97afde0e0e3d17052d389720a5bb6ed4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleasePenTkResources</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleasePenTkResources" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release registered pen resources while the graph window is live. </p>
 <p>
 Releases derived resources before Tk-owned option resources. Skips records not initialized or already released; leaves records and registry entries intact for later destruction. Does not release element-embedded pens. </p>
@@ -104,7 +325,7 @@ Releases derived resources before Tk-owned option resources. Skips records not i
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DestroyPens">
-<span class="target" id="rbc_graph_8h_1a4c8cf69ba932694bd06b918edb30e2ae"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyPens</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyPens" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_graph_8h_1a4c8cf69ba932694bd06b918edb30e2ae"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyPens</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyPens" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy the graph’s remaining registered pens and pen hash table. </p>
 <p>
 Does not wait for reference counts: element references must already have been released. Tk-dependent resources must be released before the window disappears. This destroys registry infrastructure and is not repeatable. </p>
@@ -122,7 +343,7 @@ Does not wait for reference counts: element references must already have been re
 <h2>Element palettes<a class="headerlink" href="#element-palettes" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreePalette">
-<span class="target" id="rbc_gr_elem_8h_1abe4af972accf68ce4f10a3eb8d2f4b17"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePalette</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePalette" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_gr_elem_8h_1abe4af972accf68ce4f10a3eb8d2f4b17"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePalette</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePalette" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release named style entries while retaining the normal palette entry. </p>
 <p>
 Releases pen references and removes links after the first entry. Does not release the first entry’s pen or destroy the chain itself. The caller owns the remaining chain and must destroy it when appropriate. </p>
@@ -138,7 +359,7 @@ Releases pen references and removes links after the first entry. Does not releas
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_StyleMap">
-<span class="target" id="rbc_gr_elem_8h_1aef88bc8e67efa262cedff1fbcd72be80"></span><span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_StyleMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_StyleMap" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_gr_elem_8h_1aef88bc8e67efa262cedff1fbcd72be80"></span><a class="reference internal" href="#c.PenStyle" title="PenStyle"><span class="n"><span class="pre">PenStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_StyleMap</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_StyleMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a per-data-point map of borrowed palette style pointers. </p>
 <p>
 Unmatched or unweighted points retain the first (normal) style. Weighted points search entries from last to first using normalized range tests with DBL_EPSILON tolerance. The map acquires no pen references and must not outlive its palette entries. Allocation-size overflow invokes Tcl_Panic. </p>
@@ -168,7 +389,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.InitPenOptions">
-<span class="target" id="group__pen__internals_1ga877eb7be1d2a7ced0a70f5a048d3e3a2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitPenOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.InitPenOptions" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga877eb7be1d2a7ced0a70f5a048d3e3a2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitPenOptions</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.InitPenOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize a named pen from its Pen option-database component. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -185,7 +406,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.ConfigurePenOptions">
-<span class="target" id="group__pen__internals_1ga172eb8464536e4869be6da01432af5ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePenOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ConfigurePenOptions" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga172eb8464536e4869be6da01432af5ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePenOptions</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ConfigurePenOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply one named pen’s explicit Tk options and derived configuration. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -204,7 +425,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.ReleasePenResources">
-<span class="target" id="group__pen__internals_1ga300414ff56fc7772c93a3110701d962b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleasePenResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ReleasePenResources" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga300414ff56fc7772c93a3110701d962b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleasePenResources</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ReleasePenResources" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a named pen’s drawing and Tk resources once. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -218,7 +439,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.NameToPen">
-<span class="target" id="group__pen__internals_1gaa7edd6dd072001f9a1a269f70446a570"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NameToPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nameObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.NameToPen" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1gaa7edd6dd072001f9a1a269f70446a570"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NameToPen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nameObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.NameToPen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find a visible named pen without acquiring a reference. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -235,7 +456,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.DestroyPen">
-<span class="target" id="group__pen__internals_1ga8dc7762b910223725e2575fe725a41aa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.DestroyPen" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga8dc7762b910223725e2575fe725a41aa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.DestroyPen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Remove a pen record and its registry entry without a reference check. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -249,7 +470,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.Rbc_CreatePen">
-<span class="target" id="group__pen__internals_1ga04fec51774ddcc80498f63741e3cfece"></span><span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreatePen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penName</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOpts</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.Rbc_CreatePen" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga04fec51774ddcc80498f63741e3cfece"></span><a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreatePen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penName</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOpts</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.Rbc_CreatePen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a named concrete pen or revive a matching retained record. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -269,7 +490,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.CgetOp">
-<span class="target" id="group__pen__internals_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.CgetOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.CgetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the current value of one named pen option. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -285,7 +506,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.ConfigureOp">
-<span class="target" id="group__pen__internals_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or configure one or more named pens. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -301,7 +522,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.CreateOp">
-<span class="target" id="group__pen__internals_1ga90c7491b4c2ff542af4a6a5c0b644944"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.CreateOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga90c7491b4c2ff542af4a6a5c0b644944"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.CreateOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a pen using the graph class as the default. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -317,7 +538,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.DeleteOp">
-<span class="target" id="group__pen__internals_1ga478a3f6ac5ef81f3649c1afabab35cc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.DeleteOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga478a3f6ac5ef81f3649c1afabab35cc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.DeleteOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Hide named pens and destroy those with no remaining references. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -333,7 +554,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.NamesOp">
-<span class="target" id="group__pen__internals_1ga35817a8f9f90cf487e885b731de45e29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NamesOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.NamesOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga35817a8f9f90cf487e885b731de45e29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NamesOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.NamesOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>List visible pen names matching any supplied glob pattern. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -349,7 +570,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.TypeOp">
-<span class="target" id="group__pen__internals_1gafd105d5a988d29b3152781d274293fb5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.TypeOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1gafd105d5a988d29b3152781d274293fb5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.TypeOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the concrete class identifier of a visible pen. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -365,7 +586,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrPen.Rbc_PenOp">
-<span class="target" id="group__pen__internals_1ga71b87be5a55b55da3a58bb33f9b28c6b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PenOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.Rbc_PenOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pen__internals_1ga71b87be5a55b55da3a58bb33f9b28c6b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PenOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrPen.Rbc_PenOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a typed named-pen subcommand. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -393,7 +614,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetPenStyleFromObj">
-<span class="target" id="group__palette__internals_1ga6bfd2b70060a9363c54058b738ac1179"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPenStyleFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPenStyleFromObj" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__palette__internals_1ga6bfd2b70060a9363c54058b738ac1179"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPenStyleFromObj</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <a class="reference internal" href="#c.PenStyle" title="PenStyle"><span class="n"><span class="pre">PenStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPenStyleFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse one palette style and acquire its named pen reference. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -412,7 +633,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetElemPenOption">
-<span class="target" id="group__palette__internals_1gaa56207d86841468902ea4707a33c9c50"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ElemPenOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemPenOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemPenOption" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__palette__internals_1gaa56207d86841468902ea4707a33c9c50"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ElemPenOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemPenOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemPenOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Recover the canonical active or normal pen option identity. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -429,7 +650,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.StageElemPen">
-<span class="target" id="group__palette__internals_1ga1402c42f3bb1787e25652119876790be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">ElemPenTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtrPtr</span></span>, <span class="n"><span class="pre">ElemPenOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemPen" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__palette__internals_1ga1402c42f3bb1787e25652119876790be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemPen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">ElemPenTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <a class="reference internal" href="#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtrPtr</span></span>, <span class="n"><span class="pre">ElemPenOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemPen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a candidate pen before releasing an earlier staged reference. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -450,7 +671,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.IsElemStylesOption">
-<span class="target" id="group__palette__internals_1ga9f761e9908968096725666953df862a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsElemStylesOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsElemStylesOption" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__palette__internals_1ga9f761e9908968096725666953df862a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsElemStylesOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsElemStylesOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Recognize the canonical styles option after Tk validation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -467,7 +688,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.StageElemStyles">
-<span class="target" id="group__palette__internals_1gaadb4396fd4f255eb4f7749efb8b41f92"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemStyles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">styleSize</span></span>, <span class="n"><span class="pre">ElemStylesTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemStyles" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__palette__internals_1gaadb4396fd4f255eb4f7749efb8b41f92"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemStyles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">penType</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">styleSize</span></span>, <span class="n"><span class="pre">ElemStylesTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemStyles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace a staged palette only after parsing its successor. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -488,7 +709,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.DestroyPalette">
-<span class="target" id="group__palette__internals_1gabdabc7a4d0cbabe40159b7830d0542bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPalette</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DestroyPalette" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__palette__internals_1gabdabc7a4d0cbabe40159b7830d0542bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyPalette</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DestroyPalette" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy an entire candidate or retired palette chain. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -502,7 +723,7 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ParseStylesObj">
-<span class="target" id="group__palette__internals_1ga90570df61e59b0da445c334353e99729"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseStylesObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">styleSize</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palettePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseStylesObj" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__palette__internals_1ga90570df61e59b0da445c334353e99729"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseStylesObj</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">styleSize</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palettePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseStylesObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build a candidate palette with a reserved normal-style entry. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -537,6 +758,48 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Pen and palette C reference</a><ul>
+<li><a class="reference internal" href="#pen-ownership-and-palette-records">Pen ownership and palette records</a><ul>
+<li><a class="reference internal" href="#c.Pen"><code class="docutils literal notranslate"><span class="pre">Pen</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct"><code class="docutils literal notranslate"><span class="pre">PenStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.PenStruct.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.classUid"><code class="docutils literal notranslate"><span class="pre">classUid</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.typeId"><code class="docutils literal notranslate"><span class="pre">typeId</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.flags"><code class="docutils literal notranslate"><span class="pre">flags</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.refCount"><code class="docutils literal notranslate"><span class="pre">refCount</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.hashPtr"><code class="docutils literal notranslate"><span class="pre">hashPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.optionSpecs"><code class="docutils literal notranslate"><span class="pre">optionSpecs</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.optionTable"><code class="docutils literal notranslate"><span class="pre">optionTable</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.optionsInitialized"><code class="docutils literal notranslate"><span class="pre">optionsInitialized</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.tkResourcesReleased"><code class="docutils literal notranslate"><span class="pre">tkResourcesReleased</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.configProc"><code class="docutils literal notranslate"><span class="pre">configProc</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStruct.destroyProc"><code class="docutils literal notranslate"><span class="pre">destroyProc</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Weight"><code class="docutils literal notranslate"><span class="pre">Weight</span></code></a><ul>
+<li><a class="reference internal" href="#c.Weight.min"><code class="docutils literal notranslate"><span class="pre">min</span></code></a></li>
+<li><a class="reference internal" href="#c.Weight.max"><code class="docutils literal notranslate"><span class="pre">max</span></code></a></li>
+<li><a class="reference internal" href="#c.Weight.range"><code class="docutils literal notranslate"><span class="pre">range</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.PenStyle"><code class="docutils literal notranslate"><span class="pre">PenStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.PenStyle.weight"><code class="docutils literal notranslate"><span class="pre">weight</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStyle.penPtr"><code class="docutils literal notranslate"><span class="pre">penPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStyle.xErrorBars"><code class="docutils literal notranslate"><span class="pre">xErrorBars</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStyle.yErrorBars"><code class="docutils literal notranslate"><span class="pre">yErrorBars</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStyle.xErrorBarCnt"><code class="docutils literal notranslate"><span class="pre">xErrorBarCnt</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStyle.yErrorBarCnt"><code class="docutils literal notranslate"><span class="pre">yErrorBarCnt</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStyle.errorBarCapWidth"><code class="docutils literal notranslate"><span class="pre">errorBarCapWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.PenStyle.symbolSize"><code class="docutils literal notranslate"><span class="pre">symbolSize</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pen-lifecycle-callback-types">Pen lifecycle callback types</a><ul>
+<li><a class="reference internal" href="#c.PenCreateProc"><code class="docutils literal notranslate"><span class="pre">PenCreateProc</span></code></a></li>
+<li><a class="reference internal" href="#c.PenConfigureProc"><code class="docutils literal notranslate"><span class="pre">PenConfigureProc</span></code></a></li>
+<li><a class="reference internal" href="#c.PenDestroyProc"><code class="docutils literal notranslate"><span class="pre">PenDestroyProc</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#named-pen-references">Named pen references</a><ul>
 <li><a class="reference internal" href="#c.Rbc_GetPen"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPen()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_FreePen"><code class="docutils literal notranslate"><span class="pre">Rbc_FreePen()</span></code></a></li>

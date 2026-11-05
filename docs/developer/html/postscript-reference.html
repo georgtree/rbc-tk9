@@ -46,6 +46,200 @@
 <h1>PostScript token C reference<a class="headerlink" href="#postscript-token-c-reference" title="Link to this heading">¶</a></h1>
 <p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcPs.h</span></code> and implemented in
 <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code>. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for ownership and prolog requirements.</p>
+<section id="persistent-graph-postscript-configuration">
+<h2>Persistent graph PostScript configuration<a class="headerlink" href="#persistent-graph-postscript-configuration" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.PostScript">
+<span class="target" id="struct_post_script"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScript</span></span></span><a class="headerlink" href="#c.PostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Persistent graph <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> options and computed page placement. </p>
+<p>Tk option cleanup releases configured objects and resources. Export temporarily computes bounding-box and scale fields; the graph owns this record. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.optionTable">
+<span class="target" id="struct_post_script_1adfb180b4c8469be9e0e8adbc641de4e0"></span><span class="n"><span class="pre">Tk_OptionTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">optionTable</span></span></span><a class="headerlink" href="#c.PostScript.optionTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option table associated with this record; managed by its configuration lifecycle. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.colorModeObjPtr">
+<span class="target" id="struct_post_script_1a5b4b272b81b7b93266f5167adf53bdca"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">colorModeObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.colorModeObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for color mode; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.heightObjPtr">
+<span class="target" id="struct_post_script_1afc66f3fea52635240df09c8c3bf1decc"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">heightObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.heightObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for height; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.padXObjPtr">
+<span class="target" id="struct_post_script_1ae3e32814637927064be0fb816d7585e6"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">padXObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.padXObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for pad x; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.padYObjPtr">
+<span class="target" id="struct_post_script_1a1a5b84278d3ab1573acc641115af58b0"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">padYObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.padYObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for pad y; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.paperHeightObjPtr">
+<span class="target" id="struct_post_script_1a0b79deb1d5933e31b60eed8e4a36c99d"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">paperHeightObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.paperHeightObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for paper height; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.paperWidthObjPtr">
+<span class="target" id="struct_post_script_1ac591715d2816dd1af0475434edd7c30f"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">paperWidthObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.paperWidthObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for paper width; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.previewFormatObjPtr">
+<span class="target" id="struct_post_script_1a18cfb0dbb617b1d901be099af9d35105"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">previewFormatObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.previewFormatObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for preview format; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.widthObjPtr">
+<span class="target" id="struct_post_script_1ada3ec63ff9ae811f2ee416f72fd617fc"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">widthObjPtr</span></span></span><a class="headerlink" href="#c.PostScript.widthObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for width; released with option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.decorations">
+<span class="target" id="struct_post_script_1ae574f687dfc5d59de4aea025b84a76b9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">decorations</span></span></span><a class="headerlink" href="#c.PostScript.decorations" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, print graph with color background and 3D borders. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.reqWidth">
+<span class="target" id="struct_post_script_1ab18f3a56059fc093dc4c65fcb2846c62"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reqWidth</span></span></span><a class="headerlink" href="#c.PostScript.reqWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested graph width in pixels; nonpositive values use the current graph size. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.reqHeight">
+<span class="target" id="struct_post_script_1a05f5fabafec12f0832359571d34fe00f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reqHeight</span></span></span><a class="headerlink" href="#c.PostScript.reqHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested graph height in pixels; nonpositive values use the current graph size. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.reqPaperWidth">
+<span class="target" id="struct_post_script_1af28a8a9da14258014c87f06ed2b792ee"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reqPaperWidth</span></span></span><a class="headerlink" href="#c.PostScript.reqPaperWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested page width in pixels before <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> page conversion. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.reqPaperHeight">
+<span class="target" id="struct_post_script_1a6bd63d355163719945cfbab363b33345"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reqPaperHeight</span></span></span><a class="headerlink" href="#c.PostScript.reqPaperHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested page height in pixels before <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> page conversion. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.padX">
+<span class="target" id="struct_post_script_1a9760c385dbc055b35661849c81af6d65"></span><span class="n"><span class="pre">Rbc_Pad</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">padX</span></span></span><a class="headerlink" href="#c.PostScript.padX" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested horizontal exterior padding in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.padY">
+<span class="target" id="struct_post_script_1a24b676ff653a14580123ab5be3d22e6c"></span><span class="n"><span class="pre">Rbc_Pad</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">padY</span></span></span><a class="headerlink" href="#c.PostScript.padY" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested vertical exterior padding in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.colorMode">
+<span class="target" id="struct_post_script_1afc309516060e09881fa1840a3a4e167b"></span><span class="n"><span class="pre">PsColorMode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">colorMode</span></span></span><a class="headerlink" href="#c.PostScript.colorMode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Selects the color mode for <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> page (0=monochrome, 1=greyscale, 2=color). </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.colorVarName">
+<span class="target" id="struct_post_script_1a2a808f57623543fd85f3bffef4ac9b29"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">colorVarName</span></span></span><a class="headerlink" href="#c.PostScript.colorVarName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-NULL, is the name of a Tcl array variable containing X to <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> color translations. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.fontVarName">
+<span class="target" id="struct_post_script_1a9770cbd4125f3b215da9378c627708f2"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fontVarName</span></span></span><a class="headerlink" href="#c.PostScript.fontVarName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-NULL, is the name of a Tcl array variable containing X to <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> font translations. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.landscape">
+<span class="target" id="struct_post_script_1a8b3da1270547a62450f6f2da925714c4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">landscape</span></span></span><a class="headerlink" href="#c.PostScript.landscape" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, orient the page 90 degrees. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.center">
+<span class="target" id="struct_post_script_1a0466e6123767bdc5316eb0feda7a6227"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">center</span></span></span><a class="headerlink" href="#c.PostScript.center" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, center the graph on the page. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.maxpect">
+<span class="target" id="struct_post_script_1aa3846d23a52ba066e3da910205a10563"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">maxpect</span></span></span><a class="headerlink" href="#c.PostScript.maxpect" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, indicates to scale the graph so that it fills the page (maintaining the aspect ratio of the graph). </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.addPreview">
+<span class="target" id="struct_post_script_1a39abcf410d02cad11903f2a60800e3d7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">addPreview</span></span></span><a class="headerlink" href="#c.PostScript.addPreview" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, generate a preview image and add it to the <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> output. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.footer">
+<span class="target" id="struct_post_script_1abb654edc58a585c8491710fd4798bceb"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">footer</span></span></span><a class="headerlink" href="#c.PostScript.footer" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, a footer with the title, date and user will be added to the <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> output outside of the bounding box. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.previewFormat">
+<span class="target" id="struct_post_script_1a63c098bf71be7e2bf2bc268427f36b67"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">previewFormat</span></span></span><a class="headerlink" href="#c.PostScript.previewFormat" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format of EPS preview: PS_PREVIEW_WMF, PS_PREVIEW_EPSI, or PS_PREVIEW_TIFF. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.left">
+<span class="target" id="struct_post_script_1a6dccb70db574b3cdd29d87af3c1bbc90"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left</span></span></span><a class="headerlink" href="#c.PostScript.left" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computed page bounding-box left coordinate. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.bottom">
+<span class="target" id="struct_post_script_1a16b6a97a9de6ac5fa39f86d55e496db9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bottom</span></span></span><a class="headerlink" href="#c.PostScript.bottom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computed page bounding-box bottom coordinate. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.right">
+<span class="target" id="struct_post_script_1a87732208e4dbeff8e465bbe0af6a469f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right</span></span></span><a class="headerlink" href="#c.PostScript.right" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computed page bounding-box right coordinate. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.top">
+<span class="target" id="struct_post_script_1aa373cba6410a2996885038f3df5e2daa"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">top</span></span></span><a class="headerlink" href="#c.PostScript.top" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computed page bounding-box top coordinate. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostScript.pageScale">
+<span class="target" id="struct_post_script_1a2ca886050e09822d62efc585fab0370c"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pageScale</span></span></span><a class="headerlink" href="#c.PostScript.pageScale" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Scale of page. </p>
+<p>Set if “-maxpect” option is set, otherwise 1.0. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 <section id="token-allocation-and-borrowed-buffers">
 <h2>Token allocation and borrowed buffers<a class="headerlink" href="#token-allocation-and-borrowed-buffers" title="Link to this heading">¶</a></h2>
 <dl>
@@ -57,7 +251,7 @@
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetPsToken">
 <span class="target" id="group__ps__token__lifetime_1ga849f9a8f69b5062d5d4742d96c78eb1b"></span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPsToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPsToken" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Allocate an empty, color-mode PostScript token. </p>
+<dd><p>Allocate an empty, color-mode <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token. </p>
 <p>The caller owns the token and releases it with <a class="reference internal" href="#group__ps__token__lifetime_1gabbb94d607ad4395bd1260efe9c9d5a72"><span class="std std-ref">Rbc_ReleasePsToken()</span></a>. The interpreter and window are borrowed; this function does not preserve them. Font and color mapping variable names initially are NULL.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -127,11 +321,11 @@
 <dt class="sig sig-object c" id="c.Rbc_AppendToPostScript">
 <span class="target" id="group__ps__token__output_1ga46496be4d3ca68308f22e6c34b1b389d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a sequence of NUL-terminated strings, ending with a NULL pointer. </p>
-<p>Strings are copied without escaping. Callers supply PostScript syntax and must not pass binary data or pointers invalidated by output growth.</p>
+<p>Strings are copied without escaping. Callers supply <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> syntax and must not pass binary data or pointers invalidated by output growth.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>...</strong> – <strong>[in]</strong> NUL-terminated C strings followed by a pointer-valued NULL sentinel; strings must survive output growth. </p></li>
 </ul>
 </dd>
@@ -141,12 +335,12 @@
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FormatToPostScript">
 <span class="target" id="group__ps__token__output_1gad8fbea3edd75780a5d325fb6b7bccedc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FormatToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FormatToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append printf-formatted PostScript, using scratch storage or a temporary allocation when the formatted result exceeds the scratch capacity. </p>
-<p>This void helper does not report a formatting failure to the interpreter. It performs no PostScript string escaping.</p>
+<dd><p>Append printf-formatted <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a>, using scratch storage or a temporary allocation when the formatted result exceeds the scratch capacity. </p>
+<p>This void helper does not report a formatting failure to the interpreter. It performs no <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> string escaping.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>fmt</strong> – <strong>[in]</strong> Borrowed printf format, not aliased with scratch storage overwritten by formatting. </p></li>
 <li><p><strong>...</strong> – <strong>[in]</strong> Arguments matching the format; referenced strings must remain readable during formatting and output growth. </p></li>
 </ul>
@@ -157,12 +351,12 @@
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_AppendPostScriptString">
 <span class="target" id="group__ps__token__output_1gadff5323446f8be58d575a47f91e91324"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendPostScriptString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendPostScriptString" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append escaped PostScript literal-string contents from Tcl UTF text. </p>
+<dd><p>Append escaped <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> literal-string contents from Tcl UTF text. </p>
 <p>A negative length selects strlen; otherwise length is a byte count ending at a character boundary. NULL input is ignored. The caller supplies the surrounding parentheses. Delimiters, controls and non-ASCII characters use octal escapes; characters above ISO-8859-1 are replaced with a space.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output. </p></li>
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output. </p></li>
 <li><p><strong>string</strong> – <strong>[in]</strong> Borrowed Tcl UTF text, or NULL to append nothing; must remain readable across output appends. </p></li>
 <li><p><strong>length</strong> – <strong>[in]</strong> UTF byte count ending at a character boundary, or negative to use strlen; not a character count. </p></li>
 </ul>
@@ -178,7 +372,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>fileName</strong> – <strong>[in]</strong> Borrowed NUL-terminated prolog filename appended to the global rbc::library directory. </p></li>
 </ul>
 </dd>
@@ -205,7 +399,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; only the upper eight bits of each RGB component are emitted. </p></li>
 </ul>
 </dd>
@@ -220,7 +414,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; keep it valid across optional mapping-variable traces. </p></li>
 </ul>
 </dd>
@@ -235,7 +429,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; keep it valid across optional mapping-variable traces. </p></li>
 </ul>
 </dd>
@@ -250,7 +444,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 </ul>
 </dd>
 </dl>
@@ -264,7 +458,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>capStyle</strong> – <strong>[in]</strong> Valid X cap-style enumeration; CapNotLast and CapButt both produce butt caps. </p></li>
 </ul>
 </dd>
@@ -275,12 +469,12 @@
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_JoinStyleToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga790136d5db467b5b9dbfa2303bfc368e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_JoinStyleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_JoinStyleToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append the join enumeration directly to setlinejoin. </p>
-<p>X11 and PostScript share miter=0, round=1 and bevel=2. The caller must supply a valid enumeration; the previous setting is not restored.</p>
+<p>X11 and <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> share miter=0, round=1 and bevel=2. The caller must supply a valid enumeration; the previous setting is not restored.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
-<li><p><strong>joinStyle</strong> – <strong>[in]</strong> Valid X join-style enumeration, directly compatible with PostScript. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> Valid X join-style enumeration, directly compatible with <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a>. </p></li>
 </ul>
 </dd>
 </dl>
@@ -290,11 +484,11 @@
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_LineWidthToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga1e0f8dbe69992ac41f0cb9a7cb0ea3c5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineWidthToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_LineWidthToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an integer line width, clamped to at least one. </p>
-<p>Zero and negative inputs become one rather than a PostScript hairline. Width is expressed in the current user coordinate system.</p>
+<p>Zero and negative inputs become one rather than a <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> hairline. Width is expressed in the current user coordinate system.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>lineWidth</strong> – <strong>[in]</strong> Integer width in current user units; values below one are clamped to one. </p></li>
 </ul>
 </dd>
@@ -309,7 +503,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>dashesPtr</strong> – <strong>[in]</strong> Borrowed zero-terminated byte pattern, or NULL for solid lines; offset is ignored. </p></li>
 </ul>
 </dd>
@@ -324,12 +518,12 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; keep it valid across optional mapping-variable traces. </p></li>
 <li><p><strong>lineWidth</strong> – <strong>[in]</strong> Integer width in current user units; values below one are clamped to one. </p></li>
 <li><p><strong>dashesPtr</strong> – <strong>[in]</strong> Borrowed zero-terminated byte pattern, or NULL for solid lines; offset is ignored. </p></li>
 <li><p><strong>capStyle</strong> – <strong>[in]</strong> Valid X cap-style enumeration; CapNotLast and CapButt both produce butt caps. </p></li>
-<li><p><strong>joinStyle</strong> – <strong>[in]</strong> Valid X join-style enumeration, directly compatible with PostScript. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> Valid X join-style enumeration, directly compatible with <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a>. </p></li>
 </ul>
 </dd>
 </dl>
@@ -343,9 +537,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
 <li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
 <li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
 </ul>
@@ -361,9 +555,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
 <li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
 <li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
 </ul>
@@ -375,11 +569,11 @@
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_PathToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga2cf14f70a32aef4e205d3bde2d0a7a82"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PathToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">screenPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nScreenPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_PathToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a new open path from borrowed floating-point vertices. </p>
-<p>A nonpositive count appends nothing and leaves the prior path untouched. For a positive count, screenPts must contain that many points. Emits one moveto and remaining lineto operations, with no stroke, close, clipping or path-size splitting. Numeric inputs must be suitable for PostScript.</p>
+<p>A nonpositive count appends nothing and leaves the prior path untouched. For a positive count, screenPts must contain that many points. Emits one moveto and remaining lineto operations, with no stroke, close, clipping or path-size splitting. Numeric inputs must be suitable for <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>screenPts</strong> – <strong>[in]</strong> Borrowed array of nScreenPts mapped finite vertices when the count is positive. </p></li>
 <li><p><strong>nScreenPts</strong> – <strong>[in]</strong> Vertex count; nonpositive counts leave output and the current path unchanged. </p></li>
 </ul>
@@ -395,7 +589,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>screenPts</strong> – <strong>[in]</strong> Borrowed array of nScreenPts mapped finite vertices when the count is positive. </p></li>
 <li><p><strong>nScreenPts</strong> – <strong>[in]</strong> Vertex count; nonpositive counts append nothing; polygon validity is not checked. </p></li>
 </ul>
@@ -411,7 +605,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>segPtr</strong> – <strong>[in]</strong> Borrowed array of nSegments integer segments when the count is positive. </p></li>
 <li><p><strong>nSegments</strong> – <strong>[in]</strong> Number of segment records; nonpositive counts append nothing. </p></li>
 </ul>
@@ -427,7 +621,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>rectArr</strong> – <strong>[in]</strong> Borrowed array of nRects mapped integer rectangles when the count is positive. </p></li>
 <li><p><strong>nRects</strong> – <strong>[in]</strong> Number of rectangle records; nonpositive counts append nothing. </p></li>
 </ul>
@@ -443,10 +637,10 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>border</strong> – <strong>[in]</strong> Borrowed live Tk border compatible with the token window. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
 <li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
 <li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
 <li><p><strong>borderWidth</strong> – <strong>[in]</strong> Nonnegative band width with representable doubling and inset arithmetic. </p></li>
@@ -464,10 +658,10 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>border</strong> – <strong>[in]</strong> Borrowed live Tk border compatible with the token window. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
 <li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
 <li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
 <li><p><strong>borderWidth</strong> – <strong>[in]</strong> Nonnegative band width with representable doubling and inset arithmetic. </p></li>
@@ -485,7 +679,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>pointPtr</strong> – <strong>[in]</strong> Borrowed array of nPoints mapped integer vertices when the count is at least two. </p></li>
 <li><p><strong>nPoints</strong> – <strong>[in]</strong> Vertex count; fewer than two appends nothing. </p></li>
 </ul>
@@ -501,7 +695,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output. </p></li>
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output. </p></li>
 <li><p><strong>segPtr</strong> – <strong>[in]</strong> Borrowed array of nSegments finite mapped floating segments when the count is positive. </p></li>
 <li><p><strong>nSegments</strong> – <strong>[in]</strong> Number of segment records; nonpositive counts append nothing. </p></li>
 </ul>
@@ -556,12 +750,12 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_BitmapDataToPostScript">
 <span class="target" id="group__ps__raster__encoding_1gae87bd79f6b3ee448ee52aa8ce7823c53"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BitmapDataToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_BitmapDataToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append an X11 depth-one bitmap as a PostScript hex string. </p>
+<dd><p>Append an X11 depth-one bitmap as a <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> hex string. </p>
 <p>Borrows a valid bitmap and token with positive matching dimensions. Captures plane one with XGetImage, reads rows top-to-bottom with XGetPixel, and packs the first pixel into the high bit of each output byte. Partial bytes are zero-padded per row. Emits angle-bracket delimiters, uppercase hex and wrapping after batches of thirty complete bytes, then destroys the XImage. A failed capture returns without appending a payload, matching the Windows failure policy. No Tcl status is returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>display</strong> – <strong>[in]</strong> Display owning the borrowed bitmap. </p></li>
 <li><p><strong>bitmap</strong> – <strong>[in]</strong> Live borrowed depth-one bitmap; not freed by this helper. </p></li>
 <li><p><strong>width</strong> – <strong>[in]</strong> Positive bitmap width in pixels, matching the captured bitmap. </p></li>
@@ -596,7 +790,7 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>display</strong> – <strong>[in]</strong> Display owning the borrowed bitmap. </p></li>
 <li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed registered Tk bitmap with valid dimensions; repeated within the current path clip. </p></li>
 </ul>
@@ -612,10 +806,10 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>image</strong> – <strong>[inout]</strong> Borrowed valid image; noncolor modes replace RGB values with greyscale in place, and all modes ignore alpha. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
 </ul>
 </dd>
 </dl>
@@ -629,10 +823,10 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>tkwin</strong> – <strong>[in]</strong> Live window with native pixels available for capture at its current dimensions. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
 </ul>
 </dd>
 </dl>
@@ -646,10 +840,10 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>photo</strong> – <strong>[in]</strong> Valid borrowed Tk photo; a temporary image copy absorbs any greyscale conversion. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> user coordinate system. </p></li>
 </ul>
 </dd>
 </dl>
@@ -663,7 +857,7 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>display</strong> – <strong>[in]</strong> Display owning the borrowed bitmap. </p></li>
 <li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed registered Tk bitmap, drawn as a one-bit mask centered on the current origin. </p></li>
 <li><p><strong>scaleX</strong> – <strong>[in]</strong> Finite usable horizontal scale factor, yielding a nonsingular image transform. </p></li>
@@ -707,7 +901,7 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsText.XFontStructToPostScript">
 <span class="target" id="group__ps__text__mapping_1ga6daf8c88f8b0fdf0e2353e93c2c9df80"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">XFontStructToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">XFontStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fontPtr</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.XFontStructToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Build a legacy PostScript name from borrowed X11 font properties. </p>
+<dd><p>Build a legacy <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> name from borrowed X11 font properties. </p>
 <p>Requires an initialized result DString and a valid XFontStruct. Missing FULL_NAME, FOUNDRY or FAMILY_NAME returns NULL without replacing the result. Adobe families are kept; other foundries remove an optional ITC prefix and use an exact case-insensitive alias match, defaulting to Helvetica. If the full name starts with the original family, its remaining typeface is appended after a dash with spaces and dashes removed. Success replaces resultPtr and returns a borrowed pointer into it. No font is released here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -723,12 +917,12 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsText.Rbc_FontToPostScript">
 <span class="target" id="group__ps__text__mapping_1ga19ed065006a9dc976ba8cb2081bf3a3b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.Rbc_FontToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append a PostScript font name and size using the legacy fallback chain. </p>
+<dd><p>Append a <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> font name and size using the legacy fallback chain. </p>
 <p>Borrows the token and Tk font. A found font-map array entry takes priority: its first list element supplies the raw font name; exactly two elements with an integer second element supply the size. Otherwise size remains twelve, including one-element entries. Parse errors do not stop output. Without a mapped entry, recognized family prefixes use Tk_PostscriptFontName. Other X11 families attempt XLoadQueryFont and property-based mapping, freeing the loaded font after copying its name into a temporary DString. Windows skips this attempt. Final fallback is Helvetica-Bold, normally at size twelve. Releases temporary Tcl descriptions, split lists and DStrings. No glyphs are embedded. Variable reads can execute traces; enclosing export code owns callback lifetime protection. This void helper does not report failure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>font</strong> – <strong>[in]</strong> Borrowed Tk font, kept valid across optional font-map variable traces; no program is embedded. </p></li>
 </ul>
 </dd>
@@ -738,12 +932,12 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsText.TextLayoutToPostScript">
 <span class="target" id="group__ps__text__mapping_1ga62358dc4b2fcffb10c34798928b14fd6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextLayoutToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.TextLayoutToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append nonempty layout fragments as adjusted PostScript text. </p>
+<dd><p>Append nonempty layout fragments as adjusted <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> text. </p>
 <p>Borrows a live token and layout. Empty fragments are skipped, avoiding the prolog division by string length. Each other fragment uses escaped Latin-1 literal contents and its measured width with DrawAdjText. Coordinates add x/y to fragment baselines in Tcl_WideInt and emit the full sum, avoiding signed int overflow. Does not choose fonts, colors or transforms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output. </p></li>
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output. </p></li>
 <li><p><strong>x</strong> – <strong>[in]</strong> Horizontal offset added to fragment baselines using wide arithmetic. </p></li>
 <li><p><strong>y</strong> – <strong>[in]</strong> Vertical offset added to fragment baselines using wide arithmetic. </p></li>
 <li><p><strong>textPtr</strong> – <strong>[in]</strong> Borrowed layout with live UTF fragment strings, byte counts and measured screen widths. </p></li>
@@ -760,7 +954,7 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> token receiving output; caller owns document framing, prolog and lifetime. </p></li>
 <li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated Tcl UTF text; NULL/empty emits nothing; must survive mapping traces. </p></li>
 <li><p><strong>tsPtr</strong> – <strong>[in]</strong> Borrowed style and live font/colors; theta is unchanged and must satisfy FMOD/ROUND bounds. </p></li>
 <li><p><strong>x</strong> – <strong>[in]</strong> Finite horizontal anchor coordinate in mapped user units. </p></li>
@@ -774,7 +968,7 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.rbcPsText.FontMap">
 <span class="target" id="struct_font_map"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontMap</span></span></span><a class="headerlink" href="#c.rbcPsText.FontMap" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Immutable family alias and PostScript fallback-name pair. </p>
+<dd><p>Immutable family alias and <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> fallback-name pair. </p>
 <p>Strings are static; lookup does not create or own font resources. </p>
 </dd></dl>
 
@@ -849,9 +1043,9 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.ConfigurePostScript">
-<span class="target" id="group__graph__postscript_1ga9ad977a4691d29fb93ba3553d6033878"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PostScript</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ConfigurePostScript" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__graph__postscript_1ga9ad977a4691d29fb93ba3553d6033878"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePostScript</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.PostScript" title="PostScript"><span class="n"><span class="pre">PostScript</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ConfigurePostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate changed option objects before committing derived fields. </p>
-<p>Borrows the graph and its PostScript record. Converts only mask-selected dimensions, padding, color mode and preview format into local values. Plot dimensions may be zero; paper dimensions must be positive. On TCL_ERROR no derived field is committed. This does not restore the Tk option objects themselves; SetPostScriptOptions handles that rollback.</p>
+<p>Borrows the graph and its <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> record. Converts only mask-selected dimensions, padding, color mode and preview format into local values. Plot dimensions may be zero; paper dimensions must be positive. On TCL_ERROR no derived field is committed. This does not restore the Tk option objects themselves; SetPostScriptOptions handles that rollback.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -865,8 +1059,8 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.SetPostScriptOptions">
-<span class="target" id="group__graph__postscript_1gaed7fc6c960dbe3abbcdbbae15fe9a2eb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPostScriptOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PostScript</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tk_SavedOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">savedOptionsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.SetPostScriptOptions" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Apply Tk options and validate their derived PostScript values. </p>
+<span class="target" id="group__graph__postscript_1gaed7fc6c960dbe3abbcdbbae15fe9a2eb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPostScriptOptions</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.PostScript" title="PostScript"><span class="n"><span class="pre">PostScript</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tk_SavedOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">savedOptionsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.SetPostScriptOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply Tk options and validate their derived <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> values. </p>
 <p>Requires initialized component options and caller-provided saved-options and mask storage. Returns TCL_ERROR on Tk or conversion failure; derived conversion failure restores saved Tk options while preserving the error. On TCL_OK the caller must release saved options with Tk_FreeSavedOptions. Successful settings belong to the component, not a temporary export.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -884,8 +1078,8 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.Rbc_DestroyPostScript">
-<span class="target" id="group__graph__postscript_1gae19c9c2ad0dc425be6fda373142b9f0c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_DestroyPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Detach and release the graph-owned PostScript option record. </p>
+<span class="target" id="group__graph__postscript_1gae19c9c2ad0dc425be6fda373142b9f0c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyPostScript</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_DestroyPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Detach and release the graph-owned <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> option record. </p>
 <p>A NULL graph-&gt;postscript is a no-op. Otherwise clears that pointer before freeing Tk configuration resources, deleting the option table and freeing the record. Requires the graph and Tk option context to remain valid; does not destroy the graph, its window or an independently owned token.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -898,13 +1092,13 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.CgetOp">
-<span class="target" id="group__graph__postscript_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.CgetOp" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Return one PostScript option value through the Tcl result. </p>
+<span class="target" id="group__graph__postscript_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.CgetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return one <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> option value through the Tcl result. </p>
 <p>Requires dispatch-validated arguments with the option at objv[3]. Borrows the component and arguments. Returns TCL_OK with the Tk option value or TCL_ERROR with the lookup diagnostic; does not configure or render.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component; enclosing widget dispatch owns lifetime protection. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Exactly four full-command objects; option name is objv[3]. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
@@ -915,13 +1109,13 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.ConfigureOp">
-<span class="target" id="group__graph__postscript_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Query or update the persistent PostScript component options. </p>
+<span class="target" id="group__graph__postscript_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or update the persistent <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component options. </p>
 <p>With three words returns all option descriptions; with four returns one. Otherwise applies option/value pairs transactionally and frees saved options on success. Returns the Tk query or configuration status. Does not emit a document or open a destination file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component; enclosing widget dispatch owns lifetime protection. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Full-command count: three lists all options, four queries one, otherwise option/value pairs follow objv[2]. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
@@ -946,14 +1140,14 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.ComputeBoundingBox">
-<span class="target" id="group__graph__postscript_1ga15682a04cfea56f8f2581f42174e1ddc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeBoundingBox</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PostScript</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ComputeBoundingBox" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__graph__postscript_1ga15682a04cfea56f8f2581f42174e1ddc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeBoundingBox</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.PostScript" title="PostScript"><span class="n"><span class="pre">PostScript</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">psPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.ComputeBoundingBox" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute page bounds and lay out the graph at export dimensions. </p>
 <p>Uses requested plot dimensions when positive, exchanges oriented extents for landscape, and fits within paper minus padding. Maxpect also permits enlargement. Stores pageScale and inclusive bounds in psPtr; centering replaces the initial padding origin when paper is larger than the plot. Wide arithmetic and clamping bound intermediate layout sizes. Sets layout and mapping flags, invokes Rbc_LayoutGraph, and returns paper height in pixels or -1 on layout failure. The caller must restore screen geometry through the export lifecycle; this function does not save it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph whose export dimensions, flags and mapped layout are changed. </p></li>
-<li><p><strong>psPtr</strong> – <strong>[inout]</strong> Component supplying page settings and receiving scale and inclusive pixel bounds. </p></li>
+<li><p><strong>psPtr</strong> – <strong>[inout]</strong> <a class="reference internal" href="graph-reference.html#struct_component"><span class="std std-ref">Component</span></a> supplying page settings and receiving scale and inclusive pixel bounds. </p></li>
 </ul>
 </dd>
 </dl>
@@ -961,7 +1155,7 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.PreviewImage">
-<span class="target" id="group__graph__postscript_1ga6c042a64a87ff50fe6d6e6658fdc7640"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PreviewImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.PreviewImage" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__graph__postscript_1ga6c042a64a87ff50fe6d6e6658fdc7640"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PreviewImage</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.PreviewImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an eight-bit grayscale EPSI preview from a native snapshot. </p>
 <p>Borrows the graph and token. Owns and frees the temporary pixmap, captured color image and encoding DString. Drawing may run callbacks; invalidation is checked before capture. Capture failure silently omits the preview. THUMBNAIL_PREVIEW enables optional resampling; otherwise uses the export layout size. Landscape rotates the grayscale image by 90 degrees. The caller checks graph validity again because this void helper has no status.</p>
 <dl class="field-list simple">
@@ -976,13 +1170,13 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.PostScriptPreamble">
-<span class="target" id="group__graph__postscript_1ga0b2bb9aa12d1465aaf2bb1afd1676f9e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPreamble</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.PostScriptPreamble" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__graph__postscript_1ga0b2bb9aa12d1465aaf2bb1afd1676f9e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPreamble</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.PostScriptPreamble" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Lay out the export and append EPS metadata, prolog and transforms. </p>
 <p>Borrows fileName (NULL selects the widget path) and psToken. Returns TCL_ERROR on layout failure, preview invalidation or prolog load failure. Converts display pixels to points using screen pixel/mm dimensions, escapes metadata strings, optionally appends EPSI, loads rbcGraph.pro, then emits any footer and establishes page orientation and scaling. Reads rbc_version and the prolog library path through Tcl, so variable traces are possible. Checks graph validity after successful callback-capable reads before resuming component access. Partial output remains in the token on failure; the enclosing operation owns graph lifetime protection and export cleanup.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Caller-protected graph with initialized PostScript component; layout is changed. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Caller-protected graph with initialized <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component; layout is changed. </p></li>
 <li><p><strong>fileName</strong> – <strong>[in]</strong> Borrowed NUL-terminated title, or NULL to use the widget path. </p></li>
 <li><p><strong>psToken</strong> – <strong>[inout]</strong> Borrowed token receiving metadata, prolog and transforms; partial output remains on error. </p></li>
 </ul>
@@ -992,8 +1186,8 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.GraphToPostScript">
-<span class="target" id="group__graph__postscript_1ga2d3ac2a6e634f4ab99c75cbf939cb427"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ident</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.GraphToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Render a complete PostScript graph through the shared export layer. </p>
+<span class="target" id="group__graph__postscript_1ga2d3ac2a6e634f4ab99c75cbf939cb427"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphToPostScript</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ident</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.GraphToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Render a complete <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> graph through the shared export layer. </p>
 <p>Borrows the token as backendData and its DString as the output buffer. Begins graph export, emits the preamble and shared graph traversal, then appends the trailer only on success. Always ends graph export and frees the export context, including on error. EndGraph restores live window dimensions and schedules remapping rather than synchronously restoring every screen coordinate. Returns the first failing stage or TCL_OK.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1008,13 +1202,13 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.OutputOp">
-<span class="target" id="group__graph__postscript_1ga1629c82c9c314c191a49442b02bc2c33"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OutputOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.OutputOp" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Return PostScript text or write a completed document to a Tcl file. </p>
+<span class="target" id="group__graph__postscript_1ga1629c82c9c314c191a49442b02bc2c33"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OutputOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.OutputOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> text or write a completed document to a Tcl file. </p>
 <p>A fourth word not starting with a dash is the filename; remaining words configure persistent output options. Successful options remain installed even if rendering or delivery fails. Owns the token and staging DString; token mapping names borrow component storage. Renders before opening the destination. String results omit the Windows binary-preview wrapper. File output uses binary channel translation, checks write and close failures, and preserves an earlier error across cleanup. A delivery failure can leave a partial file: this is not atomic file replacement. Returns TCL_OK with text or an empty file-output result, else TCL_ERROR. Caller must protect the graph across callbacks during rendering.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component; enclosing widget dispatch owns lifetime protection. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Full-command count; optional filename and option/value pairs follow objv[2]. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
@@ -1025,13 +1219,13 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.Rbc_CreatePostScript">
-<span class="target" id="group__graph__postscript_1gac1247df230ddb1e5fc598aa2d3ee80d0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreatePostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_CreatePostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Create and initialize the graph-owned named PostScript component. </p>
-<p>Requires a graph without an existing PostScript record and a live option context. Allocates the record/table, initializes resource name postscript and class Postscript through the option proxy, then validates derived fields. Returns TCL_OK on success. On TCL_ERROR destroys the partial component and leaves graph-&gt;postscript NULL; diagnostics remain in interp.</p>
+<span class="target" id="group__graph__postscript_1gac1247df230ddb1e5fc598aa2d3ee80d0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreatePostScript</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_CreatePostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create and initialize the graph-owned named <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component. </p>
+<p>Requires a graph without an existing <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> record and a live option context. Allocates the record/table, initializes resource name postscript and class Postscript through the option proxy, then validates derived fields. Returns TCL_OK on success. On TCL_ERROR destroys the partial component and leaves graph-&gt;postscript NULL; diagnostics remain in interp.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Graph with no existing PostScript component and a usable Tk configuration context; owns the new record on success. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Graph with no existing <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component and a usable Tk configuration context; owns the new record on success. </p></li>
 </ul>
 </dd>
 </dl>
@@ -1039,13 +1233,13 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphPostscript.Rbc_PostScriptOp">
-<span class="target" id="group__graph__postscript_1ga7a924d29246ed4e817d6e9e20c80cf08"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PostScriptOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_PostScriptOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__graph__postscript_1ga7a924d29246ed4e817d6e9e20c80cf08"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PostScriptOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphPostscript.Rbc_PostScriptOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate and dispatch the graph postscript subcommand. </p>
 <p>Borrows graph, interpreter and argument objects. Uses the strided psOps table to validate the operation at argument two and its arity, then returns the selected handler status. Does not independently preserve the graph or interpreter; the enclosing widget command owns that guard.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized PostScript component; enclosing widget dispatch owns lifetime protection. </p></li>
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph with initialized <a class="reference internal" href="#struct_post_script"><span class="std std-ref">PostScript</span></a> component; enclosing widget dispatch owns lifetime protection. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving command results and errors; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Full widget-command count, including the postscript operation at objv[2]. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full widget-command vector; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
@@ -1071,7 +1265,7 @@ resources. See <a class="reference internal" href="postscript-output.html"><span
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcWindowsPostscript.CreateWindowsEPS">
-<span class="target" id="group__graph__postscript__windows_1gafc16556c491d6eb0bebfc086deee1c1e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateWindowsEPS</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">document</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPostscript.CreateWindowsEPS" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__graph__postscript__windows_1gafc16556c491d6eb0bebfc086deee1c1e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateWindowsEPS</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">document</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsPostscript.CreateWindowsEPS" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a DOS EPS header, PostScript payload and Windows metafile preview. </p>
 <p>Windows-only packaging used for file output with a WMF preview. Appends a newline to the token, captures a separate preview at live widget dimensions, and copies the header and both payloads into document. The PostScript byte count includes its terminating NUL. This is not the EPSI snapshot path.</p>
 <p>Owns the temporary drawable wrapper, metafile, reference DC and global-memory block, releasing them before return. The caller retains graph lifetime protection and owns both output buffers. Once preview drawing has begun, cleanup marks mapping work and schedules redraw. Returns TCL_OK after assembly, or TCL_ERROR for the checked native failures or graph invalidation.</p>
@@ -1103,6 +1297,42 @@ resources. See <a class="reference internal" href="postscript-output.html"><span
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">PostScript token C reference</a><ul>
+<li><a class="reference internal" href="#persistent-graph-postscript-configuration">Persistent graph PostScript configuration</a><ul>
+<li><a class="reference internal" href="#c.PostScript"><code class="docutils literal notranslate"><span class="pre">PostScript</span></code></a><ul>
+<li><a class="reference internal" href="#c.PostScript.optionTable"><code class="docutils literal notranslate"><span class="pre">optionTable</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.colorModeObjPtr"><code class="docutils literal notranslate"><span class="pre">colorModeObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.heightObjPtr"><code class="docutils literal notranslate"><span class="pre">heightObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.padXObjPtr"><code class="docutils literal notranslate"><span class="pre">padXObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.padYObjPtr"><code class="docutils literal notranslate"><span class="pre">padYObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.paperHeightObjPtr"><code class="docutils literal notranslate"><span class="pre">paperHeightObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.paperWidthObjPtr"><code class="docutils literal notranslate"><span class="pre">paperWidthObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.previewFormatObjPtr"><code class="docutils literal notranslate"><span class="pre">previewFormatObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.widthObjPtr"><code class="docutils literal notranslate"><span class="pre">widthObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.decorations"><code class="docutils literal notranslate"><span class="pre">decorations</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.reqWidth"><code class="docutils literal notranslate"><span class="pre">reqWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.reqHeight"><code class="docutils literal notranslate"><span class="pre">reqHeight</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.reqPaperWidth"><code class="docutils literal notranslate"><span class="pre">reqPaperWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.reqPaperHeight"><code class="docutils literal notranslate"><span class="pre">reqPaperHeight</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.padX"><code class="docutils literal notranslate"><span class="pre">padX</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.padY"><code class="docutils literal notranslate"><span class="pre">padY</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.colorMode"><code class="docutils literal notranslate"><span class="pre">colorMode</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.colorVarName"><code class="docutils literal notranslate"><span class="pre">colorVarName</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.fontVarName"><code class="docutils literal notranslate"><span class="pre">fontVarName</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.landscape"><code class="docutils literal notranslate"><span class="pre">landscape</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.center"><code class="docutils literal notranslate"><span class="pre">center</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.maxpect"><code class="docutils literal notranslate"><span class="pre">maxpect</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.addPreview"><code class="docutils literal notranslate"><span class="pre">addPreview</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.footer"><code class="docutils literal notranslate"><span class="pre">footer</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.previewFormat"><code class="docutils literal notranslate"><span class="pre">previewFormat</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.left"><code class="docutils literal notranslate"><span class="pre">left</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.bottom"><code class="docutils literal notranslate"><span class="pre">bottom</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.right"><code class="docutils literal notranslate"><span class="pre">right</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.top"><code class="docutils literal notranslate"><span class="pre">top</span></code></a></li>
+<li><a class="reference internal" href="#c.PostScript.pageScale"><code class="docutils literal notranslate"><span class="pre">pageScale</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#token-allocation-and-borrowed-buffers">Token allocation and borrowed buffers</a><ul>
 <li><a class="reference internal" href="#c.Rbc_GetPsToken"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPsToken()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ReleasePsToken"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleasePsToken()</span></code></a></li>

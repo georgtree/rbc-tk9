@@ -4,13 +4,13 @@ Element data and dispatch
 ``rbcGrElem.c`` owns shared element commands, common data transactions and
 iteration over the graph's element display list. Concrete element modules
 supply configuration, extents, mapping, drawing, export and closest-point
-operations through ``ElementProcs``. The private records and declarations live
+operations through :c:type:`ElementProcs`. The private records and declarations live
 in ``rbcGrElem.h``; see :doc:`element-reference` for selected contracts.
 
 Data slots
 ----------
 
-``ElemVector`` represents one common data input: X, Y, weights or an error-bar
+:c:type:`ElemVector` represents one common data input: X, Y, weights or an error-bar
 input. Its ownership depends on how it was populated:
 
 .. list-table::
@@ -93,11 +93,11 @@ component implementation.
 Type dispatch and display order
 -------------------------------
 
-``ElementProcs`` separates shared command behavior from element-specific work.
+:c:type:`ElementProcs` separates shared command behavior from element-specific work.
 Extents describe data bounds for axis scaling; mapping prepares display
 geometry; normal and active drawing consume it. Export and legend-symbol
 operations have separate callbacks. Closest-point callbacks report through
-``ClosestSearch``, including data coordinates and an original data index.
+:c:type:`ClosestSearch`, including data coordinates and an original data index.
 
 :c:func:`rbcGrElemLifecycle.Rbc_MapElements` walks the display list, skipping hidden and plot-hidden
 elements. It remaps when the graph requests all items or the element has

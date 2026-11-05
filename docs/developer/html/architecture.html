@@ -131,6 +131,53 @@ their owning modules.</p>
 <p>See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for component hit priority, per-family tag identities, legend entry contexts and callback
 lifetime. Generic event dispatch does not interpret component layouts; graph and legend pickers supply those decisions.</p>
 </section>
+<section id="core-record-index">
+<h2>Core record index<a class="headerlink" href="#core-record-index" title="Link to this heading">¶</a></h2>
+<p>The shared headers define ownership and storage contracts, not just function
+signatures. These records are private C interfaces; their layouts are not a
+public extension ABI. A pointer member does not automatically retain its target.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>Responsibility and reference</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> / <a class="reference internal" href="graph-reference.html#c.GraphStruct" title="GraphStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">GraphStruct</span></code></a></p></td>
+<td><p>Widget owner, component registries, export options and layout caches;
+<a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="graph-reference.html#c.Component" title="Component"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Component</span></code></a> and <a class="reference internal" href="graph-reference.html#c.Margin" title="Margin"><code class="xref c c-type docutils literal notranslate"><span class="pre">Margin</span></code></a></p></td>
+<td><p>Registry/display order and axis-margin layout; <a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> and <a class="reference internal" href="grid-reference.html#c.GridSegments" title="GridSegments"><code class="xref c c-struct docutils literal notranslate"><span class="pre">GridSegments</span></code></a></p></td>
+<td><p>Graph/track grid options and owned mapped segment arrays; <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pen-reference.html#c.Pen" title="Pen"><code class="xref c c-type docutils literal notranslate"><span class="pre">Pen</span></code></a> / <a class="reference internal" href="pen-reference.html#c.PenStruct" title="PenStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">PenStruct</span></code></a></p></td>
+<td><p>Concrete pen prefix and counted named-pen lifetime; <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="element-reference.html#c.Element" title="Element"><code class="xref c c-type docutils literal notranslate"><span class="pre">Element</span></code></a> / <a class="reference internal" href="element-reference.html#c.ElementStruct" title="ElementStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ElementStruct</span></code></a></p></td>
+<td><p>Element prefix, data slots, mapping and pen references; <a class="reference internal" href="element-reference.html"><span class="doc">Element data C reference</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="element-reference.html#c.ElementProcs" title="ElementProcs"><code class="xref c c-type docutils literal notranslate"><span class="pre">ElementProcs</span></code></a></p></td>
+<td><p>Concrete element dispatch contracts; <a class="reference internal" href="element-reference.html"><span class="doc">Element data C reference</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="binding-reference.html#c.Rbc_BindTableStruct" title="Rbc_BindTableStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_BindTableStruct</span></code></a></p></td>
+<td><p>Owned Tk bindings and borrowed picked/focus objects; <a class="reference internal" href="binding-reference.html"><span class="doc">Binding and picking C reference</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="postscript-reference.html#c.PostScript" title="PostScript"><code class="xref c c-type docutils literal notranslate"><span class="pre">PostScript</span></code></a></p></td>
+<td><p>Persistent output options and computed page placement; <a class="reference internal" href="postscript-reference.html"><span class="doc">PostScript token C reference</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="bar-reference.html#c.FreqKey" title="FreqKey"><code class="xref c c-type docutils literal notranslate"><span class="pre">FreqKey</span></code></a> and <a class="reference internal" href="bar-reference.html#c.FreqInfo" title="FreqInfo"><code class="xref c c-type docutils literal notranslate"><span class="pre">FreqInfo</span></code></a></p></td>
+<td><p>Coincident-bar grouping and per-pass accumulation; <a class="reference internal" href="bar-reference.html"><span class="doc">Bar element C reference</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 </section>
 
 
@@ -147,6 +194,7 @@ lifetime. Generic event dispatch does not interpret component layouts; graph and
 <li><a class="reference internal" href="#supporting-modules">Supporting modules</a></li>
 <li><a class="reference internal" href="#lifetime-and-callbacks">Lifetime and callbacks</a></li>
 <li><a class="reference internal" href="#object-interaction">Object interaction</a></li>
+<li><a class="reference internal" href="#core-record-index">Core record index</a></li>
 </ul>
 </li>
 </ul>

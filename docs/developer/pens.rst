@@ -179,7 +179,7 @@ Candidate palettes and default ranges
 constructs the reserved normal-style entry, including for NULL or empty style
 lists, and borrows the element's current normal pen there. Additional entries
 use the concrete record size supplied by the caller, which must accommodate
-``PenStyle``. The first additional entry defaults to range 0 through 1, the
+:c:type:`PenStyle`. The first additional entry defaults to range 0 through 1, the
 second to 1 through 2, and so on.
 
 :c:func:`GetPenStyleFromObj` accepts exactly one or three list elements. The three-item

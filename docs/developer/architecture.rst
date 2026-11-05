@@ -90,3 +90,36 @@ Object interaction
 
 See :doc:`bindings` for component hit priority, per-family tag identities, legend entry contexts and callback
 lifetime. Generic event dispatch does not interpret component layouts; graph and legend pickers supply those decisions.
+
+Core record index
+-----------------
+
+The shared headers define ownership and storage contracts, not just function
+signatures. These records are private C interfaces; their layouts are not a
+public extension ABI. A pointer member does not automatically retain its target.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Record
+     - Responsibility and reference
+   * - :c:type:`Graph` / :c:struct:`GraphStruct`
+     - Widget owner, component registries, export options and layout caches;
+       :doc:`graph-reference`.
+   * - :c:struct:`Component` and :c:type:`Margin`
+     - Registry/display order and axis-margin layout; :doc:`graph-reference`.
+   * - :c:type:`Grid` and :c:struct:`GridSegments`
+     - Graph/track grid options and owned mapped segment arrays; :doc:`grid-reference`.
+   * - :c:type:`Pen` / :c:struct:`PenStruct`
+     - Concrete pen prefix and counted named-pen lifetime; :doc:`pen-reference`.
+   * - :c:type:`Element` / :c:struct:`ElementStruct`
+     - Element prefix, data slots, mapping and pen references; :doc:`element-reference`.
+   * - :c:type:`ElementProcs`
+     - Concrete element dispatch contracts; :doc:`element-reference`.
+   * - :c:struct:`Rbc_BindTableStruct`
+     - Owned Tk bindings and borrowed picked/focus objects; :doc:`binding-reference`.
+   * - :c:type:`PostScript`
+     - Persistent output options and computed page placement; :doc:`postscript-reference`.
+   * - :c:type:`FreqKey` and :c:type:`FreqInfo`
+     - Coincident-bar grouping and per-pass accumulation; :doc:`bar-reference`.

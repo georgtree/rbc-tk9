@@ -2,8 +2,8 @@ Grid mapping and inheritance
 ============================
 
 ``rbcGrGrid.c`` owns grid options, axis references, segment caches and dispatch
-to screen or document output. A global ``Grid`` belongs to the graph. A track
-can own a local ``Grid`` and always has separate X/Y segment caches for its
+to screen or document output. A global :c:type:`Grid` belongs to the graph. A track
+can own a local :c:type:`Grid` and always has separate X/Y segment caches for its
 plot rectangle. See :doc:`grid-reference` for the shared interfaces.
 
 Configuration and axis selection
@@ -15,7 +15,7 @@ state. Axis lookup acquires references that must be released on failure or
 replacement. Local grids require a shared X axis and a Y axis owned by the
 same track; either mapping can be empty to disable that direction.
 
-The global grid uses the named ``grid``/``Grid`` option-database component.
+The global grid uses the named ``grid``/:c:type:`Grid` option-database component.
 Local-grid initialization follows a different path: it initializes a local
 record and copies the effective inherited options into it. Do not infer a
 separate named option-database child merely from the nested Tcl command.

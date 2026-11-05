@@ -1,7 +1,7 @@
 Bar elements
 ============
 
-``rbcGrBar.c`` implements bar elements through the shared ``ElementProcs``
+``rbcGrBar.c`` implements bar elements through the shared :c:type:`ElementProcs`
 interface. Source data and axis transactions follow :doc:`elements`; screen
 mapping uses the axis/track scope described in :doc:`mapping`. The contracts in
 :doc:`bar-reference` cover the concrete module from construction through
@@ -116,7 +116,7 @@ the original X and both axis pointers; signed zero is normalized. Offsets,
 alignment, width and pen identity do not form part of the key. Repeated X values
 inside one element can therefore participate in a group as well.
 
-Only duplicate keys receive persistent ``FreqInfo`` records. ``freqArr`` owns
+Only duplicate keys receive persistent :c:type:`FreqInfo` records. ``freqArr`` owns
 these records; hash values borrow pointers into it. ``nStacks`` counts duplicate
 keys, not just groups currently drawn in stacked mode. Ordinary normal mode
 needs no table. Trackgraphs still build one because individual tracks may select

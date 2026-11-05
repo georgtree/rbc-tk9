@@ -47,45 +47,38 @@ typedef ClientData(Rbc_BindPickProc)(ClientData clientData, int x, int y, Client
  */
 typedef void(Rbc_BindTagProc)(Rbc_BindTable bindTable, ClientData object, ClientData context, Rbc_List list);
 
-/*
- * Private state. Item pointers and context values are borrowed, not references
- * that retain components. Owners clear them with Rbc_DeleteBindings before
- * freeing an object. newItem exposes the pending Enter target during Leave.
+/** @brief Owned event-binding table with borrowed picked-object state.
+ * The owner must defer destruction while dispatch or repicking is active, and clear object bindings before releasing objects. Item/context fields never retain component records.
  */
-
 typedef struct Rbc_BindTableStruct {
-    unsigned int flags;
-    Tk_BindingTable bindingTable; /* Owned Tk table, created eagerly. Keys are
-                                   * pointer identities supplied by tagProc,
-                                   * not necessarily object addresses. */
-    ClientData currentItem;       /* The item currently containing the mouse
-                                   * pointer, or NULL if none. */
-    ClientData currentContext;    /* One word indicating what kind of object
-                                   * was picked. */
-    ClientData newItem;           /* The item that is about to become the
-                                   * current one, or NULL.  This field is
-                                   * used to detect deletions of the new
-                                   * current item pointer that occur during
-                                   * Leave processing of the previous current
-                                   * item.  */
-    ClientData newContext;        /* One-word indicating what kind of object
-                                   * was just picked. */
-    ClientData focusItem;
-    ClientData focusContext;
-    XEvent pickEvent; /* The event upon which the current choice
-                       * of the current item is based.  Must be saved
-                       * so that if the current item is deleted,
-                       * we can pick another. */
-    int activePick;   /* The pick event has been initialized so
-                       * that we can repick it */
-    int state;        /* Last known modifier state.  Used to
-                       * defer picking a new current object
-                       * while buttons are down. */
-    ClientData clientData;
-    Tk_Window tkwin;
-    Rbc_BindPickProc *pickProc; /* Routine to report the item the mouse is
-                                 * currently over. */
-    Rbc_BindTagProc *tagProc;   /* Routine to report tags picked items. */
+    unsigned int flags; /**< Binding-dispatch state bits used to guard repicking and synthetic transitions. */
+    Tk_BindingTable bindingTable; /**<
+     * Owned eagerly created Tk binding table; tag keys are pointer identities supplied by tagProc.
+     */
+    ClientData currentItem; /**< Borrowed current picked object, or NULL. */
+    ClientData currentContext; /**< Borrowed context identifying the current picked object kind. */
+    ClientData newItem; /**<
+     * Borrowed pending Enter target, exposed while delivering Leave so deletion can invalidate it.
+     */
+    ClientData newContext; /**< Borrowed context of the pending picked object. */
+    ClientData focusItem; /**< Borrowed object selected for keyboard/focus event dispatch, or NULL. */
+    ClientData focusContext; /**< Borrowed context of the focus object. */
+    XEvent pickEvent; /**<
+     * The event upon which the current choice of the current item is based. Must be saved so that if the current
+     * item is deleted, we can pick another.
+     */
+    int activePick; /**< The pick event has been initialized so that we can repick it */
+    int state; /**< Last known modifier state. Used to defer picking a new current object while buttons are down. */
+    ClientData clientData; /**< Borrowed owner passed to the picker and preserved by dispatch as required. */
+    Tk_Window tkwin; /**<
+     * Borrowed window on which event handlers are installed; must remain valid for handler removal.
+     */
+    Rbc_BindPickProc *pickProc; /**<
+     * Borrowed picker callback returning an object and its context from screen coordinates.
+     */
+    Rbc_BindTagProc *tagProc; /**<
+     * Borrowed tag collector callback appending stable tag keys to the supplied temporary list.
+     */
 } Rbc_BindTableStruct;
 
 /**

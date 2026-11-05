@@ -10,7 +10,7 @@ Creation and ownership
 ----------------------
 
 :c:func:`rbcGraphCommands.NewGraph` validates the command arguments and delegates to :c:func:`rbcGraphLifecycle.CreateGraph`.
-Creation allocates a zeroed ``Graph``, creates the Tk window, initializes tables
+Creation allocates a zeroed :c:type:`Graph`, creates the Tk window, initializes tables
 and display lists, selects the widget class and installs instance data. A
 trackgraph uses line-element class behavior with its separate ``trackGraph``
 flag. Its public Tk class remains ``Trackgraph``.

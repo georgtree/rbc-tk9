@@ -128,7 +128,7 @@ nor a lookup result transfers ownership of the static record.
 Contribution layout and rounding
 --------------------------------
 
-Each Sample stores a source start index, count and variable-length Weight
+Each Sample stores a source start index, count and variable-length ResampleWeight
 array. :c:func:`rbcImageResampling.ComputeWeights` returns the byte stride, which must be used to advance
 between records; ordinary Sample pointer arithmetic would be incorrect.
 :c:func:`rbcImageResampling.GetSampleRecordSize` accounts for the first inline weight and checks extra
