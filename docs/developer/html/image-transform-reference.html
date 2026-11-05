@@ -57,21 +57,63 @@ in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span
 <dt class="sig sig-object c" id="c.Rbc_RotateBitmap">
 <span class="target" id="rbc_image_8h_1a92951eeb0f9c4f178c9b4af1dae3121c"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RotateBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">heightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RotateBitmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create an owned one-bit pixmap containing the rotated source bitmap. </p>
-<p>Borrow the Tk window and source bitmap, whose positive dimensions must match the supplied sizes. Require a finite angle in degrees and non-NULL dimension output pointers. On success assign output sizes and return a new pixmap for Tk_FreePixmap(). None reports a detected failure; do not rely on output dimensions after failure, since Windows and X11 initialize them differently. Rotation uses discrete sampling, not the color-image shear filter. </p>
+<p>Borrow the Tk window and source bitmap, whose positive dimensions must match the supplied sizes. Require a finite angle in degrees and non-NULL dimension output pointers. On success assign output sizes and return a new pixmap for Tk_FreePixmap(). None reports a detected failure; do not rely on output dimensions after failure, since Windows and X11 initialize them differently. Rotation uses discrete sampling, not the color-image shear filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window providing the native display and drawable context. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit source pixmap matching width and height. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive source width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive source height in pixels. </p></li>
+<li><p><strong>theta</strong> – <strong>[in]</strong> Finite rotation angle in degrees. </p></li>
+<li><p><strong>widthPtr</strong> – <strong>[out]</strong> Required output for the new width; unspecified on failure. </p></li>
+<li><p><strong>heightPtr</strong> – <strong>[out]</strong> Required output for the new height; unspecified on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ScaleBitmap">
 <span class="target" id="rbc_image_8h_1a89096bea92653d051f7e48f753d47752"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScaleBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">srcBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scaledWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scaledHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ScaleBitmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create an owned one-bit pixmap scaled to the requested dimensions. </p>
-<p>Borrow the window and source bitmap. Require positive source and destination sizes and a source bitmap matching its declared dimensions. Release a returned pixmap with Tk_FreePixmap(). X11 copies nearest-neighbour samples; Windows uses StretchBlt and does not propagate its status. A non-None return is not a portable guarantee that every native drawing operation succeeded. </p>
+<p>Borrow the window and source bitmap. Require positive source and destination sizes and a source bitmap matching its declared dimensions. Release a returned pixmap with Tk_FreePixmap(). X11 copies nearest-neighbour samples; Windows uses StretchBlt and does not propagate its status. A non-None return is not a portable guarantee that every native drawing operation succeeded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window providing the native display and drawable context. </p></li>
+<li><p><strong>srcBitmap</strong> – <strong>[in]</strong> Borrowed one-bit source pixmap matching its declared dimensions. </p></li>
+<li><p><strong>srcWidth</strong> – <strong>[in]</strong> Positive source horizontal dimension in pixels. </p></li>
+<li><p><strong>srcHeight</strong> – <strong>[in]</strong> Positive source vertical dimension in pixels. </p></li>
+<li><p><strong>scaledWidth</strong> – <strong>[in]</strong> Positive destination horizontal dimension in pixels. </p></li>
+<li><p><strong>scaledHeight</strong> – <strong>[in]</strong> Positive destination vertical dimension in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ScaleRotateBitmapRegion">
 <span class="target" id="rbc_image_8h_1afff4fb9e72065410099e4f3dfa129b84"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScaleRotateBitmapRegion</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">srcBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionY</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">virtWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">virtHeight</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ScaleRotateBitmapRegion" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create only a region of a virtually scaled, rotated one-bit bitmap. </p>
-<p>Borrow window and source bitmap. The region coordinates refer to the virtual rotated destination, whose dimensions are virtWidth and virtHeight. Require positive dimensions, a finite degree angle and a region contained in that virtual image, with representable coordinate sums. Right-angle paths assume these bounds rather than checking each source sample. Return an owned pixmap of regionWidth by regionHeight, or None for a detected failure. Free with Tk_FreePixmap(); no source or window ownership is transferred. </p>
+<p>Borrow window and source bitmap. The region coordinates refer to the virtual rotated destination, whose dimensions are virtWidth and virtHeight. Require positive dimensions, a finite degree angle and a region contained in that virtual image, with representable coordinate sums. Right-angle paths assume these bounds rather than checking each source sample. Return an owned pixmap of regionWidth by regionHeight, or None for a detected failure. Free with Tk_FreePixmap(); no source or window ownership is transferred.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window providing the native display and drawable context. </p></li>
+<li><p><strong>srcBitmap</strong> – <strong>[in]</strong> Borrowed one-bit source pixmap matching its declared dimensions. </p></li>
+<li><p><strong>srcWidth</strong> – <strong>[in]</strong> Positive source width in pixels. </p></li>
+<li><p><strong>srcHeight</strong> – <strong>[in]</strong> Positive source height in pixels. </p></li>
+<li><p><strong>regionX</strong> – <strong>[in]</strong> Left coordinate of the requested region in the virtual rotated image. </p></li>
+<li><p><strong>regionY</strong> – <strong>[in]</strong> Top coordinate of the requested region in the virtual rotated image. </p></li>
+<li><p><strong>regionWidth</strong> – <strong>[in]</strong> Positive output width; region must fit within the virtual image. </p></li>
+<li><p><strong>regionHeight</strong> – <strong>[in]</strong> Positive output height; region must fit within the virtual image. </p></li>
+<li><p><strong>virtWidth</strong> – <strong>[in]</strong> Positive width of the complete virtual rotated destination. </p></li>
+<li><p><strong>virtHeight</strong> – <strong>[in]</strong> Positive height of the complete virtual rotated destination. </p></li>
+<li><p><strong>theta</strong> – <strong>[in]</strong> Finite rotation angle in degrees. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="color-rotation-implementation">

@@ -159,12 +159,12 @@ Those byte-layout rules must not be replaced with packed RGBA assumptions.
 Scaling and virtual regions
 ---------------------------
 
-``Rbc_ScaleBitmap`` returns the full requested output. X11 explicitly samples
+:c:func:`Rbc_ScaleBitmap` returns the full requested output. X11 explicitly samples
 nearest source pixels. Windows uses ``StretchBlt`` with ``SRCCOPY`` through
 paired drawable-DC acquisition and release. These are separate implementations;
 do not infer identical downscaling details from their shared C signature.
 
-``Rbc_ScaleRotateBitmapRegion`` avoids allocating the full virtual output.
+:c:func:`Rbc_ScaleRotateBitmapRegion` avoids allocating the full virtual output.
 It uses the rotated source bounding box and the virtual destination dimensions
 to map a requested region back to source pixels. The returned bitmap is only
 ``regionWidth`` by ``regionHeight``. Bitmap markers use this route for the

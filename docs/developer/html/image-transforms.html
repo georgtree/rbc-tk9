@@ -205,11 +205,11 @@ Those byte-layout rules must not be replaced with packed RGBA assumptions.</p>
 </section>
 <section id="scaling-and-virtual-regions">
 <h2>Scaling and virtual regions<a class="headerlink" href="#scaling-and-virtual-regions" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap</span></code> returns the full requested output. X11 explicitly samples
+<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_ScaleBitmap" title="Rbc_ScaleBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap()</span></code></a> returns the full requested output. X11 explicitly samples
 nearest source pixels. Windows uses <code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> with <code class="docutils literal notranslate"><span class="pre">SRCCOPY</span></code> through
 paired drawable-DC acquisition and release. These are separate implementations;
 do not infer identical downscaling details from their shared C signature.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion</span></code> avoids allocating the full virtual output.
+<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_ScaleRotateBitmapRegion" title="Rbc_ScaleRotateBitmapRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion()</span></code></a> avoids allocating the full virtual output.
 It uses the rotated source bounding box and the virtual destination dimensions
 to map a requested region back to source pixels. The returned bitmap is only
 <code class="docutils literal notranslate"><span class="pre">regionWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">regionHeight</span></code>. Bitmap markers use this route for the

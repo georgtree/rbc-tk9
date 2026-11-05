@@ -50,56 +50,115 @@
 <dt class="sig sig-object c" id="c.Tk_ImageIsDeleted">
 <span class="target" id="rbc_image_8h_1ab4b36422d3155c8ea296fc46b98b947e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageIsDeleted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageIsDeleted" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Inspect whether a retained image instance has lost its image manager. </p>
-<p>Require a non-NULL, unfreed Tk_Image. Return true for a NULL master pointer or NULL master type. This RBC-defined helper reads copied private Tk layout; it cannot validate an arbitrary or already-freed pointer. </p>
+<p>Require a non-NULL, unfreed Tk_Image. Return true for a NULL master pointer or NULL master type. This RBC-defined helper reads copied private Tk layout; it cannot validate an arbitrary or already-freed pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkImage</strong> – <strong>[in]</strong> Borrowed retained image instance; master validity requirements are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Tk_ImageGetMaster">
 <span class="target" id="rbc_image_8h_1a767ff4a2d512356cb4adc239b08cf86f"></span><span class="n"><span class="pre">Tk_ImageMaster</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetMaster</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetMaster" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the borrowed master pointer from a retained, non-NULL Tk image. </p>
-<p>No reference is acquired. The result may be NULL; callers must establish validity before passing it to further Tk or RBC operations. This helper is implemented by RBC using copied private Tk structure layout. </p>
+<p>No reference is acquired. The result may be NULL; callers must establish validity before passing it to further Tk or RBC operations. This helper is implemented by RBC using copied private Tk structure layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkImage</strong> – <strong>[in]</strong> Borrowed retained image instance; master validity requirements are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Tk_ImageGetType">
 <span class="target" id="rbc_image_8h_1aeea731fa3a70b64b67253712f28f2d59"></span><span class="n"><span class="pre">Tk_ImageType</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetType</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetType" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a borrowed image-type pointer using RBC’s private-layout adapter. </p>
-<p>Require a retained non-NULL instance with a non-NULL master. A deleted master’s type may be NULL. Do not free or modify the returned descriptor. </p>
+<p>Require a retained non-NULL instance with a non-NULL master. A deleted master’s type may be NULL. Do not free or modify the returned descriptor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkImage</strong> – <strong>[in]</strong> Borrowed retained image instance; master validity requirements are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Tk_ImageGetPhotoPixmap">
 <span class="target" id="rbc_image_8h_1ac02f3ba9aa43641e0b708727d76a331d"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetPhotoPixmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">photoImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetPhotoPixmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow the native display pixmap of a live photo instance, or return None for a different live image type. </p>
-<p>Require non-NULL instance, master and type. This is RBC’s private-layout accessor, not a retained pixel snapshot. Do not free the pixmap or retain it across image changes. </p>
+<p>Require non-NULL instance, master and type. This is RBC’s private-layout accessor, not a retained pixel snapshot. Do not free the pixmap or retain it across image changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>photoImage</strong> – <strong>[in]</strong> Borrowed live instance with a valid master and image type. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Tk_ImageGetPhotoGC">
 <span class="target" id="rbc_image_8h_1a3b60d95baa9af09b503307a01b91c27e"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetPhotoGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">photoImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetPhotoGC" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow the display GC of a live photo instance, or return NULL for another live type. </p>
-<p>Require non-NULL instance, master and type. Do not free or mutate the returned Tk-owned GC. This RBC helper relies on private photo layout. </p>
+<p>Require non-NULL instance, master and type. Do not free or mutate the returned Tk-owned GC. This RBC helper relies on private photo layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>photoImage</strong> – <strong>[in]</strong> Borrowed live instance with a valid master and image type. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_NameOfImage">
 <span class="target" id="rbc_image_8h_1ac5d39b8640f5b56bde3aeedc487a8bde"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NameOfImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NameOfImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the borrowed Tk name of an image with a valid master. </p>
-<p>No name copy or lifetime reference is acquired. Do not free the result; copy it before an operation that can invalidate the image or master. </p>
+<p>No name copy or lifetime reference is acquired. Do not free the result; copy it before an operation that can invalidate the image or master.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkImage</strong> – <strong>[in]</strong> Borrowed retained image instance; master validity requirements are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_CreateTemporaryImage">
 <span class="target" id="rbc_image_8h_1a726b2c1688ae3868a3fe9b525b97cfb1"></span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateTemporaryImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateTemporaryImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a named photo through Tcl and acquire an image instance for tkwin. </p>
-<p>Borrow interp, tkwin and clientData; the installed change callback is a no-op. Return a caller-owned token paired with <a class="reference internal" href="#rbc_image_8h_1a678f61492ade89d3e5fb62def0ae823c"><span class="std std-ref">Rbc_DestroyTemporaryImage()</span></a>, or NULL on failure. The Tcl result object is retained while Tk_GetImage consumes its name. If instance acquisition fails, the named image is deleted through Tk’s C API while preserving the acquisition error. Evaluates the image command in the current context and does not preserve caller lifetime or interpreter result across callbacks. </p>
+<p>Borrow interp, tkwin and clientData; the installed change callback is a no-op. Return a caller-owned token paired with <a class="reference internal" href="#rbc_image_8h_1a678f61492ade89d3e5fb62def0ae823c"><span class="std std-ref">Rbc_DestroyTemporaryImage()</span></a>, or NULL on failure. The Tcl result object is retained while Tk_GetImage consumes its name. If instance acquisition fails, the named image is deleted through Tk’s C API while preserving the acquisition error. Evaluates the image command in the current context and does not preserve caller lifetime or interpreter result across callbacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter in which the image command is evaluated; receives the result or error. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window providing the native display and drawable context. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed opaque data supplied to the no-op image-change callback. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DestroyTemporaryImage">
 <span class="target" id="rbc_image_8h_1a678f61492ade89d3e5fb62def0ae823c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTemporaryImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTemporaryImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delete a temporary image through Tk’s C API and consume its instance. </p>
-<p>NULL is a successful no-op. Otherwise require a retained token. Already deleted images still have their instance released. Always returns TCL_OK; cleanup preserves interpreter state and does not evaluate the image command. Tk deletion may notify other image clients. Callers must detach the token from owner fields before calling and provide their own owner lifetime guard. </p>
+<p>NULL is a successful no-op. Otherwise require a retained token. Already deleted images still have their instance released. Always returns TCL_OK; cleanup preserves interpreter state and does not evaluate the image command. Tk deletion may notify other image clients. Callers must detach the token from owner fields before calling and provide their own owner lifetime guard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter owning the temporary image; result state is preserved. </p></li>
+<li><p><strong>tkImage</strong> – <strong>[in]</strong> Owned temporary image instance consumed by this call, or NULL. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
