@@ -10,6 +10,13 @@ refer to a specific constructor family; mutable context state does not imply
 ownership of borrowed graph, document, image or font resources. See
 :doc:`rendering` for batch lifetimes and scope pairing.
 
+Screen adapters and Cairo attempts have different result contracts. Native
+one-shot adapters retain the supplied GC behavior, including the explicitly
+documented origin/clip mutations. Cairo attempt helpers return a fallback flag;
+context constructors return an owned context or their documented failure value.
+See :doc:`native-rendering` and :doc:`cairo-rendering` for call sequences and
+coordinate conventions.
+
 Component-facing interface
 --------------------------
 

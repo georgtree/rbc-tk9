@@ -48,9 +48,34 @@
 points. SVG, PDF and PostScript do not use this backend. Components still own
 mapped geometry, clipping scopes and painter order; see <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>.
 Private helper contracts are in <a class="reference internal" href="cairo-reference.html"><span class="doc">Cairo backend C reference</span></a>.</p>
+<section id="component-facing-attempts">
+<h2>Component-facing attempts<a class="headerlink" href="#component-facing-attempts" title="Link to this heading">¶</a></h2>
+<p>The one-shot Cairo helpers return a handled/fallback flag. A nonzero result
+means the caller must suppress its native fallback; it does not promise that
+pixels were painted. For eligible Cairo calls, empty photos and nonpositive
+bitmap or legend rectangles can be handled no-ops. Late drawing errors are
+reported during context completion, not by requesting replay. Without Cairo,
+these attempts decline and their constructors return NULL.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderArea" title="Rbc_RenderArea"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderArea()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderAreaOpacity" title="Rbc_RenderAreaOpacity"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderAreaOpacity()</span></code></a> fill polygons;
+<a class="reference internal" href="reference.html#c.Rbc_RenderTileArea" title="Rbc_RenderTileArea"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderTileArea()</span></code></a> fills from a repeating photo block;
+<a class="reference internal" href="reference.html#c.Rbc_RenderPhoto" title="Rbc_RenderPhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPhoto()</span></code></a> paints that block once. The block and its readable
+storage remain caller-owned. <a class="reference internal" href="reference.html#c.Rbc_RenderRectangles" title="Rbc_RenderRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderRectangles()</span></code></a> applies opacity to
+the composed batch, including stipples; polygon opacity applies only to solid
+fills. <a class="reference internal" href="reference.html#c.Rbc_RenderLegendBar" title="Rbc_RenderLegendBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderLegendBar()</span></code></a> uses the full drawable clip and restarts
+its stipple at the swatch origin.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBitmap" title="Rbc_RenderBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBitmap()</span></code></a> handles one mapped bitmap and an optional background
+polygon. For repeated symbols, <a class="reference internal" href="reference.html#c.Rbc_RenderBeginBitmapSymbols" title="Rbc_RenderBeginBitmapSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginBitmapSymbols()</span></code></a> converts
+the source once, <a class="reference internal" href="reference.html#c.Rbc_RenderBitmapSymbols" title="Rbc_RenderBitmapSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBitmapSymbols()</span></code></a> paints centers in input order,
+and <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> releases the context and copied pattern. Positive
+target width selects an explicit drawable extent and requires positive target
+height; zero selects the graph plot clip. Bitmap symbols truncate their center
+coordinates before subtracting half the bitmap dimensions.</p>
+<p>These helpers consume mapped coordinates. They do not perform data mapping,
+image scaling, or rotation; the component must prepare those inputs first.</p>
+</section>
 <section id="construction-and-ownership">
 <h2>Construction and ownership<a class="headerlink" href="#construction-and-ownership" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">CairoRenderContext</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Rbc_RenderContext</span></code> first and owns a Cairo
+<p><code class="docutils literal notranslate"><span class="pre">CairoRenderContext</span></code> embeds <a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderContext()</span></code></a> first and owns a Cairo
 surface reference, <code class="docutils literal notranslate"><span class="pre">cairo_t</span></code> and optional bitmap/stipple pattern. It copies
 stroke colors, dash values and offset. Its fill style is a shallow copy, so
 referenced component colors remain borrowed until drawing completes.</p>
@@ -64,7 +89,7 @@ Printing/metafile targets retain the caller’s native path.</p>
 <p>The initial clip uses inclusive plot edges. It is established before translating
 by half a pixel, matching RBC’s integer pixel-center convention. The constructor
 sets line width, butt caps, round joins, graph antialias mode and dash state.
-<code class="docutils literal notranslate"><span class="pre">Rbc_RenderBegin</span></code> supplies graph/plot dimensions; <code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginDrawable</span></code>
+<a class="reference internal" href="reference.html#c.Rbc_RenderBegin" title="Rbc_RenderBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBegin()</span></code></a> supplies graph/plot dimensions; <a class="reference internal" href="reference.html#c.Rbc_RenderBeginDrawable" title="Rbc_RenderBeginDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginDrawable()</span></code></a>
 uses the entire explicitly sized target, for output such as legend samples.
 The latter is not implicitly constrained to the plot rectangle.</p>
 <p>Contexts must end while their graph, drawable, component resources and enclosing
@@ -94,7 +119,7 @@ remain the shared renderer convention; no data-axis mapping happens here.</p>
 </section>
 <section id="patterns-and-pixel-conversion">
 <h2>Patterns and pixel conversion<a class="headerlink" href="#patterns-and-pixel-conversion" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginFill</span></code> can decline unsupported styles, including a missing
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginFill" title="Rbc_RenderBeginFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginFill()</span></code></a> can decline unsupported styles, including a missing
 foreground or background-only policy. Stipple bits are read before acquiring
 the destination context. A successful context owns the resulting pattern and
 borrows the colors in its copied style.</p>
@@ -126,7 +151,7 @@ than exposing another fill behind a deleted/empty tile.</p>
 <section id="windows-marker-pass-target">
 <h2>Windows marker-pass target<a class="headerlink" href="#windows-marker-pass-target" title="Link to this heading">¶</a></h2>
 <p>Windows can create one RGB24 DIB for a marker pass, avoiding per-marker bitmap
-readback. <code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginMarkerPass</span></code> rejects nested targets and invalid graph
+readback. <a class="reference internal" href="reference.html#c.Rbc_RenderBeginMarkerPass" title="Rbc_RenderBeginMarkerPass"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginMarkerPass()</span></code></a> rejects nested targets and invalid graph
 sizes. It acquires the destination DC, creates the DIB surface, obtains its DC
 and image view, copies the existing destination into it and marks the image
 dirty. Only after successful setup does it install <code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;renderTarget</span></code>
@@ -214,6 +239,7 @@ must construct an appropriately configured context.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Cairo surfaces and drawing contexts</a><ul>
+<li><a class="reference internal" href="#component-facing-attempts">Component-facing attempts</a></li>
 <li><a class="reference internal" href="#construction-and-ownership">Construction and ownership</a></li>
 <li><a class="reference internal" href="#paths-and-clip-scopes">Paths and clip scopes</a></li>
 <li><a class="reference internal" href="#patterns-and-pixel-conversion">Patterns and pixel conversion</a></li>

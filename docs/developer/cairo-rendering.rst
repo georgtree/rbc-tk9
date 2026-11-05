@@ -6,10 +6,39 @@ points. SVG, PDF and PostScript do not use this backend. Components still own
 mapped geometry, clipping scopes and painter order; see :doc:`rendering`.
 Private helper contracts are in :doc:`cairo-reference`.
 
+Component-facing attempts
+-------------------------
+
+The one-shot Cairo helpers return a handled/fallback flag. A nonzero result
+means the caller must suppress its native fallback; it does not promise that
+pixels were painted. For eligible Cairo calls, empty photos and nonpositive
+bitmap or legend rectangles can be handled no-ops. Late drawing errors are
+reported during context completion, not by requesting replay. Without Cairo,
+these attempts decline and their constructors return NULL.
+
+:c:func:`Rbc_RenderArea` and :c:func:`Rbc_RenderAreaOpacity` fill polygons;
+:c:func:`Rbc_RenderTileArea` fills from a repeating photo block;
+:c:func:`Rbc_RenderPhoto` paints that block once. The block and its readable
+storage remain caller-owned. :c:func:`Rbc_RenderRectangles` applies opacity to
+the composed batch, including stipples; polygon opacity applies only to solid
+fills. :c:func:`Rbc_RenderLegendBar` uses the full drawable clip and restarts
+its stipple at the swatch origin.
+
+:c:func:`Rbc_RenderBitmap` handles one mapped bitmap and an optional background
+polygon. For repeated symbols, :c:func:`Rbc_RenderBeginBitmapSymbols` converts
+the source once, :c:func:`Rbc_RenderBitmapSymbols` paints centers in input order,
+and :c:func:`Rbc_RenderEnd` releases the context and copied pattern. Positive
+target width selects an explicit drawable extent and requires positive target
+height; zero selects the graph plot clip. Bitmap symbols truncate their center
+coordinates before subtracting half the bitmap dimensions.
+
+These helpers consume mapped coordinates. They do not perform data mapping,
+image scaling, or rotation; the component must prepare those inputs first.
+
 Construction and ownership
 --------------------------
 
-``CairoRenderContext`` embeds ``Rbc_RenderContext`` first and owns a Cairo
+``CairoRenderContext`` embeds :c:func:`Rbc_RenderContext` first and owns a Cairo
 surface reference, ``cairo_t`` and optional bitmap/stipple pattern. It copies
 stroke colors, dash values and offset. Its fill style is a shallow copy, so
 referenced component colors remain borrowed until drawing completes.
@@ -25,7 +54,7 @@ Printing/metafile targets retain the caller's native path.
 The initial clip uses inclusive plot edges. It is established before translating
 by half a pixel, matching RBC's integer pixel-center convention. The constructor
 sets line width, butt caps, round joins, graph antialias mode and dash state.
-``Rbc_RenderBegin`` supplies graph/plot dimensions; ``Rbc_RenderBeginDrawable``
+:c:func:`Rbc_RenderBegin` supplies graph/plot dimensions; :c:func:`Rbc_RenderBeginDrawable`
 uses the entire explicitly sized target, for output such as legend samples.
 The latter is not implicitly constrained to the plot rectangle.
 
@@ -60,7 +89,7 @@ remain the shared renderer convention; no data-axis mapping happens here.
 Patterns and pixel conversion
 -----------------------------
 
-``Rbc_RenderBeginFill`` can decline unsupported styles, including a missing
+:c:func:`Rbc_RenderBeginFill` can decline unsupported styles, including a missing
 foreground or background-only policy. Stipple bits are read before acquiring
 the destination context. A successful context owns the resulting pattern and
 borrows the colors in its copied style.
@@ -97,7 +126,7 @@ Windows marker-pass target
 --------------------------
 
 Windows can create one RGB24 DIB for a marker pass, avoiding per-marker bitmap
-readback. ``Rbc_RenderBeginMarkerPass`` rejects nested targets and invalid graph
+readback. :c:func:`Rbc_RenderBeginMarkerPass` rejects nested targets and invalid graph
 sizes. It acquires the destination DC, creates the DIB surface, obtains its DC
 and image view, copies the existing destination into it and marks the image
 dirty. Only after successful setup does it install ``graphPtr->renderTarget``

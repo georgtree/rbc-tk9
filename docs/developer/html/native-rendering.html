@@ -48,6 +48,33 @@
 mapping, painter order or picking. <code class="docutils literal notranslate"><span class="pre">rbcRenderNative.h</span></code> is an internal boundary;
 components should call <code class="docutils literal notranslate"><span class="pre">rbcRender.h</span></code>. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for dispatch and
 <a class="reference internal" href="native-reference.html"><span class="doc">Native backend C reference</span></a> for selected batch and clip lifetime contracts.</p>
+<section id="component-facing-screen-operations">
+<h2>Component-facing screen operations<a class="headerlink" href="#component-facing-screen-operations" title="Link to this heading">¶</a></h2>
+<p>The one-shot adapters in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> preserve native drawing even when the
+graph selects Cairo. They borrow their resources until return and do not return
+contexts to destroy. <a class="reference internal" href="reference.html#c.Rbc_RenderScreenBorder" title="Rbc_RenderScreenBorder"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenBorder()</span></code></a>,
+<a class="reference internal" href="reference.html#c.Rbc_RenderScreenRectangle" title="Rbc_RenderScreenRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenRectangle()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderScreenFocus" title="Rbc_RenderScreenFocus"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenFocus()</span></code></a> provide
+widget decoration; <a class="reference internal" href="reference.html#c.Rbc_RenderScreenCopyArea" title="Rbc_RenderScreenCopyArea"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenCopyArea()</span></code></a> copies already painted
+pixels. <a class="reference internal" href="reference.html#c.Rbc_RenderScreenSegments" title="Rbc_RenderScreenSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenSegments()</span></code></a> preserves XOR and other GC operations.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderScreenTextBackground" title="Rbc_RenderScreenTextBackground"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenTextBackground()</span></code></a> adds the text anchor before short
+conversion. <a class="reference internal" href="reference.html#c.Rbc_RenderScreenArrowHead" title="Rbc_RenderScreenArrowHead"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenArrowHead()</span></code></a> keeps doubles until scan
+conversion. Neither operation performs axis mapping. Keep track clip scopes
+outside these calls; graph bounds alone do not identify the owning track.</p>
+<p>Legend samples have distinct coordinate contracts:
+<a class="reference internal" href="reference.html#c.Rbc_RenderScreenLegendLine" title="Rbc_RenderScreenLegendLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenLegendLine()</span></code></a> takes a center and half-length, whereas
+<a class="reference internal" href="reference.html#c.Rbc_RenderScreenLegendBar" title="Rbc_RenderScreenLegendBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenLegendBar()</span></code></a> takes a top-left corner and side length.
+The bar adapter resets the GC stipple origin to zero after drawing, rather than
+restoring a saved nonzero origin.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderScreenRun" title="Rbc_RenderScreenRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenRun()</span></code></a> invokes a synchronous C callback, with a temporary
+shared Windows target when available. Its data and target cannot escape the
+call. <a class="reference internal" href="reference.html#c.Rbc_RenderScreenBitmapRun" title="Rbc_RenderScreenBitmapRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenBitmapRun()</span></code></a> accepts only opaque, unmasked,
+copy-compatible batches: fallback may replay the full batch and leaves GC
+clipping cleared. These restrictions matter when sharing GCs between components.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenClip" title="Rbc_RenderBeginScreenClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenClip()</span></code></a> instead returns an owned context. Query
+<a class="reference internal" href="reference.html#c.Rbc_RenderClipDrawable" title="Rbc_RenderClipDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipDrawable()</span></code></a> after each push, draw only if it is not None,
+and pop with <a class="reference internal" href="reference.html#c.Rbc_RenderClipEnd" title="Rbc_RenderClipEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipEnd()</span></code></a> to commit to the parent. End the context
+with <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>; do not reuse a popped temporary drawable.</p>
+</section>
 <section id="platform-responsibilities">
 <h2>Platform responsibilities<a class="headerlink" href="#platform-responsibilities" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">rbcRenderNative.c</span></code> contains shared native geometry and Tk-based text, image,
@@ -616,6 +643,7 @@ interface must account for lifetime and encoding separately.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Native renderer internals</a><ul>
+<li><a class="reference internal" href="#component-facing-screen-operations">Component-facing screen operations</a></li>
 <li><a class="reference internal" href="#platform-responsibilities">Platform responsibilities</a></li>
 <li><a class="reference internal" href="#batch-lifetime-and-coordinate-conversion">Batch lifetime and coordinate conversion</a></li>
 <li><a class="reference internal" href="#polygon-and-symbol-batches">Polygon and symbol batches</a></li>

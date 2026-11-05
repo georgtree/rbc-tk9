@@ -50,6 +50,12 @@ operation names do not imply that every context implements them.</p>
 refer to a specific constructor family; mutable context state does not imply
 ownership of borrowed graph, document, image or font resources. See
 <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for batch lifetimes and scope pairing.</p>
+<p>Screen adapters and Cairo attempts have different result contracts. Native
+one-shot adapters retain the supplied GC behavior, including the explicitly
+documented origin/clip mutations. Cairo attempt helpers return a fallback flag;
+context constructors return an owned context or their documented failure value.
+See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> and <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for call sequences and
+coordinate conventions.</p>
 <section id="component-facing-interface">
 <h2>Component-facing interface<a class="headerlink" href="#component-facing-interface" title="Link to this heading">¶</a></h2>
 <p>Private graph rendering interface used by mapped components. </p>
@@ -274,39 +280,120 @@ ownership of borrowed graph, document, image or font resources. See
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenTextBackground">
-<span class="target" id="rbc_render_8h_1af129294b948fc6e715e00f6222277e36"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenTextBackground</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenTextBackground" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Draw four native text-background vertices, adding the anchor before integer conversion. </p>
+<span class="target" id="rbc_render_8h_1af94ad7c15fae1ab468b6cfdd46558f42"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenTextBackground</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outline</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">anchor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenTextBackground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill a four-corner native text background. </p>
+<p>
+Caller supplies representable mapped geometry and the required clip; this adapter does not impose a plot clip. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC; raster operation, dash and clip state remain caller-selected. </p></li>
+<li><p><strong>outline</strong> – <strong>[in]</strong> Four borrowed outline vertices relative to anchor. </p></li>
+<li><p><strong>anchor</strong> – <strong>[in]</strong> Borrowed mapped text anchor added before conversion to signed-short coordinates.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenArrowHead">
-<span class="target" id="rbc_render_8h_1aa276eb14b97fe5e35f33617fb0d97a38"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenArrowHead" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Draw a native arrowhead from the mapped, closed point array. </p>
+<span class="target" id="rbc_render_8h_1a8efe4ee177cb3836bfb720dad27e8404"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenArrowHead" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Scan-convert a native arrowhead without rounding its vertices first. </p>
+<p>
+Spans are bounded by graph dimensions and signed-short limits. The enclosing screen clip supplies track clipping. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC; raster operation, dash and clip state remain caller-selected. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed finite array of RBC_RENDER_ARROW_POINTS vertices, including the repeated closing vertex.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenLegendLine">
-<span class="target" id="rbc_render_8h_1a8e7d773570b82e2581009c0a4acccd89"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenLegendLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenLegendLine" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Draw a native line legend sample using the borrowed GC. </p>
+<span class="target" id="rbc_render_8h_1a9fa5403335ac3d3a2abed1522d0d08a3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenLegendLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenLegendLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw two independent native legend sample lines. </p>
+<p>
+The rows are y and y+1. Each native line restarts its dash pattern. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC; raster operation, dash and clip state remain caller-selected. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Half-length of each sample line in pixels; endpoints are x-size and x+size.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenLegendBar">
-<span class="target" id="rbc_render_8h_1ae9672e047efa4d03b2dca2b3b93ac592"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenLegendBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenLegendBar" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Draw a native bar legend sample and restore its stipple origin. </p>
+<span class="target" id="rbc_render_8h_1aa95925ca858d4784b1bc2e3f616cad29"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenLegendBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenLegendBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill a native legend square with a local stipple origin. </p>
+<p>
+This does not restore a nonzero previous origin. The caller must use a GC compatible with that postcondition. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[inout]</strong> Borrowed fill GC; its tile/stipple origin is changed during drawing and reset to (0,0) afterward. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Nonnegative side length of the sample square in pixels.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenRun">
-<span class="target" id="rbc_render_8h_1acb4dbb77cb10598793d656b3b22d8945"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span>, <a class="reference internal" href="#c.Rbc_RenderRunProc" title="Rbc_RenderRunProc"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenRun" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Runs are synchronous: callback/data/positions are borrowed only until return. </p>
-<p>Run owns a shared platform target when available, otherwise uses the original drawable. BitmapRun requires an opaque, unmasked GXcopy-compatible bitmap. </p>
+<span class="target" id="rbc_render_8h_1a7b375a56e9236e2ccf4c43bc3a1c8159"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <a class="reference internal" href="#c.Rbc_RenderRunProc" title="Rbc_RenderRunProc"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Present a synchronous run through one platform drawing target. </p>
+<p>
+On Windows, attempts a shared DC wrapper and falls back to the original drawable if unavailable. The callback runs before this function returns. This is not a Tcl evaluation boundary. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>data</strong> – <strong>[in]</strong> Borrowed callback-specific batch data; NULL suppresses the run. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of run items; nonpositive values suppress the callback. </p></li>
+<li><p><strong>proc</strong> – <strong>[in]</strong> Required synchronous callback; must not retain the temporary target or destroy borrowed drawing resources.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenBitmapRun">
-<span class="target" id="rbc_render_8h_1aad247f5bf186119dda0ec5998bdd08b5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenBitmapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenBitmapRun" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Present a synchronous batch of opaque, unmasked bitmap copies. </p>
+<span class="target" id="rbc_render_8h_1a5d38d042fa693ffba307dd2c4287c0d7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenBitmapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenBitmapRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Present opaque, unmasked bitmap copies with platform fallback. </p>
+<p>
+Nonpositive counts draw nothing. A declined optimized batch is replayed in full, so masked or XOR copies are not supported. Source bitmap, positions and GC remain caller-owned. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit source bitmap with the supplied width and height. </p></li>
+<li><p><strong>gc</strong> – <strong>[inout]</strong> Borrowed GXcopy-compatible GC; fallback clears its clip mask and resets clip origin to (0,0). </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive source bitmap width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive source bitmap height in pixels. </p></li>
+<li><p><strong>positions</strong> – <strong>[in]</strong> Borrowed integer destination origins, one per copy; NULL suppresses drawing. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of array entries, not bytes.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -434,35 +521,105 @@ ownership of borrowed graph, document, image or font resources. See
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenBorder">
-<span class="target" id="rbc_render_8h_1a2bb31cc589aeb500b9f78585819580c0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenBorder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenBorder" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Native widget decorations retain Tk relief shading, GC state and tile origins for both screen renderers. </p>
-<p>These one-shot operations borrow all resources and do not change backing-store ownership or painter order. </p>
+<span class="target" id="rbc_render_8h_1aa73899c8e40e99a05373af522135f35b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenBorder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fill</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenBorder" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw native relief decoration, optionally filling its interior. </p>
+<p>
+Uses native Tk shading for both native and Cairo graphs. No allocated renderer context escapes this call. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed Tk border supplying shading colors. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in pixels; caller supplies a nonnegative value. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in pixels; caller supplies a nonnegative value. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Border thickness in pixels. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief constant. </p></li>
+<li><p><strong>fill</strong> – <strong>[in]</strong> Nonzero selects filled decoration; zero draws only the border.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenRectangle">
-<span class="target" id="rbc_render_8h_1aa7ac5b91a2b48d59c7bf6594c98a548b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenRectangle" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Paint a native solid or tiled decoration rectangle. </p>
+<span class="target" id="rbc_render_8h_1a10ab3d5371b51686d8dbe35f9809ba46"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill a native decoration rectangle with a tile or GC. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed fill GC, required when tile is NULL; otherwise ignored. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Optional borrowed tile taking precedence over gc; uses its existing origin. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in pixels; caller supplies a nonnegative value. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in pixels; caller supplies a nonnegative value. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenSegments">
-<span class="target" id="rbc_render_8h_1af27a792ee126fd0b6e9f4033683d537a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenSegments" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Native-only, even on Cairo graphs. </p>
-<p>Borrows the GC without changing its raster operation, clipping or style. Does not allocate a context. </p>
+<span class="target" id="rbc_render_8h_1a4e71902ececa774f8248afccab627d04"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw independent native segments even on Cairo graphs. </p>
+<p>
+Preserves the GC raster operation, including XOR. The native helper bounds protocol coordinates and batches requests; this adapter does not create a geometry context. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC; raster operation, dash and clip state remain caller-selected. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs, valid for count Segment2D records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of array entries, not bytes.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenCopyArea">
-<span class="target" id="rbc_render_8h_1a9971ea54e6e78d6c855b8b6fbdaeda49"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenCopyArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenCopyArea" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Screen-only pixel copy, including backing-store restoration and final frame presentation. </p>
-<p>Borrows the GC and both drawables; never changes ownership. </p>
+<span class="target" id="rbc_render_8h_1af3ed6a8eece3f3742235844ac5f64e55"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenCopyArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">destination</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcY</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">dstX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">dstY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenCopyArea" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy completed pixels for backing-store restoration or presentation. </p>
+<p>
+Caller supplies compatible drawables and GC and controls clipping and presentation order. No ownership changes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>source</strong> – <strong>[in]</strong> Borrowed source drawable. </p></li>
+<li><p><strong>destination</strong> – <strong>[in]</strong> Borrowed destination drawable. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC; raster operation, dash and clip state remain caller-selected. </p></li>
+<li><p><strong>srcX</strong> – <strong>[in]</strong> Source rectangle X coordinate in pixels. </p></li>
+<li><p><strong>srcY</strong> – <strong>[in]</strong> Source rectangle Y coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in pixels; caller supplies a nonnegative value. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in pixels; caller supplies a nonnegative value. </p></li>
+<li><p><strong>dstX</strong> – <strong>[in]</strong> Destination rectangle X coordinate in pixels. </p></li>
+<li><p><strong>dstY</strong> – <strong>[in]</strong> Destination rectangle Y coordinate in pixels.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderScreenFocus">
-<span class="target" id="rbc_render_8h_1a22438d2eea2286eac4625daa33d33965"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenFocus</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenFocus" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Draw the native focus highlight using the borrowed GC. </p>
+<span class="target" id="rbc_render_8h_1a087399b9f24576335394db0728a4dc54"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenFocus</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenFocus" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw the native Tk focus highlight. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC; raster operation, dash and clip state remain caller-selected. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Focus highlight thickness in pixels, passed to Tk_DrawFocusHighlight. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -836,15 +993,49 @@ ownership of borrowed graph, document, image or font resources. See
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginScreenClip">
-<span class="target" id="rbc_render_8h_1ac63dbc62b9fe66eb0980a453fae78e53"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginScreenClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">copyGC</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">useDC</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginScreenClip" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Screen clip scopes preserve absolute coordinates, shared GCs and bitmap masks. </p>
-<p>copyGC is borrowed, or NULL to create a private copy GC. useDC keeps the existing Windows symbol path; other scopes use reusable scratch pixmaps. Only ClipBegin/ClipEnd/ClipDrawable/End are supported by this context. Fetch ClipDrawable after each push; None means the clip is empty or failed. End balances any outstanding pushes. Native/Cairo drawing into the returned drawable is committed to its parent on ClipEnd. </p>
+<span class="target" id="rbc_render_8h_1a7eaf2a2b1e9625b1787703eee954def8"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginScreenClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">copyGC</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">useDC</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginScreenClip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create an owned native screen clip stack. </p>
+<p>
+Only ClipBegin, ClipEnd, ClipDrawable and End are supported. Fetch the current target after each push; None means empty or failed coverage. Absolute coordinates and bitmap masks are preserved. ClipEnd commits drawing to the parent target; End balances outstanding pushes and releases the context. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a304883c85c47747cec6cb1c662a9c923"><span class="std std-ref">Rbc_RenderClipDrawable</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a3132ac7662b342ff0ff4f71e0c1a03d1"><span class="std std-ref">Rbc_RenderEnd</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until Rbc_RenderEnd releases the returned context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates, kept valid until context release. </p></li>
+<li><p><strong>copyGC</strong> – <strong>[in]</strong> Borrowed pixel-copy GC, or NULL to create a private GC. </p></li>
+<li><p><strong>useDC</strong> – <strong>[in]</strong> Nonzero requests the Windows DC clip path; other scopes use scratch pixmaps. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned clip context to release with Rbc_RenderEnd; graph and drawable remain borrowed.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderClipDrawable">
-<span class="target" id="rbc_render_8h_1a85effa546b5d3e58e12647c2f9dc4df0"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderClipDrawable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderClipDrawable" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Return the current drawable for a screen clip context; None means empty or failed. </p>
+<span class="target" id="rbc_render_8h_1a304883c85c47747cec6cb1c662a9c923"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderClipDrawable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderClipDrawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query the current target of a screen clip stack. </p>
+<p>
+Requery after changing the clip stack; do not retain a temporary target after popping its scope. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Live context returned by Rbc_RenderBeginScreenClip. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Borrowed current drawable, or None for empty or failed coverage.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1096,61 +1287,252 @@ The context is invalid after this call. Backend-owned temporary resources are re
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderArea">
 <span class="target" id="rbc_render_8h_1aba772bc291fa381b9151b903b3090dad"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderArea" title="Link to this definition">¶</a><br /></dt>
-<dd><p>None means a solid fill; FALSE requests native drawing. </p>
+<dd><p>Attempt an opaque Cairo polygon fill. </p>
+<p>
+Equivalent to Rbc_RenderAreaOpacity with opacity 1.0. Fewer than three vertices decline the attempt. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a1da85d8ef6f92e01fb09d5fc56351546"><span class="std std-ref">Rbc_RenderAreaOpacity</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped polygon vertices, valid for count entries during this call. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of array entries, not bytes. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed foreground color; NULL declines the Cairo attempt. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL leaves unpainted pattern bits transparent. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Borrowed one-bit fill pattern, or None for a solid fill. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderAreaOpacity">
 <span class="target" id="rbc_render_8h_1a1da85d8ef6f92e01fb09d5fc56351546"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderAreaOpacity</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderAreaOpacity" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Opacity applies only to solid fills (stipple == None). </p>
+<dd><p>Attempt a Cairo polygon fill with solid-fill opacity. </p>
+<p>
+Fewer than three vertices decline the attempt. Uses the plot clip and even-odd polygon filling; stipple pixels retain their own alpha and widget-relative origin. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped polygon vertices, valid for count entries during this call. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of array entries, not bytes. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed foreground color; NULL declines the Cairo attempt. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL leaves unpainted pattern bits transparent. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Borrowed one-bit fill pattern, or None for a solid fill. </p></li>
+<li><p><strong>opacity</strong> – <strong>[in]</strong> Solid-fill alpha in [0,1]; ignored when stipple is not None. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderTileArea">
 <span class="target" id="rbc_render_8h_1aabebfd86ad7423a490e8b05cf6b41cb6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTileArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderTileArea" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Try to paint a photo-tiled polygon with Cairo; false requests native fallback. </p>
+<dd><p>Attempt a polygon filled with a repeating photo tile. </p>
+<p>
+Uses the plot clip and a toplevel-relative pattern origin. On a Cairo graph, fewer than three vertices decline the attempt; an empty photo block is handled without painting, preserving tile precedence. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped polygon vertices, valid for count entries during this call. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of array entries, not bytes. </p></li>
+<li><p><strong>block</strong> – <strong>[in]</strong> Borrowed readable photo block, including valid pitch, channel offsets and pixel storage. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderPhoto">
 <span class="target" id="rbc_render_8h_1a9541f7108b1f7e107b2e154e4b364090"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPhoto" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Try to paint a photo block with Cairo; false requests native fallback. </p>
+<dd><p>Attempt to paint a mapped photo block once. </p>
+<p>
+Uses the plot clip without scaling or rotation. An empty block on a Cairo graph is a handled no-op. Pixel conversion is temporary; the caller retains its photo and block storage. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>block</strong> – <strong>[in]</strong> Borrowed readable photo block, including valid pitch, channel offsets and pixel storage. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderRectangles">
 <span class="target" id="rbc_render_8h_1a5b810f8bc3bdd5b1fab3dc66d212ac0f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderRectangles" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Try to fill rectangles with Cairo; false requests native fallback. </p>
+<dd><p>Attempt a Cairo rectangle batch with group opacity. </p>
+<p>
+Nonpositive counts decline the attempt. Nonpositive rectangle dimensions are skipped. Uses the plot clip; opacity is applied once to the composed batch, not separately at each overlap. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array, valid for count records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of array entries, not bytes. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed foreground color; NULL declines the Cairo attempt. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL leaves unpainted pattern bits transparent. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Borrowed one-bit fill pattern, or None for a solid fill. </p></li>
+<li><p><strong>opacity</strong> – <strong>[in]</strong> Group alpha in [0,1], applied to solid and stippled rectangles together. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginDrawable">
 <span class="target" id="rbc_render_8h_1a3ce0f43b8f6fd00271de74e9f1f7e569"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginDrawable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginDrawable" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Try to create a Cairo context for a drawable with explicit dimensions. </p>
+<dd><p>Attempt a Cairo context covering an explicit drawable extent. </p>
+<p>
+Uses the full drawable rectangle instead of the plot clip. Supports the Cairo geometry operations; release a successful context with Rbc_RenderEnd. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a3617a4a387014e581bb37a0cb89f3a96"><span class="std std-ref">Rbc_RenderBegin</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until Rbc_RenderEnd releases the returned context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates, kept valid until context release. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive destination width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive destination height in pixels. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed required stroke color. </p></li>
+<li><p><strong>lineWidth</strong> – <strong>[in]</strong> Stroke width in display units. </p></li>
+<li><p><strong>dashes</strong> – <strong>[in]</strong> Borrowed dash specification, or NULL for solid. </p></li>
+<li><p><strong>offColor</strong> – <strong>[in]</strong> Optional borrowed off-dash color. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned context, or NULL when unavailable or dimensions are nonpositive.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderLegendBar">
 <span class="target" id="rbc_render_8h_1aa0e70c39e34db7ff7f65cb1f84b46b37"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderLegendBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderLegendBar" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Try to paint a Cairo bar legend sample; false requests native fallback. </p>
+<dd><p>Attempt a Cairo legend swatch with a sample-local pattern origin. </p>
+<p>
+Uses the full drawable clip; stipple restarts at the sample top-left corner. For an eligible Cairo graph, nonpositive sample dimensions are a handled no-op. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive destination drawable width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive destination drawable height in pixels. </p></li>
+<li><p><strong>r</strong> – <strong>[in]</strong> Borrowed sample rectangle in destination coordinates. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed foreground color; NULL declines the Cairo attempt. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL leaves unpainted pattern bits transparent. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Borrowed one-bit fill pattern, or None for a solid fill. </p></li>
+<li><p><strong>opacity</strong> – <strong>[in]</strong> Group alpha in [0,1], including stipple paint. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBitmap">
 <span class="target" id="rbc_render_8h_1acc4da9a6764ab9f828f6cd2da1c566ad"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">polygon</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBitmap" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Try to paint a mapped bitmap with Cairo; false requests native fallback. </p>
+<dd><p>Attempt a mapped Cairo bitmap with optional rotated background. </p>
+<p>
+Uses the plot clip. A polygon with at least three vertices and a background color supplies the rotated background; otherwise the bitmap background policy applies. Source bits are converted before painting. For an eligible Cairo graph, nonpositive rectangle dimensions are a handled no-op. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive throughout this synchronous operation. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates. </p></li>
+<li><p><strong>r</strong> – <strong>[in]</strong> Borrowed mapped rectangle; its dimensions also specify the source bitmap extent. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit bitmap; None declines the attempt. </p></li>
+<li><p><strong>mask</strong> – <strong>[in]</strong> Optional borrowed one-bit visibility mask, or None. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed foreground color; NULL declines the Cairo attempt. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL leaves unpainted pattern bits transparent. </p></li>
+<li><p><strong>polygon</strong> – <strong>[in]</strong> Borrowed mapped background polygon, or NULL when absent. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of background polygon vertices; use zero when no polygon is supplied. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBeginBitmapSymbols">
 <span class="target" id="rbc_render_8h_1ad75be58a3f182131b19ab8f7281de8ec"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginBitmapSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginBitmapSymbols" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Try to create a Cairo bitmap-symbol batch; NULL requests native fallback. </p>
+<dd><p>Convert a bitmap once for a Cairo symbol batch. </p>
+<p>
+Source bitmap pixels are copied into an owned pattern. End the returned context with Rbc_RenderEnd. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a453dc765419c8914fef8d1d4d562d2d3"><span class="std std-ref">Rbc_RenderBitmapSymbols</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until Rbc_RenderEnd releases the returned context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination in mapped display coordinates, kept valid until context release. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit source bitmap; None declines the attempt. </p></li>
+<li><p><strong>mask</strong> – <strong>[in]</strong> Optional borrowed one-bit visibility mask, or None. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive source bitmap width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive source bitmap height in pixels. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed foreground color; NULL declines the Cairo attempt. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL leaves unpainted pattern bits transparent. </p></li>
+<li><p><strong>targetWidth</strong> – <strong>[in]</strong> Positive selects the explicit drawable clip; zero selects the graph plot clip. </p></li>
+<li><p><strong>targetHeight</strong> – <strong>[in]</strong> Positive explicit drawable height when targetWidth is positive; otherwise ignored. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned bitmap-symbol context, or NULL requesting native fallback.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderBitmapSymbols">
 <span class="target" id="rbc_render_8h_1a453dc765419c8914fef8d1d4d562d2d3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmapSymbols</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">centers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBitmapSymbols" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Draw mapped centers using a Cairo bitmap-symbol context. </p>
+<dd><p>Paint a prepared bitmap at mapped symbol centers in input order. </p>
+<p>
+Converts each center to int before subtracting half the bitmap size. Does not resample or repeat pixels; nonpositive counts paint nothing. The context remains owned by the caller. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live non-NULL context returned by Rbc_RenderBeginBitmapSymbols. </p></li>
+<li><p><strong>centers</strong> – <strong>[in]</strong> Borrowed mapped center array, valid for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of array entries, not bytes.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1165,8 +1547,25 @@ The context is invalid after this call. Backend-owned temporary resources are re
 
 <dl class="c type">
 <dt class="sig sig-object c" id="c.Rbc_RenderRunProc">
-<span class="target" id="rbc_render_8h_1a6e96671d2a7ea7115e7fca785c2a3000"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderRunProc" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Synchronous callback receiving borrowed data, target and run count. </p>
+<span class="target" id="rbc_render_8h_1aa02e5d79d18d789eefa55e533825cb7a"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderRunProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Synchronous native batch callback; no argument is retained by the renderer. </p>
+<p>
+Must preserve graph and drawing-resource lifetime and must not retain the target. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a7b375a56e9236e2ccf4c43bc3a1c8159"><span class="std std-ref">Rbc_RenderScreenRun</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param data<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>[in]</strong> Borrowed batch-specific data supplied to Rbc_RenderScreenRun. </p>
+</dd>
+<dt class="field-even">Param drawable<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>[in]</strong> Borrowed platform target, valid only until the callback returns. </p>
+</dd>
+<dt class="field-odd">Param count<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>[in]</strong> Number of items in data to present.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c type">

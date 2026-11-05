@@ -6,6 +6,38 @@ mapping, painter order or picking. ``rbcRenderNative.h`` is an internal boundary
 components should call ``rbcRender.h``. See :doc:`rendering` for dispatch and
 :doc:`native-reference` for selected batch and clip lifetime contracts.
 
+Component-facing screen operations
+----------------------------------
+
+The one-shot adapters in :doc:`reference` preserve native drawing even when the
+graph selects Cairo. They borrow their resources until return and do not return
+contexts to destroy. :c:func:`Rbc_RenderScreenBorder`,
+:c:func:`Rbc_RenderScreenRectangle` and :c:func:`Rbc_RenderScreenFocus` provide
+widget decoration; :c:func:`Rbc_RenderScreenCopyArea` copies already painted
+pixels. :c:func:`Rbc_RenderScreenSegments` preserves XOR and other GC operations.
+
+:c:func:`Rbc_RenderScreenTextBackground` adds the text anchor before short
+conversion. :c:func:`Rbc_RenderScreenArrowHead` keeps doubles until scan
+conversion. Neither operation performs axis mapping. Keep track clip scopes
+outside these calls; graph bounds alone do not identify the owning track.
+
+Legend samples have distinct coordinate contracts:
+:c:func:`Rbc_RenderScreenLegendLine` takes a center and half-length, whereas
+:c:func:`Rbc_RenderScreenLegendBar` takes a top-left corner and side length.
+The bar adapter resets the GC stipple origin to zero after drawing, rather than
+restoring a saved nonzero origin.
+
+:c:func:`Rbc_RenderScreenRun` invokes a synchronous C callback, with a temporary
+shared Windows target when available. Its data and target cannot escape the
+call. :c:func:`Rbc_RenderScreenBitmapRun` accepts only opaque, unmasked,
+copy-compatible batches: fallback may replay the full batch and leaves GC
+clipping cleared. These restrictions matter when sharing GCs between components.
+
+:c:func:`Rbc_RenderBeginScreenClip` instead returns an owned context. Query
+:c:func:`Rbc_RenderClipDrawable` after each push, draw only if it is not None,
+and pop with :c:func:`Rbc_RenderClipEnd` to commit to the parent. End the context
+with :c:func:`Rbc_RenderEnd`; do not reuse a popped temporary drawable.
+
 Platform responsibilities
 -------------------------
 

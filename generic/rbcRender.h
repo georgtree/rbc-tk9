@@ -37,23 +37,97 @@ Tcl_Size Rbc_RenderPolygonPointLimit(Graph *graphPtr);
  * consume four outline points and add the anchor before integer conversion. */
 #define RBC_RENDER_ARROW_POINTS 6
 typedef int Rbc_RenderPosition[2]; /**< Full-width integer x/y, never XPoint shorts. */
-/** @brief Synchronous callback receiving borrowed data, target and run count. */
-typedef void Rbc_RenderRunProc(void *, Drawable, Tcl_Size);
-/** @brief Draw four native text-background vertices, adding the anchor before integer conversion. */
-void Rbc_RenderScreenTextBackground(Graph *, Drawable, GC, const Point2D *, const Point2D *);
-/** @brief Draw a native arrowhead from the mapped, closed point array. */
-void Rbc_RenderScreenArrowHead(Graph *, Drawable, GC, const Point2D *);
-/** @brief Draw a native line legend sample using the borrowed GC. */
-void Rbc_RenderScreenLegendLine(Graph *, Drawable, GC, int, int, int);
-/** @brief Draw a native bar legend sample and restore its stipple origin. */
-void Rbc_RenderScreenLegendBar(Graph *, Drawable, GC, int, int, int);
+/**
+ * @brief Synchronous native batch callback; no argument is retained by the renderer.
+ * @param[in] data Borrowed batch-specific data supplied to Rbc_RenderScreenRun.
+ * @param[in] drawable Borrowed platform target, valid only until the callback returns.
+ * @param[in] count Number of items in data to present.
+ *
+ * Must preserve graph and drawing-resource lifetime and must not retain the target.
+ * @see Rbc_RenderScreenRun
+ */
+typedef void Rbc_RenderRunProc(void *data, Drawable drawable, Tcl_Size count);
+/**
+ * @brief Fill a four-corner native text background.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] gc Borrowed configured GC; raster operation, dash and clip state remain caller-selected.
+ * @param[in] outline Four borrowed outline vertices relative to anchor.
+ * @param[in] anchor Borrowed mapped text anchor added before conversion to signed-short coordinates.
+ *
+ * Caller supplies representable mapped geometry and the required clip; this adapter does not impose a plot clip.
+ */
+void Rbc_RenderScreenTextBackground(Graph *graphPtr, Drawable drawable, GC gc, const Point2D *outline,
+                                     const Point2D *anchor);
+/**
+ * @brief Scan-convert a native arrowhead without rounding its vertices first.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] gc Borrowed configured GC; raster operation, dash and clip state remain caller-selected.
+ * @param[in] points Borrowed finite array of RBC_RENDER_ARROW_POINTS vertices, including the repeated closing vertex.
+ *
+ * Spans are bounded by graph dimensions and signed-short limits. The enclosing screen clip supplies track clipping.
+ */
+void Rbc_RenderScreenArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D *points);
+/**
+ * @brief Draw two independent native legend sample lines.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] gc Borrowed configured GC; raster operation, dash and clip state remain caller-selected.
+ * @param[in] x Destination X coordinate in pixels.
+ * @param[in] y Destination Y coordinate in pixels.
+ * @param[in] size Half-length of each sample line in pixels; endpoints are x-size and x+size.
+ *
+ * The rows are y and y+1. Each native line restarts its dash pattern.
+ */
+void Rbc_RenderScreenLegendLine(Graph *graphPtr, Drawable drawable, GC gc, int x, int y, int size);
+/**
+ * @brief Fill a native legend square with a local stipple origin.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in,out] gc Borrowed fill GC; its tile/stipple origin is changed during drawing and reset to (0,0) afterward.
+ * @param[in] x Destination X coordinate in pixels.
+ * @param[in] y Destination Y coordinate in pixels.
+ * @param[in] size Nonnegative side length of the sample square in pixels.
+ *
+ * This does not restore a nonzero previous origin. The caller must use a GC compatible with that postcondition.
+ */
+void Rbc_RenderScreenLegendBar(Graph *graphPtr, Drawable drawable, GC gc, int x, int y, int size);
 
-/** Runs are synchronous: callback/data/positions are borrowed only until return.
- * Run owns a shared platform target when available, otherwise uses the original
- * drawable. BitmapRun requires an opaque, unmasked GXcopy-compatible bitmap. */
-void Rbc_RenderScreenRun(Graph *, Drawable, void *, Tcl_Size, Rbc_RenderRunProc *);
-/** @brief Present a synchronous batch of opaque, unmasked bitmap copies. */
-void Rbc_RenderScreenBitmapRun(Graph *, Drawable, Pixmap, GC, int, int, const Rbc_RenderPosition *, Tcl_Size);
+/**
+ * @brief Present a synchronous run through one platform drawing target.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] data Borrowed callback-specific batch data; NULL suppresses the run.
+ * @param[in] count Number of run items; nonpositive values suppress the callback.
+ * @param[in] proc Required synchronous callback; must not retain the temporary target or destroy borrowed drawing resources.
+ *
+ * On Windows, attempts a shared DC wrapper and falls back to the original drawable if unavailable.
+ * The callback runs before this function returns. This is not a Tcl evaluation boundary.
+ */
+void Rbc_RenderScreenRun(Graph *graphPtr, Drawable drawable, void *data, Tcl_Size count, Rbc_RenderRunProc *proc);
+/**
+ * @brief Present opaque, unmasked bitmap copies with platform fallback.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] bitmap Borrowed one-bit source bitmap with the supplied width and height.
+ * @param[in,out] gc Borrowed GXcopy-compatible GC; fallback clears its clip mask and resets clip origin to (0,0).
+ * @param[in] width Positive source bitmap width in pixels.
+ * @param[in] height Positive source bitmap height in pixels.
+ * @param[in] positions Borrowed integer destination origins, one per copy; NULL suppresses drawing.
+ * @param[in] count Number of array entries, not bytes.
+ *
+ * Nonpositive counts draw nothing. A declined optimized batch is replayed in full, so masked or XOR copies
+ * are not supported. Source bitmap, positions and GC remain caller-owned.
+ */
+void Rbc_RenderScreenBitmapRun(Graph *graphPtr, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
+                                const Rbc_RenderPosition *positions, Tcl_Size count);
 
 /**
  * @brief Try to acquire a shared Cairo marker-pass target; NULL leaves the original drawable usable.
@@ -154,22 +228,80 @@ void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r
  */
 void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r);
 
-/** Native widget decorations retain Tk relief shading, GC state and tile
- * origins for both screen renderers. These one-shot operations borrow all
- * resources and do not change backing-store ownership or painter order. */
-void Rbc_RenderScreenBorder(Tk_Window, Drawable, Tk_3DBorder, int, int, int, int, int, int, int);
-/** @brief Paint a native solid or tiled decoration rectangle. */
-void Rbc_RenderScreenRectangle(Tk_Window, Drawable, GC, Rbc_Tile, int, int, int, int);
+/**
+ * @brief Draw native relief decoration, optionally filling its interior.
+ *
+ * @param[in] tkwin Borrowed live Tk window supplying display and drawing resources.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] border Borrowed Tk border supplying shading colors.
+ * @param[in] x Destination X coordinate in pixels.
+ * @param[in] y Destination Y coordinate in pixels.
+ * @param[in] width Rectangle width in pixels; caller supplies a nonnegative value.
+ * @param[in] height Rectangle height in pixels; caller supplies a nonnegative value.
+ * @param[in] borderWidth Border thickness in pixels.
+ * @param[in] relief Tk relief constant.
+ * @param[in] fill Nonzero selects filled decoration; zero draws only the border.
+ *
+ * Uses native Tk shading for both native and Cairo graphs. No allocated renderer context escapes this call.
+ */
+void Rbc_RenderScreenBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width,
+                             int height, int borderWidth, int relief, int fill);
+/**
+ * @brief Fill a native decoration rectangle with a tile or GC.
+ *
+ * @param[in] tkwin Borrowed live Tk window supplying display and drawing resources.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] gc Borrowed fill GC, required when tile is NULL; otherwise ignored.
+ * @param[in] tile Optional borrowed tile taking precedence over gc; uses its existing origin.
+ * @param[in] x Destination X coordinate in pixels.
+ * @param[in] y Destination Y coordinate in pixels.
+ * @param[in] width Rectangle width in pixels; caller supplies a nonnegative value.
+ * @param[in] height Rectangle height in pixels; caller supplies a nonnegative value.
+ */
+void Rbc_RenderScreenRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Tile tile, int x, int y,
+                                int width, int height);
 
-/** Native-only, even on Cairo graphs. Borrows the GC without changing its
- * raster operation, clipping or style. Does not allocate a context. */
-void Rbc_RenderScreenSegments(Tk_Window, Drawable, GC, const Segment2D *, Tcl_Size);
+/**
+ * @brief Draw independent native segments even on Cairo graphs.
+ *
+ * @param[in] tkwin Borrowed live Tk window supplying display and drawing resources.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] gc Borrowed configured GC; raster operation, dash and clip state remain caller-selected.
+ * @param[in] segments Borrowed mapped endpoint pairs, valid for count Segment2D records.
+ * @param[in] count Number of array entries, not bytes.
+ *
+ * Preserves the GC raster operation, including XOR. The native helper bounds protocol coordinates and batches
+ * requests; this adapter does not create a geometry context.
+ */
+void Rbc_RenderScreenSegments(Tk_Window tkwin, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count);
 
-/** Screen-only pixel copy, including backing-store restoration and final frame
- * presentation. Borrows the GC and both drawables; never changes ownership. */
-void Rbc_RenderScreenCopyArea(Tk_Window, Drawable, Drawable, GC, int, int, unsigned int, unsigned int, int, int);
-/** @brief Draw the native focus highlight using the borrowed GC. */
-void Rbc_RenderScreenFocus(Tk_Window, Drawable, GC, int);
+/**
+ * @brief Copy completed pixels for backing-store restoration or presentation.
+ *
+ * @param[in] tkwin Borrowed live Tk window supplying display and drawing resources.
+ * @param[in] source Borrowed source drawable.
+ * @param[in] destination Borrowed destination drawable.
+ * @param[in] gc Borrowed configured GC; raster operation, dash and clip state remain caller-selected.
+ * @param[in] srcX Source rectangle X coordinate in pixels.
+ * @param[in] srcY Source rectangle Y coordinate in pixels.
+ * @param[in] width Rectangle width in pixels; caller supplies a nonnegative value.
+ * @param[in] height Rectangle height in pixels; caller supplies a nonnegative value.
+ * @param[in] dstX Destination rectangle X coordinate in pixels.
+ * @param[in] dstY Destination rectangle Y coordinate in pixels.
+ *
+ * Caller supplies compatible drawables and GC and controls clipping and presentation order. No ownership changes.
+ */
+void Rbc_RenderScreenCopyArea(Tk_Window tkwin, Drawable source, Drawable destination, GC gc, int srcX, int srcY,
+                               unsigned int width, unsigned int height, int dstX, int dstY);
+/**
+ * @brief Draw the native Tk focus highlight.
+ *
+ * @param[in] tkwin Borrowed live Tk window supplying display and drawing resources.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] gc Borrowed configured GC; raster operation, dash and clip state remain caller-selected.
+ * @param[in] width Focus highlight thickness in pixels, passed to Tk_DrawFocusHighlight.
+ */
+void Rbc_RenderScreenFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width);
 
 /** Fill policy shared by screen and export. backgroundOnly preserves the
  * legacy PostScript fallback for image-tiled areas. */
@@ -468,16 +600,31 @@ void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
  */
 void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx);
 
-/** Screen clip scopes preserve absolute coordinates, shared GCs and bitmap
- * masks. copyGC is borrowed, or NULL to create a private copy GC. useDC keeps
- * the existing Windows symbol path; other scopes use reusable scratch pixmaps.
- * Only ClipBegin/ClipEnd/ClipDrawable/End are supported by this context.
- * Fetch ClipDrawable after each push; None means the clip is empty or failed.
- * End balances any outstanding pushes. Native/Cairo drawing into the returned
- * drawable is committed to its parent on ClipEnd. */
-Rbc_RenderContext *Rbc_RenderBeginScreenClip(Graph *, Drawable, GC copyGC, int useDC);
-/** @brief Return the current drawable for a screen clip context; None means empty or failed. */
-Drawable Rbc_RenderClipDrawable(Rbc_RenderContext *);
+/**
+ * @brief Create an owned native screen clip stack.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive until Rbc_RenderEnd releases the returned context.
+ * @param[in] drawable Borrowed destination in mapped display coordinates, kept valid until context release.
+ * @param[in] copyGC Borrowed pixel-copy GC, or NULL to create a private GC.
+ * @param[in] useDC Nonzero requests the Windows DC clip path; other scopes use scratch pixmaps.
+ * @return Owned clip context to release with Rbc_RenderEnd; graph and drawable remain borrowed.
+ *
+ * Only ClipBegin, ClipEnd, ClipDrawable and End are supported. Fetch the current target after each push;
+ * None means empty or failed coverage. Absolute coordinates and bitmap masks are preserved. ClipEnd commits
+ * drawing to the parent target; End balances outstanding pushes and releases the context.
+ * @see Rbc_RenderClipDrawable
+ * @see Rbc_RenderEnd
+ */
+Rbc_RenderContext *Rbc_RenderBeginScreenClip(Graph *graphPtr, Drawable drawable, GC copyGC, int useDC);
+/**
+ * @brief Query the current target of a screen clip stack.
+ *
+ * @param[in] ctx Live context returned by Rbc_RenderBeginScreenClip.
+ * @return Borrowed current drawable, or None for empty or failed coverage.
+ *
+ * Requery after changing the clip stack; do not retain a temporary target after popping its scope.
+ */
+Drawable Rbc_RenderClipDrawable(Rbc_RenderContext *ctx);
 
 /**
  * Nest a rectangular clip without painting a background. Supported by screen
@@ -662,36 +809,179 @@ void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, con
  */
 void Rbc_RenderEnd(Rbc_RenderContext *ctx);
 
-/** None means a solid fill; FALSE requests native drawing. */
+/**
+ * @brief Attempt an opaque Cairo polygon fill.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] points Borrowed mapped polygon vertices, valid for count entries during this call.
+ * @param[in] count Number of array entries, not bytes.
+ * @param[in] foreground Borrowed foreground color; NULL declines the Cairo attempt.
+ * @param[in] background Optional borrowed background color; NULL leaves unpainted pattern bits transparent.
+ * @param[in] stipple Borrowed one-bit fill pattern, or None for a solid fill.
+ * @return Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.
+ *
+ * Equivalent to Rbc_RenderAreaOpacity with opacity 1.0. Fewer than three vertices decline the attempt.
+ * @see Rbc_RenderAreaOpacity
+ */
 int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count, const XColor *foreground,
                    const XColor *background, Pixmap stipple);
 
-/** Opacity applies only to solid fills (stipple == None). */
+/**
+ * @brief Attempt a Cairo polygon fill with solid-fill opacity.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] points Borrowed mapped polygon vertices, valid for count entries during this call.
+ * @param[in] count Number of array entries, not bytes.
+ * @param[in] foreground Borrowed foreground color; NULL declines the Cairo attempt.
+ * @param[in] background Optional borrowed background color; NULL leaves unpainted pattern bits transparent.
+ * @param[in] stipple Borrowed one-bit fill pattern, or None for a solid fill.
+ * @param[in] opacity Solid-fill alpha in [0,1]; ignored when stipple is not None.
+ * @return Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.
+ *
+ * Fewer than three vertices decline the attempt. Uses the plot clip and even-odd polygon filling;
+ * stipple pixels retain their own alpha and widget-relative origin.
+ */
 int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                           const XColor *foreground, const XColor *background, Pixmap stipple, double opacity);
-/** @brief Try to paint a photo-tiled polygon with Cairo; false requests native fallback. */
+/**
+ * @brief Attempt a polygon filled with a repeating photo tile.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] points Borrowed mapped polygon vertices, valid for count entries during this call.
+ * @param[in] count Number of array entries, not bytes.
+ * @param[in] block Borrowed readable photo block, including valid pitch, channel offsets and pixel storage.
+ * @return Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.
+ *
+ * Uses the plot clip and a toplevel-relative pattern origin. On a Cairo graph, fewer than three vertices
+ * decline the attempt; an empty photo block is handled without painting, preserving tile precedence.
+ */
 int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                        const Tk_PhotoImageBlock *block);
-/** @brief Try to paint a photo block with Cairo; false requests native fallback. */
+/**
+ * @brief Attempt to paint a mapped photo block once.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] block Borrowed readable photo block, including valid pitch, channel offsets and pixel storage.
+ * @param[in] x Destination X coordinate in pixels.
+ * @param[in] y Destination Y coordinate in pixels.
+ * @return Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.
+ *
+ * Uses the plot clip without scaling or rotation. An empty block on a Cairo graph is a handled no-op.
+ * Pixel conversion is temporary; the caller retains its photo and block storage.
+ */
 int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y);
-/** @brief Try to fill rectangles with Cairo; false requests native fallback. */
+/**
+ * @brief Attempt a Cairo rectangle batch with group opacity.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] rectangles Borrowed mapped rectangle array, valid for count records.
+ * @param[in] count Number of array entries, not bytes.
+ * @param[in] foreground Borrowed foreground color; NULL declines the Cairo attempt.
+ * @param[in] background Optional borrowed background color; NULL leaves unpainted pattern bits transparent.
+ * @param[in] stipple Borrowed one-bit fill pattern, or None for a solid fill.
+ * @param[in] opacity Group alpha in [0,1], applied to solid and stippled rectangles together.
+ * @return Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.
+ *
+ * Nonpositive counts decline the attempt. Nonpositive rectangle dimensions are skipped. Uses the plot clip;
+ * opacity is applied once to the composed batch, not separately at each overlap.
+ */
 int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles, Tcl_Size count,
                          const XColor *foreground, const XColor *background, Pixmap stipple, double opacity);
-/** @brief Try to create a Cairo context for a drawable with explicit dimensions. */
+/**
+ * @brief Attempt a Cairo context covering an explicit drawable extent.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive until Rbc_RenderEnd releases the returned context.
+ * @param[in] drawable Borrowed destination in mapped display coordinates, kept valid until context release.
+ * @param[in] width Positive destination width in pixels.
+ * @param[in] height Positive destination height in pixels.
+ * @param[in] color Borrowed required stroke color.
+ * @param[in] lineWidth Stroke width in display units.
+ * @param[in] dashes Borrowed dash specification, or NULL for solid.
+ * @param[in] offColor Optional borrowed off-dash color.
+ * @return Owned context, or NULL when unavailable or dimensions are nonpositive.
+ *
+ * Uses the full drawable rectangle instead of the plot clip. Supports the Cairo geometry operations;
+ * release a successful context with Rbc_RenderEnd.
+ * @see Rbc_RenderBegin
+ */
 Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
                                            const XColor *color, double lineWidth, const Rbc_Dashes *dashes,
                                            const XColor *offColor);
-/** @brief Try to paint a Cairo bar legend sample; false requests native fallback. */
+/**
+ * @brief Attempt a Cairo legend swatch with a sample-local pattern origin.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] width Positive destination drawable width in pixels.
+ * @param[in] height Positive destination drawable height in pixels.
+ * @param[in] r Borrowed sample rectangle in destination coordinates.
+ * @param[in] foreground Borrowed foreground color; NULL declines the Cairo attempt.
+ * @param[in] background Optional borrowed background color; NULL leaves unpainted pattern bits transparent.
+ * @param[in] stipple Borrowed one-bit fill pattern, or None for a solid fill.
+ * @param[in] opacity Group alpha in [0,1], including stipple paint.
+ * @return Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.
+ *
+ * Uses the full drawable clip; stipple restarts at the sample top-left corner. For an eligible Cairo graph,
+ * nonpositive sample dimensions are a handled no-op.
+ */
 int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height, const Rbc_RenderRectangle *r,
                         const XColor *foreground, const XColor *background, Pixmap stipple, double opacity);
-/** @brief Try to paint a mapped bitmap with Cairo; false requests native fallback. */
+/**
+ * @brief Attempt a mapped Cairo bitmap with optional rotated background.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive throughout this synchronous operation.
+ * @param[in] drawable Borrowed destination in mapped display coordinates.
+ * @param[in] r Borrowed mapped rectangle; its dimensions also specify the source bitmap extent.
+ * @param[in] bitmap Borrowed one-bit bitmap; None declines the attempt.
+ * @param[in] mask Optional borrowed one-bit visibility mask, or None.
+ * @param[in] foreground Borrowed foreground color; NULL declines the Cairo attempt.
+ * @param[in] background Optional borrowed background color; NULL leaves unpainted pattern bits transparent.
+ * @param[in] polygon Borrowed mapped background polygon, or NULL when absent.
+ * @param[in] nPoints Number of background polygon vertices; use zero when no polygon is supplied.
+ * @return Nonzero when handled (including documented empty no-ops); zero requests caller-selected native fallback.
+ *
+ * Uses the plot clip. A polygon with at least three vertices and a background color supplies the rotated
+ * background; otherwise the bitmap background policy applies. Source bits are converted before painting.
+ * For an eligible Cairo graph, nonpositive rectangle dimensions are a handled no-op.
+ */
 int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r, Pixmap bitmap, Pixmap mask,
                      const XColor *foreground, const XColor *background, const Point2D *polygon, Tcl_Size nPoints);
-/** @brief Try to create a Cairo bitmap-symbol batch; NULL requests native fallback. */
+/**
+ * @brief Convert a bitmap once for a Cairo symbol batch.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive until Rbc_RenderEnd releases the returned context.
+ * @param[in] drawable Borrowed destination in mapped display coordinates, kept valid until context release.
+ * @param[in] bitmap Borrowed one-bit source bitmap; None declines the attempt.
+ * @param[in] mask Optional borrowed one-bit visibility mask, or None.
+ * @param[in] width Positive source bitmap width in pixels.
+ * @param[in] height Positive source bitmap height in pixels.
+ * @param[in] foreground Borrowed foreground color; NULL declines the Cairo attempt.
+ * @param[in] background Optional borrowed background color; NULL leaves unpainted pattern bits transparent.
+ * @param[in] targetWidth Positive selects the explicit drawable clip; zero selects the graph plot clip.
+ * @param[in] targetHeight Positive explicit drawable height when targetWidth is positive; otherwise ignored.
+ * @return Owned bitmap-symbol context, or NULL requesting native fallback.
+ *
+ * Source bitmap pixels are copied into an owned pattern. End the returned context with Rbc_RenderEnd.
+ * @see Rbc_RenderBitmapSymbols
+ */
 Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable, Pixmap bitmap, Pixmap mask,
                                                 int width, int height, const XColor *foreground,
                                                 const XColor *background, int targetWidth, int targetHeight);
-/** @brief Draw mapped centers using a Cairo bitmap-symbol context. */
+/**
+ * @brief Paint a prepared bitmap at mapped symbol centers in input order.
+ *
+ * @param[in,out] ctx Live non-NULL context returned by Rbc_RenderBeginBitmapSymbols.
+ * @param[in] centers Borrowed mapped center array, valid for count entries.
+ * @param[in] count Number of array entries, not bytes.
+ *
+ * Converts each center to int before subtracting half the bitmap size. Does not resample or repeat pixels;
+ * nonpositive counts paint nothing. The context remains owned by the caller.
+ */
 void Rbc_RenderBitmapSymbols(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count);
 
 #endif
