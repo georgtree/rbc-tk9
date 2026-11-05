@@ -21,10 +21,16 @@
 typedef struct Rbc_RenderContext Rbc_RenderContext;
 typedef struct Rbc_RenderTarget Rbc_RenderTarget;
 
-/** Mapping-time polygon capacity for the selected output. TCL_SIZE_MAX means
+/**
+ * Mapping-time polygon capacity for the selected output. TCL_SIZE_MAX means
  * no request-size bound; zero means no polygon can be submitted. Components
  * reserve space for closure/clipping and preserve shared samples when splitting.
- * This query needs no drawing context and allocates no resources. */
+ * This query needs no drawing context and allocates no resources.
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @see @ref rbc_calling_conventions
+ */
 Tcl_Size Rbc_RenderPolygonPointLimit(Graph *graphPtr);
 
 /** Native-only screen details borrow the exact GC, preserving XOR and dash
@@ -50,19 +56,59 @@ void Rbc_RenderScreenRun(Graph *, Drawable, void *, Tcl_Size, Rbc_RenderRunProc 
 /** @brief Present a synchronous batch of opaque, unmasked bitmap copies. */
 void Rbc_RenderScreenBitmapRun(Graph *, Drawable, Pixmap, GC, int, int, const Rbc_RenderPosition *, Tcl_Size);
 
-/** @brief Try to acquire a shared Cairo marker-pass target; NULL leaves the original drawable usable. */
+/**
+ * @brief Try to acquire a shared Cairo marker-pass target; NULL leaves the original drawable usable.
+ *
+ * @param[in,out] graphPtr Owning graph; a successful acquisition installs a temporary render target until
+ *     EndMarkerPass.
+ * @param[in,out] drawablePtr Required pointer to the original destination; replaced by a temporary drawable
+ *     only on success.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr);
-/** @brief Present and release a marker-pass target; NULL is accepted. */
+/**
+ * @brief Present and release a marker-pass target; NULL is accepted.
+ *
+ * @param[in,out] target Owned target returned by BeginMarkerPass, consumed here; NULL is accepted. The
+ *     replacement drawable is invalid afterward.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target);
 
-/** Screen text uses Tk for native and Cairo graphs alike. Supports Text,
+/**
+ * Screen text uses Tk for native and Cairo graphs alike. Supports Text,
  * TextLayout, TextSize and End only. The window, drawable and cached layout
  * are borrowed; existing integer positions and clipping are retained. Reuse
- * a context for a label batch. TextSize returns the rotated layout extent. */
+ * a context for a label batch. TextSize returns the rotated layout extent.
+ *
+ * @param[in] tkwin Borrowed Tk window providing text resources, kept alive until End.
+ * @param[in] drawable Borrowed destination drawable in mapped widget coordinates, kept valid through context
+ *     release.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginScreenText(Tk_Window tkwin, Drawable drawable);
-/** @brief Draw a borrowed cached text layout through a screen text context. */
+/**
+ * @brief Draw a borrowed cached text layout through a screen text context.
+ *
+ * @param[in,out] ctx Live context created for screen text; its constructor must support this operation.
+ * @param[in] layout Borrowed cached text layout.
+ * @param[in,out] style Caller-provided text style with live font/GC resources; no ownership transfer.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle *style, int x, int y);
-/** @brief Draw screen text and return its rotated layout extent. */
+/**
+ * @brief Draw screen text and return its rotated layout extent.
+ *
+ * @param[in,out] ctx Live context created for screen text; its constructor must support this operation.
+ * @param[in] string Borrowed NUL-terminated text.
+ * @param[in,out] style Caller-provided text style with live font/GC resources.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @param[out] size Required caller-owned output for the rotated text extent.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *style, int x, int y, Dim2D *size);
 
 /** Keep bar geometry in full-width widget coordinates. */
@@ -82,14 +128,39 @@ typedef struct {
     Tcl_Size backgroundCount; /**< At most RBC_RENDER_BITMAP_OUTLINE_POINTS. */
 } Rbc_RenderBitmapStyle;
 
-/** Screen raster contexts support TkImage, MappedBitmap, Pixmap and End only.
+/**
+ * Screen raster contexts support TkImage, MappedBitmap, Pixmap and End only.
  * Cairo is attempted for photos/bitmaps; native fallback preserves Tk image
  * types and GC masks. The context borrows its drawable and all input resources.
- * Scaling/rotation remain in component mapping, outside presentation. */
+ * Scaling/rotation remain in component mapping, outside presentation.
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] drawable Borrowed destination drawable in mapped widget coordinates, kept valid through context
+ *     release.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginScreenRaster(Graph *graphPtr, Drawable drawable);
-/** @brief Present a mapped bitmap through a screen raster context, retaining native fallback. */
+/**
+ * @brief Present a mapped bitmap through a screen raster context, retaining native fallback.
+ *
+ * @param[in,out] ctx Live context created for screen raster presentation; its constructor must support this
+ *     operation.
+ * @param[in] r Borrowed mapped destination rectangle.
+ * @param[in] style Borrowed bitmap/mask/style resources valid through this synchronous call.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r, const Rbc_RenderBitmapStyle *style);
-/** @brief Copy a mapped pixmap through a screen raster context using the borrowed GC. */
+/**
+ * @brief Copy a mapped pixmap through a screen raster context using the borrowed GC.
+ *
+ * @param[in,out] ctx Live context created for screen raster presentation; its constructor must support this
+ *     operation.
+ * @param[in] pixmap Borrowed source pixmap.
+ * @param[in] gc Borrowed copy GC, including its clip/mask state.
+ * @param[in] r Borrowed mapped copy rectangle.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r);
 
 /** Native widget decorations retain Tk relief shading, GC state and tile
@@ -118,18 +189,56 @@ typedef struct {
     int backgroundOnly;
 } Rbc_RenderFillStyle;
 
-/** Fill contexts support FillPolygon/FillRectangles/FillArc and End. Screen creation
- * may return NULL for native fallback; export does not require Cairo. */
+/**
+ * Fill contexts support FillPolygon/FillRectangles/FillArc and End. Screen creation
+ * may return NULL for native fallback; export does not require Cairo.
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] drawable Borrowed destination drawable in mapped widget coordinates, kept valid through context
+ *     release.
+ * @param[in] style Required fill policy; referenced colors and stipple remain borrowed until End. NULL return
+ *     requires caller-selected fallback.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style);
-/** @brief Create a document fill context borrowing export state and style resources. */
+/**
+ * @brief Create a document fill context borrowing export state and style resources.
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
+ * @param[in] style Required fill policy copied by value; referenced Tk resources remain borrowed until End.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                              const Rbc_RenderFillStyle *style);
 
-/** Supply a tile after BeginExportFill; PostScript keeps its background fallback. */
+/**
+ * Supply a tile after BeginExportFill; PostScript keeps its background fallback.
+ *
+ * @param[in,out] ctx Live context created for export fill; its constructor must support this operation.
+ * @param[in] tile Borrowed tile retained for this fill context; PostScript retains its background fallback.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderSetFillTile(Rbc_RenderContext *ctx, Rbc_Tile tile);
-/** @brief Fill a mapped polygon; fewer than three points draw nothing. */
+/**
+ * @brief Fill a mapped polygon; fewer than three points draw nothing.
+ *
+ * @param[in,out] ctx Live context created for polygon fill; its constructor must support this operation.
+ * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
+ * @param[in] count Number of point records, not bytes.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
-/** @brief Fill mapped rectangles; nonpositive counts draw nothing. */
+/**
+ * @brief Fill mapped rectangles; nonpositive counts draw nothing.
+ *
+ * @param[in,out] ctx Live context created for rectangle fill; its constructor must support this operation.
+ * @param[in] rectangles Borrowed mapped rectangle array, accessible for count entries during this call.
+ * @param[in] count Number of rectangle records, not bytes.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
 
 /** Ellipse in mapped display coordinates. Zero degrees points right; positive
@@ -145,11 +254,25 @@ typedef struct {
     Rbc_RenderArcStyle style;
 } Rbc_RenderArcGeometry;
 
-/** Use a stroke context for Arc and a fill context for FillArc. FillArc ignores
+/**
+ * Use a stroke context for Arc and a fill context for FillArc. FillArc ignores
  * OPEN. Non-finite/degenerate geometry draws nothing. Screen contexts may be
- * unavailable (native renderer); callers retain their native fallback. */
+ * unavailable (native renderer); callers retain their native fallback.
+ *
+ * @param[in,out] ctx Context supporting arc strokes, or NULL to draw nothing.
+ * @param[in] arc Borrowed ellipse geometry; invalid fields draw nothing. Valid geometry is copied and
+ *     normalized before dispatch.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
-/** @brief Fill a normalized mapped ellipse segment; open arcs draw nothing. */
+/**
+ * @brief Fill a normalized mapped ellipse segment; open arcs draw nothing.
+ *
+ * @param[in,out] ctx Context supporting arc fills, or NULL to draw nothing.
+ * @param[in] arc Borrowed ellipse geometry; invalid fields draw nothing. Valid geometry is copied and
+ *     normalized before dispatch.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
 
 /** Semantic symbol descriptions for export; colors are resolved by the caller. */
@@ -212,44 +335,167 @@ Rbc_RenderContext *Rbc_RenderBeginNativeArc(Graph *, Drawable, GC, const Point2D
 /** @brief Create a native polygon batch with the supplied maximum point capacity. */
 Rbc_RenderContext *Rbc_RenderBeginNativePolygonBatch(Graph *, Drawable, GC, Tcl_Size maxPoints);
 
-/** Export symbol contexts support SymbolPoints and End. Screen shape batching
+/**
+ * Export symbol contexts support SymbolPoints and End. Screen shape batching
  * retains its existing interface. Contexts borrow bitmap/color resources.
- * Finish each symbol batch before starting another (the prolog is shared). */
+ * Finish each symbol batch before starting another (the prolog is shared).
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
+ * @param[in] style Required symbol description copied by value; bitmap and color resources remain borrowed
+ *     until End.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                const Rbc_RenderSymbolStyle *style);
-/** @brief Create a document bar-symbol context; finish this batch before another symbol batch. */
+/**
+ * @brief Create a document bar-symbol context; finish this batch before another symbol batch.
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
+ * @param[in] style Required fill policy copied by value; referenced resources remain borrowed until End.
+ * @param[in] size Legend swatch size in mapped display units.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginExportBarSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                   const Rbc_RenderFillStyle *style, int size);
-/** @brief Draw symbols at mapped centers; native sampling may update the borrowed style counter. */
+/**
+ * @brief Draw symbols at mapped centers; native sampling may update the borrowed style counter.
+ *
+ * @param[in,out] ctx Live context created for native or export symbol batches; its constructor must support
+ *     this operation.
+ * @param[in] centers Borrowed mapped symbol centers; native sampling may update the context-associated style
+ *     counter.
+ * @param[in] count Number of centers; nonpositive counts draw nothing.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count);
 
-/** Export presentation primitives. Output contexts borrow the export state and Tk
+/**
+ * Export presentation primitives. Output contexts borrow the export state and Tk
  * resources. PlotBegin/PlotEnd must be paired; End releases only the context.
- * Document setup, trailers and I/O remain with each backend command. */
+ * Document setup, trailers and I/O remain with each backend command.
+ *
+ * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr);
-/** @brief Draw text through an export-output or screen-text context. */
+/**
+ * @brief Draw text through an export-output or screen-text context.
+ *
+ * @param[in,out] ctx Live context created for screen text or export output; its constructor must support this
+ *     operation.
+ * @param[in] string Borrowed NUL-terminated text; ownership is not transferred.
+ * @param[in,out] style Caller-provided text style and live resources; backend text preparation may update
+ *     style state.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y);
 
-/** Non-photo image fallback; the legacy PostScript backend omits these images. */
+/**
+ * Non-photo image fallback; the legacy PostScript backend omits these images.
+ *
+ * @param[in,out] ctx Live context created for screen raster or export output; its constructor must support
+ *     this operation.
+ * @param[in] image Borrowed live Tk image.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y);
-/** @brief Write a borrowed Tk photo through an export-output context. */
+/**
+ * @brief Write a borrowed Tk photo through an export-output context.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] photo Borrowed live Tk photo handle.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y);
-/** @brief Capture a borrowed Tk window through an export-output context, subject to backend policy. */
+/**
+ * @brief Capture a borrowed Tk window through an export-output context, subject to backend policy.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] tkwin Borrowed live Tk window to capture, subject to backend export policy.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y);
-/** @brief Paint a mapped background polygon through an export-output context. */
+/**
+ * @brief Paint a mapped background polygon through an export-output context.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] color Borrowed resolved background color.
+ * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
+ * @param[in] count Number of point records, not bytes.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count);
-/** @brief Draw a border through an export-output context. */
+/**
+ * @brief Draw a border through an export-output context.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] border Borrowed live Tk border resource.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @param[in] width Rectangle width in display units.
+ * @param[in] height Rectangle height in display units.
+ * @param[in] borderWidth Border thickness in display units.
+ * @param[in] relief Tk relief value.
+ * @param[in] fill Nonzero requests filling as well as border drawing.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                       int borderWidth, int relief, int fill);
-/** @brief Clear a mapped rectangle through an export-output context. */
+/**
+ * @brief Clear a mapped rectangle through an export-output context.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @param[in] width Rectangle width in display units.
+ * @param[in] height Rectangle height in display units.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height);
-/** @brief Paint mapped background rectangles through an export-output context. */
+/**
+ * @brief Paint mapped background rectangles through an export-output context.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] color Borrowed resolved background color.
+ * @param[in] rectangles Borrowed mapped rectangle array, accessible for count entries during this call.
+ * @param[in] count Number of rectangle records, not bytes.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color, const Rbc_RenderRectangle *rectangles,
                                     Tcl_Size count);
-/** @brief Open an export plot scope; pair with PlotEnd before releasing the context. */
+/**
+ * @brief Open an export plot scope; pair with PlotEnd before releasing the context.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] font Borrowed font used by backend plot setup.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @param[in] width Rectangle width in display units.
+ * @param[in] height Rectangle height in display units.
+ * @param[in] background Borrowed background color used by backend plot setup.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                          const XColor *background);
-/** @brief Close the export plot scope opened by PlotBegin. */
+/**
+ * @brief Close the export plot scope opened by PlotBegin.
+ *
+ * @param[in,out] ctx Live context created for export output with an outstanding PlotBegin scope; its
+ *     constructor must support this operation.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx);
 
 /** Screen clip scopes preserve absolute coordinates, shared GCs and bitmap
@@ -263,8 +509,18 @@ Rbc_RenderContext *Rbc_RenderBeginScreenClip(Graph *, Drawable, GC copyGC, int u
 /** @brief Return the current drawable for a screen clip context; None means empty or failed. */
 Drawable Rbc_RenderClipDrawable(Rbc_RenderContext *);
 
-/** Nest a rectangular clip without painting a background. Supported by screen
- * clip scopes, Cairo geometry contexts and export contexts. */
+/**
+ * Nest a rectangular clip without painting a background. Supported by screen
+ * clip scopes, Cairo geometry contexts and export contexts.
+ *
+ * @param[in,out] ctx Live context created for rectangular clipping; its constructor must support this
+ *     operation.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @param[in] width Rectangle width in display units.
+ * @param[in] height Rectangle height in display units.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height);
 /**
  * @brief Pop one rectangular clip; an empty stack is a no-op.
@@ -276,7 +532,20 @@ void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int he
  * @see Rbc_RenderEnd
  */
 void Rbc_RenderClipEnd(Rbc_RenderContext *ctx);
-/** @brief Emit a bitmap mask through an export-output context. */
+/**
+ * @brief Emit a bitmap mask through an export-output context.
+ *
+ * @param[in,out] ctx Live context created for export output; its constructor must support this operation.
+ * @param[in] display Borrowed display owning the bitmap.
+ * @param[in] bitmap Borrowed bitmap to emit as a mask.
+ * @param[in] x Mapped horizontal position in destination coordinates.
+ * @param[in] y Mapped vertical position in destination coordinates.
+ * @param[in] width Rectangle width in display units.
+ * @param[in] height Rectangle height in display units.
+ * @param[in] color Borrowed paint color.
+ * @param[in] background Backend background/foreground pass selector; preserve the component-provided value.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                           int height, const XColor *color, int background);
 
@@ -305,32 +574,122 @@ typedef enum { RBC_RENDER_STROKE_TRACES, RBC_RENDER_STROKE_STRIPS, RBC_RENDER_ST
  * For native drawing, the supplied GC retains its raster operation and clip.
  * TRACES permits Polyline; STRIPS and SEGMENTS permit Segments. End the
  * successful context once with Rbc_RenderEnd().
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] drawable Borrowed destination drawable in mapped widget coordinates, kept valid through context
+ *     release.
+ * @param[in] gc Borrowed native fallback GC retaining raster operation, dashes and clipping.
+ * @param[in] kind TRACES permits Polyline; STRIPS and SEGMENTS permit Segments.
+ * @param[in] color Borrowed stroke color for Cairo; native fallback uses the supplied GC.
+ * @param[in] width Stroke width in display units; not scaled with geometry.
+ * @param[in] dashes Borrowed dash specification, or NULL for a solid stroke.
+ * @param[in] offColor Optional borrowed off-dash color.
+ * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginStroke(Graph *graphPtr, Drawable drawable, GC gc, Rbc_RenderStrokeKind kind,
                                          const XColor *color, double width, const Rbc_Dashes *dashes,
                                          const XColor *offColor);
 
-/** @brief Try to create a Cairo geometry context; NULL requests caller-selected native fallback. */
+/**
+ * @brief Try to create a Cairo geometry context; NULL requests caller-selected native fallback.
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] drawable Borrowed destination drawable in mapped widget coordinates, kept valid through context
+ *     release.
+ * @param[in] colorPtr Borrowed stroke color required by Cairo setup.
+ * @param[in] width Stroke width in display units.
+ * @param[in] dashesPtr Borrowed dash specification, or NULL for solid.
+ * @param[in] offColorPtr Optional borrowed off-dash color.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr);
 
-/** Export stroke context: Polyline, Segments, Arc, LineStyle, DashBackground and End only.
- * Available without Cairo; borrows export state and dispatches to its backend. */
+/**
+ * Export stroke context: Polyline, Segments, Arc, LineStyle, DashBackground and End only.
+ * Available without Cairo; borrows export state and dispatches to its backend.
+ *
+ * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
+ * @param[in] color Borrowed stroke color; backend-specific omission policy applies for NULL.
+ * @param[in] lineWidth Stroke width in display units.
+ * @param[in] dashes Borrowed dash specification, or NULL for solid.
+ * @param[in] capStyle X/Tk line cap style.
+ * @param[in] joinStyle X/Tk line join style.
+ * @see @ref rbc_calling_conventions
+ */
 Rbc_RenderContext *Rbc_RenderBeginExport(Rbc_ExportContext *exportPtr, const XColor *color, int lineWidth,
                                          const Rbc_Dashes *dashes, int capStyle, int joinStyle);
-/** @brief Query a GC foreground color for Cairo setup; return false if unavailable. */
+/**
+ * @brief Query a GC foreground color for Cairo setup; return false if unavailable.
+ *
+ * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
+ *     context lifetime.
+ * @param[in] gc Borrowed GC to query.
+ * @param[out] color Caller-owned XColor storage for the resolved foreground on success.
+ * @see @ref rbc_calling_conventions
+ */
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color);
-/** @brief Draw mapped points using a Cairo geometry context. */
+/**
+ * @brief Draw mapped points using a Cairo geometry context.
+ *
+ * @param[in,out] ctx Live context created for Cairo geometry; its constructor must support this operation.
+ * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
+ * @param[in] count Number of point records, not bytes.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
-/** @brief Submit a mapped trace to a context supporting polyline operations. */
+/**
+ * @brief Submit a mapped trace to a context supporting polyline operations.
+ *
+ * @param[in,out] ctx Live context created for polyline drawing; its constructor must support this operation.
+ * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
+ * @param[in] count Number of point records, not bytes.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
-/** @brief Submit independent mapped segments to a supporting context. */
+/**
+ * @brief Submit independent mapped segments to a supporting context.
+ *
+ * @param[in,out] ctx Live context created for independent segment drawing; its constructor must support this
+ *     operation.
+ * @param[in] segments Borrowed mapped endpoint pairs, accessible for count records during this call.
+ * @param[in] count Number of Segment2D records, not number of endpoints.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count);
-/** @brief Set cap and join style on a supporting Cairo or export stroke context. */
+/**
+ * @brief Set cap and join style on a supporting Cairo or export stroke context.
+ *
+ * @param[in,out] ctx Live context created for Cairo or export stroke styling; its constructor must support
+ *     this operation.
+ * @param[in] capStyle X/Tk line cap style.
+ * @param[in] joinStyle X/Tk line join style.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle);
-/** @brief Set the off-dash color on a supporting Cairo or export stroke context. */
+/**
+ * @brief Set the off-dash color on a supporting Cairo or export stroke context.
+ *
+ * @param[in,out] ctx Live context created for Cairo or export stroke styling; its constructor must support
+ *     this operation.
+ * @param[in] color Optional borrowed off-dash color.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color);
-/** @brief Draw shape-template symbols using a Cairo geometry context. */
+/**
+ * @brief Draw shape-template symbols using a Cairo geometry context.
+ *
+ * @param[in,out] ctx Live context created for Cairo geometry; its constructor must support this operation.
+ * @param[in] shape Borrowed screen-space symbol template; its points describe polygon vertices or endpoint
+ *     pairs.
+ * @param[in] centers Borrowed mapped center array.
+ * @param[in] count Number of center records.
+ * @param[in] fillColor Optional borrowed fill color; NULL suppresses filling.
+ * @param[in] outline Nonzero requests outlining with the context stroke color.
+ * @see @ref rbc_calling_conventions
+ */
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, const Point2D *centers, Tcl_Size count,
                        const XColor *fillColor, int outline);
 /**

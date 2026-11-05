@@ -115,11 +115,11 @@ callback directly.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>BeginStroke</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginStroke" title="Rbc_RenderBeginStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginStroke()</span></code></a></p></td>
 <td><p>Polyline for traces; Segments for strips/segments; End</p></td>
 <td><p>Borrowed native GC preserves its raster operation and clip.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BeginFill / BeginExportFill</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginFill" title="Rbc_RenderBeginFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginFill()</span></code></a> / <a class="reference internal" href="reference.html#c.Rbc_RenderBeginExportFill" title="Rbc_RenderBeginExportFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportFill()</span></code></a></p></td>
 <td><p>FillPolygon, FillRectangles, FillArc, End</p></td>
 <td><p>Screen creation can return NULL; export creation is Cairo-independent.</p></td>
 </tr>
@@ -127,23 +127,23 @@ callback directly.</p>
 <td><p>FillPolygon / FillRectangles respectively; End</p></td>
 <td><p>Native bar relief and tile behavior remain intact.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BeginScreenText</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenText" title="Rbc_RenderBeginScreenText"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenText()</span></code></a></p></td>
 <td><p>Text, TextLayout, TextSize, End</p></td>
 <td><p>Tk text on native and Cairo graphs.</p></td>
 </tr>
-<tr class="row-even"><td><p>BeginScreenRaster</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenRaster" title="Rbc_RenderBeginScreenRaster"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenRaster()</span></code></a></p></td>
 <td><p>TkImage, MappedBitmap, Pixmap, End</p></td>
 <td><p>Mapped geometry; Cairo attempt with native raster fallback.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BeginScreenClip</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenClip" title="Rbc_RenderBeginScreenClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenClip()</span></code></a></p></td>
 <td><p>ClipBegin, ClipDrawable, ClipEnd, End</p></td>
 <td><p>Drawing uses the returned drawable, not this context’s geometry table.</p></td>
 </tr>
-<tr class="row-even"><td><p>BeginExport</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginExport" title="Rbc_RenderBeginExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExport()</span></code></a></p></td>
 <td><p>Polyline, Segments, Arc, LineStyle, DashBackground, End</p></td>
 <td><p>Borrows the document state.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BeginExportOutput</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginExportOutput" title="Rbc_RenderBeginExportOutput"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportOutput()</span></code></a></p></td>
 <td><p>Text, images, window capture, backgrounds, borders, plot scopes, End</p></td>
 <td><p>PlotBegin and PlotEnd must be paired.</p></td>
 </tr>
@@ -220,11 +220,11 @@ scratch storage, whereas a segment-only context does not. Likewise, native
 symbol, fill, bar and arc constructors populate different fields of the shared
 geometry record. Calling a sibling operation can therefore be invalid even
 when the table contains that callback.</p>
-<p>Allocated contexts must end exactly once. <code class="docutils literal notranslate"><span class="pre">Rbc_RenderEnd</span></code> first unwinds
+<p>Allocated contexts must end exactly once. <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> first unwinds
 outstanding clips, then invokes the family destructor. One-shot decoration and
 marker-detail adapters instead place a context on the stack and invoke their
 callback directly; their tables have no destructor. They must never escape the
-call or be passed to <code class="docutils literal notranslate"><span class="pre">Rbc_RenderEnd</span></code>.</p>
+call or be passed to <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
 <section id="screen-fallback-order">
 <h3>Screen fallback order<a class="headerlink" href="#screen-fallback-order" title="Link to this heading">¶</a></h3>
 <table class="docutils align-default" id="id1">
@@ -311,6 +311,81 @@ build and preserve all C declarations.</p>
 <p>See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for platform batching, clip frames and Windows DC ownership.</p>
 <p>See <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for Cairo target setup, image conversion and mixed native drawing.</p>
 </section>
+<section id="argument-lifetimes-and-dispatch-requirements">
+<h2>Argument lifetimes and dispatch requirements<a class="headerlink" href="#argument-lifetimes-and-dispatch-requirements" title="Link to this heading">¶</a></h2>
+<p>The component-facing declarations in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> describe parameter
+directions using <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. An input array is borrowed for
+the call unless a constructor explicitly retains it until End. Its count is
+a number of records: <a class="reference internal" href="reference.html#c.Rbc_RenderSegments" title="Rbc_RenderSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSegments()</span></code></a> counts <code class="docutils literal notranslate"><span class="pre">Segment2D</span></code> values,
+not individual endpoints, while <a class="reference internal" href="reference.html#c.Rbc_RenderPolyline" title="Rbc_RenderPolyline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPolyline()</span></code></a> counts points.
+No dispatcher can verify the allocated capacity behind a pointer/count pair.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderFillPolygon" title="Rbc_RenderFillPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillPolygon()</span></code></a> suppresses counts below three;
+<a class="reference internal" href="reference.html#c.Rbc_RenderFillRectangles" title="Rbc_RenderFillRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderSymbolPoints" title="Rbc_RenderSymbolPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSymbolPoints()</span></code></a>
+suppress nonpositive counts. This does not establish a universal validation
+policy for every operation. Most wrappers immediately dispatch through the
+operation table, so callers must supply a live, capable context and valid
+geometry even when another operation tolerates a null pointer or empty batch.
+In particular, <a class="reference internal" href="reference.html#c.Rbc_RenderArc" title="Rbc_RenderArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderArc()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderFillArc" title="Rbc_RenderFillArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillArc()</span></code></a> accepting
+a NULL context does not make NULL safe for <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginStroke" title="Rbc_RenderBeginStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginStroke()</span></code></a> uses supplied color, width and dash data for
+Cairo, while its native fallback uses the borrowed GC. The caller must prepare
+that GC consistently; passing a new color argument does not recolor the native
+GC. <a class="reference internal" href="reference.html#c.Rbc_RenderGCForeground" title="Rbc_RenderGCForeground"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderGCForeground()</span></code></a> resolves an existing GC foreground when
+Cairo setup needs it. <a class="reference internal" href="reference.html#c.Rbc_RenderLineStyle" title="Rbc_RenderLineStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderLineStyle()</span></code></a> and
+<a class="reference internal" href="reference.html#c.Rbc_RenderDashBackground" title="Rbc_RenderDashBackground"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderDashBackground()</span></code></a> require supporting Cairo/export contexts
+and do not provide generic mutation of a native stroke GC.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginExportFill" title="Rbc_RenderBeginExportFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportFill()</span></code></a>, <a class="reference internal" href="reference.html#c.Rbc_RenderBeginExportSymbol" title="Rbc_RenderBeginExportSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportSymbol()</span></code></a> and
+<a class="reference internal" href="reference.html#c.Rbc_RenderBeginExportBarSymbol" title="Rbc_RenderBeginExportBarSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportBarSymbol()</span></code></a> copy style records, but the resource
+pointers inside those records remain borrowed. Keep fonts, colors, bitmaps and
+tiles alive for their documented use. <a class="reference internal" href="reference.html#c.Rbc_RenderSetFillTile" title="Rbc_RenderSetFillTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSetFillTile()</span></code></a> retains
+a tile for export filling; it does not acquire ownership.</p>
+</section>
+<section id="screen-text-and-raster-batches">
+<h2>Screen text and raster batches<a class="headerlink" href="#screen-text-and-raster-batches" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenText" title="Rbc_RenderBeginScreenText"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenText()</span></code></a> creates a Tk-backed batch even for a Cairo
+graph. <a class="reference internal" href="reference.html#c.Rbc_RenderTextLayout" title="Rbc_RenderTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderTextLayout()</span></code></a> consumes a cached layout, whereas
+<a class="reference internal" href="reference.html#c.Rbc_RenderTextSize" title="Rbc_RenderTextSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderTextSize()</span></code></a> draws text and writes the rotated extent into
+caller-owned storage. <a class="reference internal" href="reference.html#c.Rbc_RenderText" title="Rbc_RenderText"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderText()</span></code></a> also serves export-output
+contexts; its shared name does not make cached screen-layout operations
+available on export contexts. Text styles and their resources remain owned
+by the component.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenRaster" title="Rbc_RenderBeginScreenRaster"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenRaster()</span></code></a> supplies image presentation.
+<a class="reference internal" href="reference.html#c.Rbc_RenderMappedBitmap" title="Rbc_RenderMappedBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderMappedBitmap()</span></code></a> receives mapped geometry and a bitmap style,
+and <a class="reference internal" href="reference.html#c.Rbc_RenderPixmap" title="Rbc_RenderPixmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPixmap()</span></code></a> uses the caller’s copy GC. Neither performs
+component-level scaling or rotation. <a class="reference internal" href="reference.html#c.Rbc_RenderTkImage" title="Rbc_RenderTkImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderTkImage()</span></code></a> is supported
+by screen raster and export output, while <a class="reference internal" href="reference.html#c.Rbc_RenderPhotoImage" title="Rbc_RenderPhotoImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPhotoImage()</span></code></a> and
+<a class="reference internal" href="reference.html#c.Rbc_RenderWindow" title="Rbc_RenderWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderWindow()</span></code></a> are export-output operations. Export capture policy
+and backend omissions still apply; a shared interface does not promise equal
+support for every image source.</p>
+<p>A marker-pass target has a separate lifetime from a renderer context.
+<a class="reference internal" href="reference.html#c.Rbc_RenderBeginMarkerPass" title="Rbc_RenderBeginMarkerPass"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginMarkerPass()</span></code></a> may replace the caller’s drawable and
+install a temporary graph target. On failure it leaves the original drawable
+usable. <a class="reference internal" href="reference.html#c.Rbc_RenderEndMarkerPass" title="Rbc_RenderEndMarkerPass"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEndMarkerPass()</span></code></a> presents and releases a successful
+target and accepts NULL, but does not restore the caller’s drawable variable.
+The replacement drawable must not be used afterward. Do not pass this target
+to <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
+</section>
+<section id="export-scopes-and-completion">
+<h2>Export scopes and completion<a class="headerlink" href="#export-scopes-and-completion" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginExportOutput" title="Rbc_RenderBeginExportOutput"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportOutput()</span></code></a> borrows a supported document token; it
+does not open or finish a file. <a class="reference internal" href="reference.html#c.Rbc_RenderPlotBegin" title="Rbc_RenderPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPlotBegin()</span></code></a> and
+<a class="reference internal" href="reference.html#c.Rbc_RenderPlotEnd" title="Rbc_RenderPlotEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPlotEnd()</span></code></a> delimit backend plot setup and must be balanced
+before releasing the context. They are distinct from the common rectangular
+clip stack. <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> unwinds clips, but does not substitute for
+PlotEnd or document finalization.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBackgroundPolygon" title="Rbc_RenderBackgroundPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBackgroundPolygon()</span></code></a>, <a class="reference internal" href="reference.html#c.Rbc_RenderBackgroundRectangles" title="Rbc_RenderBackgroundRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBackgroundRectangles()</span></code></a>,
+<a class="reference internal" href="reference.html#c.Rbc_RenderBorder" title="Rbc_RenderBorder"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBorder()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderClearRectangle" title="Rbc_RenderClearRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClearRectangle()</span></code></a> consume
+resolved presentation data. <a class="reference internal" href="reference.html#c.Rbc_RenderBitmapMask" title="Rbc_RenderBitmapMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBitmapMask()</span></code></a> preserves the
+component’s background/foreground pass selector: PostScript uses it for color
+setup, while SVG/PDF paint the mask with the supplied color. These operations
+return void, not a Tcl completion code; command-level export error handling
+remains responsible for deciding whether the document succeeded.</p>
+<p>The Cairo-specific <a class="reference internal" href="reference.html#c.Rbc_RenderPoints" title="Rbc_RenderPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPoints()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderSymbols" title="Rbc_RenderSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSymbols()</span></code></a>
+likewise require the correct context family. Symbol templates describe local
+geometry, centers describe mapped positions, and stroke widths remain display
+quantities. No renderer operation performs axis transforms or establishes
+component ownership.</p>
+</section>
 </section>
 
 
@@ -335,6 +410,9 @@ build and preserve all C declarations.</p>
 </li>
 <li><a class="reference internal" href="#document-ownership">Document ownership</a></li>
 <li><a class="reference internal" href="#validation">Validation</a></li>
+<li><a class="reference internal" href="#argument-lifetimes-and-dispatch-requirements">Argument lifetimes and dispatch requirements</a></li>
+<li><a class="reference internal" href="#screen-text-and-raster-batches">Screen text and raster batches</a></li>
+<li><a class="reference internal" href="#export-scopes-and-completion">Export scopes and completion</a></li>
 </ul>
 </li>
 </ul>

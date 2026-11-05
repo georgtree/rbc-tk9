@@ -5,6 +5,11 @@ These declarations are private implementation interfaces, not installed APIs.
 Callers must obey the capabilities of the constructor they selected; generic
 operation names do not imply that every context implements them.
 
+Parameter directions follow :doc:`calling-conventions`. Context arguments
+refer to a specific constructor family; mutable context state does not imply
+ownership of borrowed graph, document, image or font resources. See
+:doc:`rendering` for batch lifetimes and scope pairing.
+
 Component-facing interface
 --------------------------
 
