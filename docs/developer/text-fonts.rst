@@ -11,7 +11,7 @@ finalization and cleanup.
 Layouts borrow the text
 -----------------------
 
-``Rbc_GetTextLayout`` returns one allocation containing a ``TextLayout`` and its
+:c:func:`Rbc_GetTextLayout` returns one allocation containing a ``TextLayout`` and its
 fragment array. Free it with ``ckfree``. Each fragment points into the original
 string, which must remain alive and unchanged while the layout is used. Fragment
 counts are UTF byte counts; glyph processing must decode characters rather than
@@ -25,7 +25,7 @@ fragment baselines. Anchoring and rotation are applied later. Large dimensions
 are bounded to integer geometry, while impossible fragment/count allocations
 are fatal rather than Tcl command errors.
 
-``Rbc_GetTextExtents`` is a separate measurement path, not an allocation-free
+:c:func:`Rbc_GetTextExtents` is a separate measurement path, not an allocation-free
 alias for the layout algorithm. NULL produces zero extents regardless of
 padding. For nonempty multiline text it retains the final leader spacing,
 whereas the layout builder removes that final leader. Callers must choose the
@@ -38,14 +38,14 @@ Styles are not universal owners
 copying or passing it does not acquire Tk references. Components usually own
 font/color options; temporary styles borrow them.
 
-``Rbc_InitTextStyle`` sets selected defaults, but does not initialize ``gc``,
+:c:func:`Rbc_InitTextStyle` sets selected defaults, but does not initialize ``gc``,
 ``border``, ``width`` or ``height``. Callers must initialize any such fields they
-use. ``Rbc_SetDrawTextStyle`` installs the supplied GC without acquiring it;
+use. :c:func:`rbcTextDrawing.Rbc_SetDrawTextStyle` installs the supplied GC without acquiring it;
 this does not grant permission to release a caller-owned GC.
 
-For an owning style, ``Rbc_ResetTextStyle`` obtains a Tk GC from the current font
+For an owning style, :c:func:`Rbc_ResetTextStyle` obtains a Tk GC from the current font
 and optional foreground, then releases the previous GC. Its old GC must be
-NULL or a valid owned Tk GC. ``Rbc_FreeTextStyle`` releases only that GC; it does
+NULL or a valid owned Tk GC. :c:func:`Rbc_FreeTextStyle` releases only that GC; it does
 not free font, colors, border or the style itself, and does not clear the GC
 field. Repeated cleanup therefore requires an explicit reset. These are existing
 helper contracts, not an automatic resource-management convention.
@@ -53,7 +53,7 @@ helper contracts, not an automatic resource-management convention.
 Native layout presentation
 --------------------------
 
-``Rbc_DrawTextLayout`` consumes the existing unrotated layout. It normalizes
+:c:func:`rbcTextDrawing.Rbc_DrawTextLayout` consumes the existing unrotated layout. It normalizes
 ``theta`` in the style, computes and rounds the rotated bounding dimensions,
 then translates the requested anchor to that box's upper-left corner. The
 private drawing loop places each fragment baseline relative to this origin.
@@ -64,13 +64,13 @@ It does not create, rotate or stipple a bitmap of the text.
 Angles must be finite and bounded before entering this layer: the historical
 ``FMOD`` macro converts a quotient to ``int``. The later finite checks on
 coordinates do not make arbitrary angles safe. Direct callers of
-``Rbc_GetBoundingBox`` should supply normalized angles in [0, 360); its exact
+:c:func:`rbcTextDrawing.Rbc_GetBoundingBox` should supply normalized angles in [0, 360); its exact
 quadrant switch assumes that convention. Corner outputs preserve the original
 NW, NE, SE, SW indexing, centered at the origin, rather than sorting the rotated
 corners by their final position.
 
 Integer anchor translation uses integer half-width/half-height and saturates
-wide intermediate subtraction to ``int``. ``Rbc_TranslatePoint`` instead keeps
+wide intermediate subtraction to ``int``. :c:func:`rbcTextDrawing.Rbc_TranslatePoint` instead keeps
 fractional half-pixel offsets. Layout sizes clamp negative results to zero and
 large values to ``INT_MAX``; floating drawing coordinates also handle nonfinite
 values before rounding. These policies bound representation, not visibility:
@@ -95,10 +95,10 @@ Color-changing paths reset the GC foreground to the style's normal color,
 not to the original GC value. The normal path without a shadow does not
 explicitly select the normal color, so the supplied GC must already have the
 intended foreground. Callers must supply any colors or border required by the
-selected state and permit the temporary GC mutation. ``Rbc_SetPrintTextStyle``
+selected state and permit the temporary GC mutation. :c:func:`rbcTextDrawing.Rbc_SetPrintTextStyle`
 does not initialize a GC and is not sufficient preparation for native drawing.
 
-``Rbc_DrawText`` and ``Rbc_DrawText2`` build and release temporary layouts while
+:c:func:`rbcTextDrawing.Rbc_DrawText` and :c:func:`rbcTextDrawing.Rbc_DrawText2` build and release temporary layouts while
 borrowing the input string. Both skip NULL and empty strings; the latter also
 zeros a supplied result area on that path. Its nonempty result is the rounded
 rotated layout size, independent of the anchor position. Exporters retain their
@@ -107,7 +107,7 @@ own text serialization paths; these native draw calls do not embed fonts.
 Bitmap GC lifetime
 ------------------
 
-``Rbc_GetBitmapGC`` supplies a different resource: a shared mutable depth-one GC
+:c:func:`rbcTextDrawing.Rbc_GetBitmapGC` supplies a different resource: a shared mutable depth-one GC
 cached by Display pointer in a process-static hash table. Its creation bitmap
 is temporary, but the GC is retained. Subsequent requests do not reset its
 foreground, background or other attributes. Callers borrow it, establish their
@@ -378,3 +378,48 @@ on failure. Pair it with :c:func:`FontSourceFree` on either outcome. The rebuilt
 program has a separate owner: :c:func:`FontProgram` can attach its destination
 allocation before a later validation error, and :c:func:`FontFree` releases that
 font record. The source and rebuilt program must not be treated as aliases.
+
+Choosing a text helper
+-----------------------
+
+.. list-table:: Measurement and drawing contracts
+   :header-rows: 1
+   :widths: 27 38 35
+
+   * - Helper
+     - Geometry and result
+     - Resources and mutation
+   * - :c:func:`Rbc_GetTextLayout`
+     - Unrotated fragment baselines and extents; removes the final leader when
+       fragments exist. NULL is treated as empty text, with style padding.
+     - Returns one owned allocation; fragments borrow the input text.
+   * - :c:func:`Rbc_GetTextExtents`
+     - Unrotated extents without fragments; retains final leader spacing.
+       NULL returns zero without consulting the style.
+     - Writes both required output pointers; allocates no layout.
+   * - :c:func:`rbcTextDrawing.Rbc_DrawTextLayout`
+     - Anchors the rotated bounding box at the requested pixel position.
+     - Borrows the layout; normalizes style theta and may change GC foreground.
+   * - :c:func:`rbcTextDrawing.Rbc_DrawText2`
+     - Draws and optionally returns rotated bounding dimensions, independent
+       of anchor position. NULL/empty text returns zero dimensions.
+     - Builds and frees a temporary layout; inherits drawing state mutations.
+
+The internal :c:func:`rbcTextDrawing.DrawTextLayout` takes an already anchored
+upper-left position. The externally named drawing helpers instead take an
+anchor position and apply the style's anchor themselves. Passing an already
+translated origin to those helpers applies the anchor offset twice.
+
+:c:func:`rbcTextDrawing.Rbc_GetBoundingBox` returns floating extents and optional
+centered corners. It does not place the box on a drawable. Use
+:c:func:`rbcTextDrawing.Rbc_TranslateAnchor` for saturated integer placement or
+:c:func:`rbcTextDrawing.Rbc_TranslatePoint` to retain half-pixel center offsets.
+The ``TK_ANCHOR_NULL`` enum leaves a position unchanged; it does not permit a
+NULL input point or missing required output pointers.
+
+:c:func:`rbcTextDrawing.Rbc_SetDrawTextStyle` borrows its GC without acquiring a
+Tk reference. :c:func:`Rbc_ResetTextStyle` and :c:func:`Rbc_FreeTextStyle` require
+an owned Tk GC or NULL, so do not apply them directly to a style containing
+someone else's GC. The print setter's ``activeColor`` is an active foreground,
+not a background color; :c:func:`rbcTextDrawing.Rbc_SetPrintTextStyle` does not
+initialize a GC or prepare the style for native drawing.

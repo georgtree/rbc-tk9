@@ -96,6 +96,11 @@ typedef struct {
  * until the layout is no longer used. NULL is treated as an empty string.
  * The caller frees the single allocation with ckfree. Counts are UTF byte
  * counts, not character counts. Rotation and anchoring are drawing operations.
+ *
+ * @param[in] string NUL-terminated Tcl UTF text borrowed by fragments until the layout is freed; NULL is
+ *    treated as empty.
+ * @param[in] stylePtr Borrowed style with live font, padding, justification, leader and shadow offset used for
+ *    measurement.
  */
 TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *stylePtr);
 /**
@@ -104,6 +109,12 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *stylePtr);
  * The height includes leader spacing for every line; unlike GetTextLayout it
  * does not remove the final leader. Do not substitute it blindly for layout
  * dimensions when nonzero leader spacing is used.
+ *
+ * @param[in] tsPtr Borrowed measurement style and live font; ignored when string is NULL.
+ * @param[in] string NUL-terminated Tcl UTF text, or NULL to return zero dimensions.
+ * @param[out] widthPtr Required destination for the nonnegative unrotated width in pixels.
+ * @param[out] heightPtr Required destination for the nonnegative unrotated height in pixels, including final
+ *    leader spacing.
  */
 void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int *heightPtr);
 /**
@@ -111,6 +122,8 @@ void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int
  * This is not a full memset: gc, border, width and height are not initialized.
  * A caller using those fields must initialize them separately. In particular,
  * set gc to NULL or a valid owned Tk GC before ResetTextStyle or FreeTextStyle.
+ *
+ * @param[inout] stylePtr Caller-owned record receiving selected defaults; existing resources are not released.
  */
 void Rbc_InitTextStyle(TextStyle *stylePtr);
 /**
@@ -118,6 +131,10 @@ void Rbc_InitTextStyle(TextStyle *stylePtr);
  * Requires a live window, valid font, and gc either NULL or an owned Tk GC.
  * Acquires the replacement before releasing the old GC. Font and colors are
  * borrowed; their ownership is unchanged.
+ *
+ * @param[in] tkwin Live Tk window supplying the display and drawing resources; borrowed for the call.
+ * @param[inout] stylePtr Style with a valid borrowed font, optional color and NULL or owned Tk GC; receives
+ *    the new owned GC.
  */
 void Rbc_ResetTextStyle(Tk_Window tkwin, TextStyle *stylePtr);
 /**
@@ -125,17 +142,21 @@ void Rbc_ResetTextStyle(Tk_Window tkwin, TextStyle *stylePtr);
  * Does not release font, colors, border or the style record, and does not clear
  * the gc field. Do not call twice without resetting that field or installing
  * another owned GC. A borrowed GC must not be released through this helper.
+ *
+ * @param[in] display Display owning the style GC.
+ * @param[inout] stylePtr Style whose non-NULL owned Tk GC is released; gc remains stale until the caller
+ *    resets it.
  */
 void Rbc_FreeTextStyle(Display *display, TextStyle *stylePtr);
 void Rbc_SetDrawTextStyle(TextStyle *stylePtr, Tk_Font font, GC gc, XColor *normalColor, XColor *activeColor,
                           XColor *shadowColor, double theta, Tk_Anchor anchor, Tk_Justify justify, int leader,
                           int shadowOffset);
-void Rbc_SetPrintTextStyle(TextStyle *stylePtr, Tk_Font font, XColor *fgColor, XColor *bgColor, XColor *shadowColor,
+void Rbc_SetPrintTextStyle(TextStyle *stylePtr, Tk_Font font, XColor *fgColor, XColor *activeColor, XColor *shadowColor,
                            double theta, Tk_Anchor anchor, Tk_Justify justify, int leader, int shadowOffset);
 void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *stylePtr, int x, int y);
 void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr, TextStyle *stylePtr, int x, int y);
 void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *stylePtr, int x, int y,
-                   Dim2D *dimPtr);
+                   Dim2D *areaPtr);
 Pixmap Rbc_CreateTextBitmap(Tk_Window tkwin, TextLayout *textPtr, TextStyle *stylePtr, int *widthPtr, int *heightPtr);
 int Rbc_DrawRotatedText(Display *display, Drawable drawable, int x, int y, double theta, TextStyle *stylePtr,
                         TextLayout *textPtr);

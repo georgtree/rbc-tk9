@@ -47,6 +47,8 @@ static void DrawTextLayout(Display *display, Drawable drawable, GC gc, Tk_Font f
  * @ingroup text_drawing
  *
  * No allocation or interpreter error is involved; negative coordinates remain valid.
+ *
+ * @param[in] value Wide signed pixel coordinate, saturated to the native int range.
  */
 static int TextLayoutInt(Tcl_WideInt value) {
     if (value > INT_MAX) {
@@ -63,6 +65,8 @@ static int TextLayoutInt(Tcl_WideInt value) {
  * @ingroup text_drawing
  *
  * Nonpositive inputs become zero; values above INT_MAX become INT_MAX.
+ *
+ * @param[in] value Wide pixel extent, clamped to zero through INT_MAX.
  */
 static int TextLayoutSize(Tcl_WideInt value) {
     if (value <= 0) {
@@ -80,6 +84,8 @@ static int TextLayoutSize(Tcl_WideInt value) {
  *
  * Uses offsetof(TextLayout, fragArr), including for zero fragments. Negative
  * counts or size_t overflow cause Tcl_Panic rather than a recoverable error.
+ *
+ * @param[in] nFrags Nonnegative number of TextFragment records; zero requires only the layout header.
  */
 static size_t GetTextLayoutByteCount(Tcl_Size nFrags) {
     size_t headerSize;
@@ -100,6 +106,8 @@ static size_t GetTextLayoutByteCount(Tcl_Size nFrags) {
  *
  * Nonfinite or nonpositive values become zero; large finite values saturate
  * at INT_MAX. Remaining values use the existing ROUND convention.
+ *
+ * @param[in] value Floating pixel extent; nonfinite or nonpositive values become zero.
  */
 static int TextRotatedSize(double value) {
     if ((!FINITE(value)) || (value <= 0.0)) {
@@ -117,6 +125,8 @@ static int TextRotatedSize(double value) {
  *
  * Nonfinite values become zero; finite out-of-range values saturate at the
  * corresponding int endpoint. Remaining values use ROUND.
+ *
+ * @param[in] value Floating signed pixel coordinate; nonfinite values become zero.
  */
 static int TextLayoutCoordinate(double value) {
     if (!FINITE(value)) {
@@ -141,6 +151,15 @@ static int TextLayoutCoordinate(double value) {
  * theta is in degrees and must satisfy the bounding-box helper preconditions.
  * The caller supplies a live drawable, compatible GC and font. This helper
  * neither selects foreground colors nor retains or frees layout resources.
+ *
+ * @param[in] display Display owning the destination and drawing resources.
+ * @param[in] drawable Live destination drawable compatible with the supplied font and GC.
+ * @param[in] gc Borrowed compatible GC with foreground already selected.
+ * @param[in] font Borrowed Tk font used to draw the measured fragments.
+ * @param[in] x Upper-left X coordinate of the rotated bounding box, already anchored.
+ * @param[in] y Upper-left Y coordinate of the rotated bounding box, already anchored.
+ * @param[in] textPtr Borrowed unrotated layout whose fragment strings remain alive and unchanged.
+ * @param[in] theta Finite normalized rotation in degrees, in [0, 360).
  */
 static void DrawTextLayout(Display *display, Drawable drawable, GC gc, Tk_Font font, int x, int y, TextLayout *textPtr,
                            double theta) {
@@ -410,6 +429,14 @@ void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int
  * Positive angles rotate visually counterclockwise in screen coordinates.
  * Exact quadrants avoid trigonometric rounding. Other angles rotate each
  * corner and double the maximum positive coordinates. No resources are owned.
+ *
+ * @param[in] width Nonnegative unrotated width in pixels.
+ * @param[in] height Nonnegative unrotated height in pixels.
+ * @param[in] theta Finite normalized rotation in degrees, in [0, 360).
+ * @param[out] rotWidthPtr Required destination for the floating axis-aligned rotated width.
+ * @param[out] rotHeightPtr Required destination for the floating axis-aligned rotated height.
+ * @param[out] bbox Optional array of four rotated corners centered at the origin, in original NW, NE, SE, SW
+ *    order.
  */
 void Rbc_GetBoundingBox(int width, int height, double theta, double *rotWidthPtr, double *rotHeightPtr, Point2D *bbox) {
     register int i;
@@ -499,6 +526,14 @@ void Rbc_GetBoundingBox(int width, int height, double theta, double *rotWidthPtr
  * Both output pointers are required. NULL and NW anchors leave the position
  * unchanged. Center offsets use integer division; subtraction is performed
  * in Tcl_WideInt and saturated to int. No drawing or allocation occurs.
+ *
+ * @param[in] x Horizontal anchor position in drawable pixels.
+ * @param[in] y Vertical anchor position in drawable pixels.
+ * @param[in] width Nonnegative box width in pixels.
+ * @param[in] height Nonnegative box height in pixels.
+ * @param[in] anchor Tk anchor locating the rotated box relative to the requested position.
+ * @param[out] transXPtr Required destination for the saturated upper-left X coordinate.
+ * @param[out] transYPtr Required destination for the saturated upper-left Y coordinate.
  */
 void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, int *transXPtr, int *transYPtr) {
     Tcl_WideInt tx;
@@ -551,6 +586,11 @@ void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, 
  * Does not modify pointPtr. Center offsets retain half-pixel fractions,
  * unlike Rbc_TranslateAnchor; no integer saturation is applied. NULL and
  * NW anchors return the original position.
+ *
+ * @param[in] pointPtr Required borrowed anchor point, left unchanged.
+ * @param[in] width Nonnegative box width in pixels.
+ * @param[in] height Nonnegative box height in pixels.
+ * @param[in] anchor Tk anchor locating the rotated box relative to the requested position.
  */
 Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor anchor) {
     Point2D trans;
@@ -616,6 +656,21 @@ void Rbc_InitTextStyle(TextStyle *tsPtr) {
  * No resource is acquired or released, including a previously installed GC.
  * border, width and height remain untouched. A supplied borrowed GC must not
  * subsequently be released through Rbc_FreeTextStyle.
+ *
+ * @param[inout] tsPtr Caller-owned style receiving defaults and borrowed attributes; existing resources are
+ *    not released.
+ * @param[in] font Tk font borrowed for subsequent measurement and drawing.
+ * @param[in] gc GC borrowed for drawing; no reference is acquired.
+ * @param[in] normalColor Borrowed normal color, required by drawing paths that restore foreground.
+ * @param[in] activeColor Borrowed active color, required when STATE_ACTIVE is used.
+ * @param[in] shadowColor Borrowed shadow color, or NULL to disable the shadow pass.
+ * @param[in] theta Rotation in degrees; supply a finite value with quotient by 360 representable as int before
+ *    drawing.
+ * @param[in] anchor Tk anchor locating the rotated box relative to the requested position.
+ * @param[in] justify Horizontal justification of fragments within the unrotated layout.
+ * @param[in] leader Extra interline spacing in display pixels.
+ * @param[in] shadowOffset Shadow displacement in pixels; positive values enable a pass when a shadow color is
+ *    present.
  */
 void Rbc_SetDrawTextStyle(TextStyle *tsPtr, Tk_Font font, GC gc, XColor *normalColor, XColor *activeColor,
                           XColor *shadowColor, double theta, Tk_Anchor anchor, Tk_Justify justify, int leader,
@@ -640,6 +695,19 @@ void Rbc_SetDrawTextStyle(TextStyle *tsPtr, Tk_Font font, GC gc, XColor *normalC
  * Applies Rbc_InitTextStyle defaults, then borrows the supplied font and
  * colors. gc, border, width and height remain untouched; this does not
  * prepare an uninitialized style for native drawing or GC cleanup.
+ *
+ * @param[inout] tsPtr Caller-owned style receiving print attributes; gc, border and extents remain untouched.
+ * @param[in] font Borrowed Tk font supplying measurement and export attributes.
+ * @param[in] fgColor Borrowed foreground color; validity requirements belong to the chosen exporter.
+ * @param[in] activeColor Borrowed active foreground color; this is not a background color.
+ * @param[in] shadowColor Borrowed shadow color, or NULL for no shadow color.
+ * @param[in] theta Rotation in degrees; supply a finite value with quotient by 360 representable as int before
+ *    drawing.
+ * @param[in] anchor Tk anchor locating the rotated box relative to the requested position.
+ * @param[in] justify Horizontal justification of fragments within the unrotated layout.
+ * @param[in] leader Extra interline spacing in display pixels.
+ * @param[in] shadowOffset Shadow displacement in pixels; positive values enable a pass when a shadow color is
+ *    present.
  */
 void Rbc_SetPrintTextStyle(TextStyle *tsPtr, Tk_Font font, XColor *fgColor, XColor *activeColor, XColor *shadowColor,
                            double theta, Tk_Anchor anchor, Tk_Justify justify, int leader, int shadowOffset) {
@@ -669,6 +737,14 @@ void Rbc_SetPrintTextStyle(TextStyle *tsPtr, Tk_Font font, XColor *fgColor, XCol
  * the normal color, not the GC foreground on entry. The GC must permit this
  * mutation. Rotation uses Tk angled text, not a temporary bitmap.
  * The layout and style resources remain owned by the caller.
+ *
+ * @param[in] tkwin Live Tk window supplying the display and drawing resources; borrowed for the call.
+ * @param[in] drawable Live destination drawable compatible with the supplied font and GC.
+ * @param[in] textPtr Borrowed measured layout and live fragment strings; not freed or modified.
+ * @param[inout] tsPtr Borrowed style with valid font, mutable GC and colors required by its state; theta is
+ *    normalized in place.
+ * @param[in] x Horizontal anchor position in drawable pixels.
+ * @param[in] y Vertical anchor position in drawable pixels.
  */
 void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr, TextStyle *tsPtr, int x, int y) {
     double theta;
@@ -734,6 +810,16 @@ void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr,
  * Nonempty text uses Rbc_DrawTextLayout, inheriting its style requirements
  * and theta mutation. areaPtr may be NULL; dimensions use rounded rotated
  * extents and exclude anchor position. Frees only the temporary layout.
+ *
+ * @param[in] tkwin Live Tk window supplying the display and drawing resources; borrowed for the call.
+ * @param[in] drawable Live destination drawable compatible with the supplied font and GC.
+ * @param[in] string Borrowed NUL-terminated Tcl UTF text; NULL or empty text draws nothing.
+ * @param[inout] tsPtr Borrowed style with valid font, mutable GC and colors required by its state; theta is
+ *    normalized in place.
+ * @param[in] x Horizontal anchor position in drawable pixels.
+ * @param[in] y Vertical anchor position in drawable pixels.
+ * @param[out] areaPtr Optional rotated bounding dimensions in pixels; initialized to zero even when no text is
+ *    drawn.
  */
 void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *tsPtr, int x, int y,
                    Dim2D *areaPtr) {
@@ -777,6 +863,14 @@ void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextS
  * NULL or empty text is a no-op. Otherwise delegates to Rbc_DrawTextLayout
  * and frees the layout, retaining the caller-owned string, font and colors.
  * Inherits the drawing helper requirements and theta/GC side effects.
+ *
+ * @param[in] tkwin Live Tk window supplying the display and drawing resources; borrowed for the call.
+ * @param[in] drawable Live destination drawable compatible with the supplied font and GC.
+ * @param[in] string Borrowed NUL-terminated Tcl UTF text; NULL or empty text draws nothing.
+ * @param[inout] tsPtr Borrowed style with valid font, mutable GC and colors required by its state; theta is
+ *    normalized in place.
+ * @param[in] x Horizontal anchor position in drawable pixels.
+ * @param[in] y Vertical anchor position in drawable pixels.
  */
 void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *tsPtr, int x, int y) {
     TextLayout *textPtr;
@@ -799,6 +893,8 @@ void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, const char *string, TextSt
  * not free it and must establish all state needed for their operation.
  * The process-static table has no cleanup or synchronization here; it is
  * not a per-window, per-screen or per-interpreter ownership mechanism.
+ *
+ * @param[in] tkwin Window selecting the display cache key and, on first use, the screen for GC creation.
  */
 GC Rbc_GetBitmapGC(Tk_Window tkwin) {
     int isNew;

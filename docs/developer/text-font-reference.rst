@@ -3,15 +3,24 @@ Text and font C reference
 
 These interfaces are private. See :doc:`text-fonts` for ownership and lifetime.
 
+Layout measurement
+-------------------
+
 .. doxygenfunction:: Rbc_GetTextLayout
 
 .. doxygenfunction:: Rbc_GetTextExtents
+
+Style initialization and GC ownership
+--------------------------------------
 
 .. doxygenfunction:: Rbc_InitTextStyle
 
 .. doxygenfunction:: Rbc_ResetTextStyle
 
 .. doxygenfunction:: Rbc_FreeTextStyle
+
+Document font cache
+--------------------
 
 .. doxygenfunction:: Rbc_FirstExportFont
 

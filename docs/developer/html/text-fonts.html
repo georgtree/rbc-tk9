@@ -51,7 +51,7 @@ See <a class="reference internal" href="rendering.html"><span class="doc">Render
 finalization and cleanup.</p>
 <section id="layouts-borrow-the-text">
 <h2>Layouts borrow the text<a class="headerlink" href="#layouts-borrow-the-text" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetTextLayout</span></code> returns one allocation containing a <code class="docutils literal notranslate"><span class="pre">TextLayout</span></code> and its
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextLayout" title="Rbc_GetTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextLayout()</span></code></a> returns one allocation containing a <code class="docutils literal notranslate"><span class="pre">TextLayout</span></code> and its
 fragment array. Free it with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>. Each fragment points into the original
 string, which must remain alive and unchanged while the layout is used. Fragment
 counts are UTF byte counts; glyph processing must decode characters rather than
@@ -63,7 +63,7 @@ offset, justification and interline leader determine the unrotated box and
 fragment baselines. Anchoring and rotation are applied later. Large dimensions
 are bounded to integer geometry, while impossible fragment/count allocations
 are fatal rather than Tcl command errors.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetTextExtents</span></code> is a separate measurement path, not an allocation-free
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextExtents" title="Rbc_GetTextExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextExtents()</span></code></a> is a separate measurement path, not an allocation-free
 alias for the layout algorithm. NULL produces zero extents regardless of
 padding. For nonempty multiline text it retains the final leader spacing,
 whereas the layout builder removes that final leader. Callers must choose the
@@ -74,20 +74,20 @@ appropriate measurement rather than assume the two are interchangeable.</p>
 <p><code class="docutils literal notranslate"><span class="pre">TextStyle</span></code> groups font, colors, border, GC and geometry settings. Merely
 copying or passing it does not acquire Tk references. Components usually own
 font/color options; temporary styles borrow them.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_InitTextStyle</span></code> sets selected defaults, but does not initialize <code class="docutils literal notranslate"><span class="pre">gc</span></code>,
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_InitTextStyle" title="Rbc_InitTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitTextStyle()</span></code></a> sets selected defaults, but does not initialize <code class="docutils literal notranslate"><span class="pre">gc</span></code>,
 <code class="docutils literal notranslate"><span class="pre">border</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code> or <code class="docutils literal notranslate"><span class="pre">height</span></code>. Callers must initialize any such fields they
-use. <code class="docutils literal notranslate"><span class="pre">Rbc_SetDrawTextStyle</span></code> installs the supplied GC without acquiring it;
+use. <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="rbcTextDrawing.Rbc_SetDrawTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetDrawTextStyle()</span></code></a> installs the supplied GC without acquiring it;
 this does not grant permission to release a caller-owned GC.</p>
-<p>For an owning style, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetTextStyle</span></code> obtains a Tk GC from the current font
+<p>For an owning style, <a class="reference internal" href="text-font-reference.html#c.Rbc_ResetTextStyle" title="Rbc_ResetTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetTextStyle()</span></code></a> obtains a Tk GC from the current font
 and optional foreground, then releases the previous GC. Its old GC must be
-NULL or a valid owned Tk GC. <code class="docutils literal notranslate"><span class="pre">Rbc_FreeTextStyle</span></code> releases only that GC; it does
+NULL or a valid owned Tk GC. <a class="reference internal" href="text-font-reference.html#c.Rbc_FreeTextStyle" title="Rbc_FreeTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTextStyle()</span></code></a> releases only that GC; it does
 not free font, colors, border or the style itself, and does not clear the GC
 field. Repeated cleanup therefore requires an explicit reset. These are existing
 helper contracts, not an automatic resource-management convention.</p>
 </section>
 <section id="native-layout-presentation">
 <h2>Native layout presentation<a class="headerlink" href="#native-layout-presentation" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_DrawTextLayout</span></code> consumes the existing unrotated layout. It normalizes
+<p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawTextLayout" title="rbcTextDrawing.Rbc_DrawTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawTextLayout()</span></code></a> consumes the existing unrotated layout. It normalizes
 <code class="docutils literal notranslate"><span class="pre">theta</span></code> in the style, computes and rounds the rotated bounding dimensions,
 then translates the requested anchor to that box’s upper-left corner. The
 private drawing loop places each fragment baseline relative to this origin.
@@ -97,12 +97,12 @@ It does not create, rotate or stipple a bitmap of the text.</p>
 <p>Angles must be finite and bounded before entering this layer: the historical
 <code class="docutils literal notranslate"><span class="pre">FMOD</span></code> macro converts a quotient to <code class="docutils literal notranslate"><span class="pre">int</span></code>. The later finite checks on
 coordinates do not make arbitrary angles safe. Direct callers of
-<code class="docutils literal notranslate"><span class="pre">Rbc_GetBoundingBox</span></code> should supply normalized angles in [0, 360); its exact
+<a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_GetBoundingBox" title="rbcTextDrawing.Rbc_GetBoundingBox"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_GetBoundingBox()</span></code></a> should supply normalized angles in [0, 360); its exact
 quadrant switch assumes that convention. Corner outputs preserve the original
 NW, NE, SE, SW indexing, centered at the origin, rather than sorting the rotated
 corners by their final position.</p>
 <p>Integer anchor translation uses integer half-width/half-height and saturates
-wide intermediate subtraction to <code class="docutils literal notranslate"><span class="pre">int</span></code>. <code class="docutils literal notranslate"><span class="pre">Rbc_TranslatePoint</span></code> instead keeps
+wide intermediate subtraction to <code class="docutils literal notranslate"><span class="pre">int</span></code>. <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_TranslatePoint" title="rbcTextDrawing.Rbc_TranslatePoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_TranslatePoint()</span></code></a> instead keeps
 fractional half-pixel offsets. Layout sizes clamp negative results to zero and
 large values to <code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code>; floating drawing coordinates also handle nonfinite
 values before rounding. These policies bound representation, not visibility:
@@ -134,9 +134,9 @@ then the main pass uses the current foreground or active color.</p></td>
 not to the original GC value. The normal path without a shadow does not
 explicitly select the normal color, so the supplied GC must already have the
 intended foreground. Callers must supply any colors or border required by the
-selected state and permit the temporary GC mutation. <code class="docutils literal notranslate"><span class="pre">Rbc_SetPrintTextStyle</span></code>
+selected state and permit the temporary GC mutation. <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="rbcTextDrawing.Rbc_SetPrintTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetPrintTextStyle()</span></code></a>
 does not initialize a GC and is not sufficient preparation for native drawing.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_DrawText</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_DrawText2</span></code> build and release temporary layouts while
+<p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawText" title="rbcTextDrawing.Rbc_DrawText"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawText()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawText2" title="rbcTextDrawing.Rbc_DrawText2"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawText2()</span></code></a> build and release temporary layouts while
 borrowing the input string. Both skip NULL and empty strings; the latter also
 zeros a supplied result area on that path. Its nonempty result is the rounded
 rotated layout size, independent of the anchor position. Exporters retain their
@@ -144,7 +144,7 @@ own text serialization paths; these native draw calls do not embed fonts.</p>
 </section>
 <section id="bitmap-gc-lifetime">
 <h2>Bitmap GC lifetime<a class="headerlink" href="#bitmap-gc-lifetime" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetBitmapGC</span></code> supplies a different resource: a shared mutable depth-one GC
+<p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_GetBitmapGC" title="rbcTextDrawing.Rbc_GetBitmapGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_GetBitmapGC()</span></code></a> supplies a different resource: a shared mutable depth-one GC
 cached by Display pointer in a process-static hash table. Its creation bitmap
 is temporary, but the GC is retained. Subsequent requests do not reset its
 foreground, background or other attributes. Callers borrow it, establish their
@@ -414,6 +414,60 @@ program has a separate owner: <a class="reference internal" href="text-font-refe
 allocation before a later validation error, and <a class="reference internal" href="text-font-reference.html#c.FontFree" title="FontFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontFree()</span></code></a> releases that
 font record. The source and rebuilt program must not be treated as aliases.</p>
 </section>
+<section id="choosing-a-text-helper">
+<h2>Choosing a text helper<a class="headerlink" href="#choosing-a-text-helper" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Measurement and drawing contracts</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 27.0%" />
+<col style="width: 38.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helper</p></th>
+<th class="head"><p>Geometry and result</p></th>
+<th class="head"><p>Resources and mutation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextLayout" title="Rbc_GetTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextLayout()</span></code></a></p></td>
+<td><p>Unrotated fragment baselines and extents; removes the final leader when
+fragments exist. NULL is treated as empty text, with style padding.</p></td>
+<td><p>Returns one owned allocation; fragments borrow the input text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextExtents" title="Rbc_GetTextExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextExtents()</span></code></a></p></td>
+<td><p>Unrotated extents without fragments; retains final leader spacing.
+NULL returns zero without consulting the style.</p></td>
+<td><p>Writes both required output pointers; allocates no layout.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawTextLayout" title="rbcTextDrawing.Rbc_DrawTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawTextLayout()</span></code></a></p></td>
+<td><p>Anchors the rotated bounding box at the requested pixel position.</p></td>
+<td><p>Borrows the layout; normalizes style theta and may change GC foreground.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawText2" title="rbcTextDrawing.Rbc_DrawText2"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawText2()</span></code></a></p></td>
+<td><p>Draws and optionally returns rotated bounding dimensions, independent
+of anchor position. NULL/empty text returns zero dimensions.</p></td>
+<td><p>Builds and frees a temporary layout; inherits drawing state mutations.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The internal <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.DrawTextLayout" title="rbcTextDrawing.DrawTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.DrawTextLayout()</span></code></a> takes an already anchored
+upper-left position. The externally named drawing helpers instead take an
+anchor position and apply the style’s anchor themselves. Passing an already
+translated origin to those helpers applies the anchor offset twice.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_GetBoundingBox" title="rbcTextDrawing.Rbc_GetBoundingBox"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_GetBoundingBox()</span></code></a> returns floating extents and optional
+centered corners. It does not place the box on a drawable. Use
+<a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_TranslateAnchor" title="rbcTextDrawing.Rbc_TranslateAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_TranslateAnchor()</span></code></a> for saturated integer placement or
+<a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_TranslatePoint" title="rbcTextDrawing.Rbc_TranslatePoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_TranslatePoint()</span></code></a> to retain half-pixel center offsets.
+The <code class="docutils literal notranslate"><span class="pre">TK_ANCHOR_NULL</span></code> enum leaves a position unchanged; it does not permit a
+NULL input point or missing required output pointers.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="rbcTextDrawing.Rbc_SetDrawTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetDrawTextStyle()</span></code></a> borrows its GC without acquiring a
+Tk reference. <a class="reference internal" href="text-font-reference.html#c.Rbc_ResetTextStyle" title="Rbc_ResetTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetTextStyle()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.Rbc_FreeTextStyle" title="Rbc_FreeTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTextStyle()</span></code></a> require
+an owned Tk GC or NULL, so do not apply them directly to a style containing
+someone else’s GC. The print setter’s <code class="docutils literal notranslate"><span class="pre">activeColor</span></code> is an active foreground,
+not a background color; <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="rbcTextDrawing.Rbc_SetPrintTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetPrintTextStyle()</span></code></a> does not
+initialize a GC or prepare the style for native drawing.</p>
+</section>
 </section>
 
 
@@ -440,6 +494,7 @@ font record. The source and rebuilt program must not be treated as aliases.</p>
 <li><a class="reference internal" href="#svg-cmap-reconstruction">SVG cmap reconstruction</a></li>
 <li><a class="reference internal" href="#pdf-character-codes-and-finalization">PDF character codes and finalization</a></li>
 <li><a class="reference internal" href="#parameter-units-and-identifier-domains">Parameter units and identifier domains</a></li>
+<li><a class="reference internal" href="#choosing-a-text-helper">Choosing a text helper</a></li>
 </ul>
 </li>
 </ul>
