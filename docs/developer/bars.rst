@@ -27,11 +27,11 @@ the renderer's rectangle type.
      - Ownership
      - Release path
    * - Concrete bar and its copied name/label
-     - Shared element lifecycle owns the allocation returned by Rbc_BarElement
+     - Shared element lifecycle owns the allocation returned by :c:func:`rbcGrBarConfiguration.Rbc_BarElement`
      - Shared element teardown, after the concrete destructor
    * - Embedded normal pen
      - Storage belongs to the bar; it is not a named-pen allocation
-     - DestroyPen for derived resources; element options for direct Tk resources
+     - :c:func:`rbcGrBarConfiguration.DestroyPen` for derived resources; element options for direct Tk resources
    * - Named normal, active and palette pens
      - References acquired through shared pen/element transactions
      - Reference release through the pen manager or palette cleanup
@@ -39,11 +39,11 @@ the renderer's rectangle type.
      - Tk option tables manage configured fields
      - Shared Tk option teardown
    * - Derived error color, shadow and GCs
-     - ConfigurePen stages and commits these resources
-     - DestroyPen
+     - :c:func:`rbcGrBarConfiguration.ConfigurePen` stages and commits these resources
+     - :c:func:`rbcGrBarConfiguration.DestroyPen`
    * - Normal and active rectangles, source-index maps, mapped errors
      - Bar/Element own the arrays; styles borrow slices
-     - ResetBar
+     - :c:func:`rbcGrBarGeometry.ResetBar`
    * - Source vector slots
      - Element slots own subscriptions or private data, not application vectors
      - Rbc_FreeElemVector during concrete destruction
@@ -52,27 +52,27 @@ the renderer's rectangle type.
      - Frequency-table rebuild or graph teardown
 
 ``BarPenStyle`` stores a concrete ``BarPen *`` alongside its weight range and
-borrowed geometry slices. Never free those slices separately. ``ClearPalette``
-invalidates only counts: after ``ResetBar`` the slice addresses may still contain
+borrowed geometry slices. Never free those slices separately. :c:func:`rbcGrBarGeometry.ClearPalette`
+invalidates only counts: after :c:func:`rbcGrBarGeometry.ResetBar` the slice addresses may still contain
 old values and must not be dereferenced until remapping installs valid views.
 
 Creation and configuration
 --------------------------
 
-``Rbc_BarElement`` allocates zeroed storage, copies the element name and initial
+:c:func:`rbcGrBarConfiguration.Rbc_BarElement` allocates zeroed storage, copies the element name and initial
 label, installs ``barProcs``, initializes the embedded pen, and creates an empty
 palette. It does not register the element, apply Tk option defaults or produce
 geometry. Shared creation must finish these steps. The method table uses ordinary
 paired X/Y counting; it has no complex-vector point-count override.
 
-``Rbc_BarPen`` similarly creates an unregistered named pen. Only the exact name
-``activeBar`` selects active defaults. ``InitPen`` installs callbacks and fallback
+:c:func:`rbcGrBarConfiguration.Rbc_BarPen` similarly creates an unregistered named pen. Only the exact name
+``activeBar`` selects active defaults. :c:func:`rbcGrBarConfiguration.InitPen` installs callbacks and fallback
 fields in zeroed storage; it is not a substitute for Tk option initialization.
 Named pens and embedded pens share derived-resource configuration, but have
 different allocation and option-table owners. See :doc:`pens` and
 :doc:`configuration` for the common machinery.
 
-``ConfigureBar`` runs after candidate Tk option fields have been installed:
+:c:func:`rbcGrBarConfiguration.ConfigureBar` runs after candidate Tk option fields have been installed:
 
 1. Reject nonfinite bar width and offset. A finite nonpositive element width
    intentionally means use the graph width.
@@ -92,7 +92,7 @@ leave derived state inconsistent with restored Tcl options. Data-expression
 callbacks retain the shared transaction's lifetime restrictions; arbitrary
 application side effects are not rolled back.
 
-``ConfigurePen`` validates all fallible derived values before replacing resources:
+:c:func:`rbcGrBarConfiguration.ConfigurePen` validates all fallible derived values before replacing resources:
 opacity, label offset, command-prefix syntax, format, finite rotation, pixel
 widths, error color, show masks and shadow. It then builds replacement GCs and
 commits them together with the parsed values. On failure it releases staged
@@ -101,7 +101,7 @@ not executed. Direct candidate Tk fields still need the caller's rollback.
 
 Error-color conversion accepts an empty value as NULL and any nonempty,
 case-sensitive prefix of ``defcolor`` as ``COLOR_DEFAULT``. The latter is a
-sentinel, not a Tk color reference; ``FreeBarPenColor`` must not pass it to
+sentinel, not a Tk color reference; :c:func:`rbcGrBarConfiguration.FreeBarPenColor` must not pass it to
 ``Tk_FreeColor``. Fill GC defaults choose foreground, then border color, then
 screen black. With both foreground and border, stipple gaps can be opaque;
 without both, the GC uses transparent stippling.
@@ -109,7 +109,7 @@ without both, the GC uses transparent stippling.
 Grouping keys and passes
 ------------------------
 
-``Rbc_InitFreqTable`` rebuilds graph-owned duplicate-X metadata from displayed,
+:c:func:`rbcGrBarLayout.Rbc_InitFreqTable` rebuilds graph-owned duplicate-X metadata from displayed,
 non-hidden, non-plot-hidden bar elements. It considers paired X/Y samples,
 rejecting nonfinite pairs and nonpositive Y on logarithmic Y axes. A key contains
 the original X and both axis pointers; signed zero is normalized. Offsets,
@@ -125,9 +125,9 @@ otherwise the graph mode applies. Track-owned axis identities isolate groups.
 
 Axis reset initializes this table, computes stack totals where needed, and
 resets placement counters before visiting element extents. Element mapping
-resets counters again before its ordered pass. ``Rbc_ResetStacks`` clears
+resets counters again before its ordered pass. :c:func:`rbcGrBarLayout.Rbc_ResetStacks` clears
 ``count`` and ``lastY``, retaining frequency and precomputed sums. A new consumer
-must not call ``PlaceBar`` as an independent query: it advances these counters.
+must not call :c:func:`rbcGrBarLayout.PlaceBar` as an independent query: it advances these counters.
 Skipping or reordering calls can change later bars' placement.
 
 Placement formulas
@@ -180,16 +180,16 @@ baseline, except that an unusable nonpositive log baseline becomes one.
 Data limits and error translations
 ----------------------------------
 
-``GetBarExtents`` uses full anchored X intervals, source Y extrema, baseline
-rules and ``CheckStacks`` totals. Those totals are final signed sums computed
-separately by ``Rbc_ComputeStacks``; they are not a list of every intermediate
+:c:func:`rbcGrBarLayout.GetBarExtents` uses full anchored X intervals, source Y extrema, baseline
+rules and :c:func:`rbcGrBarLayout.CheckStacks` totals. Those totals are final signed sums computed
+separately by :c:func:`rbcGrBarLayout.Rbc_ComputeStacks`; they are not a list of every intermediate
 stack endpoint. Consequently this is not a tight union of all final screen
 rectangles. Linear Y retains the historical zero-inclusive lower-bound rule.
 Log X bounds use valid positive full intervals.
 
 Extents also run placement without viewport rejection so that error-bar
 translations follow group order. In ``-errorbarposition bar`` mode,
-``SetBarErrorOffset`` records, per original source index::
+:c:func:`rbcGrBarGeometry.SetBarErrorOffset` records, per original source index::
 
     dx = (placedLeft + placedRight) / 2 - sourceX
     dy = placedValueY - sourceY
@@ -211,7 +211,7 @@ error processing and is not stored in the element.
 Screen geometry, ownership and output
 -------------------------------------
 
-``MapBar`` first releases previous mapped storage. It calls ``PlaceBar`` in
+:c:func:`rbcGrBarLayout.MapBar` first releases previous mapped storage. It calls :c:func:`rbcGrBarLayout.PlaceBar` in
 source order with viewport rejection enabled, saves any error translations,
 swaps downward Y edges, and maps both corners. Nonfinite results are skipped.
 Coordinates are bounded by the graph window before integer conversion. Width
@@ -224,9 +224,9 @@ raised borders. See :doc:`rendering` and :doc:`elements` for that outer scope.
 
 The bar owns its rectangle array and ``rectToData`` source-index map, plus
 separate arrays for explicitly active rectangles. Shared element fields own
-mapped error segments and their source-index maps. ``MergePens`` can reorder
+mapped error segments and their source-index maps. :c:func:`rbcGrBarGeometry.MergePens` can reorder
 rectangles and errors into pen groups, keeping the corresponding index maps in
-step. Style slices borrow the resulting storage. ``ResetBar`` clears palette
+step. Style slices borrow the resulting storage. :c:func:`rbcGrBarGeometry.ResetBar` clears palette
 views, frees mapped arrays and zeros pointers/counts; source vectors remain
 owned by their original creators.
 
@@ -236,15 +236,15 @@ geometry and pen styles. Value labels and legend samples are separate drawing
 paths. A legend sample outside the plot is not evidence that a bar escaped its
 clip.
 
-``ClosestBar`` measures distance to mapped rectangles, then returns the original
+:c:func:`rbcGrBarLayout.ClosestBar` measures distance to mapped rectangles, then returns the original
 source X/Y and index through ``rectToData``. A stacked hit therefore reports the
-sample contribution, not the cumulative top. ``Rbc_GetBarRectangle`` supplies
+sample contribution, not the cumulative top. :c:func:`rbcGrBarGeometry.Rbc_GetBarRectangle` supplies
 mapped bounds when a caller needs the actual placed rectangle instead.
 
 Palette grouping and active geometry
 ------------------------------------
 
-``MergePens`` runs after normal rectangles and error segments have been mapped.
+:c:func:`rbcGrBarGeometry.MergePens` runs after normal rectangles and error segments have been mapped.
 One palette entry simply borrows the complete arrays. With multiple styles it
 allocates replacement arrays and groups entries by palette order, retaining the
 previous order within each style. Rectangle and error source-index maps move
@@ -258,7 +258,7 @@ calculations reject invalid counts and size overflow, but these void mapping
 helpers do not report Tcl allocation errors. Ordinary allocations use the
 existing checked/fatal allocation conventions.
 
-``MapActiveBars`` frees its previous copies and scans mapped rectangles against
+:c:func:`rbcGrBarGeometry.MapActiveBars` frees its previous copies and scans mapped rectangles against
 the explicit source-index selection. Repeated requested indices do not duplicate
 a rectangle. Clipped or otherwise unmapped source samples cannot appear in the
 active subset. ``activeToData`` contains original data indices even after palette
@@ -281,8 +281,8 @@ style's rectangle count, not the number of error segments. Active output has its
 own callbacks. Neither output path performs placement again: grouping counters
 belong to extents/mapping passes, not rendering.
 
-``DrawBarSegments`` passes the complete batch and its relief, border, stipple and
-opacity to the screen renderer. ``SegmentsExport`` instead prepares a fill style
+:c:func:`rbcGrBarOutput.DrawBarSegments` passes the complete batch and its relief, border, stipple and
+opacity to the screen renderer. :c:func:`rbcGrBarOutput.SegmentsExport` instead prepares a fill style
 and walks rectangles through the selected document backend; its historical name
 does not mean line segments or PostScript-only output. It preserves the one-pixel
 inset for fills and original rectangle dimensions for relief borders. Zero fill
@@ -297,7 +297,7 @@ retain integer centering and size-minus-one geometry, trying the legend renderer
 before the screen fallback. Zero opacity suppresses the legend sample even when
 a data rectangle could still have a relief border.
 
-Error colors use ``GetBarColor`` for native GC creation, screen strokes and
+Error colors use :c:func:`rbcGrBarConfiguration.GetBarColor` for native GC creation, screen strokes and
 all document backends. Explicit colors remain unchanged. Both an empty color
 and ``defcolor`` inherit foreground, then the bar background, then black if
 neither is present. The final fallback uses caller-owned ``XColor`` storage:
@@ -310,7 +310,7 @@ the configured width and the backend's hairline handling.
 Value labels and callbacks
 --------------------------
 
-``DrawBarValues`` and ``BarValuesExport`` recover original X/Y values through
+:c:func:`rbcGrBarOutput.DrawBarValues` and :c:func:`rbcGrBarOutput.BarValuesExport` recover original X/Y values through
 the rectangle's source-index map. Stacked labels therefore receive the source
 contribution, not the cumulative stack top. Each call to the shared label helper
 returns one owned Tcl object reference, released by the loop even for empty text.
@@ -334,19 +334,82 @@ the returned label object protects its text, not the objects being drawn.
 Cleanup and font changes
 ------------------------
 
-``DestroyBar`` releases axes and named pens, destroys the embedded pen's derived
+:c:func:`rbcGrBarGeometry.DestroyBar` releases axes and named pens, destroys the embedded pen's derived
 resources, detaches every data slot, resets mapped arrays and releases explicit
 active indices, palette and tags. It does not free the concrete allocation or
 Tk-managed option resources: shared element teardown owns those remaining steps.
 Detaching a named vector does not destroy the application's vector.
 
-``DestroyPen`` releases text-style drawing resources and manually derived colors
+:c:func:`rbcGrBarConfiguration.DestroyPen` releases text-style drawing resources and manually derived colors
 and GCs, clearing released pointers. It deliberately leaves direct Tk option
 resources to the appropriate shared pen or element owner. Keeping this boundary
 explicit avoids double release of the embedded pen's options.
 
-``Rbc_BarFontsChanged`` visits both the named-pen table and every bar in the
+:c:func:`rbcGrBarConfiguration.Rbc_BarFontsChanged` visits both the named-pen table and every bar in the
 element table, including undisplayed elements. It resets label text styles with
 fonts, covering active/style pens through the named table and private embedded
 pens through the element table. It does not itself remap rectangles or schedule
 redrawing; the graph's font-change workflow owns that work.
+
+Array and coordinate contracts
+------------------------------
+
+Bar helpers use three different indices. Source indices address paired X/Y
+samples; mapped indices address surviving rectangles after placement and
+clipping decisions; palette slices group those mapped rectangles for drawing.
+The parallel ``rectToData`` map preserves the link back to the original sample.
+Use :c:func:`rbcGrBarGeometry.Rbc_GetBarRectangle` with a source index, not an
+index into a style's rectangle slice.
+
+.. list-table:: Array extents and ownership
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Helper
+     - Required relationship
+   * - :c:func:`rbcGrBarGeometry.NewBarErrorOffsets`
+     - Count covers original source slots, including samples that later fail placement. Caller frees the allocated array.
+   * - :c:func:`rbcGrBarGeometry.SetBarErrorOffset`
+     - Index must be valid in both source arrays and the offset array. Corners must still be in data space.
+   * - :c:func:`rbcGrBarGeometry.MergePens`
+     - Style lookup is indexed by original samples. The bar owns replacement geometry; palette entries only borrow slices.
+   * - :c:func:`rbcGrBarOutput.DrawBarValues` / :c:func:`rbcGrBarOutput.BarValuesExport`
+     - Rectangle and source-index arrays have matching counts and must remain stable across label callbacks.
+   * - :c:func:`rbcGrBarOutput.DrawBarErrorSegments`
+     - Count denotes independent mapped strokes, including caps, rather than source errors or rectangles.
+
+:c:func:`rbcGrBarLayout.GetBarArrayByteCount` validates multiplication but
+allocates nothing. Its output is unchanged on error. That differs from the
+mapping helpers that discard old geometry before rebuilding it; a failed or
+empty mapping is not a promise to preserve the previous image.
+
+:c:func:`rbcGrBarLayout.PlaceBar` returns data-space corners and advances mutable
+group state. :c:func:`rbcGrBarLayout.BarAnchorOffset` uses the full effective
+width before any aligned/overlap subdivision. After mapping,
+:c:func:`rbcGrBarGeometry.Rbc_GetBarRectangle` returns physical window bounds,
+including inversion, but does not intersect them with the final renderer clip.
+It writes output only on a successful source-index match.
+
+Resource and output contracts
+-----------------------------
+
+:c:func:`rbcGrBarConfiguration.GetBarPenColorFromObj` can return NULL, the
+``COLOR_DEFAULT`` sentinel, or an acquired Tk color. Use
+:c:func:`rbcGrBarConfiguration.FreeBarPenColor` for these staged results.
+By contrast, :c:func:`rbcGrBarConfiguration.GetBarColor` returns a borrowed
+resolved color or the supplied fallback storage. It acquires no reference;
+keep fallback storage alive until the renderer has finished using it.
+
+:c:func:`rbcGrBarConfiguration.DestroyPen` does not free the pen allocation,
+and :c:func:`rbcGrBarGeometry.DestroyBar` does not free the element allocation.
+The embedded pen is part of the bar record. Shared lifecycle code owns final
+record and Tk-option cleanup, while these concrete callbacks release derived
+resources and dependencies.
+
+Screen and export helpers borrow their destination and prepared geometry.
+The outer element scope supplies clipping, including the relief borders that
+can extend beyond a rectangle's fill. Legend-symbol callbacks instead receive
+sample-center coordinates; their size is independent of the mapped data bars.
+The screen callback's width and height describe its destination drawable, not
+the requested sample dimensions. No output helper should call placement again
+or consume grouping cursors merely to render an existing rectangle.
