@@ -203,217 +203,468 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphOptionFromObj">
 <span class="target" id="group__graph__option__transactions_1ga43c6003d623492eb8f493f81128035c1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphOptionFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">GraphOptionName</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionMap</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nOptions</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphOptionFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify a canonical graph option through a private map. </p>
-<p>Borrows the object and map. Unknown or ambiguous names, and options absent from the map, return zero; this helper does not report an interpreter error. </p>
+<p>Borrows the object and map. Unknown or ambiguous names, and options absent from the map, return zero; this helper does not report an interpreter error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option object; no reference is retained. </p></li>
+<li><p><strong>optionMap</strong> – <strong>[in]</strong> Borrowed array mapping canonical graph options to private selectors. </p></li>
+<li><p><strong>nOptions</strong> – <strong>[in]</strong> Number of entries accessible in optionMap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.IsGraphOption">
 <span class="target" id="group__graph__option__transactions_1gaa1257233c13ffb9defddc8978101e737"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsGraphOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.IsGraphOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare an option spelling with one canonical graph option. </p>
-<p>Resolves aliases and unambiguous abbreviations through graphOptionSpecs. Returns false if resolution fails; neither argument is retained. </p>
+<p>Resolves aliases and unambiguous abbreviations through graphOptionSpecs. Returns false if resolution fails; neither argument is retained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option object; no reference is retained. </p></li>
+<li><p><strong>optionName</strong> – <strong>[in]</strong> Borrowed canonical option name to compare against the resolved spelling. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPixelOption">
 <span class="target" id="group__graph__option__transactions_1gaff9c450ad8a13540c2d7fcbdafb75e9d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Identify a retained graph distance option. </p>
-<p>Returns GRAPH_PIXEL_OPTION_NONE for other or unresolved options. The classification is used both for explicit-override masks and ordered parsing. </p>
+<p>Returns GRAPH_PIXEL_OPTION_NONE for other or unresolved options. The classification is used both for explicit-override masks and ordered parsing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option object; no reference is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPixelObject">
 <span class="target" id="group__graph__option__transactions_1ga6b1cac71366ce30c7f8e704a210dda25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelObject" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow the retained Tcl object for a graph distance. </p>
-<p>Does not change its reference count. The option must be a valid distance selector; invalid selectors panic rather than returning a recoverable error. </p>
+<p>Does not change its reference count. The option must be a valid distance selector; invalid selectors panic rather than returning a recoverable error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid selector identifying the distance or padding field to access. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphPixelOption">
 <span class="target" id="group__graph__option__transactions_1gaffdaaaf19621df8e08a85c5c803c2057"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <span class="n"><span class="pre">GraphPixelTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPixelOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse one distance into a candidate transaction. </p>
-<p>Uses the graph window for unit conversion. All distances except highlight thickness require nonnegative values; highlight thickness uses Tk conversion directly. On success sets the selected field and mask bit; on conversion error leaves that candidate unchanged and returns TCL_ERROR. </p>
+<p>Uses the graph window for unit conversion. All distances except highlight thickness require nonnegative values; highlight thickness uses Tk conversion directly. On success sets the selected field and mask bit; on conversion error leaves that candidate unchanged and returns TCL_ERROR.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed proposed option value; parsed before replacing the candidate. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid selector identifying the distance or padding field to access. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized candidate record updated only after successful parsing; retains prior candidate on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphPixelTransaction">
 <span class="target" id="group__graph__option__transactions_1gab07360e4a922ca7c433fae9f9a3b111f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphPixelTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPixelTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphPixelTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare distance values without changing live numeric fields. </p>
-<p>Requires an even borrowed option vector in the graph context. Zeroes the transaction, parses unoverridden retained defaults on first configuration, then parses every explicit occurrence in caller order. An invalid earlier occurrence fails even if a later occurrence is valid. Partial candidates on error own no resources and can be discarded. </p>
+<p>Requires an even borrowed option vector in the graph context. Zeroes the transaction, parses unoverridden retained defaults on first configuration, then parses every explicit occurrence in caller order. An invalid earlier occurrence fails even if a later occurrence is valid. Partial candidates on error own no resources and can be discarded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Caller-owned fresh candidate record, initialized here; success requires commit or cleanup as described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphPixelTransaction">
 <span class="target" id="group__graph__option__transactions_1gadcac338812108ffec6609289e34567bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphPixelTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPixelTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphPixelTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Publish only staged graph distances. </p>
-<p>Copies selected integers into graph and margin fields, then clears the mask. No conversion, geometry request or redraw occurs here. </p>
+<p>Copies selected integers into graph and margin fields, then clears the mask. No conversion, geometry request or redraw occurs here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Prepared candidate record consumed into live fields and disarmed; record storage remains caller-owned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPaddingOption">
 <span class="target" id="group__graph__option__transactions_1gac26422a65ec20089eec0373b867ef736"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Identify retained X or Y plot padding. </p>
-<p>Returns GRAPH_PADDING_OPTION_NONE for other or unresolved options. The input object remains caller-owned. </p>
+<p>Returns GRAPH_PADDING_OPTION_NONE for other or unresolved options. The input object remains caller-owned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option object; no reference is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPaddingObject">
 <span class="target" id="group__graph__option__transactions_1ga79acff74738d316bcdfe3a38bb9f86f9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingObject" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow the retained Tcl object for plot padding. </p>
-<p>Returns the X or Y object without retaining it. Invalid selectors panic. </p>
+<p>Returns the X or Y object without retaining it. Invalid selectors panic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid selector identifying the distance or padding field to access. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphPaddingOption">
 <span class="target" id="group__graph__option__transactions_1ga3ea6b5da7b915191ed641bad8de46f34"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPaddingOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <span class="n"><span class="pre">GraphPaddingTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPaddingOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse one plot-padding candidate. </p>
-<p>Rbc_GetPadFromObj validates using the graph window. On success stores the padding and sets its mask bit; on error reports TCL_ERROR without publishing any live padding. The selector must be X or Y. </p>
+<p>Rbc_GetPadFromObj validates using the graph window. On success stores the padding and sets its mask bit; on error reports TCL_ERROR without publishing any live padding. The selector must be X or Y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed proposed option value; parsed before replacing the candidate. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Valid selector identifying the distance or padding field to access. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized candidate record updated only after successful parsing; retains prior candidate on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphPaddingTransaction">
 <span class="target" id="group__graph__option__transactions_1ga27898c927c8d1b35c0af4765d3b54fab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphPaddingTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPaddingTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphPaddingTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare both plot-padding fields in caller order. </p>
-<p>Zeroes the transaction and requires an even borrowed option vector. First configuration parses defaults only for axes without an explicit override. Every explicit occurrence is validated, including superseded ones. Partial candidates on failure require no resource cleanup. </p>
+<p>Zeroes the transaction and requires an even borrowed option vector. First configuration parses defaults only for axes without an explicit override. Every explicit occurrence is validated, including superseded ones. Partial candidates on failure require no resource cleanup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Caller-owned fresh candidate record, initialized here; success requires commit or cleanup as described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphPaddingTransaction">
 <span class="target" id="group__graph__option__transactions_1ga61794d54f00d9f239cc2770d2c38b003"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphPaddingTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPaddingTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphPaddingTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Publish staged plot padding and clear its mask. </p>
-<p>Unstaged axes keep their current padding. This helper does not request layout or redraw. </p>
+<p>Unstaged axes keep their current padding. This helper does not request layout or redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Prepared candidate record consumed into live fields and disarmed; record storage remains caller-owned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphBarModeFromObj">
 <span class="target" id="group__graph__option__transactions_1gac05a22b83de2c49fb8393491fb0ba979"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphBarModeFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">BarMode</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">modePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphBarModeFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a graph-wide bar mode with Tcl abbreviation rules. </p>
-<p>Normal and infront map to MODE_INFRONT. Writes the destination only on success; invalid or ambiguous names return TCL_ERROR with a diagnostic. </p>
+<p>Normal and infront map to MODE_INFRONT. Writes the destination only on success; invalid or ambiguous names return TCL_ERROR with a diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed Tcl option object; no reference is retained. </p></li>
+<li><p><strong>modePtr</strong> – <strong>[out]</strong> Required output receiving the parsed bar mode only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphBarMode">
 <span class="target" id="group__graph__option__transactions_1ga002272e9fcd84644c42805c400cf4a9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphBarMode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphBarModeTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphBarMode" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate and retain one candidate bar mode. </p>
-<p>Updates the transaction only after successful conversion. Neither the input object nor a resource is retained; the live mode is unchanged. </p>
+<p>Updates the transaction only after successful conversion. Neither the input object nor a resource is retained; the live mode is unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed proposed option value; parsed before replacing the candidate. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized candidate record updated only after successful parsing; retains prior candidate on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphBarModeTransaction">
 <span class="target" id="group__graph__option__transactions_1ga1ef8c4fbc7ae76af29937f5e46eeb3bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphBarModeTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphBarModeTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphBarModeTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare the graph-wide mode from defaults and explicit options. </p>
-<p>Zeroes the transaction. On first configuration, uses the retained default only when no explicit mode occurs. Parses all explicit occurrences in order and stops at the first error; the borrowed option vector must be even. </p>
+<p>Zeroes the transaction. On first configuration, uses the retained default only when no explicit mode occurs. Parses all explicit occurrences in order and stops at the first error; the borrowed option vector must be even.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Caller-owned fresh candidate record, initialized here; success requires commit or cleanup as described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphBarModeTransaction">
 <span class="target" id="group__graph__option__transactions_1ga1142804ae703cc8b7bf4081db2c5e1a6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphBarModeTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphBarModeTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphBarModeTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Publish a staged bar mode. </p>
-<p>Leaves the live mode unchanged when unstaged and clears the staged flag after copying. No mapping or drawing is performed. </p>
+<p>Leaves the live mode unchanged when unstaged and clears the staged flag after copying. No mapping or drawing is performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Prepared candidate record consumed into live fields and disarmed; record storage remains caller-owned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.FreeGraphShadow">
 <span class="target" id="group__graph__option__transactions_1ga74c9d9bf70048022492e1d377b10cae4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphShadow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Shadow</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.FreeGraphShadow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an owned title-shadow color and reset its value. </p>
-<p>Accepts a non-NULL Shadow record whose color may be NULL. Clears both color and offset, allowing repeated cleanup of the same record. </p>
+<p>Accepts a non-NULL Shadow record whose color may be NULL. Clears both color and offset, allowing repeated cleanup of the same record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shadowPtr</strong> – <strong>[inout]</strong> Owned shadow value whose color is released and fields reset; record storage remains caller-owned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphShadow">
 <span class="target" id="group__graph__option__transactions_1ga68d6c48cb0b5ba10d005512afcb41b3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphShadow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphShadow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a replacement title shadow before discarding a candidate. </p>
-<p>On parse failure returns TCL_ERROR and keeps the prior candidate. On success releases any previously staged shadow, owns the new color in the transaction and marks it staged. The live title style is not changed. </p>
+<p>On parse failure returns TCL_ERROR and keeps the prior candidate. On success releases any previously staged shadow, owns the new color in the transaction and marks it staged. The live title style is not changed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed proposed option value; parsed before replacing the candidate. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized candidate record updated only after successful parsing; retains prior candidate on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.FreeGraphShadowTransaction">
 <span class="target" id="group__graph__option__transactions_1gaf9d4cdaddb6617a467154b846109f083"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.FreeGraphShadowTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Discard an uncommitted shadow candidate. </p>
-<p>Releases its color when staged and zeroes the complete transaction. Safe for a zero-initialized or already committed transaction. </p>
+<p>Releases its color when staged and zeroes the complete transaction. Safe for a zero-initialized or already committed transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized candidate record whose staged resources are released and fields cleared. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphShadowTransaction">
 <span class="target" id="group__graph__option__transactions_1gaf4475028e216c03267dd1d4562d2e77d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphShadowTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare an owned shadow candidate from retained options. </p>
-<p>Requires a fresh transaction and an even borrowed argument vector. First configuration uses the default only if not overridden. Processes explicit occurrences in order. On any conversion error releases all staged ownership and returns TCL_ERROR; success leaves cleanup or commit to the caller. </p>
+<p>Requires a fresh transaction and an even borrowed argument vector. First configuration uses the default only if not overridden. Processes explicit occurrences in order. On any conversion error releases all staged ownership and returns TCL_ERROR; success leaves cleanup or commit to the caller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Caller-owned fresh candidate record, initialized here; success requires commit or cleanup as described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphShadowTransaction">
 <span class="target" id="group__graph__option__transactions_1ga034341d6dba7f55f78d12448d3a00a25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphShadowTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Transfer the shadow candidate to the live title style. </p>
-<p>An unstaged transaction is a no-op. Otherwise moves ownership to the graph, disarms the transaction and releases the old live shadow color. </p>
+<p>An unstaged transaction is a no-op. Otherwise moves ownership to the graph, disarms the transaction and releases the old live shadow color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Prepared candidate record consumed into live fields and disarmed; record storage remains caller-owned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphTile">
 <span class="target" id="group__graph__option__transactions_1gad8ecc75a98c37ee9788d20894e72a3df"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a candidate tile, including an explicit empty tile. </p>
-<p>A NULL or empty object stages NULL. A nonempty name acquires a tile client. Acquisition failure keeps the prior candidate. Success frees any earlier candidate and transfers ownership to the transaction, not the graph. </p>
+<p>A NULL or empty object stages NULL. A nonempty name acquires a tile client. Acquisition failure keeps the prior candidate. Success frees any earlier candidate and transfers ownership to the transaction, not the graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed proposed image name; NULL or an empty object explicitly stages no tile. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized candidate record updated only after successful parsing; retains prior candidate on failure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.FreeGraphTileTransaction">
 <span class="target" id="group__graph__option__transactions_1ga063ec932d523e890164082a9b5b4e04f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphTileTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.FreeGraphTileTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release any uncommitted tile client and zero the transaction. </p>
-<p>Safe for a zero-initialized or committed transaction. Does not release the graph live tile. </p>
+<p>Safe for a zero-initialized or committed transaction. Does not release the graph live tile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized candidate record whose staged resources are released and fields cleared. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphTileTransaction">
 <span class="target" id="group__graph__option__transactions_1ga891f0c1c1ccdba1ceaddcf5958cdbc8a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphTileTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphTileTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare a tile client from retained defaults and explicit options. </p>
-<p>Requires a fresh transaction and an even borrowed option vector. Parses the initial default only if not overridden, then every explicit occurrence in order. Failure releases staged ownership; success requires commit or cleanup by the caller. </p>
+<p>Requires a fresh transaction and an even borrowed option vector. Parses the initial default only if not overridden, then every explicit occurrence in order. Failure releases staged ownership; success requires commit or cleanup by the caller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Caller-owned fresh candidate record, initialized here; success requires commit or cleanup as described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphTileTransaction">
 <span class="target" id="group__graph__option__transactions_1ga3196fa7695e8e1316f884110e8e0ab66"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphTileTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphTileTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Install the tile candidate and its graph-change callback. </p>
-<p>Moves ownership to the graph and disarms the transaction before freeing the previous live tile. A staged NULL clears the tile; an unstaged transaction does nothing. </p>
+<p>Moves ownership to the graph and disarms the transaction before freeing the previous live tile. A staged NULL clears the tile; an unstaged transaction does nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Prepared candidate record consumed into live fields and disarmed; record storage remains caller-owned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.InitGraphOptions">
 <span class="target" id="group__graph__option__transactions_1gaf7ecdde2fa5fb38bebf8e4ad5cd1eee7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitGraphOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.InitGraphOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize Tk-managed widget options and their database defaults. </p>
-<p>Uses the actual widget window rather than a named component. Repeated calls after success are harmless. On Tk_InitOptions failure undefines the window cursor before freeing partially initialized options and the table. Success marks resources live but does not construct derived RBC fields. </p>
+<p>Uses the actual widget window rather than a named component. Repeated calls after success are harmless. On Tk_InitOptions failure undefines the window cursor before freeing partially initialized options and the table. Success marks resources live but does not construct derived RBC fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.ResetGraphOptionContext">
 <span class="target" id="group__graph__option__transactions_1gaf7c8a76a944b24a8d1bdbbf68035c246"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetGraphOptionContext</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ResetGraphOptionContext" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clear borrowed configuration arguments and the active option mask. </p>
-<p>Does not decrement object references: the argument vector is caller-owned. Used before configuration and before restoring or releasing options. </p>
+<p>Does not decrement object references: the argument vector is caller-owned. Used before configuration and before restoring or releasing options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.ConfigureGraphOptions">
 <span class="target" id="group__graph__option__transactions_1ga66cdc6219a1db14a7e5051080c0fb603"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureGraphOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ConfigureGraphOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply Tk options and validate derived graph resources. </p>
-<p>Requires initialized options and an even option/value vector. Exposes the borrowed original arguments only during ConfigureGraph, forcing initialization masks on the first call. Derived conversion failure clears that context and restores Tk saved options. Success frees saved options, marks the graph configured and optionally returns the Tk change mask. A successful explicit Polar aspect disables automatic aspect; a renderer change invalidates mapping and backing pixels. Rollback concerns option resources, not all auxiliary notification state touched by validation. </p>
+<p>Requires initialized options and an even option/value vector. Exposes the borrowed original arguments only during ConfigureGraph, forcing initialization masks on the first call. Derived conversion failure clears that context and restores Tk saved options. Success frees saved options, marks the graph configured and optionally returns the Tk change mask. A successful explicit Polar aspect disables automatic aspect; a renderer change invalidates mapping and backing pixels. Rollback concerns option resources, not all auxiliary notification state touched by validation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Even number of option/value entries in objv; zero is valid. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed even-length option/value vector, not a widget-command vector; retained only during configuration. </p></li>
+<li><p><strong>maskPtr</strong> – <strong>[out]</strong> Optional output for the Tk option change mask on successful configuration. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.ConfigureNewGraph">
 <span class="target" id="group__graph__option__transactions_1ga6a06d07edb33baf8ef9b4032b1a2bb67"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureNewGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ConfigureNewGraph" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize widget defaults and perform the first derived configuration. </p>
-<p>Always calls ConfigureGraphOptions, including with zero arguments. Polar uses automatic data-unit aspect only when the option database supplies no aspect; a successful explicit aspect overrides that policy. Returns TCL_ERROR on initialization or configuration failure; creation owns graph cleanup. </p>
+<p>Always calls ConfigureGraphOptions, including with zero arguments. Polar uses automatic data-unit aspect only when the option database supplies no aspect; a successful explicit aspect overrides that policy. Returns TCL_ERROR on initialization or configuration failure; creation owns graph cleanup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Even number of option/value entries in objv; zero is valid. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed even-length option/value vector, not a widget-command vector; retained only during configuration. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.ReleaseGraphOptionResources">
 <span class="target" id="group__graph__option__transactions_1ga13e902ec537c80f80b980ce8c64f8f20"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseGraphOptionResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ReleaseGraphOptionResources" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release Tk-owned options while the graph window remains valid. </p>
-<p>No-op before initialization or after release. Clears borrowed transaction context, frees options and deletes the table. Derived GCs, shadow and tile remain owned by the graph destruction path. </p>
+<p>No-op before initialization or after release. Clears borrowed transaction context, frees options and deletes the table. Derived GCs, shadow and tile remain owned by the graph destruction path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.ConfigureGraph">
 <span class="target" id="group__graph__option__transactions_1gaadbf6e7b518ee3710975ae218ebd16d7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ConfigureGraph" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate retained graph values, then commit derived resources. </p>
-<p>Requires initialized options and active configuration context. Validates track options, renderer availability and finite aspect, bar width and baseline, then prepares distance, padding, mode, shadow and tile candidates. Reportable conversion errors precede commits; owned candidates are freed on failure. After commit normalizes nonpositive bar width, updates geometry and GCs, reconfigures text and crosshairs, invalidates affected caches and schedules redraw. Tk option rollback belongs to ConfigureGraphOptions; auxiliary track notification bookkeeping is not part of these candidate transactions. </p>
+<p>Requires initialized options and active configuration context. Validates track options, renderer availability and finite aspect, bar width and baseline, then prepares distance, padding, mode, shadow and tile candidates. Reportable conversion errors precede commits; owned candidates are freed on failure. After commit normalizes nonpositive bar width, updates geometry and GCs, reconfigures text and crosshairs, invalidates affected caches and schedules redraw. Tk option rollback belongs to ConfigureGraphOptions; auxiliary track notification bookkeeping is not part of these candidate transactions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -423,196 +674,470 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 <dt class="sig sig-object c" id="c.rbcGraphCommands.XAxisOp">
 <span class="target" id="group__graph__commands__drawing_1gae1104b04f184d00df66bf7b67b396726"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">XAxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.XAxisOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch the X margin-axis operation. </p>
-<p>Uses the bottom margin normally and the left margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher. </p>
+<p>Uses the bottom margin normally and the left margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.X2AxisOp">
 <span class="target" id="group__graph__commands__drawing_1ga5e344b22c0147a20dcccf524d2b1d26b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">X2AxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.X2AxisOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch the secondary X margin-axis operation. </p>
-<p>Uses the top margin normally and the right margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher. </p>
+<p>Uses the top margin normally and the right margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.YAxisOp">
 <span class="target" id="group__graph__commands__drawing_1ga8104a136b4564acfbb4fc8585faf1f9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">YAxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.YAxisOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch the Y margin-axis operation. </p>
-<p>Uses the left margin normally and the bottom margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher. </p>
+<p>Uses the left margin normally and the bottom margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.Y2AxisOp">
 <span class="target" id="group__graph__commands__drawing_1gab99043f2e7518255b06a4e9de1f812fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Y2AxisOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.Y2AxisOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch the secondary Y margin-axis operation. </p>
-<p>Uses the right margin normally and the top margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher. </p>
+<p>Uses the right margin normally and the top margin when inverted. Borrows the original argument vector and returns Rbc_AxisOp status unchanged; axis lookup, mutation and result construction belong to that dispatcher.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.BarOp">
 <span class="target" id="group__graph__commands__drawing_1gad16edbf61d91da4b026dff05d626845e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.BarOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a bar operation through the shared element interface. </p>
-<p>Passes rbcBarElementUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself. </p>
+<p>Passes rbcBarElementUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.StripOp">
 <span class="target" id="group__graph__commands__drawing_1ga4a863fc9ee9ed021a796bbb80f3f64a0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StripOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.StripOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a strip operation through the shared element interface. </p>
-<p>Passes rbcStripElementUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself. </p>
+<p>Passes rbcStripElementUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.LineOp">
 <span class="target" id="group__graph__commands__drawing_1gaf38dfb6e750040f14471923f95e4b8a9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.LineOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a line operation through the shared element interface. </p>
-<p>Passes rbcLineElementUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself. </p>
+<p>Passes rbcLineElementUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.ElementOp">
 <span class="target" id="group__graph__commands__drawing_1ga00b74d80284436633017851ba3a8643c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ElementOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.ElementOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a default element operation through the shared element interface. </p>
-<p>Passes graphPtr-&gt;classUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself. </p>
+<p>Passes graphPtr-&gt;classUid as the element class with the original borrowed arguments. Returns the element dispatcher status unchanged; does not acquire an element reference or perform drawing itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.ConfigureOp">
 <span class="target" id="group__graph__commands__drawing_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query option metadata or configure the graph. </p>
-<p>With two arguments returns all Tk option descriptions; with three returns one description. Longer calls delegate option/value pairs to ConfigureGraphOptions. Requires initialized options; returns TCL_ERROR on lookup or configuration failure. </p>
+<p>With two arguments returns all Tk option descriptions; with three returns one description. Longer calls delegate option/value pairs to ConfigureGraphOptions. Requires initialized options; returns TCL_ERROR on lookup or configuration failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.CgetOp">
 <span class="target" id="group__graph__commands__drawing_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.CgetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return one Tk-managed option value. </p>
-<p>Requires initialized options and dispatcher-validated arity. Installs the value as the interpreter result, or propagates a Tk lookup error. Does not convert retained values into derived graph fields. </p>
+<p>Requires initialized options and dispatcher-validated arity. Installs the value as the interpreter result, or propagates a Tk lookup error. Does not convert retained values into derived graph fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.ExtentsOp">
 <span class="target" id="group__graph__commands__drawing_1ga7e84b91f0167a62607f3bff0c0c1748c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ExtentsOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.ExtentsOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Report cached plot, margin or legend geometry. </p>
-<p>Accepts Tcl unambiguous abbreviations. Plot area and legend return x, y, width and height; other selectors return one integer. Plot dimensions use inclusive endpoints. Does not perform layout; invalid selectors return TCL_ERROR rather than unconditional success. </p>
+<p>Accepts Tcl unambiguous abbreviations. Plot area and legend return x, y, width and height; other selectors return one integer. Plot dimensions use inclusive endpoints. Does not perform layout; invalid selectors return TCL_ERROR rather than unconditional success.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.InsideOp">
 <span class="target" id="group__graph__commands__drawing_1gacdfa6060b25d3185dce024b4c31086a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InsideOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.InsideOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test a window point against the graph plotting extents. </p>
-<p>Converts both coordinates through Tk screen-distance parsing and returns a Tcl boolean. Conversion errors propagate. Uses current graph extents without laying out pending geometry; it does not select an individual track. </p>
+<p>Converts both coordinates through Tk screen-distance parsing and returns a Tcl boolean. Conversion errors propagate. Uses current graph extents without laying out pending geometry; it does not select an individual track.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.InvtransformOp">
 <span class="target" id="group__graph__commands__drawing_1gaf3358528562890645e257b2c9e5cabfe"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvtransformOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.InvtransformOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a window point to the first logical X/Y axis pair. </p>
-<p>Evaluates both coordinates as Tcl expressions, synchronizes element vectors and resets dirty ranges, then returns two doubles. Does not perform full margin layout. Checks widget validity after each expression before accessing graph resources, and rejects nonfinite input coordinates. </p>
+<p>Evaluates both coordinates as Tcl expressions, synchronizes element vectors and resets dirty ranges, then returns two doubles. Does not perform full margin layout. Checks widget validity after each expression before accessing graph resources, and rejects nonfinite input coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.TransformOp">
 <span class="target" id="group__graph__commands__drawing_1ga4a63784ab36dde2d90ba60f4090a1eba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TransformOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.TransformOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a data point to rounded integer window coordinates. </p>
-<p>Evaluates Tcl expressions, synchronizes element vectors and resets dirty ranges before selecting the first logical X/Y axis pair. Checks validity after each expression and rejects nonfinite input or out-of-range rounded output before integer conversion. Does not perform full layout. Trackgraphs are rejected by the enclosing dispatcher. </p>
+<p>Evaluates Tcl expressions, synchronizes element vectors and resets dirty ranges before selecting the first logical X/Y axis pair. Checks validity after each expression and rejects nonfinite input or out-of-range rounded output before integer conversion. Does not perform full layout. Trackgraphs are rejected by the enclosing dispatcher.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.SnapGraph">
 <span class="target" id="group__graph__commands__drawing_1ga0ced698788469a0ff19ef4ecdd2e6282"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SnapGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.SnapGraph" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Render the graph to a photo or a Windows metafile target. </p>
-<p>Parses paired format and integer size options; sizes below two use the current Tk window dimension. Temporarily assigns graph dimensions, requests layout and draws without the element backing store. Photo output owns a temporary pixmap and releases it after capture or callback cancellation. Windows output owns a recording DC and metafile; CLIPBOARD requests transfer of the metafile to the system. The enclosing SnapOp restores screen dimensions and invalidates temporary geometry on every return, including capture errors. </p>
+<p>Parses paired format and integer size options; sizes below two use the current Tk window dimension. Temporarily assigns graph dimensions, requests layout and draws without the element backing store. Photo output owns a temporary pixmap and releases it after capture or callback cancellation. Windows output owns a recording DC and metafile; CLIPBOARD requests transfer of the metafile to the system. The enclosing SnapOp restores screen dimensions and invalidates temporary geometry on every return, including capture errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.SnapOp">
 <span class="target" id="group__graph__commands__drawing_1ga81517668cc24872da625c3e7c844e20e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SnapOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.SnapOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Capture a snapshot and restore screen geometry on every return path. </p>
-<p>Keep pre-existing dirty and idle-request flags. Restoration preserves the capture error when capture failed, and reports layout failure otherwise. A deleted window is never used for restoration or redraw scheduling. </p>
+<p>Keep pre-existing dirty and idle-request flags. Restoration preserves the capture error when capture failed, and reports layout failure otherwise. A deleted window is never used for restoration or redraw scheduling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.GetGraphOpFromObj">
 <span class="target" id="group__graph__commands__drawing_1ga0b560ec06ccda6945156d85c1bab8a58"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_GraphOpProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphOpFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.GetGraphOpFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a widget operation and validate its argument count. </p>
-<p>Uses the shared operation-table dispatcher at argument one. Returns a borrowed static procedure pointer, or NULL with a Tcl diagnostic. Does not execute the operation or retain any arguments. </p>
+<p>Uses the shared operation-table dispatcher at argument one. Returns a borrowed static procedure pointer, or NULL with a Tcl diagnostic. Does not execute the operation or retain any arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.Rbc_GraphInstCmdProc">
 <span class="target" id="group__graph__commands__drawing_1gafc94c2d5799d1c423579d947cc1fbe71"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphInstCmdProc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.Rbc_GraphInstCmdProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a graph widget command under graph preservation. </p>
-<p>Rejects widget-wide transforms for trackgraphs and recursive snapshot or document output during axis formatting. Preserves the Graph allocation across the selected handler, then releases it and returns the handler status. Preservation does not keep the Tk window or separately owned components alive; handlers crossing Tcl callbacks still need validity checks. </p>
+<p>Rejects widget-wide transforms for trackgraphs and recursive snapshot or document output during axis formatting. Preserves the Graph allocation across the selected handler, then releases it and returns the handler status. Preservation does not keep the Tk window or separately owned components alive; handlers crossing Tcl callbacks still need validity checks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed widget-owned Graph registered for this callback; no new ownership is acquired. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.NewGraph">
 <span class="target" id="group__graph__commands__drawing_1gab4dbe92be3eb8359824f552e3d319b2e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NewGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.NewGraph" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a widget and return its Tk pathname. </p>
-<p>Requires a pathname argument, then delegates construction to CreateGraph. On failure propagates TCL_ERROR; on success installs a new pathname string as the result. The created graph belongs to the widget lifecycle. </p>
+<p>Requires a pathname argument, then delegates construction to CreateGraph. On failure propagates TCL_ERROR; on success installs a new pathname string as the result. The created graph belongs to the widget lifecycle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed constructor arguments: objv[1] is the pathname, followed by option/value pairs. </p></li>
+<li><p><strong>classUid</strong> – <strong>[in]</strong> Interned widget/element class identifier selecting the constructor behavior. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.GraphObjCmd">
 <span class="target" id="group__graph__commands__drawing_1ga903a6c067fbf99a286ed6459b87cb0db"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphObjCmd</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.GraphObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a graph widget through the common constructor. </p>
-<p>Passes rbcLineElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources. </p>
+<p>Passes rbcLineElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Unused constructor command data. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.BarchartObjCmd">
 <span class="target" id="group__graph__commands__drawing_1ga30ad0a5894ceb1149fb4f5d7fab18071"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarchartObjCmd</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.BarchartObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a barchart widget through the common constructor. </p>
-<p>Passes rbcBarElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources. </p>
+<p>Passes rbcBarElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Unused constructor command data. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.StripchartObjCmd">
 <span class="target" id="group__graph__commands__drawing_1ga5c386e17a584fcc56ba74e1c27fe9af5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StripchartObjCmd</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.StripchartObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a stripchart widget through the common constructor. </p>
-<p>Passes rbcStripElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources. </p>
+<p>Passes rbcStripElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Unused constructor command data. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.PolarObjCmd">
 <span class="target" id="group__graph__commands__drawing_1gabcd4e0624d3fafc007f0a03897c8e602"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarObjCmd</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.PolarObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a polar widget through the common constructor. </p>
-<p>Passes rbcPolarElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources. </p>
+<p>Passes rbcPolarElementUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Unused constructor command data. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.FillMarginRectangle">
 <span class="target" id="group__graph__commands__drawing_1ga0972d96ba4e0c8c9e0934068878f3b75"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FillMarginRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.FillMarginRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill one positive-sized margin rectangle. </p>
-<p>Borrows the drawable and graph resources. Uses the tile when present, otherwise the margin fill GC, through the screen renderer. Nonpositive width or height is a no-op; this helper does not set tile origin. </p>
+<p>Borrows the drawable and graph resources. Uses the tile when present, otherwise the margin fill GC, through the screen renderer. Nonpositive width or height is a no-op; this helper does not set tile origin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible destination drawable; caller retains ownership and presentation responsibility. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Left margin rectangle coordinate in window pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Top margin rectangle coordinate in window pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in pixels; nonpositive values draw nothing. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in pixels; nonpositive values draw nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.DrawMargins">
 <span class="target" id="group__graph__commands__drawing_1ga30f568f757fa3d22935e7892cce0841d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawMargins</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.DrawMargins" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint margins, the plot border, margin legend, title and axes. </p>
-<p>Sets tile origin to the widget origin, fills four surrounding rectangles, then draws decorations in that order. Uses current mapped geometry and borrowed resources. Opens and closes a screen-text context for the title; does not recompute layout or present the drawable. </p>
+<p>Sets tile origin to the widget origin, fills four surrounding rectangles, then draws decorations in that order. Uses current mapped geometry and borrowed resources. Opens and closes a screen-text context for the title; does not recompute layout or present the drawable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible destination drawable; caller retains ownership and presentation responsibility. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.DrawPlotRegion">
 <span class="target" id="group__graph__commands__drawing_1ga824d21bdefb7c078b4cb656d5abb2a5a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawPlotRegion</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.DrawPlotRegion" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compose the cacheable plot layer in drawing order. </p>
-<p>Clears the inclusive plot rectangle, draws track separators and grids, then Polar or Smith labels. After checking callback validity, draws under markers, lowered local/global legends, axis limits and ordinary elements. Borrows the drawable and mapped geometry. A void return does not indicate callback success; callers must check Rbc_GraphCallbackValid. </p>
+<p>Clears the inclusive plot rectangle, draws track separators and grids, then Polar or Smith labels. After checking callback validity, draws under markers, lowered local/global legends, axis limits and ordinary elements. Borrows the drawable and mapped geometry. A void return does not indicate callback success; callers must check Rbc_GraphCallbackValid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible destination drawable; caller retains ownership and presentation responsibility. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.UpdateMarginTraces">
 <span class="target" id="group__graph__commands__drawing_1ga134be2d519999e89e969b8828a0382a2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UpdateMarginTraces</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.UpdateMarginTraces" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Publish cached margin dimensions to global Tcl variables. </p>
-<p>Writes left/right widths and top/bottom heights for configured variables. Copies names and sizes before invoking traces so configuration changes cannot invalidate borrowed option strings. Stops writes and returns false if a trace destroys the widget or cancels layout. Assignment errors remain ignored for compatibility. The display wrapper preserves graph and interpreter storage. </p>
+<p>Writes left/right widths and top/bottom heights for configured variables. Copies names and sizes before invoking traces so configuration changes cannot invalidate borrowed option strings. Stops writes and returns false if a trace destroys the widget or cancels layout. Assignment errors remain ignored for compatibility. The display wrapper preserves graph and interpreter storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphCommands.TrackgraphObjCmd">
 <span class="target" id="group__graph__commands__drawing_1gac6b8c7bdd064ef41323fd77c1c25269e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackgraphObjCmd</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphCommands.TrackgraphObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a trackgraph widget through the common constructor. </p>
-<p>Passes trackGraphUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources. </p>
+<p>Passes trackGraphUid to NewGraph and returns its Tcl status unchanged. The clientData argument is unused; construction owns the new widget resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Unused constructor command data. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument vector; command-specific positions are described above. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -622,70 +1147,144 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.FreeGraphRedrawSettle">
 <span class="target" id="group__graph__lifecycle__support_1gaeca0202c3cffaba57e2d0e8f7c525312"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphRedrawSettle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.FreeGraphRedrawSettle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release the pending ancestry-sampling record. </p>
-<p>Frees the owned sample array and record, then clears redrawSettle. A NULL record is harmless. Does not cancel an idle call or clear REDRAW_PENDING; the caller must handle scheduling state separately. </p>
+<p>Frees the owned sample array and record, then clears redrawSettle. A NULL record is harmless. Does not cancel an idle call or clear REDRAW_PENDING; the caller must handle scheduling state separately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.SettleGraphRedraw">
 <span class="target" id="group__graph__lifecycle__support_1gaaadcb6a65baa78030720ef19e5bc0dc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SettleGraphRedraw</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.SettleGraphRedraw" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Wait for two unchanged ancestry samples before presenting a frame. </p>
-<p>Requires the graph-owned redrawSettle record installed by EventuallyRedrawSettledGraph. Samples window identity, position, size and border from the widget through its toplevel; reallocates samples when the ancestry length changes. Changed geometry resets the stable-pass count. Requeues itself until two unchanged passes, then frees samples and delegates to DisplayGraph, which consumes REDRAW_PENDING. A dead window frees samples and clears the pending flag without drawing. Does not enter an event loop. </p>
+<p>Requires the graph-owned redrawSettle record installed by EventuallyRedrawSettledGraph. Samples window identity, position, size and border from the widget through its toplevel; reallocates samples when the ancestry length changes. Changed geometry resets the stable-pass count. Requeues itself until two unchanged passes, then frees samples and delegates to DisplayGraph, which consumes REDRAW_PENDING. A dead window frees samples and clears the pending flag without drawing. Does not enter an event loop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed widget-owned Graph registered for this callback; no new ownership is acquired. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.EventuallyRedrawSettledGraph">
 <span class="target" id="group__graph__lifecycle__support_1ga859208203a05c0261f2c3e925e1d3b70"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EventuallyRedrawSettledGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.EventuallyRedrawSettledGraph" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace ordinary idle drawing with ancestry-settled drawing. </p>
-<p>Does nothing for a dead window or an already active settle request. Cancels a pending DisplayGraph call, allocates a fresh sampling record, sets REDRAW_PENDING and schedules SettleGraphRedraw. Also requests external legend redraw. Callers set geometry and drawing invalidation flags themselves. </p>
+<p>Does nothing for a dead window or an already active settle request. Cancels a pending DisplayGraph call, allocates a fresh sampling record, sets REDRAW_PENDING and schedules SettleGraphRedraw. Also requests external legend redraw. Callers set geometry and drawing invalidation flags themselves.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.GraphWorldChanged">
 <span class="target" id="group__graph__lifecycle__support_1ga0b5ce592fd4cb2a82373c0ff794ea112"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphWorldChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.GraphWorldChanged" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh derived font resources after a Tk world change. </p>
-<p>Ignores dead or not-yet-configured graphs. Resets title style and height, notifies axes, legends, markers, line and bar elements of font changes, then invalidates geometry and backing pixels and schedules redraw. Does not reparse option objects or deliberately evaluate application scripts. </p>
+<p>Ignores dead or not-yet-configured graphs. Resets title style and height, notifies axes, legends, markers, line and bar elements of font changes, then invalidates geometry and backing pixels and schedules redraw. Does not reparse option objects or deliberately evaluate application scripts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed widget-owned Graph registered for this callback; no new ownership is acquired. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.TileChangedProc">
 <span class="target" id="group__graph__lifecycle__support_1gac6de070efccb35af84ab93397cd9e30f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TileChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.TileChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Request margin redisplay when the graph tile changes. </p>
-<p>The tile argument is unused. For a live window sets REDRAW_WORLD and schedules drawing; a dead window is ignored. Does not rebuild a GC or replace the tile client, whose ownership belongs to graph configuration. </p>
+<p>The tile argument is unused. For a live window sets REDRAW_WORLD and schedules drawing; a dead window is ignored. Does not rebuild a GC or replace the tile client, whose ownership belongs to graph configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed widget-owned Graph registered for this callback; no new ownership is acquired. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed changed tile token; unused by this callback. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.AdjustAxisPointers">
 <span class="target" id="group__graph__lifecycle__support_1ga6d594e3032a7107ef594f98f251382ad"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AdjustAxisPointers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.AdjustAxisPointers" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Associate logical axis chains with physical margins. </p>
-<p>Borrows the four existing chains. Normal order maps X/Y/X2/Y2 to bottom/left/top/right; inversion maps them to left/bottom/right/top. Does not change chain contents, axis classes, reference counts or axis sites, and does not itself invalidate geometry. </p>
+<p>Borrows the four existing chains. Normal order maps X/Y/X2/Y2 to bottom/left/top/right; inversion maps them to left/bottom/right/top. Does not change chain contents, axis classes, reference counts or axis sites, and does not itself invalidate geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.InitPens">
 <span class="target" id="group__graph__lifecycle__support_1gaeb0e5cca5200190c65053ef6fb075b1b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitPens</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.InitPens" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize the pen registry and create default active pens. </p>
-<p>Creates activeLine and activeBar in that order. Returns TCL_ERROR if either creation fails, retaining any already-created pen for graph teardown. Must run once on a new graph; does not roll back the registry locally. </p>
+<p>Creates activeLine and activeBar in that order. Returns TCL_ERROR if either creation fails, retaining any already-created pen for graph teardown. Must run once on a new graph; does not roll back the registry locally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed widget-owned graph; required configuration or mapping state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.CreateGraph">
 <span class="target" id="group__graph__lifecycle__support_1ga6ceaa683d05301854e63e79f207e6127"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.CreateGraph" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a graph widget and install its components and lifecycle. </p>
-<p>Requires a pathname at objv[1]. Creates the Tk window, zeroed Graph, registries and display lists after creating the anonymous option proxy. Trackgraphs retain a distinct Tk class and trackGraph flag but use the line element class. Installs window instance data, class procedures, widget command and event handler before component configuration. Creates pens, axes, exporters, crosshairs, legend and grid before applying widget options, and creates bindings last. Success returns a widget-owned Graph; failure returns NULL with the interpreter error and destroys the window. Anonymous-window failure destroys the parent before any Graph storage is allocated and preserves the original interpreter error; later failures use the installed event handler. </p>
+<p>Requires a pathname at objv[1]. Creates the Tk window, zeroed Graph, registries and display lists after creating the anonymous option proxy. Trackgraphs retain a distinct Tk class and trackGraph flag but use the line element class. Installs window instance data, class procedures, widget command and event handler before component configuration. Creates pens, axes, exporters, crosshairs, legend and grid before applying widget options, and creates bindings last. Success returns a widget-owned Graph; failure returns NULL with the interpreter error and destroys the window. Anonymous-window failure destroys the parent before any Graph storage is allocated and preserves the original interpreter error; later failures use the installed event handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed constructor arguments: objv[1] is the pathname, followed by option/value pairs. </p></li>
+<li><p><strong>classUid</strong> – <strong>[in]</strong> Interned widget/element class identifier selecting the constructor behavior. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.Rbc_GraphInit">
 <span class="target" id="group__graph__lifecycle__support_1ga9f85e5363a1daa77e09281bdff46ccc6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.Rbc_GraphInit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intern component class identifiers and register graph constructors. </p>
-<p>Creates graph, barchart, stripchart, polar and trackgraph Tcl commands in the interpreter. Initializes class identifiers including the contour identifier, but does not register a contour widget constructor. Returns TCL_OK; no graph widget is created here. </p>
+<p>Creates graph, barchart, stripchart, polar and trackgraph Tcl commands in the interpreter. Initializes class identifiers including the contour identifier, but does not register a contour widget constructor. Returns TCL_OK; no graph widget is created here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData">
 <span class="target" id="group__graph__lifecycle__support_1ga673221346359e5fc08f51eb45d4bf335"></span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetGraphFromWindowData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find graph instance data on a window or its ancestors. </p>
-<p>Walks Tk_Parent until non-NULL RBC window instance data is found. Returns a borrowed Graph pointer, or NULL when the chain is empty. Does not retain the graph or verify a component class; callers must supply a window chain whose RBC instance data follows the graph convention. </p>
+<p>Walks Tk_Parent until non-NULL RBC window instance data is found. Returns a borrowed Graph pointer, or NULL when the chain is empty. Does not retain the graph or verify a component class; callers must supply a window chain whose RBC instance data follows the graph convention.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed starting window, or NULL for an empty ancestry chain. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c struct">

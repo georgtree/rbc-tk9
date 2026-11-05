@@ -9,7 +9,7 @@ The :doc:`graph-reference` records the contracts for the entry points below.
 Creation and ownership
 ----------------------
 
-``NewGraph`` validates the command arguments and delegates to ``CreateGraph``.
+:c:func:`rbcGraphCommands.NewGraph` validates the command arguments and delegates to :c:func:`rbcGraphLifecycle.CreateGraph`.
 Creation allocates a zeroed ``Graph``, creates the Tk window, initializes tables
 and display lists, selects the widget class and installs instance data. A
 trackgraph uses line-element class behavior with its separate ``trackGraph``
@@ -78,8 +78,8 @@ candidate. An empty tile is a staged NULL, distinct from an unstaged value.
 Commit transfers resource ownership and disarms the candidate; cleanup must
 never release a successfully transferred resource a second time.
 
-``ConfigureGraphOptions`` applies Tk options with saved-option support, then
-calls ``ConfigureGraph`` to prepare derived values. That function validates
+:c:func:`rbcGraphOptions.ConfigureGraphOptions` applies Tk options with saved-option support, then
+calls :c:func:`rbcGraphOptions.ConfigureGraph` to prepare derived values. That function validates
 track options and renderer availability, rejects nonfinite aspect, bar width
 and baseline, and prepares the selected candidate families before committing
 any of them. All reportable retained-value conversion failures precede this
@@ -152,8 +152,8 @@ for the current layout.
    * - ``GRAPH_EXPORT``
      - Distinguish temporary export layout from an on-screen view change.
 
-Expose and configure events use ``EventuallyRedrawSettledGraph``. It replaces
-an ordinary pending display with ``SettleGraphRedraw``, which samples the widget
+Expose and configure events use :c:func:`rbcGraphLifecycle.EventuallyRedrawSettledGraph`. It replaces
+an ordinary pending display with :c:func:`rbcGraphLifecycle.SettleGraphRedraw`, which samples the widget
 and its Tk ancestors through the toplevel. Presentation waits for two successive
 unchanged geometry samples. This coalesces nested geometry-manager work without
 entering a recursive event loop; it does not wait for arbitrary application
@@ -183,7 +183,7 @@ component pointer. Preservation and validation serve different purposes:
 * ``Tcl_Preserve`` delays final freeing of the graph record.
 * Revalidation prevents use of window resources or layout invalidated by Tcl.
 
-``Rbc_GraphInstCmdProc`` preserves the graph around operation dispatch. It also
+:c:func:`rbcGraphCommands.Rbc_GraphInstCmdProc` preserves the graph around operation dispatch. It also
 rejects snapshot/export rendering from an active formatter before temporary
 output dimensions can disturb the outer layout. Idle drawing has no such
 command scope: ``DisplayGraph`` separately preserves the graph and interpreter
@@ -301,7 +301,7 @@ coordinate rounding remains unchanged.
 Screen composition and snapshot capture
 ---------------------------------------
 
-``DrawPlotRegion`` constructs the cacheable layer: background, track separators,
+:c:func:`rbcGraphCommands.DrawPlotRegion` constructs the cacheable layer: background, track separators,
 grids, Polar/Smith labels, under markers, lowered legends, axis-limit annotations
 and ordinary elements. It checks callback validity after the Polar label stage.
 Its caller must also check validity because a void drawing return does not
@@ -344,14 +344,14 @@ on cancellation. Assignment errors continue to be ignored for compatibility.
 Construction helpers and notification ownership
 -----------------------------------------------
 
-``InitPens`` initializes the registry and creates activeLine before activeBar.
+:c:func:`rbcGraphLifecycle.InitPens` initializes the registry and creates activeLine before activeBar.
 A failure leaves already-created resources for the enclosing graph teardown;
 it is not an independently repeatable initialization operation. The successful
 constructor creates bindings only after all components and widget options have
 been configured. Trackgraph selection is initially a distinct constructor UID,
 then becomes a line-element class plus the trackGraph flag on the instance.
 
-``AdjustAxisPointers`` changes only which logical chains each physical margin
+:c:func:`rbcGraphLifecycle.AdjustAxisPointers` changes only which logical chains each physical margin
 borrows. It does not change axis classes or sites, relink axes or acquire
 references. Configuration separately invalidates ranges after inversion.
 Likewise, the tile callback only requests margin redisplay: despite its former
@@ -371,7 +371,7 @@ change. A pending settle request absorbs later ordinary redraw requests via
 REDRAW_PENDING. Freeing the sampling record alone does not cancel an idle call;
 destruction must cancel scheduling separately before releasing it.
 
-``Rbc_GetGraphFromWindowData`` searches the supplied window and its ancestors
+:c:func:`rbcGraphLifecycle.Rbc_GetGraphFromWindowData` searches the supplied window and its ancestors
 for RBC instance data. The result is borrowed, with no added preservation or
 class check. This supports graph descendants but is not a generic checked
 conversion of arbitrary RBC instance data into a graph.

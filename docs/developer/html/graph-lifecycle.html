@@ -49,7 +49,7 @@ consume that geometry. All of this work runs on the owning Tk thread.
 The <a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a> records the contracts for the entry points below.</p>
 <section id="creation-and-ownership">
 <h2>Creation and ownership<a class="headerlink" href="#creation-and-ownership" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">NewGraph</span></code> validates the command arguments and delegates to <code class="docutils literal notranslate"><span class="pre">CreateGraph</span></code>.
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphCommands.NewGraph" title="rbcGraphCommands.NewGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphCommands.NewGraph()</span></code></a> validates the command arguments and delegates to <a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.CreateGraph" title="rbcGraphLifecycle.CreateGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.CreateGraph()</span></code></a>.
 Creation allocates a zeroed <code class="docutils literal notranslate"><span class="pre">Graph</span></code>, creates the Tk window, initializes tables
 and display lists, selects the widget class and installs instance data. A
 trackgraph uses line-element class behavior with its separate <code class="docutils literal notranslate"><span class="pre">trackGraph</span></code>
@@ -124,8 +124,8 @@ candidate before releasing an earlier one, and prepare failure cleans up that
 candidate. An empty tile is a staged NULL, distinct from an unstaged value.
 Commit transfers resource ownership and disarms the candidate; cleanup must
 never release a successfully transferred resource a second time.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ConfigureGraphOptions</span></code> applies Tk options with saved-option support, then
-calls <code class="docutils literal notranslate"><span class="pre">ConfigureGraph</span></code> to prepare derived values. That function validates
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphOptions.ConfigureGraphOptions" title="rbcGraphOptions.ConfigureGraphOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphOptions.ConfigureGraphOptions()</span></code></a> applies Tk options with saved-option support, then
+calls <a class="reference internal" href="graph-reference.html#c.rbcGraphOptions.ConfigureGraph" title="rbcGraphOptions.ConfigureGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphOptions.ConfigureGraph()</span></code></a> to prepare derived values. That function validates
 track options and renderer availability, rejects nonfinite aspect, bar width
 and baseline, and prepares the selected candidate families before committing
 any of them. All reportable retained-value conversion failures precede this
@@ -209,8 +209,8 @@ can queue <code class="docutils literal notranslate"><span class="pre">&lt;&lt;R
 </tr>
 </tbody>
 </table>
-<p>Expose and configure events use <code class="docutils literal notranslate"><span class="pre">EventuallyRedrawSettledGraph</span></code>. It replaces
-an ordinary pending display with <code class="docutils literal notranslate"><span class="pre">SettleGraphRedraw</span></code>, which samples the widget
+<p>Expose and configure events use <a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.EventuallyRedrawSettledGraph" title="rbcGraphLifecycle.EventuallyRedrawSettledGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.EventuallyRedrawSettledGraph()</span></code></a>. It replaces
+an ordinary pending display with <a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.SettleGraphRedraw" title="rbcGraphLifecycle.SettleGraphRedraw"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.SettleGraphRedraw()</span></code></a>, which samples the widget
 and its Tk ancestors through the toplevel. Presentation waits for two successive
 unchanged geometry samples. This coalesces nested geometry-manager work without
 entering a recursive event loop; it does not wait for arbitrary application
@@ -238,7 +238,7 @@ component pointer. Preservation and validation serve different purposes:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">Tcl_Preserve</span></code> delays final freeing of the graph record.</p></li>
 <li><p>Revalidation prevents use of window resources or layout invalidated by Tcl.</p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GraphInstCmdProc</span></code> preserves the graph around operation dispatch. It also
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphCommands.Rbc_GraphInstCmdProc" title="rbcGraphCommands.Rbc_GraphInstCmdProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphCommands.Rbc_GraphInstCmdProc()</span></code></a> preserves the graph around operation dispatch. It also
 rejects snapshot/export rendering from an active formatter before temporary
 output dimensions can disturb the outer layout. Idle drawing has no such
 command scope: <code class="docutils literal notranslate"><span class="pre">DisplayGraph</span></code> separately preserves the graph and interpreter
@@ -357,7 +357,7 @@ coordinate rounding remains unchanged.</p>
 </section>
 <section id="screen-composition-and-snapshot-capture">
 <h2>Screen composition and snapshot capture<a class="headerlink" href="#screen-composition-and-snapshot-capture" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">DrawPlotRegion</span></code> constructs the cacheable layer: background, track separators,
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphCommands.DrawPlotRegion" title="rbcGraphCommands.DrawPlotRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphCommands.DrawPlotRegion()</span></code></a> constructs the cacheable layer: background, track separators,
 grids, Polar/Smith labels, under markers, lowered legends, axis-limit annotations
 and ordinary elements. It checks callback validity after the Polar label stage.
 Its caller must also check validity because a void drawing return does not
@@ -394,13 +394,13 @@ on cancellation. Assignment errors continue to be ignored for compatibility.</p>
 </section>
 <section id="construction-helpers-and-notification-ownership">
 <h2>Construction helpers and notification ownership<a class="headerlink" href="#construction-helpers-and-notification-ownership" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">InitPens</span></code> initializes the registry and creates activeLine before activeBar.
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.InitPens" title="rbcGraphLifecycle.InitPens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.InitPens()</span></code></a> initializes the registry and creates activeLine before activeBar.
 A failure leaves already-created resources for the enclosing graph teardown;
 it is not an independently repeatable initialization operation. The successful
 constructor creates bindings only after all components and widget options have
 been configured. Trackgraph selection is initially a distinct constructor UID,
 then becomes a line-element class plus the trackGraph flag on the instance.</p>
-<p><code class="docutils literal notranslate"><span class="pre">AdjustAxisPointers</span></code> changes only which logical chains each physical margin
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.AdjustAxisPointers" title="rbcGraphLifecycle.AdjustAxisPointers"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.AdjustAxisPointers()</span></code></a> changes only which logical chains each physical margin
 borrows. It does not change axis classes or sites, relink axes or acquire
 references. Configuration separately invalidates ranges after inversion.
 Likewise, the tile callback only requests margin redisplay: despite its former
@@ -417,7 +417,7 @@ window handle. Two consecutive unchanged passes are required after the latest
 change. A pending settle request absorbs later ordinary redraw requests via
 REDRAW_PENDING. Freeing the sampling record alone does not cancel an idle call;
 destruction must cancel scheduling separately before releasing it.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetGraphFromWindowData</span></code> searches the supplied window and its ancestors
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData" title="rbcGraphLifecycle.Rbc_GetGraphFromWindowData"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.Rbc_GetGraphFromWindowData()</span></code></a> searches the supplied window and its ancestors
 for RBC instance data. The result is borrowed, with no added preservation or
 class check. This supports graph descendants but is not a generic checked
 conversion of arbitrary RBC instance data into a graph.</p>

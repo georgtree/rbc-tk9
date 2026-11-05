@@ -394,6 +394,10 @@ typedef struct {
  *
  * Borrows the object and map. Unknown or ambiguous names, and options absent
  * from the map, return zero; this helper does not report an interpreter error.
+ *
+ * @param[in] objPtr Borrowed Tcl option object; no reference is retained.
+ * @param[in] optionMap Borrowed array mapping canonical graph options to private selectors.
+ * @param[in] nOptions Number of entries accessible in optionMap.
  */
 static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionMap, size_t nOptions) {
     const char *name;
@@ -417,6 +421,9 @@ static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionM
  *
  * Resolves aliases and unambiguous abbreviations through graphOptionSpecs.
  * Returns false if resolution fails; neither argument is retained.
+ *
+ * @param[in] objPtr Borrowed Tcl option object; no reference is retained.
+ * @param[in] optionName Borrowed canonical option name to compare against the resolved spelling.
  */
 static int IsGraphOption(Tcl_Obj *objPtr, const char *optionName) {
     const char *name;
@@ -431,6 +438,8 @@ static int IsGraphOption(Tcl_Obj *objPtr, const char *optionName) {
  *
  * Returns GRAPH_PIXEL_OPTION_NONE for other or unresolved options. The
  * classification is used both for explicit-override masks and ordered parsing.
+ *
+ * @param[in] objPtr Borrowed Tcl option object; no reference is retained.
  */
 static GraphPixelOption GetGraphPixelOption(Tcl_Obj *objPtr) {
     static const GraphOptionName optionMap[] = {{"-highlightthickness", GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH},
@@ -452,6 +461,9 @@ static GraphPixelOption GetGraphPixelOption(Tcl_Obj *objPtr) {
  *
  * Does not change its reference count. The option must be a valid distance
  * selector; invalid selectors panic rather than returning a recoverable error.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[in] option Valid selector identifying the distance or padding field to access.
  */
 static Tcl_Obj *GetGraphPixelObject(Graph *graphPtr, GraphPixelOption option) {
     switch (option) {
@@ -490,6 +502,12 @@ static Tcl_Obj *GetGraphPixelObject(Graph *graphPtr, GraphPixelOption option) {
  * thickness require nonnegative values; highlight thickness uses Tk conversion
  * directly. On success sets the selected field and mask bit; on conversion
  * error leaves that candidate unchanged and returns TCL_ERROR.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[in] objPtr Borrowed proposed option value; parsed before replacing the candidate.
+ * @param[in] option Valid selector identifying the distance or padding field to access.
+ * @param[in,out] transactionPtr Initialized candidate record updated only after successful parsing; retains
+ *   prior candidate on failure.
  */
 static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOption option,
                                  GraphPixelTransaction *transactionPtr) {
@@ -561,6 +579,10 @@ static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOpt
  * then parses every explicit occurrence in caller order. An invalid earlier
  * occurrence fails even if a later occurrence is valid. Partial candidates
  * on error own no resources and can be discarded.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[out] transactionPtr Caller-owned fresh candidate record, initialized here; success requires commit or
+ *   cleanup as described above.
  */
 static int PrepareGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -619,6 +641,11 @@ static int PrepareGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
  *
  * Copies selected integers into graph and margin fields, then clears the
  * mask. No conversion, geometry request or redraw occurs here.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] transactionPtr Prepared candidate record consumed into live fields and disarmed; record
+ *   storage remains caller-owned.
  */
 static void CommitGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_BORDER_WIDTH)) {
@@ -660,6 +687,8 @@ static void CommitGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
  *
  * Returns GRAPH_PADDING_OPTION_NONE for other or unresolved options.
  * The input object remains caller-owned.
+ *
+ * @param[in] objPtr Borrowed Tcl option object; no reference is retained.
  */
 static GraphPaddingOption GetGraphPaddingOption(Tcl_Obj *objPtr) {
     static const GraphOptionName optionMap[] = {{"-plotpadx", GRAPH_PADDING_OPTION_X},
@@ -672,6 +701,9 @@ static GraphPaddingOption GetGraphPaddingOption(Tcl_Obj *objPtr) {
  * @brief Borrow the retained Tcl object for plot padding.
  *
  * Returns the X or Y object without retaining it. Invalid selectors panic.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[in] option Valid selector identifying the distance or padding field to access.
  */
 static Tcl_Obj *GetGraphPaddingObject(Graph *graphPtr, GraphPaddingOption option) {
     switch (option) {
@@ -693,6 +725,12 @@ static Tcl_Obj *GetGraphPaddingObject(Graph *graphPtr, GraphPaddingOption option
  * Rbc_GetPadFromObj validates using the graph window. On success stores the
  * padding and sets its mask bit; on error reports TCL_ERROR without publishing
  * any live padding. The selector must be X or Y.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[in] objPtr Borrowed proposed option value; parsed before replacing the candidate.
+ * @param[in] option Valid selector identifying the distance or padding field to access.
+ * @param[in,out] transactionPtr Initialized candidate record updated only after successful parsing; retains
+ *   prior candidate on failure.
  */
 static int StageGraphPaddingOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPaddingOption option,
                                    GraphPaddingTransaction *transactionPtr) {
@@ -725,6 +763,10 @@ static int StageGraphPaddingOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPaddin
  * configuration parses defaults only for axes without an explicit override.
  * Every explicit occurrence is validated, including superseded ones. Partial
  * candidates on failure require no resource cleanup.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[out] transactionPtr Caller-owned fresh candidate record, initialized here; success requires commit or
+ *   cleanup as described above.
  */
 static int PrepareGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransaction *transactionPtr) {
     unsigned int explicitMask;
@@ -772,6 +814,11 @@ static int PrepareGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransacti
  *
  * Unstaged axes keep their current padding. This helper does not request
  * layout or redraw.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] transactionPtr Prepared candidate record consumed into live fields and disarmed; record
+ *   storage remains caller-owned.
  */
 static void CommitGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & GRAPH_PADDING_OPTION_MASK(GRAPH_PADDING_OPTION_X)) {
@@ -789,6 +836,10 @@ static void CommitGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransacti
  *
  * Normal and infront map to MODE_INFRONT. Writes the destination only on
  * success; invalid or ambiguous names return TCL_ERROR with a diagnostic.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed Tcl option object; no reference is retained.
+ * @param[out] modePtr Required output receiving the parsed bar mode only on success.
  */
 static int GetGraphBarModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, BarMode *modePtr) {
     static const struct {
@@ -812,6 +863,11 @@ static int GetGraphBarModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, BarMode *
  *
  * Updates the transaction only after successful conversion. Neither the
  * input object nor a resource is retained; the live mode is unchanged.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[in] objPtr Borrowed proposed option value; parsed before replacing the candidate.
+ * @param[in,out] transactionPtr Initialized candidate record updated only after successful parsing; retains
+ *   prior candidate on failure.
  */
 static int StageGraphBarMode(Graph *graphPtr, Tcl_Obj *objPtr, GraphBarModeTransaction *transactionPtr) {
     BarMode mode;
@@ -831,6 +887,10 @@ static int StageGraphBarMode(Graph *graphPtr, Tcl_Obj *objPtr, GraphBarModeTrans
  * Zeroes the transaction. On first configuration, uses the retained default
  * only when no explicit mode occurs. Parses all explicit occurrences in order
  * and stops at the first error; the borrowed option vector must be even.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[out] transactionPtr Caller-owned fresh candidate record, initialized here; success requires commit or
+ *   cleanup as described above.
  */
 static int PrepareGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransaction *transactionPtr) {
     int explicitlySet;
@@ -867,6 +927,11 @@ static int PrepareGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransacti
  *
  * Leaves the live mode unchanged when unstaged and clears the staged flag
  * after copying. No mapping or drawing is performed.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] transactionPtr Prepared candidate record consumed into live fields and disarmed; record
+ *   storage remains caller-owned.
  */
 static void CommitGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransaction *transactionPtr) {
     if (transactionPtr->staged) {
@@ -881,6 +946,9 @@ static void CommitGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransacti
  *
  * Accepts a non-NULL Shadow record whose color may be NULL. Clears both
  * color and offset, allowing repeated cleanup of the same record.
+ *
+ * @param[in,out] shadowPtr Owned shadow value whose color is released and fields reset; record storage remains
+ *   caller-owned.
  */
 static void FreeGraphShadow(Shadow *shadowPtr) {
     if (shadowPtr->color != NULL) {
@@ -897,6 +965,11 @@ static void FreeGraphShadow(Shadow *shadowPtr) {
  * On parse failure returns TCL_ERROR and keeps the prior candidate. On
  * success releases any previously staged shadow, owns the new color in the
  * transaction and marks it staged. The live title style is not changed.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[in] objPtr Borrowed proposed option value; parsed before replacing the candidate.
+ * @param[in,out] transactionPtr Initialized candidate record updated only after successful parsing; retains
+ *   prior candidate on failure.
  */
 static int StageGraphShadow(Graph *graphPtr, Tcl_Obj *objPtr, GraphShadowTransaction *transactionPtr) {
     Shadow newShadow;
@@ -924,6 +997,9 @@ static int StageGraphShadow(Graph *graphPtr, Tcl_Obj *objPtr, GraphShadowTransac
  *
  * Releases its color when staged and zeroes the complete transaction.
  * Safe for a zero-initialized or already committed transaction.
+ *
+ * @param[in,out] transactionPtr Initialized candidate record whose staged resources are released and fields
+ *   cleared.
  */
 static void FreeGraphShadowTransaction(GraphShadowTransaction *transactionPtr) {
     if (transactionPtr->staged) {
@@ -940,6 +1016,10 @@ static void FreeGraphShadowTransaction(GraphShadowTransaction *transactionPtr) {
  * configuration uses the default only if not overridden. Processes explicit
  * occurrences in order. On any conversion error releases all staged ownership
  * and returns TCL_ERROR; success leaves cleanup or commit to the caller.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[out] transactionPtr Caller-owned fresh candidate record, initialized here; success requires commit or
+ *   cleanup as described above.
  */
 static int PrepareGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction *transactionPtr) {
     int explicitlySet;
@@ -980,6 +1060,11 @@ error:
  *
  * An unstaged transaction is a no-op. Otherwise moves ownership to the
  * graph, disarms the transaction and releases the old live shadow color.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] transactionPtr Prepared candidate record consumed into live fields and disarmed; record
+ *   storage remains caller-owned.
  */
 static void CommitGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction *transactionPtr) {
     Shadow oldShadow;
@@ -1002,6 +1087,11 @@ static void CommitGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction
  * A NULL or empty object stages NULL. A nonempty name acquires a tile client.
  * Acquisition failure keeps the prior candidate. Success frees any earlier
  * candidate and transfers ownership to the transaction, not the graph.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[in] objPtr Borrowed proposed image name; NULL or an empty object explicitly stages no tile.
+ * @param[in,out] transactionPtr Initialized candidate record updated only after successful parsing; retains
+ *   prior candidate on failure.
  */
 static int StageGraphTile(Graph *graphPtr, Tcl_Obj *objPtr, GraphTileTransaction *transactionPtr) {
     Rbc_Tile newTile;
@@ -1029,6 +1119,9 @@ static int StageGraphTile(Graph *graphPtr, Tcl_Obj *objPtr, GraphTileTransaction
  *
  * Safe for a zero-initialized or committed transaction. Does not release
  * the graph live tile.
+ *
+ * @param[in,out] transactionPtr Initialized candidate record whose staged resources are released and fields
+ *   cleared.
  */
 static void FreeGraphTileTransaction(GraphTileTransaction *transactionPtr) {
     if (transactionPtr->staged && (transactionPtr->tile != NULL)) {
@@ -1045,6 +1138,10 @@ static void FreeGraphTileTransaction(GraphTileTransaction *transactionPtr) {
  * the initial default only if not overridden, then every explicit occurrence
  * in order. Failure releases staged ownership; success requires commit or
  * cleanup by the caller.
+ *
+ * @param[in] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described above.
+ * @param[out] transactionPtr Caller-owned fresh candidate record, initialized here; success requires commit or
+ *   cleanup as described above.
  */
 static int PrepareGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *transactionPtr) {
     int explicitlySet;
@@ -1086,6 +1183,11 @@ error:
  * Moves ownership to the graph and disarms the transaction before freeing
  * the previous live tile. A staged NULL clears the tile; an unstaged
  * transaction does nothing.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] transactionPtr Prepared candidate record consumed into live fields and disarmed; record
+ *   storage remains caller-owned.
  */
 static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *transactionPtr) {
     Rbc_Tile oldTile;
@@ -1152,6 +1254,9 @@ typedef struct GraphRedrawSettle {
  * Frees the owned sample array and record, then clears redrawSettle. A NULL
  * record is harmless. Does not cancel an idle call or clear REDRAW_PENDING;
  * the caller must handle scheduling state separately.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static void FreeGraphRedrawSettle(Graph *graphPtr) {
     GraphRedrawSettle *settle = graphPtr->redrawSettle;
@@ -1173,6 +1278,8 @@ static void FreeGraphRedrawSettle(Graph *graphPtr) {
  * Requeues itself until two unchanged passes, then frees samples and delegates
  * to DisplayGraph, which consumes REDRAW_PENDING. A dead window frees samples
  * and clears the pending flag without drawing. Does not enter an event loop.
+ *
+ * @param[in] clientData Borrowed widget-owned Graph registered for this callback; no new ownership is acquired.
  */
 static void SettleGraphRedraw(ClientData clientData) {
     Graph *graphPtr = clientData;
@@ -1228,6 +1335,9 @@ static void SettleGraphRedraw(ClientData clientData) {
  * a pending DisplayGraph call, allocates a fresh sampling record, sets
  * REDRAW_PENDING and schedules SettleGraphRedraw. Also requests external legend
  * redraw. Callers set geometry and drawing invalidation flags themselves.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static void EventuallyRedrawSettledGraph(Graph *graphPtr) {
     if (graphPtr->tkwin == NULL || graphPtr->redrawSettle != NULL) return;
@@ -1262,6 +1372,8 @@ void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
  * notifies axes, legends, markers, line and bar elements of font changes, then
  * invalidates geometry and backing pixels and schedules redraw. Does not
  * reparse option objects or deliberately evaluate application scripts.
+ *
+ * @param[in] clientData Borrowed widget-owned Graph registered for this callback; no new ownership is acquired.
  */
 static void GraphWorldChanged(ClientData clientData) {
     Graph *graphPtr = clientData;
@@ -1413,6 +1525,9 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
  * The tile argument is unused. For a live window sets REDRAW_WORLD and
  * schedules drawing; a dead window is ignored. Does not rebuild a GC or
  * replace the tile client, whose ownership belongs to graph configuration.
+ *
+ * @param[in] clientData Borrowed widget-owned Graph registered for this callback; no new ownership is acquired.
+ * @param[in] tile Borrowed changed tile token; unused by this callback.
  */
 static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     Graph *graphPtr = clientData;
@@ -1430,6 +1545,9 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
  * bottom/left/top/right; inversion maps them to left/bottom/right/top. Does
  * not change chain contents, axis classes, reference counts or axis sites,
  * and does not itself invalidate geometry.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static void AdjustAxisPointers(Graph *graphPtr) {
     if (graphPtr->inverted) {
@@ -1452,6 +1570,9 @@ static void AdjustAxisPointers(Graph *graphPtr) {
  * Creates activeLine and activeBar in that order. Returns TCL_ERROR if
  * either creation fails, retaining any already-created pen for graph teardown.
  * Must run once on a new graph; does not roll back the registry locally.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static int InitPens(Graph *graphPtr) {
     Tcl_InitHashTable(&graphPtr->penTable, TCL_STRING_KEYS);
@@ -1631,6 +1752,9 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
  * calls after success are harmless. On Tk_InitOptions failure undefines the
  * window cursor before freeing partially initialized options and the table.
  * Success marks resources live but does not construct derived RBC fields.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static int InitGraphOptions(Graph *graphPtr) {
     if (graphPtr->optionsInitialized) {
@@ -1669,6 +1793,9 @@ static int InitGraphOptions(Graph *graphPtr) {
  *
  * Does not decrement object references: the argument vector is caller-owned.
  * Used before configuration and before restoring or releasing options.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static void ResetGraphOptionContext(Graph *graphPtr) {
     graphPtr->optionMask = 0;
@@ -1688,6 +1815,13 @@ static void ResetGraphOptionContext(Graph *graphPtr) {
  * Polar aspect disables automatic aspect; a renderer change invalidates mapping
  * and backing pixels. Rollback concerns option resources, not all auxiliary
  * notification state touched by validation.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in] objc Even number of option/value entries in objv; zero is valid.
+ * @param[in] objv Borrowed even-length option/value vector, not a widget-command vector; retained only during
+ *   configuration.
+ * @param[out] maskPtr Optional output for the Tk option change mask on successful configuration.
  */
 static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
@@ -1765,6 +1899,12 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
  * uses automatic data-unit aspect only when the option database supplies no
  * aspect; a successful explicit aspect overrides that policy. Returns TCL_ERROR
  * on initialization or configuration failure; creation owns graph cleanup.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in] objc Even number of option/value entries in objv; zero is valid.
+ * @param[in] objv Borrowed even-length option/value vector, not a widget-command vector; retained only during
+ *   configuration.
  */
 static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (InitGraphOptions(graphPtr) != TCL_OK) {
@@ -1800,6 +1940,9 @@ static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv
  * No-op before initialization or after release. Clears borrowed transaction
  * context, frees options and deletes the table. Derived GCs, shadow and tile
  * remain owned by the graph destruction path.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static void ReleaseGraphOptionResources(Graph *graphPtr) {
     if ((!graphPtr->optionsInitialized) || graphPtr->tkResourcesReleased) {
@@ -1831,6 +1974,9 @@ static void ReleaseGraphOptionResources(Graph *graphPtr) {
  * reconfigures text and crosshairs, invalidates affected caches and schedules
  * redraw. Tk option rollback belongs to ConfigureGraphOptions; auxiliary track
  * notification bookkeeping is not part of these candidate transactions.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static int ConfigureGraph(Graph *graphPtr) {
     GraphBarModeTransaction barModeTransaction;
@@ -2140,6 +2286,11 @@ static void DestroyGraph(DestroyData dataPtr) {
  * with the interpreter error and destroys the window. Anonymous-window failure
  * destroys the parent before any Graph storage is allocated and preserves the
  * original interpreter error; later failures use the installed event handler.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed constructor arguments: objv[1] is the pathname, followed by option/value pairs.
+ * @param[in] classUid Interned widget/element class identifier selecting the constructor behavior.
  */
 static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Graph *graphPtr;
@@ -2292,6 +2443,13 @@ error:
  * Uses the bottom margin normally and the left margin when inverted.
  * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
  * axis lookup, mutation and result construction belong to that dispatcher.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2307,6 +2465,13 @@ static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
  * Uses the top margin normally and the right margin when inverted.
  * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
  * axis lookup, mutation and result construction belong to that dispatcher.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2322,6 +2487,13 @@ static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  * Uses the left margin normally and the bottom margin when inverted.
  * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
  * axis lookup, mutation and result construction belong to that dispatcher.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2337,6 +2509,13 @@ static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
  * Uses the right margin normally and the top margin when inverted.
  * Borrows the original argument vector and returns Rbc_AxisOp status unchanged;
  * axis lookup, mutation and result construction belong to that dispatcher.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
@@ -2352,6 +2531,13 @@ static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  * Passes rbcBarElementUid as the element class with the original borrowed
  * arguments. Returns the element dispatcher status unchanged; does not acquire
  * an element reference or perform drawing itself.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int BarOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcBarElementUid);
@@ -2364,6 +2550,13 @@ static int BarOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  * Passes rbcStripElementUid as the element class with the original borrowed
  * arguments. Returns the element dispatcher status unchanged; does not acquire
  * an element reference or perform drawing itself.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int StripOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcStripElementUid);
@@ -2376,6 +2569,13 @@ static int StripOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
  * Passes rbcLineElementUid as the element class with the original borrowed
  * arguments. Returns the element dispatcher status unchanged; does not acquire
  * an element reference or perform drawing itself.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int LineOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcLineElementUid);
@@ -2388,6 +2588,13 @@ static int LineOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  * Passes graphPtr->classUid as the element class with the original borrowed
  * arguments. Returns the element dispatcher status unchanged; does not acquire
  * an element reference or perform drawing itself.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, graphPtr->classUid);
@@ -2401,6 +2608,13 @@ static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
  * one description. Longer calls delegate option/value pairs to
  * ConfigureGraphOptions. Requires initialized options; returns TCL_ERROR on
  * lookup or configuration failure.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *infoObjPtr;
@@ -2433,6 +2647,13 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * Requires initialized options and dispatcher-validated arity. Installs the
  * value as the interpreter result, or propagates a Tk lookup error. Does not
  * convert retained values into derived graph fields.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *valueObjPtr;
@@ -2455,6 +2676,13 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  * width and height; other selectors return one integer. Plot dimensions use
  * inclusive endpoints. Does not perform layout; invalid selectors return
  * TCL_ERROR rather than unconditional success.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const extentOps[] = {"plotheight", "plotwidth",   "plotarea",  "legend",
@@ -2512,6 +2740,13 @@ static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
  * Converts both coordinates through Tk screen-distance parsing and returns
  * a Tcl boolean. Conversion errors propagate. Uses current graph extents
  * without laying out pending geometry; it does not select an individual track.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int x, y;
@@ -2538,6 +2773,13 @@ static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  * vectors and resets dirty ranges, then returns two doubles. Does not perform
  * full margin layout. Checks widget validity after each expression before
  * accessing graph resources, and rejects nonfinite input coordinates.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double x, y;
@@ -2583,6 +2825,13 @@ static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
  * after each expression and rejects nonfinite input or out-of-range rounded
  * output before integer conversion. Does not perform full layout. Trackgraphs
  * are rejected by the enclosing dispatcher.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double x, y;
@@ -2755,6 +3004,13 @@ error:
  * Windows output owns a recording DC and metafile; CLIPBOARD requests transfer
  * of the metafile to the system. The enclosing SnapOp restores screen dimensions
  * and invalidates temporary geometry on every return, including capture errors.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int SnapGraph(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int result;
@@ -2931,6 +3187,13 @@ static int SnapGraph(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
  * Keep pre-existing dirty and idle-request flags. Restoration preserves the
  * capture error when capture failed, and reports layout failure otherwise.
  * A deleted window is never used for restoration or redraw scheduling.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int width = graphPtr->width, height = graphPtr->height;
@@ -3000,6 +3263,11 @@ static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_Virtu
  * Uses the shared operation-table dispatcher at argument one. Returns a
  * borrowed static procedure pointer, or NULL with a Tcl diagnostic. Does not
  * execute the operation or retain any arguments.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static Rbc_GraphOpProc *GetGraphOpFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -3020,6 +3288,12 @@ static Rbc_GraphOpProc *GetGraphOpFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl
  * across the selected handler, then releases it and returns the handler status.
  * Preservation does not keep the Tk window or separately owned components alive;
  * handlers crossing Tcl callbacks still need validity checks.
+ *
+ * @param[in] clientData Borrowed widget-owned Graph registered for this callback; no new ownership is acquired.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_GraphOpProc *proc;
@@ -3062,6 +3336,11 @@ int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
  * Requires a pathname argument, then delegates construction to CreateGraph.
  * On failure propagates TCL_ERROR; on success installs a new pathname string
  * as the result. The created graph belongs to the widget lifecycle.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed constructor arguments: objv[1] is the pathname, followed by option/value pairs.
+ * @param[in] classUid Interned widget/element class identifier selecting the constructor behavior.
  */
 static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Graph *graphPtr;
@@ -3084,6 +3363,12 @@ static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rb
  *
  * Passes rbcLineElementUid to NewGraph and returns its Tcl status unchanged.
  * The clientData argument is unused; construction owns the new widget resources.
+ *
+ * @param[in] clientData Unused constructor command data.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int GraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcLineElementUid);
@@ -3095,6 +3380,12 @@ static int GraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
  *
  * Passes rbcBarElementUid to NewGraph and returns its Tcl status unchanged.
  * The clientData argument is unused; construction owns the new widget resources.
+ *
+ * @param[in] clientData Unused constructor command data.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int BarchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcBarElementUid);
@@ -3106,6 +3397,12 @@ static int BarchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, T
  *
  * Passes rbcStripElementUid to NewGraph and returns its Tcl status unchanged.
  * The clientData argument is unused; construction owns the new widget resources.
+ *
+ * @param[in] clientData Unused constructor command data.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int StripchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcStripElementUid);
@@ -3117,6 +3414,12 @@ static int StripchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
  *
  * Passes rbcPolarElementUid to NewGraph and returns its Tcl status unchanged.
  * The clientData argument is unused; construction owns the new widget resources.
+ *
+ * @param[in] clientData Unused constructor command data.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int PolarObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcPolarElementUid);
@@ -3129,6 +3432,15 @@ static int PolarObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
  * Borrows the drawable and graph resources. Uses the tile when present,
  * otherwise the margin fill GC, through the screen renderer. Nonpositive
  * width or height is a no-op; this helper does not set tile origin.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in] drawable Borrowed compatible destination drawable; caller retains ownership and presentation
+ *   responsibility.
+ * @param[in] x Left margin rectangle coordinate in window pixels.
+ * @param[in] y Top margin rectangle coordinate in window pixels.
+ * @param[in] width Rectangle width in pixels; nonpositive values draw nothing.
+ * @param[in] height Rectangle height in pixels; nonpositive values draw nothing.
  */
 static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y, int width, int height) {
     if ((width <= 0) || (height <= 0)) {
@@ -3149,6 +3461,11 @@ static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y
  * then draws decorations in that order. Uses current mapped geometry and
  * borrowed resources. Opens and closes a screen-text context for the title;
  * does not recompute layout or present the drawable.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in] drawable Borrowed compatible destination drawable; caller retains ownership and presentation
+ *   responsibility.
  */
 static void DrawMargins(Graph *graphPtr, Drawable drawable) {
     int middleHeight;
@@ -3204,6 +3521,11 @@ static void DrawMargins(Graph *graphPtr, Drawable drawable) {
  * markers, lowered local/global legends, axis limits and ordinary elements.
  * Borrows the drawable and mapped geometry. A void return does not indicate
  * callback success; callers must check Rbc_GraphCallbackValid.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
+ * @param[in] drawable Borrowed compatible destination drawable; caller retains ownership and presentation
+ *   responsibility.
  */
 static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     /* Clear the background of the plotting area. */
@@ -3370,6 +3692,9 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
  * invalidate borrowed option strings. Stops writes and returns false if a trace
  * destroys the widget or cancels layout. Assignment errors remain ignored for
  * compatibility. The display wrapper preserves graph and interpreter storage.
+ *
+ * @param[in,out] graphPtr Borrowed widget-owned graph; required configuration or mapping state is described
+ *   above.
  */
 static int UpdateMarginTraces(Graph *graphPtr) {
     Tcl_Obj *names[4] = {NULL, NULL, NULL, NULL};
@@ -3553,6 +3878,12 @@ static void DisplayGraph(ClientData clientData) {
  *
  * Passes trackGraphUid to NewGraph and returns its Tcl status unchanged.
  * The clientData argument is unused; construction owns the new widget resources.
+ *
+ * @param[in] clientData Unused constructor command data.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed argument vector; command-specific positions are described above. See @ref
+ *   rbc_command_arguments.
  */
 static int TrackgraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, trackGraphUid);
@@ -3566,6 +3897,8 @@ static int TrackgraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
  * in the interpreter. Initializes class identifiers including the contour
  * identifier, but does not register a contour widget constructor. Returns
  * TCL_OK; no graph widget is created here.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
  */
 int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcBarElementUid = (Rbc_Uid)Tk_GetUid("BarElement");
@@ -3599,6 +3932,8 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
  * a borrowed Graph pointer, or NULL when the chain is empty. Does not retain
  * the graph or verify a component class; callers must supply a window chain
  * whose RBC instance data follows the graph convention.
+ *
+ * @param[in] tkwin Borrowed starting window, or NULL for an empty ancestry chain.
  */
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin) {
     Graph *graphPtr;
