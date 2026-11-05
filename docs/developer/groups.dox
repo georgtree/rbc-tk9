@@ -281,6 +281,10 @@
  * @ingroup rbc_postscript
  */
 
+/** @addtogroup graph_postscript_windows
+ * @ingroup rbc_postscript
+ */
+
 /** @addtogroup track_ownership
  * @ingroup rbc_graphs
  */

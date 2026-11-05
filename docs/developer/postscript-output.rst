@@ -20,7 +20,7 @@ The command assigns mapping variable names from its PostScript configuration;
 the token does not own those strings. :c:func:`Rbc_ReleasePsToken` frees the DString
 and token, but none of these borrowed objects.
 
-During ``GraphToPostScript``, the shared export context's ``buffer`` points to
+During :c:func:`rbcGraphPostscript.GraphToPostScript`, the shared export context's ``buffer`` points to
 the token's DString and ``backendData`` points to the token. Renderer contexts
 borrow that export context and token. Destroy renderer contexts before ending
 the enclosing export; releasing shared export state does not release the
@@ -338,14 +338,14 @@ Tk configuration context is still usable.
 Configuration has two layers: Tk option objects and derived numeric fields.
 Dimensions, padding, color mode and preview format are converted into locals
 before committing any derived field. If conversion fails after Tk_SetOptions,
-SetPostScriptOptions restores the saved options and error state. Successful
+:c:func:`rbcGraphPostscript.SetPostScriptOptions` restores the saved options and error state. Successful
 callers release the saved options. Queries use Tk_GetOptionValue and
 Tk_GetOptionInfo without rendering.
 
 Options supplied to ``postscript output`` are persistent settings. They remain
 installed even if a later prolog, rendering or file operation fails. This is
-separate from restoration of screen geometry. GraphToPostScript pairs
-Rbc_ExportBeginGraph with Rbc_ExportEndGraph on both success and failure. For a
+separate from restoration of screen geometry. :c:func:`rbcGraphPostscript.GraphToPostScript` pairs
+:c:func:`Rbc_ExportBeginGraph` with :c:func:`Rbc_ExportEndGraph` on both success and failure. For a
 surviving window, EndGraph resets dimensions to the live window, marks mapping
 work and schedules redraw. It does not immediately restore all mapped arrays
 or revert requested PostScript dimensions. The enclosing widget command owns
@@ -354,14 +354,14 @@ callback lifetime protection; these helpers do not acquire it independently.
 Page layout and preview paths
 -----------------------------
 
-ComputeBoundingBox applies positive requested plot dimensions, exchanges the
+:c:func:`rbcGraphPostscript.ComputeBoundingBox` applies positive requested plot dimensions, exchanges the
 oriented extents for landscape, and computes a common scale from the available
 paper area after padding. Maxpect permits enlargement as well as reduction.
 Centered placement replaces the padding origin when the page is larger than
 the scaled plot. Wide arithmetic and positive-int clamping precede storage of
 the inclusive bounds. Layout failure propagates before document traversal.
 
-PostScriptPreamble converts pixels to points using screen pixel and millimeter
+:c:func:`rbcGraphPostscript.PostScriptPreamble` converts pixels to points using screen pixel and millimeter
 dimensions, emits escaped metadata and optional preview, loads ``rbcGraph.pro``,
 and emits footer and coordinate transforms. Metadata includes the current time;
 byte-for-byte output comparisons must account for that field. Reading
@@ -384,7 +384,7 @@ PostScript payload without that binary wrapper.
 Delivery and ownership
 ----------------------
 
-OutputOp owns the PostScript token and staging DString, while the token borrows
+:c:func:`rbcGraphPostscript.OutputOp` owns the PostScript token and staging DString, while the token borrows
 the component's font/color mapping names. Rendering and any binary preview
 assembly finish before opening the destination through Tcl's filesystem API.
 Binary channel translation preserves document bytes. Short writes and close
@@ -394,7 +394,7 @@ it with a close diagnostic. Successful file output has an empty Tcl result.
 This ordering avoids truncating a destination on a rendering failure, but is
 not an atomic replacement protocol: an open, write or close failure can leave
 an empty or partial destination. The temporary token and DString are released
-on every OutputOp exit after their creation. Component options outlive them.
+on every :c:func:`rbcGraphPostscript.OutputOp` exit after their creation. Component options outlive them.
 
 Maintenance checks
 ------------------
@@ -462,3 +462,53 @@ noncolor mode, whereas :c:func:`rbcPsRaster.Rbc_PhotoToPostScript` and
 offsets; it neither selects a font nor anchors a layout. The enclosing
 :c:func:`rbcPsText.Rbc_TextToPostScript` owns those operations and its temporary
 layout, while leaving the caller's style unchanged.
+
+Command arguments and transaction boundaries
+--------------------------------------------
+
+The command helpers receive the full widget command: index two is the
+PostScript operation. Only :c:func:`rbcGraphPostscript.SetPostScriptOptions`
+receives a sliced option/value array. Passing the full array to that helper
+would attempt to interpret the widget and subcommand names as options.
+
+.. list-table:: State retained after a call
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Boundary
+     - Ownership and failure behavior
+   * - :c:func:`rbcGraphPostscript.ConfigurePostScript`
+     - Stages derived values before committing. It does not restore Tk option objects.
+   * - :c:func:`rbcGraphPostscript.SetPostScriptOptions`
+     - Restores failed derived conversions. On success its caller must free saved options.
+   * - :c:func:`rbcGraphPostscript.ComputeBoundingBox`
+     - Changes graph layout and stores inclusive bounds. It does not save screen geometry.
+   * - :c:func:`rbcGraphPostscript.GraphToPostScript`
+     - Pairs export begin/end, including failure; the caller still owns the output token.
+   * - :c:func:`rbcGraphPostscript.OutputOp`
+     - Owns token, staging buffer and channel cleanup. Persistent options are not rolled back.
+
+Preview buffers have a different purpose from the final vector document.
+:c:func:`rbcGraphPostscript.PreviewImage` draws at the export layout size and
+may omit an unavailable capture. The Windows-only :c:func:`rbcWindowsPostscript.CreateWindowsEPS` helper
+instead draws a metafile at live widget dimensions and appends binary packaging
+to an initialized DString. It includes the PostScript terminating NUL in that
+payload's byte count. Its native handles are temporary; neither the token nor
+the destination DString is transferred or freed. Preview generation can run
+drawing callbacks, so the enclosing command's graph protection remains required.
+
+Variable-trace cancellation
+---------------------------
+
+The preamble's reads of ``rbc_version`` and ``rbc::library`` can invoke user
+read traces. Keeping the graph record allocated does not keep its Tk window
+alive. :c:func:`rbcGraphPostscript.PostScriptPreamble` therefore checks graph
+validity after the version read and after successful prolog loading, before
+continuing to use widget or component state.
+
+If a trace destroys the graph, output returns an error and the export cleanup
+still runs. File destinations are opened only after successful assembly, so
+this cancellation leaves an existing destination untouched. Recreating a widget
+with the same pathname does not revive the original graph record. These checks
+protect against destruction; they do not make arbitrary reentrant changes to
+export options transactional.

@@ -481,5 +481,75 @@ namespace eval graph.postscript {
         unset -nocomplain FileName before code message channel contents
     } -result {1 1 1 sentinel}
 
+    # Read traces run during preamble assembly, before the destination is opened.
+    proc DestroyOnPostScriptRead {widget recreate name1 name2 op} {
+        destroy $widget
+        if {$recreate} {
+            graph $widget -title replacement
+        }
+    }
+
+    set testCase(16) 0
+    foreach tracedVariable {::rbc_version ::rbc::library} {
+        foreach recreate {0 1} {
+            foreach toFile {0 1} {
+                test RBC.graph.postscript.output.A.16.[incr testCase(16)] \
+                        "PostScript read trace deletes graph: $tracedVariable recreate=$recreate file=$toFile" -setup {
+                    graph .graph1
+                    pack .graph1
+                    update
+                    set FileName [makeFile sentinel RBC-postscript-trace.ps]
+                    set callback [list [namespace current]::DestroyOnPostScriptRead .graph1 $recreate]
+                    trace add variable $tracedVariable read $callback
+                } -body {
+                    if {$toFile} {
+                        set code [catch {.graph1 postscript output $FileName} message options]
+                    } else {
+                        set code [catch {.graph1 postscript output} message options]
+                    }
+                    trace remove variable $tracedVariable read $callback
+                    set channel [open $FileName r]
+                    set contents [string trimright [read $channel] "\n"]
+                    close $channel
+                    set replacementOK [expr {[winfo exists .graph1] == $recreate}]
+                    if {$recreate} {
+                        set replacementOK [expr {$replacementOK && [.graph1 cget -title] eq "replacement" &&
+                                [string match {%!PS-Adobe*} [.graph1 postscript output]]}]
+                    }
+                    list $code [dict get $options -errorcode] $contents $replacementOK
+                } -cleanup {
+                    catch {trace remove variable $tracedVariable read $callback}
+                    catch {close $channel}
+                    catch {destroy .graph1}
+                    removeFile $FileName
+                    unset -nocomplain callback channel contents replacementOK code message options FileName
+                } -result {1 {RBC GRAPH CALLBACK} sentinel 1}
+            }
+        }
+    }
+
+    test RBC.graph.postscript.output.A.17.1 {non-destructive PostScript variable traces still permit export} -setup {
+        graph .graph1
+        pack .graph1
+        update
+        set readCount 0
+        proc CountPostScriptRead {name1 name2 op} {
+            variable readCount
+            incr readCount
+        }
+        set callback [list [namespace current]::CountPostScriptRead]
+        trace add variable ::rbc_version read $callback
+        trace add variable ::rbc::library read $callback
+    } -body {
+        set ps [.graph1 postscript output]
+        list [expr {$readCount >= 2}] [string match {%!PS-Adobe*} $ps] [string match {*%EOF*} $ps]
+    } -cleanup {
+        trace remove variable ::rbc_version read $callback
+        trace remove variable ::rbc::library read $callback
+        destroy .graph1
+        rename CountPostScriptRead {}
+        unset -nocomplain readCount callback ps
+    } -result {1 1 1}
+
 	cleanupTests
 }

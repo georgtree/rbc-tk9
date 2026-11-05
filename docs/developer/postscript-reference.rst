@@ -57,11 +57,29 @@ Graph options and document assembly
 -----------------------------------
 
 These contracts describe the shared graph-facing command layer in
-``rbcGrPs.c``. Windows binary preview packaging is separate from this group.
+``rbcGrPs.c``. The parameter lists distinguish full command vectors from option slices and
+borrowed output buffers from owned component state. Windows binary preview
+packaging has its source-level contract on ``CreateWindowsEPS`` and its
+platform behavior described in :doc:`postscript-output`.
 
 .. c:namespace:: rbcGraphPostscript
 
 .. doxygengroup:: graph_postscript
+   :members:
+
+.. c:namespace-pop::
+
+Windows binary preview packaging
+--------------------------------
+
+The Windows-only helper is extracted in the separate platform project. It
+shares the graph command's lifetime protection but owns its temporary native
+resources. See :doc:`postscript-output` for the EPSI/WMF distinction.
+
+.. c:namespace:: rbcWindowsPostscript
+
+.. doxygengroup:: graph_postscript_windows
+   :project: rbc-win
    :members:
 
 .. c:namespace-pop::

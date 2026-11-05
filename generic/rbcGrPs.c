@@ -107,6 +107,10 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, Tcl_DString *docum
  * Borrows both strings. The supplied length must describe readable string
  * storage; lengths beyond fullName are rejected before comparison. Returns
  * a boolean without changing the interpreter or either string.
+ *
+ * @param[in] string Borrowed candidate bytes, readable for length bytes.
+ * @param[in] length Candidate byte count; nonpositive lengths never match.
+ * @param[in] fullName Borrowed NUL-terminated full option spelling.
  */
 static int IsOptionPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
@@ -122,6 +126,10 @@ static int IsOptionPrefix(const char *string, Tcl_Size length, const char *fullN
  * Accepts nonempty prefixes of color, grayscale, greyscale and monochrome.
  * Borrows objPtr and writes modePtr only on TCL_OK; TCL_ERROR leaves a
  * diagnostic in interp. Does not retain the object.
+ *
+ * @param[in] interp Interpreter receiving conversion errors; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed option object; not retained.
+ * @param[out] modePtr Required result storage; unchanged on failure.
  */
 static int GetColorModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, PsColorMode *modePtr) {
     const char *string;
@@ -152,6 +160,10 @@ static int GetColorModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, PsColorMode 
  * prefixes. Writes formatPtr only on TCL_OK; TCL_ERROR reports the
  * build-specific choices in interp. TIFF has no encoder and is rejected
  * regardless of HAVE_TIFF_H.
+ *
+ * @param[in] interp Interpreter receiving unsupported-format errors; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed preview-format object; not retained.
+ * @param[out] formatPtr Required result storage; changed only on TCL_OK.
  */
 static int GetPreviewFormatFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *formatPtr) {
     const char *string;
@@ -188,6 +200,10 @@ static int GetPreviewFormatFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *for
  * Plot dimensions may be zero; paper dimensions must be positive. On
  * TCL_ERROR no derived field is committed. This does not restore the Tk
  * option objects themselves; SetPostScriptOptions handles that rollback.
+ *
+ * @param[in] graphPtr Borrowed graph providing interpreter and Tk distance-conversion context.
+ * @param[in,out] psPtr Initialized component; selected derived fields commit together after validation.
+ * @param[in] mask PS_*_CHANGED bits selecting conversions; unselected derived values are retained.
  */
 static int ConfigurePostScript(Graph *graphPtr, PostScript *psPtr, int mask) {
     Rbc_Pad newPadX;
@@ -269,6 +285,13 @@ static int ConfigurePostScript(Graph *graphPtr, PostScript *psPtr, int mask) {
  * conversion failure restores saved Tk options while preserving the error.
  * On TCL_OK the caller must release saved options with Tk_FreeSavedOptions.
  * Successful settings belong to the component, not a temporary export.
+ *
+ * @param[in] graphPtr Borrowed graph providing the interpreter and live Tk configuration context.
+ * @param[in,out] psPtr Initialized component receiving persistent option values.
+ * @param[in] objc Number of objects in the option/value slice, not the full widget command.
+ * @param[in] objv Borrowed option/value slice; see @ref rbc_command_arguments for object lifetime.
+ * @param[out] savedOptionsPtr Required Tk saved-options storage; caller frees it after TCL_OK.
+ * @param[out] maskPtr Required storage for Tk changed-option bits; not a success indicator.
  */
 static int SetPostScriptOptions(Graph *graphPtr, PostScript *psPtr, Tcl_Size objc, Tcl_Obj *const objv[],
                                 Tk_SavedOptions *savedOptionsPtr, int *maskPtr) {
@@ -290,6 +313,9 @@ static int SetPostScriptOptions(Graph *graphPtr, PostScript *psPtr, Tcl_Size obj
  * freeing Tk configuration resources, deleting the option table and freeing
  * the record. Requires the graph and Tk option context to remain valid;
  * does not destroy the graph, its window or an independently owned token.
+ *
+ * @param[in,out] graphPtr Graph whose component is detached and freed; a NULL component is allowed, a
+ *    NULL graph is not.
  */
 void Rbc_DestroyPostScript(Graph *graphPtr) {
     PostScript *psPtr;
@@ -312,6 +338,12 @@ void Rbc_DestroyPostScript(Graph *graphPtr) {
  * Requires dispatch-validated arguments with the option at objv[3]. Borrows
  * the component and arguments. Returns TCL_OK with the Tk option value or
  * TCL_ERROR with the lookup diagnostic; does not configure or render.
+ *
+ * @param[in,out] graphPtr Borrowed graph with initialized PostScript component; enclosing widget
+ *    dispatch owns lifetime protection.
+ * @param[in] interp Interpreter receiving command results and errors; see @ref rbc_interp_argument.
+ * @param[in] objc Exactly four full-command objects; option name is objv[3].
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     PostScript *psPtr;
@@ -334,6 +366,13 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  * Otherwise applies option/value pairs transactionally and frees saved
  * options on success. Returns the Tk query or configuration status. Does
  * not emit a document or open a destination file.
+ *
+ * @param[in,out] graphPtr Borrowed graph with initialized PostScript component; enclosing widget
+ *    dispatch owns lifetime protection.
+ * @param[in] interp Interpreter receiving command results and errors; see @ref rbc_interp_argument.
+ * @param[in] objc Full-command count: three lists all options, four queries one, otherwise option/value
+ *    pairs follow objv[2].
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     PostScript *psPtr;
@@ -371,6 +410,8 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  *
  * Returns at least one and at most INT_MAX, represented as Tcl_WideInt.
  * Used before narrowing page and plot dimensions; has no side effects.
+ *
+ * @param[in] value Wide intermediate pixel size, including zero or negative values.
  */
 static Tcl_WideInt PostScriptLayoutSize(Tcl_WideInt value) {
     if (value < 1) {
@@ -391,6 +432,9 @@ static Tcl_WideInt PostScriptLayoutSize(Tcl_WideInt value) {
  * and mapping flags, invokes Rbc_LayoutGraph, and returns paper height in
  * pixels or -1 on layout failure. The caller must restore screen geometry
  * through the export lifecycle; this function does not save it.
+ *
+ * @param[in,out] graphPtr Borrowed graph whose export dimensions, flags and mapped layout are changed.
+ * @param[in,out] psPtr Component supplying page settings and receiving scale and inclusive pixel bounds.
  */
 static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
     Tcl_WideInt paperWidth;
@@ -502,6 +546,10 @@ static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
  * THUMBNAIL_PREVIEW enables optional resampling; otherwise uses the export
  * layout size. Landscape rotates the grayscale image by 90 degrees. The
  * caller checks graph validity again because this void helper has no status.
+ *
+ * @param[in,out] graphPtr Borrowed, caller-protected graph at export layout dimensions; drawing may
+ *    invoke callbacks.
+ * @param[in,out] psToken Borrowed output token receiving EPSI comments; remains owned by the caller.
  */
 static void PreviewImage(Graph *graphPtr, PsToken psToken) {
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
@@ -584,9 +632,17 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
  * Converts display pixels to points using screen pixel/mm dimensions,
  * escapes metadata strings, optionally appends EPSI, loads rbcGraph.pro,
  * then emits any footer and establishes page orientation and scaling.
- * Reads rbc_version through Tcl, so variable traces are possible. Partial
+ * Reads rbc_version and the prolog library path through Tcl, so variable
+ * traces are possible. Checks graph validity after successful callback-capable
+ * reads before resuming component access. Partial
  * output remains in the token on failure; the enclosing operation owns
  * graph lifetime protection and export cleanup.
+ *
+ * @param[in,out] graphPtr Caller-protected graph with initialized PostScript component; layout is
+ *    changed.
+ * @param[in] fileName Borrowed NUL-terminated title, or NULL to use the widget path.
+ * @param[in,out] psToken Borrowed token receiving metadata, prolog and transforms; partial output
+ *    remains on error.
  */
 static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psToken) {
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
@@ -631,6 +687,9 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
                            (int)ceil((paperHeightPixels - psPtr->bottom) * yPixelsToPica));
     Rbc_AppendToPostScript(psToken, "%%Pages: 0\n", (char *)NULL);
     version = Tcl_GetVar(graphPtr->interp, "rbc_version", TCL_GLOBAL_ONLY);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return TCL_ERROR;
+    }
     if (version == NULL) {
         version = "???";
     }
@@ -670,7 +729,8 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
             return TCL_ERROR;
         }
     }
-    if (Rbc_FileToPostScript(psToken, "rbcGraph.pro") != TCL_OK) {
+    if (Rbc_FileToPostScript(psToken, "rbcGraph.pro") != TCL_OK ||
+        !Rbc_GraphCallbackValid(graphPtr)) {
         return TCL_ERROR;
     }
     if (psPtr->footer) {
@@ -755,6 +815,11 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
  * the export context, including on error. EndGraph restores live window
  * dimensions and schedules remapping rather than synchronously restoring
  * every screen coordinate. Returns the first failing stage or TCL_OK.
+ *
+ * @param[in,out] graphPtr Caller-protected graph; export begin/end manage its temporary layout state.
+ * @param[in] ident Borrowed document title, or NULL to select the widget path.
+ * @param[in,out] psToken Caller-owned token borrowed by renderer contexts; not released by export
+ *    cleanup.
  */
 static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken) {
     Rbc_ExportContext export;
@@ -814,29 +879,27 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
  *}
  */
 
-/*
- * --------------------------------------------------------------------------
+/** @defgroup graph_postscript_windows Windows EPS preview packaging
+ * Private native preview assembly for the graph PostScript command.
+ */
+/**
+ * @ingroup graph_postscript_windows
+ * @brief Append a DOS EPS header, PostScript payload and Windows metafile preview.
  *
- * CreateWindowsEPS --
+ * Windows-only packaging used for file output with a WMF preview. Appends a
+ * newline to the token, captures a separate preview at live widget dimensions,
+ * and copies the header and both payloads into document. The PostScript byte
+ * count includes its terminating NUL. This is not the EPSI snapshot path.
  *
- *      Builds an EPS document with a Windows metafile preview.
+ * Owns the temporary drawable wrapper, metafile, reference DC and global-memory
+ * block, releasing them before return. The caller retains graph lifetime
+ * protection and owns both output buffers. Once preview drawing has begun,
+ * cleanup marks mapping work and schedules redraw. Returns TCL_OK after
+ * assembly, or TCL_ERROR for the checked native failures or graph invalidation.
  *
- *      Windows metafiles aren't very robust.  Including exactly the
- *      same metafile (one embedded in a DOS EPS, the other as .wmf
- *      file) will play back differently.
- *
- * Parameters:
- *      Graph *graphPtr
- *      PsToken psToken
- *      Tcl_DString *document - Receives the complete binary EPS document.
- *
- * Results:
- *      Standard Tcl result.
- *
- * Side effects:
- *      Appends the header, PostScript and metafile bytes to document.
- *
- * --------------------------------------------------------------------------
+ * @param[in,out] graphPtr Caller-protected graph with a live, realized Tk window.
+ * @param[in,out] psToken Caller-owned completed PostScript token; receives a trailing newline.
+ * @param[in,out] document Initialized caller-owned DString receiving binary bytes; not freed here.
  */
 static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, Tcl_DString *document) {
     DWORD size;
@@ -962,6 +1025,12 @@ error:
  * failure can leave a partial file: this is not atomic file replacement.
  * Returns TCL_OK with text or an empty file-output result, else TCL_ERROR.
  * Caller must protect the graph across callbacks during rendering.
+ *
+ * @param[in,out] graphPtr Borrowed graph with initialized PostScript component; enclosing widget
+ *    dispatch owns lifetime protection.
+ * @param[in] interp Interpreter receiving command results and errors; see @ref rbc_interp_argument.
+ * @param[in] objc Full-command count; optional filename and option/value pairs follow objv[2].
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     PostScript *psPtr;
@@ -1067,6 +1136,9 @@ done:
  * and class Postscript through the option proxy, then validates derived
  * fields. Returns TCL_OK on success. On TCL_ERROR destroys the partial
  * component and leaves graph->postscript NULL; diagnostics remain in interp.
+ *
+ * @param[in,out] graphPtr Graph with no existing PostScript component and a usable Tk configuration
+ *    context; owns the new record on success.
  */
 int Rbc_CreatePostScript(Graph *graphPtr) {
     PostScript *psPtr;
@@ -1119,6 +1191,12 @@ static const PostScriptOpSpec psOps[] = {{{"cget", 4, 4, "option"}, CgetOp},
  * table to validate the operation at argument two and its arity, then
  * returns the selected handler status. Does not independently preserve
  * the graph or interpreter; the enclosing widget command owns that guard.
+ *
+ * @param[in,out] graphPtr Borrowed graph with initialized PostScript component; enclosing widget
+ *    dispatch owns lifetime protection.
+ * @param[in] interp Interpreter receiving command results and errors; see @ref rbc_interp_argument.
+ * @param[in] objc Full widget-command count, including the postscript operation at objv[2].
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
