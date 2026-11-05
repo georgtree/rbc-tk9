@@ -14,8 +14,8 @@ hairs have actually been drawn. They need not be logical opposites: requested
 hairs can remain absent when the hotspot is outside the plot or the window is
 unmapped. Never infer actual pixels solely from the ``-hide`` option.
 
-``TurnOnHairs`` draws only on a mapped window when the hairs are not already
-visible and the hotspot is inside the plot. ``TurnOffHairs`` erases visible
+:c:func:`rbcCrosshairs.TurnOnHairs` draws only on a mapped window when the hairs are not already
+visible and the hotspot is inside the plot. :c:func:`rbcCrosshairs.TurnOffHairs` erases visible
 hairs on a mapped window by submitting the same segments with the same XOR GC.
 The public enable/disable helpers additionally honor ``hidden`` without changing
 it. Tcl on/off operations update the requested state separately.
@@ -36,7 +36,7 @@ ordinary pointer motion from acquiring a separate drawing context between the
 erase and draw submissions. Changes to style or visibility use the general
 configuration path.
 
-``Rbc_UpdateCrosshairs`` only changes segment lengths to match current graph
+:c:func:`Rbc_UpdateCrosshairs` only changes segment lengths to match current graph
 bounds. It leaves the hotspot and visible state unchanged and performs no
 drawing. Old endpoints must remain available until their pixels have either
 been erased or replaced by a completed frame.
@@ -53,13 +53,13 @@ The double-buffered display path leaves the visible window untouched while
 preparing a complete temporary pixmap. The reusable element backing store
 contains graph content without crosshairs.
 
-Before updating segment geometry, ``Rbc_CrosshairsNeedFullRedraw`` examines the
+Before updating segment geometry, :c:func:`Rbc_CrosshairsNeedFullRedraw` examines the
 old state. Wide strokes, or old visible segments outside the new plot bounds,
 can require a full-frame copy. The caller also requests margin drawing so every
 pixel of that larger source rectangle has been initialized.
 
 After graph drawing and callback-validity checks,
-``Rbc_PresentGraphWithCrosshairs`` updates endpoints, draws requested hairs into
+:c:func:`Rbc_PresentGraphWithCrosshairs` updates endpoints, draws requested hairs into
 the temporary frame and copies the completed frame to the window. It then
 records the new actual visibility. The copy replaces the old XOR pixels; there
 is no separate window erase followed by a later window draw. This presentation
@@ -103,14 +103,14 @@ not prove that an intermediate erased frame was never displayed.
 Parsing and configuration boundaries
 ------------------------------------
 
-``GetCrosshairPositionFromObj`` accepts an empty position as the off-plot
+:c:func:`rbcCrosshairs.GetCrosshairPositionFromObj` accepts an empty position as the off-plot
 ``INT_MIN,INT_MIN`` sentinel. Nonempty values must have the ``@x,y`` form;
 both coordinates use Tk screen-distance conversion, so they become integer
 pixels before being stored as doubles. Temporary coordinate objects are
 retained and released locally. A malformed position leaves the previous parsed
 hotspot unchanged. This parser does not move or draw the overlay.
 
-``ConfigureCrosshairs`` runs all selected conversions before erasing anything.
+:c:func:`rbcCrosshairs.ConfigureCrosshairs` runs all selected conversions before erasing anything.
 Tk has already stored the candidate option fields, but the active dash pattern,
 width, hotspot and GC remain unchanged on conversion failure. The command
 handler then restores the saved Tk options with the original diagnostic.
@@ -127,10 +127,10 @@ The low-level visibility helpers deliberately do not implement the same policy:
    * - Helper
      - Eligibility
      - Requested hidden state
-   * - ``TurnOnHairs``
+   * - :c:func:`rbcCrosshairs.TurnOnHairs`
      - Mapped, not already visible, hotspot inside plot
      - Neither reads nor writes it; caller decides whether to show
-   * - ``TurnOffHairs``
+   * - :c:func:`rbcCrosshairs.TurnOffHairs`
      - Mapped and actually visible
      - Neither reads nor writes it; unmapped calls leave visible unchanged
    * - Windows ``MoveCrosshairs``
@@ -163,3 +163,36 @@ and schedule a full redraw. They use the crosshair XOR transition machinery.
 This distinction keeps pointer interaction inexpensive and prevents cached graph
 content from acquiring overlay pixels. Do not replace these handlers with the
 grid's visibility implementation merely because their Tcl command names match.
+
+Parameter boundaries and lifecycle
+----------------------------------
+
+:c:func:`Rbc_CreateCrosshairs` initializes the named component and its derived
+XOR state. :c:func:`Rbc_ConfigureCrosshairs` is the graph-background refresh
+entry point, not a general replacement for the Tcl configure operation. It
+reuses validated settings and discards the private configure helper's status.
+:c:func:`Rbc_DestroyCrosshairs` releases resources during teardown; it is not
+an erase operation for a window that will keep displaying the graph.
+
+:c:func:`rbcCrosshairs.GetCrosshairPositionFromObj` borrows its option object
+and copies parsed coordinates to required output storage. NULL and empty input
+select the off-plot sentinel, while an invalid nonempty input leaves the output
+unchanged. No object or coordinate pointer is retained.
+
+:c:func:`rbcCrosshairs.ConfigureCrosshairs` receives candidate Tk option fields
+but a still-active old GC and old geometry. Its mask determines which derived
+values need conversion. Tk rollback remains the responsibility of
+:c:func:`rbcCrosshairs.ConfigureOp`; the private helper protects the visual
+transition by finishing conversions before erasure.
+
+The command handlers receive the full widget-command vector, with the operation
+at index two. Visibility handlers ignore the interpreter and arguments after
+dispatch has validated their arity. They use the existing crosshair record;
+they do not manufacture a new record or retain any command objects.
+
+For buffered presentation, :c:func:`Rbc_PresentGraphWithCrosshairs` borrows but
+modifies the completed temporary pixmap. The caller must initialize the whole
+rectangle that will be copied, and must not reuse that pixmap as an overlay-free
+backing store afterward. This is distinct from
+:c:func:`Rbc_UpdateCrosshairs`, which only updates endpoints and therefore cannot
+safely be used before old XOR pixels have been erased or replaced.

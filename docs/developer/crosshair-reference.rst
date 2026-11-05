@@ -4,6 +4,15 @@ Crosshair C reference
 These private helpers borrow graph state. See :doc:`crosshairs` before changing
 erase/update/present ordering.
 
+Lifecycle and background changes
+--------------------------------
+
+.. doxygenfunction:: Rbc_CreateCrosshairs
+
+.. doxygenfunction:: Rbc_ConfigureCrosshairs
+
+.. doxygenfunction:: Rbc_DestroyCrosshairs
+
 Direct overlay control
 ----------------------
 

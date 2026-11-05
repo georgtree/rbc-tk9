@@ -220,6 +220,9 @@ static const Tk_OptionSpec barGridOptionSpecs[] = {
  * optionName. Returns FALSE when resolution fails; does not set an interpreter
  * diagnostic. Used to identify explicit tick options in the original argument
  * sequence, rather than inspecting only the final Tk option values.
+ *
+ * @param[in] objPtr Borrowed option-name object, possibly abbreviated.
+ * @param[in] optionName Borrowed NUL-terminated canonical spelling to compare after resolution.
  */
 static int IsGridOption(Tcl_Obj *objPtr, const char *optionName) {
     const char *name = Rbc_GetCanonicalOptionName(objPtr, graphGridOptionSpecs);
@@ -236,6 +239,16 @@ static int IsGridOption(Tcl_Obj *objPtr, const char *optionName) {
  * Auto stores CENTER with isAuto true. Assigns the active record only on success;
  * returns TCL_ERROR with the Tk diagnostic on invalid input. No owned allocation
  * or Tcl callback is involved; the input object is not replaced.
+ *
+ * @param[in] clientData Unused Tk custom-option client data.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] tkwin Unused Tk custom-option window argument.
+ * @param[in] valuePtrPtr Required pointer to the borrowed candidate object; the object pointer is not
+ *    replaced.
+ * @param[in,out] widgRec Tk option record containing the inline PolarLabelAnchor.
+ * @param[in] offset Byte offset of PolarLabelAnchor within widgRec.
+ * @param[out] saveInternalPtr Optional storage for the previous inline value; NULL skips saving.
+ * @param[in] flags Unused Tk custom-option flags.
  */
 static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
                                char *widgRec, Tcl_Size offset, char *saveInternalPtr, int flags) {
@@ -275,6 +288,11 @@ static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window t
  * Reads the record at widgRec+offset. Returns a new zero-reference Tcl string
  * containing auto or the Tk anchor name; ownership follows Tk's custom-option
  * getProc convention. Does not change the record or allocate native resources.
+ *
+ * @param[in] clientData Unused Tk custom-option client data.
+ * @param[in] tkwin Unused Tk custom-option window argument.
+ * @param[in] widgRec Borrowed record containing a valid inline PolarLabelAnchor.
+ * @param[in] offset Byte offset of that representation within widgRec.
  */
 static Tcl_Obj *GetPolarLabelAnchor(void *clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset) {
     PolarLabelAnchor *anchorPtr;
@@ -295,6 +313,11 @@ static Tcl_Obj *GetPolarLabelAnchor(void *clientData, Tk_Window tkwin, char *wid
  * Copies one PolarLabelAnchor from Tk rollback storage to internalPtr. Both
  * pointers must refer to complete records. No pointer ownership transfer or
  * allocation is necessary because the representation contains only values.
+ *
+ * @param[in] clientData Unused Tk custom-option client data.
+ * @param[in] tkwin Unused Tk custom-option window argument.
+ * @param[out] internalPtr Required storage for the active PolarLabelAnchor to restore.
+ * @param[in] saveInternalPtr Required saved PolarLabelAnchor; copied without taking ownership.
  */
 static void RestorePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr, char *saveInternalPtr) {
     (void)clientData;
@@ -309,6 +332,10 @@ static void RestorePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *int
  *
  * Intentionally a no-op: PolarLabelAnchor owns no heap or Tk resources. Tk owns
  * the surrounding record/storage. All arguments are unused.
+ *
+ * @param[in] clientData Unused Tk custom-option client data.
+ * @param[in] tkwin Unused Tk custom-option window argument.
+ * @param[in] internalPtr Unused pointer to Tk-owned inline representation; no allocation is released.
  */
 static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr) {
     (void)clientData;
@@ -326,6 +353,13 @@ static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *intern
  * Tcl_AttemptAlloc; frees scratch storage on conversion/range failure.
  * Returns TCL_OK with caller-owned storage (release with ckfree), or TCL_ERROR
  * with an interpreter diagnostic and NULL/zero outputs. Does not change a grid.
+ *
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed list object containing angles in degrees.
+ * @param[in] optionName Borrowed option spelling used in range and allocation-size diagnostics.
+ * @param[out] ticksPtr Required output slot; receives ckfree-owned array on success, NULL for empty
+ *    input or failure.
+ * @param[out] nTicksPtr Required output count; zero for empty input or failure.
  */
 static int ParsePolarAngleTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char *optionName, double **ticksPtr,
                                 Tcl_Size *nTicksPtr) {
@@ -390,6 +424,14 @@ static int ParsePolarAngleTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char 
  * negative zero when accepted. Empty lists return NULL/zero with TCL_OK.
  * Checked Tcl allocation is owned by the caller on success; on TCL_ERROR the
  * scratch buffer is freed, outputs remain NULL/zero, and interp has diagnostics.
+ *
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed list of real values or imaginary magnitudes.
+ * @param[in] optionName Borrowed option spelling for diagnostics.
+ * @param[in] allowZero Nonzero accepts zero; zero requires strictly positive magnitudes.
+ * @param[out] ticksPtr Required output slot; receives ckfree-owned array or NULL for empty input or
+ *    failure.
+ * @param[out] nTicksPtr Required output count; zero for empty input or failure.
  */
 static int ParseSmithTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char *optionName, int allowZero,
                            double **ticksPtr, Tcl_Size *nTicksPtr) {
@@ -453,6 +495,12 @@ static int ParseSmithTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char *opti
  * then takes ownership of the replacement and marks the slot staged, including
  * an empty replacement. TCL_ERROR leaves earlier staged/live values intact;
  * TCL_OK changes only the transaction, never active grid arrays.
+ *
+ * @param[in] gridPtr Borrowed grid supplying its graph interpreter; active arrays are unchanged.
+ * @param[in] objPtr Borrowed replacement list.
+ * @param[in] major Nonzero selects the major slot; zero selects the minor slot.
+ * @param[in,out] transactionPtr Initialized staging record taking ownership only after the replacement
+ *    parses successfully.
  */
 static int StageGridPolarAngleTicks(Grid *gridPtr, Tcl_Obj *objPtr, int major,
                                      GridPolarAngleTicksTransaction *transactionPtr) {
@@ -497,6 +545,14 @@ static int StageGridPolarAngleTicks(Grid *gridPtr, Tcl_Obj *objPtr, int major,
  * parses the replacement before freeing earlier staged storage for that slot.
  * Returns Tcl status; failure preserves earlier staged/live values, success
  * transfers ownership to the transaction and marks even an empty list staged.
+ *
+ * @param[in] gridPtr Borrowed grid supplying its graph interpreter; active arrays are unchanged.
+ * @param[in] objPtr Borrowed replacement list.
+ * @param[in] realPart Nonzero selects real ticks allowing zero; zero selects positive imaginary
+ *    magnitudes.
+ * @param[in] major Nonzero selects major ticks; zero selects minor ticks.
+ * @param[in,out] transactionPtr Initialized transaction owning any previous staged arrays; only the
+ *    selected slot is replaced.
  */
 static int StageGridSmithTicks(Grid *gridPtr, Tcl_Obj *objPtr, int realPart, int major,
                                 GridSmithTicksTransaction *transactionPtr) {
@@ -564,6 +620,9 @@ static int StageGridSmithTicks(Grid *gridPtr, Tcl_Obj *objPtr, int realPart, int
  * NULLs. Frees both non-NULL arrays regardless of flags, then zeroes the record.
  * Safe after commit and safe to repeat on the reset record. Never frees active
  * grid storage because commit detaches transferred pointers.
+ *
+ * @param[in,out] transactionPtr Required initialized transaction; owned arrays are freed and all fields
+ *    zeroed.
  */
 static void FreeGridPolarAngleTicksTransaction(GridPolarAngleTicksTransaction *transactionPtr) {
     if (transactionPtr->majorTicks != NULL) {
@@ -582,6 +641,9 @@ static void FreeGridPolarAngleTicksTransaction(GridPolarAngleTicksTransaction *t
  * Requires a non-NULL initialized transaction. Frees each non-NULL array and
  * zeroes all pointers, counts and flags. Safe after partial preparation, successful
  * commit or previous cleanup. No grid state or Tcl result is changed.
+ *
+ * @param[in,out] transactionPtr Required initialized transaction; owned arrays are freed and all fields
+ *    zeroed.
  */
 static void FreeGridSmithTicksTransaction(GridSmithTicksTransaction *transactionPtr) {
     if (transactionPtr->realMajorTicks != NULL) {
@@ -612,6 +674,11 @@ static void FreeGridSmithTicksTransaction(GridSmithTicksTransaction *transaction
  * Returns TCL_OK with owned staged buffers, or TCL_ERROR after freeing/resetting
  * the transaction. Live grid arrays are unchanged; Tk's saved options are a
  * separate transaction handled by the caller.
+ *
+ * @param[in] gridPtr Borrowed grid with an even optionObjc and valid optionObjv slice, plus stored
+ *    defaults.
+ * @param[out] transactionPtr Required unowned storage; initialized here, owns staged arrays on success
+ *    and is reset on error.
  */
 static int PrepareGridPolarAngleTicksTransaction(Grid *gridPtr, GridPolarAngleTicksTransaction *transactionPtr) {
     int explicitMajor;
@@ -677,6 +744,11 @@ error:
  * initial configuration, then validates every explicit occurrence in caller order.
  * Returns TCL_OK with staged ownership, or TCL_ERROR after complete staging
  * cleanup. Does not replace active arrays or restore Tk option objects.
+ *
+ * @param[in] gridPtr Borrowed grid with an even optionObjc and valid optionObjv slice, plus stored
+ *    defaults.
+ * @param[out] transactionPtr Required unowned storage; initialized here, owns staged arrays on success
+ *    and is reset on error.
  */
 static int PrepareGridSmithTicksTransaction(Grid *gridPtr, GridSmithTicksTransaction *transactionPtr) {
     int explicitRealMajor;
@@ -771,6 +843,10 @@ error:
  * frees the old active array. Unstaged slots are retained; staged NULL/zero means
  * an explicitly empty list. Requires successful preparation. No allocation,
  * validation, callback or redraw scheduling occurs; cleanup may run afterward.
+ *
+ * @param[in,out] gridPtr Owning grid receiving staged arrays and releasing replaced active arrays.
+ * @param[in,out] transactionPtr Successfully prepared transaction; transferred pointers and slot flags
+ *    are cleared.
  */
 static void CommitGridPolarAngleTicksTransaction(Grid *gridPtr, GridPolarAngleTicksTransaction *transactionPtr) {
     if (transactionPtr->majorStaged) {
@@ -809,6 +885,10 @@ static void CommitGridPolarAngleTicksTransaction(Grid *gridPtr, GridPolarAngleTi
  * its pointer/count/flag and frees old active storage. Empty staged lists clear
  * the slot; unstaged slots remain unchanged. Requires successful preparation;
  * no allocation, callbacks or redraw scheduling occur.
+ *
+ * @param[in,out] gridPtr Owning grid receiving staged arrays and releasing replaced active arrays.
+ * @param[in,out] transactionPtr Successfully prepared transaction; transferred pointers and slot flags
+ *    are cleared.
  */
 static void CommitGridSmithTicksTransaction(Grid *gridPtr, GridSmithTicksTransaction *transactionPtr) {
     if (transactionPtr->realMajorStaged) {
@@ -872,6 +952,9 @@ static void CommitGridSmithTicksTransaction(Grid *gridPtr, GridSmithTicksTransac
  * NULL means no command and succeeds. Otherwise uses Tcl_ListObjGetElements;
  * an empty list is accepted. Returns Tcl status and a diagnostic on invalid list
  * syntax. Does not check command existence, invoke the prefix or retain it.
+ *
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed command-prefix object, or NULL for no prefix; list syntax only is checked.
  */
 static int ValidateGridCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     Tcl_Obj **objv;
@@ -912,6 +995,11 @@ static RbcGrGridOp ToggleOp;
  * resources intact; caller must restore Tk_SavedOptions separately. On TCL_OK,
  * commits arrays, axes and GC, releases replaced resources, and marks initial
  * configuration complete. Does not itself remap geometry or schedule redraw.
+ *
+ * @param[in] graphPtr Borrowed owning graph with live Tk configuration and axis lookup context.
+ * @param[in,out] gridPtr Initialized owning grid with candidate Tk options and any borrowed original
+ *    option slice.
+ * @param[in] mask GRID_*_CHANGED bits selecting derived conversions; not a rollback or redraw request.
  */
 static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
     GridPolarAngleTicksTransaction angleTicks = {0};
@@ -1098,6 +1186,13 @@ void Rbc_MapGrid(Graph *graphPtr) {
  * only visible track rectangles, retaining original segment/dash coordinates.
  * This clips complete strokes, not only their centerlines. Does not remap,
  * finalize export documents or own the cached segment arrays.
+ *
+ * @param[in,out] graphPtr Borrowed trackgraph with mapped visible rectangles and segment caches;
+ *    temporary viewports are restored.
+ * @param[in] drawable Borrowed compatible screen destination when exportPtr is NULL; ignored during
+ *    export.
+ * @param[in,out] exportPtr Borrowed initialized export context, or NULL for screen output; not finalized
+ *    here.
  */
 static void DrawTrackGrids(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
     RbcTrack *track;
@@ -1205,6 +1300,10 @@ void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
  * record. Must not receive the borrowed inherited-query view. Does not clear
  * its owner's pointer or free per-track segment caches; outer destruction helpers
  * perform those tasks. graphPtr->tkwin must still be valid for Tk cleanup.
+ *
+ * @param[in] graphPtr Owning graph with valid Tk window and display for resource release.
+ * @param[in,out] gridPtr Owned grid to free, or NULL; never the shallow inherited-query view. Owner
+ *    pointer is not cleared here.
  */
 static void DestroyGrid(Graph *graphPtr, Grid *gridPtr) {
     if (gridPtr == NULL) {
@@ -1270,24 +1369,6 @@ void Rbc_DestroyGrid(Graph *graphPtr) {
     DestroyGrid(graphPtr, gridPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CreateGrid --
- *
- *      Creates and initializes a new grid structure.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      Returns TCL_ERROR if the configuration failed, otherwise TCL_OK.
- *
- * Side Effects:
- *      Memory for grid structure is allocated.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_CreateGrid(Graph *graphPtr) {
     Grid *gridPtr;
     const Tk_OptionSpec *specsPtr;
@@ -1328,6 +1409,13 @@ error:
  * The typed dispatcher has validated argument count. Borrows the graph-owned component and its option
  * table, returning Tk option errors unchanged. This query does not configure resources or schedule
  * drawing.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected grid record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Validated count of four; option name is objv[3].
+ * @param[in] objv Borrowed command vector, adapted to ordinary component form for track grids; see @ref
+ *    rbc_command_arguments.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr;
@@ -1349,6 +1437,13 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  * then expose the borrowed original argument sequence only while ConfigureGrid validates derived
  * state. Clears that temporary sequence on both outcomes. Failure restores saved options and the
  * diagnostic; success frees saved values and schedules masked world/backing-store invalidation.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected grid record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Command count; operation is at index two, optional arguments start at index three.
+ * @param[in] objv Borrowed command vector, adapted to ordinary component form for track grids; see @ref
+ *    rbc_command_arguments.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr;
@@ -1411,6 +1506,12 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * Changes hidden only when necessary, invalidates the backing store and schedules idle graph redraw.
  * Does not immediately paint or remap segments. Under track dispatch, the selected grid may be a newly
  * created local candidate.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected grid record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Unused by this visibility handler.
+ * @param[in] objc Validated count of three; unused by this visibility handler.
+ * @param[in] objv Unused validated command vector.
  */
 static int MapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
@@ -1427,6 +1528,12 @@ static int MapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  * @brief Hide the selected grid through deferred redraw.
  * Changes hidden only when currently shown, then invalidates the backing store and schedules idle
  * redraw. Does not free segment caches or erase pixels directly.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected grid record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Unused by this visibility handler.
+ * @param[in] objc Validated count of three; unused by this visibility handler.
+ * @param[in] objv Unused validated command vector.
  */
 static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
@@ -1443,6 +1550,12 @@ static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
  * @brief Invert grid visibility and schedule a backing-store redraw.
  * Mutates the selected grid, which can be global or temporarily selected track-local state. Always
  * schedules redraw; does not remap or synchronously draw geometry.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected grid record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Unused by this visibility handler.
+ * @param[in] objc Validated count of three; unused by this visibility handler.
+ * @param[in] objv Unused validated command vector.
  */
 static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
@@ -1463,6 +1576,13 @@ static const GridOpSpec gridOps[] = {
  * Uses the typed operation table to check name and arity before accessing operation-specific
  * arguments. Borrows graph and Tcl arguments, returns the handler result, and performs no independent
  * drawing or option rollback.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected grid record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Command count; operation is at index two, optional arguments start at index three.
+ * @param[in] objv Borrowed command vector, adapted to ordinary component form for track grids; see @ref
+ *    rbc_command_arguments.
  */
 int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -1482,6 +1602,14 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
  * mutation prepares an owned local candidate; only success attaches it. Temporarily selects the view
  * or candidate through graphPtr->gridPtr, restoring the global pointer before cleanup. This
  * synchronous path must not evaluate Tcl callbacks while temporary selection is active.
+ *
+ * @param[in,out] graphPtr Owning graph; global grid selection is restored before return.
+ * @param[in,out] track Borrowed live member of graphPtr; receives an owned local grid only after
+ *    successful first mutation.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Full nested-command count, including widget, track, grid, track name and operation.
+ * @param[in] objv Borrowed full nested-command vector; operation is objv[4]. See @ref
+ *    rbc_command_arguments.
  */
 int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *global = graphPtr->gridPtr;

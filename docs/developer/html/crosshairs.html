@@ -53,8 +53,8 @@ See <a class="reference internal" href="crosshair-reference.html"><span class="d
 hairs have actually been drawn. They need not be logical opposites: requested
 hairs can remain absent when the hotspot is outside the plot or the window is
 unmapped. Never infer actual pixels solely from the <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option.</p>
-<p><code class="docutils literal notranslate"><span class="pre">TurnOnHairs</span></code> draws only on a mapped window when the hairs are not already
-visible and the hotspot is inside the plot. <code class="docutils literal notranslate"><span class="pre">TurnOffHairs</span></code> erases visible
+<p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.TurnOnHairs" title="rbcCrosshairs.TurnOnHairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.TurnOnHairs()</span></code></a> draws only on a mapped window when the hairs are not already
+visible and the hotspot is inside the plot. <a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.TurnOffHairs" title="rbcCrosshairs.TurnOffHairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.TurnOffHairs()</span></code></a> erases visible
 hairs on a mapped window by submitting the same segments with the same XOR GC.
 The public enable/disable helpers additionally honor <code class="docutils literal notranslate"><span class="pre">hidden</span></code> without changing
 it. Tcl on/off operations update the requested state separately.</p>
@@ -72,7 +72,7 @@ draw segments together. Unchanged geometry avoids unnecessary work. This keeps
 ordinary pointer motion from acquiring a separate drawing context between the
 erase and draw submissions. Changes to style or visibility use the general
 configuration path.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_UpdateCrosshairs</span></code> only changes segment lengths to match current graph
+<p><a class="reference internal" href="crosshair-reference.html#c.Rbc_UpdateCrosshairs" title="Rbc_UpdateCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_UpdateCrosshairs()</span></code></a> only changes segment lengths to match current graph
 bounds. It leaves the hotspot and visible state unchanged and performs no
 drawing. Old endpoints must remain available until their pixels have either
 been erased or replaced by a completed frame.</p>
@@ -86,12 +86,12 @@ scopes have been restored. See <a class="reference internal" href="mapping.html"
 <p>The double-buffered display path leaves the visible window untouched while
 preparing a complete temporary pixmap. The reusable element backing store
 contains graph content without crosshairs.</p>
-<p>Before updating segment geometry, <code class="docutils literal notranslate"><span class="pre">Rbc_CrosshairsNeedFullRedraw</span></code> examines the
+<p>Before updating segment geometry, <a class="reference internal" href="crosshair-reference.html#c.Rbc_CrosshairsNeedFullRedraw" title="Rbc_CrosshairsNeedFullRedraw"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CrosshairsNeedFullRedraw()</span></code></a> examines the
 old state. Wide strokes, or old visible segments outside the new plot bounds,
 can require a full-frame copy. The caller also requests margin drawing so every
 pixel of that larger source rectangle has been initialized.</p>
 <p>After graph drawing and callback-validity checks,
-<code class="docutils literal notranslate"><span class="pre">Rbc_PresentGraphWithCrosshairs</span></code> updates endpoints, draws requested hairs into
+<a class="reference internal" href="crosshair-reference.html#c.Rbc_PresentGraphWithCrosshairs" title="Rbc_PresentGraphWithCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PresentGraphWithCrosshairs()</span></code></a> updates endpoints, draws requested hairs into
 the temporary frame and copies the completed frame to the window. It then
 records the new actual visibility. The copy replaces the old XOR pixels; there
 is no separate window erase followed by a later window draw. This presentation
@@ -128,13 +128,13 @@ not prove that an intermediate erased frame was never displayed.</p>
 </section>
 <section id="parsing-and-configuration-boundaries">
 <h2>Parsing and configuration boundaries<a class="headerlink" href="#parsing-and-configuration-boundaries" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">GetCrosshairPositionFromObj</span></code> accepts an empty position as the off-plot
+<p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.GetCrosshairPositionFromObj" title="rbcCrosshairs.GetCrosshairPositionFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.GetCrosshairPositionFromObj()</span></code></a> accepts an empty position as the off-plot
 <code class="docutils literal notranslate"><span class="pre">INT_MIN,INT_MIN</span></code> sentinel. Nonempty values must have the <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> form;
 both coordinates use Tk screen-distance conversion, so they become integer
 pixels before being stored as doubles. Temporary coordinate objects are
 retained and released locally. A malformed position leaves the previous parsed
 hotspot unchanged. This parser does not move or draw the overlay.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ConfigureCrosshairs</span></code> runs all selected conversions before erasing anything.
+<p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.ConfigureCrosshairs" title="rbcCrosshairs.ConfigureCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.ConfigureCrosshairs()</span></code></a> runs all selected conversions before erasing anything.
 Tk has already stored the candidate option fields, but the active dash pattern,
 width, hotspot and GC remain unchanged on conversion failure. The command
 handler then restores the saved Tk options with the original diagnostic.
@@ -155,11 +155,11 @@ helper contracts.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TurnOnHairs</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.TurnOnHairs" title="rbcCrosshairs.TurnOnHairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.TurnOnHairs()</span></code></a></p></td>
 <td><p>Mapped, not already visible, hotspot inside plot</p></td>
 <td><p>Neither reads nor writes it; caller decides whether to show</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TurnOffHairs</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.TurnOffHairs" title="rbcCrosshairs.TurnOffHairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.TurnOffHairs()</span></code></a></p></td>
 <td><p>Mapped and actually visible</p></td>
 <td><p>Neither reads nor writes it; unmapped calls leave visible unchanged</p></td>
 </tr>
@@ -193,6 +193,34 @@ This distinction keeps pointer interaction inexpensive and prevents cached graph
 content from acquiring overlay pixels. Do not replace these handlers with the
 grid’s visibility implementation merely because their Tcl command names match.</p>
 </section>
+<section id="parameter-boundaries-and-lifecycle">
+<h2>Parameter boundaries and lifecycle<a class="headerlink" href="#parameter-boundaries-and-lifecycle" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="crosshair-reference.html#c.Rbc_CreateCrosshairs" title="Rbc_CreateCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateCrosshairs()</span></code></a> initializes the named component and its derived
+XOR state. <a class="reference internal" href="crosshair-reference.html#c.Rbc_ConfigureCrosshairs" title="Rbc_ConfigureCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureCrosshairs()</span></code></a> is the graph-background refresh
+entry point, not a general replacement for the Tcl configure operation. It
+reuses validated settings and discards the private configure helper’s status.
+<a class="reference internal" href="crosshair-reference.html#c.Rbc_DestroyCrosshairs" title="Rbc_DestroyCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyCrosshairs()</span></code></a> releases resources during teardown; it is not
+an erase operation for a window that will keep displaying the graph.</p>
+<p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.GetCrosshairPositionFromObj" title="rbcCrosshairs.GetCrosshairPositionFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.GetCrosshairPositionFromObj()</span></code></a> borrows its option object
+and copies parsed coordinates to required output storage. NULL and empty input
+select the off-plot sentinel, while an invalid nonempty input leaves the output
+unchanged. No object or coordinate pointer is retained.</p>
+<p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.ConfigureCrosshairs" title="rbcCrosshairs.ConfigureCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.ConfigureCrosshairs()</span></code></a> receives candidate Tk option fields
+but a still-active old GC and old geometry. Its mask determines which derived
+values need conversion. Tk rollback remains the responsibility of
+<a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.ConfigureOp" title="rbcCrosshairs.ConfigureOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.ConfigureOp()</span></code></a>; the private helper protects the visual
+transition by finishing conversions before erasure.</p>
+<p>The command handlers receive the full widget-command vector, with the operation
+at index two. Visibility handlers ignore the interpreter and arguments after
+dispatch has validated their arity. They use the existing crosshair record;
+they do not manufacture a new record or retain any command objects.</p>
+<p>For buffered presentation, <a class="reference internal" href="crosshair-reference.html#c.Rbc_PresentGraphWithCrosshairs" title="Rbc_PresentGraphWithCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PresentGraphWithCrosshairs()</span></code></a> borrows but
+modifies the completed temporary pixmap. The caller must initialize the whole
+rectangle that will be copied, and must not reuse that pixmap as an overlay-free
+backing store afterward. This is distinct from
+<a class="reference internal" href="crosshair-reference.html#c.Rbc_UpdateCrosshairs" title="Rbc_UpdateCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_UpdateCrosshairs()</span></code></a>, which only updates endpoints and therefore cannot
+safely be used before old XOR pixels have been erased or replaced.</p>
+</section>
 </section>
 
 
@@ -212,6 +240,7 @@ grid’s visibility implementation merely because their Tcl command names match.
 <li><a class="reference internal" href="#direct-drawing-and-teardown">Direct drawing and teardown</a></li>
 <li><a class="reference internal" href="#parsing-and-configuration-boundaries">Parsing and configuration boundaries</a></li>
 <li><a class="reference internal" href="#command-dispatch-and-idempotence">Command dispatch and idempotence</a></li>
+<li><a class="reference internal" href="#parameter-boundaries-and-lifecycle">Parameter boundaries and lifecycle</a></li>
 </ul>
 </li>
 </ul>

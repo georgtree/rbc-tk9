@@ -16,6 +16,8 @@ Mapping and output
 Ownership and cleanup
 ---------------------
 
+.. doxygenfunction:: Rbc_CreateGrid
+
 .. doxygenfunction:: Rbc_DestroyTrackGrid
 
 .. doxygenfunction:: Rbc_DestroyGrid

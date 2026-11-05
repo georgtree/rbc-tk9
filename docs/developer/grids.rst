@@ -29,7 +29,7 @@ comes from the global grid. If the global Y mapping is enabled and the track
 has axes, the inherited Y mapping uses the track's first axis; otherwise that
 direction is disabled. It does not blindly reuse another track's Y axis.
 
-``Rbc_TrackGridOp`` builds a temporary view for inherited queries. A ``cget`` or
+:c:func:`rbcGrid.Rbc_TrackGridOp` builds a temporary view for inherited queries. A ``cget`` or
 configuration query therefore does not materialize a local grid or freeze its
 defaults. The view borrows global resources and has a temporary option table
 and Y-axis name object; cleanup must not treat it as an independently owned
@@ -48,7 +48,7 @@ or permission to retain the temporary view.
 Segment mapping
 ---------------
 
-``Rbc_MapGrid`` frees previous global X/Y segments and resets their counts.
+:c:func:`Rbc_MapGrid` frees previous global X/Y segments and resets their counts.
 For an ordinary Cartesian graph, ``Rbc_GetAxisSegments`` generates segments
 from each selected axis's ticks, including minor ticks when requested.
 Mapping consumes prepared axes and plot geometry; it does not compute a new
@@ -73,8 +73,8 @@ using stale or missing geometry. See :doc:`mapping` for layout ordering.
 Screen and document output
 --------------------------
 
-Both ``Rbc_DrawGrid`` and ``Rbc_GridExport`` dispatch trackgraphs before testing
-the global grid's hidden flag. ``DrawTrackGrids`` checks each track's effective
+Both :c:func:`Rbc_DrawGrid` and :c:func:`Rbc_GridExport` dispatch trackgraphs before testing
+the global grid's hidden flag. :c:func:`rbcGrid.DrawTrackGrids` checks each track's effective
 grid independently. This allows a local grid to remain visible while the
 global grid is hidden and other tracks still inherit that hidden state.
 
@@ -95,10 +95,10 @@ export layouts and screen restoration.
 Cleanup and regression checks
 -----------------------------
 
-``Rbc_DestroyTrackGrid`` destroys local option resources, clears the local-grid
+:c:func:`Rbc_DestroyTrackGrid` destroys local option resources, clears the local-grid
 pointer, releases both per-track segment arrays and zeros their cache records.
 It also handles tracks with inherited configuration and no local grid.
-``Rbc_DestroyGrid`` clears the global pointer, releases every track grid, then
+:c:func:`Rbc_DestroyGrid` clears the global pointer, releases every track grid, then
 releases the global record. The track list must still be valid during this pass.
 
 Grid destruction requires a live Tk window for option cleanup. Axis references,
@@ -201,3 +201,50 @@ synchronous and do not evaluate Tcl callbacks. Format-prefix validation checks
 list syntax here; actual label evaluation belongs to drawing. Adding event
 processing or callbacks inside grid configuration would require revisiting this
 selection and candidate-lifetime protocol.
+
+Parameter boundaries for configuration and drawing
+--------------------------------------------------
+
+The graph-facing lifecycle starts with :c:func:`Rbc_CreateGrid`. Its record
+owns axis references, option state and derived arrays, but a track's inherited
+query view borrows these resources. Only owning records may be passed to
+:c:func:`rbcGrid.DestroyGrid`; :c:func:`Rbc_DestroyTrackGrid` additionally releases
+the track's separate segment caches and clears its local pointer.
+
+.. list-table:: Tick-array ownership at each stage
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Operation
+     - Caller contract
+   * - :c:func:`rbcGrid.ParsePolarAngleTicks` / :c:func:`rbcGrid.ParseSmithTicks`
+     - Required pointer/count outputs receive owned storage on success, or NULL/zero for empty input or failure.
+   * - :c:func:`rbcGrid.StageGridPolarAngleTicks` / :c:func:`rbcGrid.StageGridSmithTicks`
+     - Transaction must already be initialized. A successful replacement frees only that slot's previous staged array.
+   * - :c:func:`rbcGrid.PrepareGridPolarAngleTicksTransaction` / :c:func:`rbcGrid.PrepareGridSmithTicksTransaction`
+     - Output storage must not own arrays before entry: preparation zeroes it before processing defaults and explicit options.
+   * - :c:func:`rbcGrid.CommitGridPolarAngleTicksTransaction` / :c:func:`rbcGrid.CommitGridSmithTicksTransaction`
+     - Successful preparation is required. Transferred pointers are detached before subsequent staging cleanup.
+   * - :c:func:`rbcGrid.FreeGridPolarAngleTicksTransaction` / :c:func:`rbcGrid.FreeGridSmithTicksTransaction`
+     - Requires initialized storage; frees owned arrays and resets the record, including after a prior cleanup.
+
+These output contracts deliberately differ from inline option conversion.
+:c:func:`rbcGrid.SetPolarLabelAnchor` leaves the active value unchanged on
+failure and optionally saves its previous value in Tk rollback storage.
+:c:func:`rbcGrid.GetPolarLabelAnchor` returns a fresh zero-reference Tcl object;
+:c:func:`rbcGrid.RestorePolarLabelAnchor` copies an inline value and
+:c:func:`rbcGrid.FreePolarLabelAnchor` owns nothing to free.
+
+:c:func:`rbcGrid.Rbc_TrackGridOp` receives the full nested command with the grid
+operation at index four. It constructs an adapted command for
+:c:func:`rbcGrid.Rbc_GridOp` and its handlers, where the operation is at index
+two. The temporary original option/value slice used by
+:c:func:`rbcGrid.ConfigureGrid` is borrowed only for that configuration call.
+Neither the adapter nor the tick transaction transfers ownership of Tcl
+command arguments.
+
+:c:func:`rbcGrid.DrawTrackGrids` takes either a screen drawable or a non-NULL
+export context. In the export case the drawable is ignored; in the screen case
+the destination remains borrowed. Both paths consume prepared segment caches,
+restore temporary track viewports and end renderer contexts without finalizing
+a document. A new configuration must be mapped before relying on these caches.

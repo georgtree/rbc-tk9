@@ -652,7 +652,24 @@ typedef int Rbc_GraphOpProc(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, 
 
 Tcl_ObjCmdProc2 Rbc_GraphInstCmdProc;
 int Rbc_CreatePostScript(Graph *graphPtr);
+/**
+ * @brief Create the graph-owned named crosshair component.
+ * @param[in,out] graphPtr Graph with no existing crosshair record and a live Tk configuration context.
+ *
+ * Initializes resource name crosshairs and class Crosshairs, then prepares
+ * derived geometry and XOR drawing state. Returns TCL_OK on success; failure
+ * destroys the partial record and leaves crosshairs NULL with a diagnostic.
+ */
 int Rbc_CreateCrosshairs(Graph *graphPtr);
+/**
+ * @brief Create the graph-owned named grid component.
+ * @param[in,out] graphPtr Graph with no existing global grid and a live Tk configuration context.
+ *
+ * Selects graph, bar or polar option defaults, initializes resource name grid
+ * and class Grid, and validates derived resources. Returns TCL_OK on success.
+ * On TCL_ERROR, releases partial state through Rbc_DestroyGrid() and leaves
+ * gridPtr NULL; the diagnostic remains in the graph interpreter.
+ */
 int Rbc_CreateGrid(Graph *graphPtr);
 /**
  * @brief Map a data value to a horizontal widget coordinate.
@@ -719,8 +736,25 @@ void Rbc_LegendFontsChanged(Graph *graphPtr);
 void Rbc_MarkerFontsChanged(Graph *graphPtr);
 void Rbc_LineFontsChanged(Graph *graphPtr);
 void Rbc_BarFontsChanged(Graph *graphPtr);
+/**
+ * @brief Refresh crosshair drawing state after a graph background change.
+ * @param[in,out] graphPtr Live graph; a NULL crosshair record is a no-op.
+ *
+ * Reuses validated option values and requests GC reconstruction through
+ * ConfigureCrosshairs. That helper erases old pixels before replacing the GC
+ * and redraws eligible requested hairs. This void interface discards the
+ * conversion status and does not schedule a full graph redraw.
+ */
 void Rbc_ConfigureCrosshairs(Graph *graphPtr);
 void Rbc_DestroyAxes(Graph *graphPtr);
+/**
+ * @brief Release crosshair options and native resources during graph teardown.
+ * @param[in,out] graphPtr Owning graph with a live Tk cleanup context; NULL crosshairs is allowed.
+ *
+ * Detaches the record before freeing Tk options, option table, private GC and
+ * allocation. Does not erase an overlay on a continuing window; callers own
+ * visual transitions before teardown.
+ */
 void Rbc_DestroyCrosshairs(Graph *graphPtr);
 /**
  * @brief Destroy global and local grid resources while the Tk window is live.

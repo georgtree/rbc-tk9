@@ -110,6 +110,10 @@ static RbcGrHairsOp ToggleOp;
  * is mapped and visible is true, then clears visible. On an unmapped window it
  * leaves visible unchanged. Does not consult or modify requested hidden state.
  * Endpoints/GC must still describe the pixels being erased. No Tcl callbacks.
+ *
+ * @param[in] tkwin Live window holding the original XOR pixels.
+ * @param[in,out] chPtr Prepared crosshair record with original GC/endpoints; visible is cleared only
+ *    after mapped erasure.
  */
 static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
     if (Tk_IsMapped(tkwin) && chPtr->visible) {
@@ -126,6 +130,10 @@ static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
  * when mapped, not already visible, and PointInGraph accepts the hotspot; then
  * sets visible. Does not test hidden: callers decide requested visibility.
  * Does not remap endpoints or schedule an idle redraw. No Tcl callbacks.
+ *
+ * @param[in] graphPtr Borrowed live graph providing window and plot bounds.
+ * @param[in,out] chPtr Prepared GC, hotspot and segments; visible may become true, hidden is not
+ *    inspected.
  */
 static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
     if (Tk_IsMapped(graphPtr->tkwin) && (!chPtr->visible)) {
@@ -149,6 +157,12 @@ static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
  * Returns TCL_OK only after both coordinates convert. On TCL_ERROR leaves
  * pointPtr unchanged, releases both temporary objects, and reports syntax or
  * conversion context in interp. Does not move crosshairs or invoke Tcl code.
+ *
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed Tk window used to convert screen distances.
+ * @param[in] objPtr Borrowed position object; NULL or empty selects the off-plot sentinel.
+ * @param[out] pointPtr Required result storage; receives integer pixel coordinates as doubles, unchanged
+ *    on failure.
  */
 static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Point2D *pointPtr) {
     const char *string;
@@ -211,6 +225,11 @@ static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_
  * hidden. Does not alter hidden or allocate a replacement GC. Only appropriate
  * for position-only configuration; style changes must erase with the old GC.
  * No Tcl callbacks or event processing may intervene in this transition.
+ *
+ * @param[in] graphPtr Borrowed live graph with current plot bounds.
+ * @param[in,out] chPtr Prepared crosshairs with unchanged style/GC; hotspot, segments and visible state
+ *    are replaced.
+ * @param[in] hotSpotPtr Borrowed new hotspot in widget pixels; copied, not retained.
  */
 static void MoveCrosshairs(Graph *graphPtr, Crosshairs *chPtr, const Point2D *hotSpotPtr) {
     Segment2D newSegments[2];
@@ -275,6 +294,11 @@ static void MoveCrosshairs(Graph *graphPtr, Crosshairs *chPtr, const Point2D *ho
  * new state, rebuilds both segments, and draws when requested and eligible.
  * Releases replaced GC; returns TCL_OK without scheduling a graph redraw.
  * No Tcl callback is evaluated between erase and replacement.
+ *
+ * @param[in] graphPtr Borrowed live graph supplying background, bounds and Tk context.
+ * @param[in,out] chPtr Initialized crosshairs with candidate Tk fields; active geometry/GC change only
+ *    after conversion succeeds.
+ * @param[in] mask HAIRS_*_CHANGED bits; exactly HAIRS_POSITION_CHANGED selects Windows motion batching.
  */
 static int ConfigureCrosshairs(Graph *graphPtr, Crosshairs *chPtr, int mask) {
     Rbc_Dashes newDashes;
@@ -472,24 +496,6 @@ void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DestroyCrosshairs --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      Crosshair GC is allocated.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_DestroyCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr;
 
@@ -507,25 +513,6 @@ void Rbc_DestroyCrosshairs(Graph *graphPtr) {
     ckfree((char *)chPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CreateCrosshairs --
- *
- *      Creates and initializes a new crosshair structure.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      Returns TCL_ERROR if the crosshair structure can't be created,
- *      otherwise TCL_OK.
- *
- * Side Effects:
- *      Crosshair GC is allocated.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_CreateCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr;
 
@@ -553,6 +540,12 @@ error:
  * The typed dispatcher has validated argument count. Borrows the graph-owned component and its option
  * table, returning Tk option errors unchanged. This query does not configure resources or schedule
  * drawing.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected crosshair record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Validated count of four; option name is objv[3].
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr;
@@ -574,6 +567,12 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
  * ConfigureCrosshairs to validate derived state before visual replacement. Failure restores saved
  * options and the diagnostic; success frees saved values. Presentation is handled by the helper rather
  * than scheduling a whole-graph redraw here.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected crosshair record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Command count; operation is at index two, optional arguments start at index three.
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr;
@@ -615,6 +614,12 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * When previously hidden, attempts drawing with TurnOnHairs before clearing hidden. Actual visibility
  * still depends on window mapping and hotspot location. Repeated on is a no-op even if requested hairs
  * are not currently visible; display/motion paths own later presentation.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected crosshair record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Unused by this visibility handler.
+ * @param[in] objc Validated count of three; unused by this visibility handler.
+ * @param[in] objv Unused validated command vector.
  */
 static int OnOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
@@ -631,6 +636,12 @@ static int OnOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
  * When previously requested on, erases through TurnOffHairs before setting hidden. Repeated off is a
  * no-op. The low-level helper may leave actual visibility unchanged on an unmapped window; requested
  * state is not a direct pixel-state assertion.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected crosshair record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Unused by this visibility handler.
+ * @param[in] objc Validated count of three; unused by this visibility handler.
+ * @param[in] objv Unused validated command vector.
  */
 static int OffOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
@@ -647,6 +658,12 @@ static int OffOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  * Updates hidden first, then erases or draws through the low-level helpers. Those helpers do not
  * consult hidden; they use actual visibility, mapping and hotspot eligibility. Does not invalidate the
  * reusable graph backing store.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected crosshair record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Unused by this visibility handler.
+ * @param[in] objc Validated count of three; unused by this visibility handler.
+ * @param[in] objv Unused validated command vector.
  */
 static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
@@ -670,6 +687,12 @@ static const CrosshairsOpSpec xhairOps[] = {
  * The typed table validates operation name and argument count before calling a handler. Borrowed graph
  * state must remain live. Dispatch itself does not update segment geometry, process events or perform
  * buffered presentation.
+ *
+ * @param[in,out] graphPtr Borrowed live graph with selected crosshair record; enclosing dispatch owns
+ *    lifetime protection.
+ * @param[in] interp Borrowed interpreter receiving diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Command count; operation is at index two, optional arguments start at index three.
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
