@@ -17,6 +17,8 @@
  * Uses XPoint request sizing for the borrowed graph display. Component clipping
  * allowances are not subtracted here; this is not a promise that any polygon
  * can be split safely.
+ *
+ * @param[in] graphPtr Borrowed owning graph; its display and drawing resources must remain live during the call.
  */
 Tcl_Size Rbc_NativePolygonPointLimit(Graph *graphPtr) {
     return Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
@@ -43,6 +45,10 @@ struct Rbc_NativeTrace {
  * Each continuation repeats the previous endpoint, using the extra workspace
  * slot reserved by BeginTrace. Separate requests preserve connectivity but do
  * not carry an explicit accumulated dash offset. GC state remains borrowed.
+ *
+ * @param[in,out] ctx Live native trace context returned by Rbc_NativeBeginTrace; NULL is accepted.
+ * @param[in] screenPts Borrowed mapped polyline vertices with nPoints entries; NULL suppresses drawing.
+ * @param[in] nPoints Number of polyline vertices; fewer than two draws nothing.
  */
 void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size nPoints) {
     Tcl_Size count, j, remaining;
@@ -109,6 +115,12 @@ void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size
  *
  * Rbc_NativeSegments handles protocol clipping, conversion and request
  * batching. No additional context or resource is acquired here.
+ *
+ * @param[in] graphPtr Borrowed owning graph; its display and drawing resources must remain live during the call.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[in] gc Borrowed configured drawing GC, including raster operation, clip and style.
+ * @param[in] segments Borrowed mapped endpoint pairs; readable for the supplied segment count.
+ * @param[in] nSegments Number of Segment2D records, not endpoints.
  */
 void Rbc_NativeStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
     Rbc_NativeSegments(graphPtr, drawable, gc, segments, nSegments);
@@ -122,6 +134,10 @@ void Rbc_NativeStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D
  * one as the base chunk size, plus one continuation endpoint slot. Returns
  * NULL for insufficient capacity, size overflow or allocation failure.
  * Release the owned allocation with Rbc_NativeEndTrace.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive until the returned context is released.
+ * @param[in] drawable Borrowed target, kept valid until the returned context is released.
+ * @param[in] gc Borrowed configured GC, kept valid until the returned batch is released.
  */
 Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc) {
     Rbc_NativeTrace *ctx;
@@ -154,6 +170,8 @@ Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc)
  *
  * Accepts NULL. Does not free the borrowed graph, drawable or GC and does
  * not flush or synchronize the X server.
+ *
+ * @param[in] ctx Owned trace context consumed by this call; NULL is accepted.
  */
 void Rbc_NativeEndTrace(Rbc_NativeTrace *ctx) {
     if (ctx == NULL) {
@@ -189,6 +207,13 @@ INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); 
  * subtracting radius; diameter becomes unsigned short. Nonpositive count,
  * size overflow, allocation failure or unusable request capacity skips output.
  * Borrows style GCs and requires mapped coordinates and valid radius.
+ *
+ * @param[in] display Borrowed display owning the drawable and GC resources.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[in,out] style Borrowed symbol style; interval-aware branches advance its counter for examined centers.
+ * @param[in] nSymbolPts Nonnegative number of mapped symbol centers.
+ * @param[in] symbolPts Borrowed mapped center array with nSymbolPts entries.
+ * @param[in] radius Circle radius in pixels; caller supplies representable center/radius arithmetic.
  */
 void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
                        const Point2D *symbolPts, int radius) {
@@ -262,6 +287,13 @@ void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymb
  * style counter for every center examined. Subtracts radius before short
  * conversion, unlike circles; diameter becomes unsigned short. Nonpositive
  * count, size overflow, allocation failure or unusable capacity skips output.
+ *
+ * @param[in] display Borrowed display owning the drawable and GC resources.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[in,out] style Borrowed symbol style; interval-aware branches advance its counter for examined centers.
+ * @param[in] nSymbolPts Nonnegative number of mapped symbol centers.
+ * @param[in] symbolPts Borrowed mapped center array with nSymbolPts entries.
+ * @param[in] r Square half-size in pixels; caller supplies representable center/radius arithmetic.
  */
 void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
                        const Point2D *symbolPts, int r) {
@@ -331,6 +363,9 @@ void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymb
  * Returns the int count only when at least three vertices fit both INT_MAX
  * and the display request limit. Otherwise returns zero. Does not partition
  * a polygon or inspect its geometry.
+ *
+ * @param[in] display Borrowed display owning the drawable and GC resources.
+ * @param[in] nPoints Number of polygon vertices, including any repeated closing point.
  */
 int Rbc_NativePolygonPointCount(Display *display, Tcl_Size nPoints) {
     if ((nPoints < 3) || (nPoints > (Tcl_Size)INT_MAX)) {
@@ -353,6 +388,12 @@ int Rbc_NativePolygonPointCount(Display *display, Tcl_Size nPoints) {
  * Borrows graph, drawable, style GC and XRectangle array. Caller has already
  * validated count and packed coordinates to fit the request; no allocation
  * or additional clipping is performed here.
+ *
+ * @param[in] graphPtr Borrowed owning graph; its display and drawing resources must remain live during the call.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[in] penPtr Borrowed bar style and its live color, border and GC resources.
+ * @param[in] rectangles Borrowed prepacked XRectangle array; caller has bounded count for the platform request.
+ * @param[in] nRects Number of rectangle records, not bytes.
  */
 void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr,
                              XRectangle *rectangles, int nRects) {
@@ -371,6 +412,11 @@ struct Rbc_NativePolygonBatch {
  *
  * Always returns NULL without acquiring resources. The shared caller must
  * use its ordinary polygon path; NULL does not mean an empty clipping region.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive until the returned context is released. Unused by this X11 fallback stub.
+ * @param[in] drawable Borrowed target, kept valid until the returned context is released. Unused by this X11 fallback stub.
+ * @param[in] gc Borrowed configured GC, kept valid until the returned batch is released. Unused by this X11 fallback stub.
+ * @param[in] maxPoints Maximum number of vertices in any polygon submitted to the returned batch. Unused by this X11 fallback stub.
  */
 Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *graphPtr, Drawable drawable, GC gc, Tcl_Size maxPoints) {
     (void)graphPtr;
@@ -386,6 +432,10 @@ Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *graphPtr, Drawable dr
  *
  * No operation. X11 BeginPolygonBatch never returns a context, so callers
  * should select the ordinary drawing path instead.
+ *
+ * @param[in,out] batch Live owned polygon batch returned by Rbc_NativeBeginPolygonBatch. Unused by this X11 fallback stub.
+ * @param[in] points Borrowed mapped polygon vertices with count entries. Unused by this X11 fallback stub.
+ * @param[in] count Number of input records, not bytes. Unused by this X11 fallback stub.
  */
 void Rbc_NativeBatchPolygon(Rbc_NativePolygonBatch *batch, const Point2D *points, Tcl_Size count) {
     (void)batch;
@@ -399,6 +449,8 @@ void Rbc_NativeBatchPolygon(Rbc_NativePolygonBatch *batch, const Point2D *points
  *
  * Calls ckfree on the argument. No context is normally created by the X11
  * constructor; this interface exists to match the platform backend contract.
+ *
+ * @param[in] batch Owned polygon batch consumed by this call; Windows requires non-NULL.
  */
 void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
     (void)batch;
@@ -413,6 +465,14 @@ void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
  * point and is used for both fill and line requests. Twelve-vertex templates
  * use Complex fill; others use Convex. Interval selection was performed by
  * the shared caller. Does not allocate, clip or split individual polygons.
+ *
+ * @param[in] display Borrowed display owning the drawable and GC resources.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[in] style Borrowed symbol style and GCs; caller has already selected the symbol intervals.
+ * @param[in] polygons Borrowed packed XPoint polygons, with stride points per polygon.
+ * @param[in] count Nonnegative number of packed polygon records.
+ * @param[in] stride Points per polygon record, including its repeated closing vertex.
+ * @param[in] vertices Distinct vertices per polygon; twelve selects the concave plus/cross fill policy.
  */
 void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style,
                               const XPoint *polygons, Tcl_Size count, int stride, int vertices) {
@@ -437,6 +497,12 @@ void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNat
  *
  * Always returns FALSE without drawing. The shared bar helper then draws
  * relief borders individually.
+ *
+ * @param[in] graphPtr Borrowed owning graph; its display and drawing resources must remain live during the call. Unused by this X11 fallback stub.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates. Unused by this X11 fallback stub.
+ * @param[in] style Borrowed bar style and its live color, border and GC resources. Unused by this X11 fallback stub.
+ * @param[in] rectangles Borrowed mapped rectangle array with the supplied rectangle count. Unused by this X11 fallback stub.
+ * @param[in] count Number of mapped bar rectangles. Unused by this X11 fallback stub.
  */
 int Rbc_NativeBarBorders(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *style,
                          const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
@@ -464,6 +530,15 @@ size_t Rbc_NativeClipStateSize(void) { return 0; }
  * Returns FALSE and leaves the output drawable untouched. The shared clip
  * stack then creates or reuses its scratch target. This is a fallback signal,
  * not a successfully installed empty clip.
+ *
+ * @param[in] graphPtr Borrowed owning graph; its display and drawing resources must remain live during the call. Unused by this X11 fallback stub.
+ * @param[in] parent Borrowed parent drawable whose clipping and pixels must remain live through unclip. Unused by this X11 fallback stub.
+ * @param[in] left Inclusive left clip edge in absolute pixels. Unused by this X11 fallback stub.
+ * @param[in] top Inclusive top clip edge in absolute pixels. Unused by this X11 fallback stub.
+ * @param[in] right Exclusive right clip edge in absolute pixels. Unused by this X11 fallback stub.
+ * @param[in] bottom Exclusive bottom clip edge in absolute pixels. Unused by this X11 fallback stub.
+ * @param[in,out] state Unused X11 platform payload; no storage is accessed. Unused by this X11 fallback stub.
+ * @param[in,out] drawablePtr Unused output pointer; left unchanged on X11. Unused by this X11 fallback stub.
  */
 int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, int right, int bottom, void *state,
                            Drawable *drawablePtr) {
@@ -483,6 +558,9 @@ int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, 
  * @ingroup native_x11_drawing
  *
  * No operation; shared scratch clipping handles commit and resource lifetime.
+ *
+ * @param[in,out] state Unused X11 platform payload; no storage is accessed. Unused by this X11 fallback stub.
+ * @param[in] drawable Temporary platform wrapper to release, or None after partial setup; ignored on X11. Unused by this X11 fallback stub.
  */
 void Rbc_NativePlatformUnclip(void *state, Drawable drawable) {
     (void)state;
@@ -496,6 +574,12 @@ void Rbc_NativePlatformUnclip(void *state, Drawable drawable) {
  * Calls proc only when data is non-NULL and count is positive. Borrows data
  * and drawable, with no wrapper or DC acquisition. A valid callback is
  * required for nonempty runs; it must not retain temporary drawing resources.
+ *
+ * @param[in] graphPtr Borrowed owning graph; its display and drawing resources must remain live during the call.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates.
+ * @param[in] data Borrowed callback-specific run data; NULL suppresses the run.
+ * @param[in] count Number of run items; nonpositive counts suppress drawing.
+ * @param[in] proc Required synchronous callback for a nonempty run; must not retain the target or destroy drawing resources.
  */
 void Rbc_NativeRun(Graph *graphPtr, Drawable drawable, void *data, Tcl_Size count, Rbc_RenderRunProc *proc) {
     (void)graphPtr;
@@ -510,6 +594,15 @@ void Rbc_NativeRun(Graph *graphPtr, Drawable drawable, void *data, Tcl_Size coun
  *
  * Always returns FALSE without drawing or modifying GC state. The shared
  * bitmap-run helper performs the complete XCopyPlane fallback.
+ *
+ * @param[in] graphPtr Borrowed owning graph; its display and drawing resources must remain live during the call. Unused by this X11 fallback stub.
+ * @param[in] drawable Borrowed destination drawable in mapped pixel coordinates. Unused by this X11 fallback stub.
+ * @param[in] bitmap Borrowed one-bit source bitmap, readable over width by height pixels. Unused by this X11 fallback stub.
+ * @param[in] gc Borrowed opaque GXcopy-compatible GC; masked or XOR copies are outside this interface contract. Unused by this X11 fallback stub.
+ * @param[in] width Positive source bitmap width in pixels. Unused by this X11 fallback stub.
+ * @param[in] height Positive source bitmap height in pixels. Unused by this X11 fallback stub.
+ * @param[in] positions Borrowed array of count integer destination origins. Unused by this X11 fallback stub.
+ * @param[in] count Number of run items; nonpositive counts suppress drawing. Unused by this X11 fallback stub.
  */
 int Rbc_NativeOpaqueBitmapRun(Graph *graphPtr, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
                               const Rbc_RenderPosition *positions, Tcl_Size count) {

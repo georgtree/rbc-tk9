@@ -88,9 +88,66 @@ GC state to GDI operations and supplies specialized raster/XOR helpers. It is
 not another renderer context or an alternative graph mapper. New component code
 should not bypass the renderer to call it directly.</p>
 </section>
+<section id="backend-contract-navigation">
+<h2>Backend contract navigation<a class="headerlink" href="#backend-contract-navigation" title="Link to this heading">¶</a></h2>
+<p>The native reference documents parameter counts, coordinate units and ownership
+at each backend entry point. These are private services; graph components enter
+through the screen adapters described above. Platform-specific references are
+separate because the same function name can have different resource and failure
+contracts on X11 and Windows.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Batch interfaces and platform contracts</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 39.0%" />
+<col style="width: 39.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Service</p></th>
+<th class="head"><p>X11</p></th>
+<th class="head"><p>Windows</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Trace lifetime</p></td>
+<td><p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeBeginTrace" title="rbcNativeX11.Rbc_NativeBeginTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeBeginTrace()</span></code></a> owns point workspace.
+<a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeEndTrace" title="rbcNativeX11.Rbc_NativeEndTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeEndTrace()</span></code></a> frees it.</p></td>
+<td><p><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBeginTrace" title="rbcNativeWindows.Rbc_NativeBeginTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeBeginTrace()</span></code></a> also retains a DC and
+selected objects; <a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeEndTrace" title="rbcNativeWindows.Rbc_NativeEndTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeEndTrace()</span></code></a> restores them.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Fill-only polygon batch</p></td>
+<td><p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeBeginPolygonBatch" title="rbcNativeX11.Rbc_NativeBeginPolygonBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeBeginPolygonBatch()</span></code></a> returns NULL;
+use the ordinary fill path.</p></td>
+<td><p><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBeginPolygonBatch" title="rbcNativeWindows.Rbc_NativeBeginPolygonBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeBeginPolygonBatch()</span></code></a> reserves vertex
+workspace. Each <a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBatchPolygon" title="rbcNativeWindows.Rbc_NativeBatchPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeBatchPolygon()</span></code></a> must fit it.</p></td>
+</tr>
+<tr class="row-even"><td><p>Bar borders</p></td>
+<td><p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeBarBorders" title="rbcNativeX11.Rbc_NativeBarBorders"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeBarBorders()</span></code></a> declines optimization.</p></td>
+<td><p><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeBarBorders" title="rbcNativeWindows.Rbc_NativeBarBorders"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeBarBorders()</span></code></a> handles supported bevels;
+its result describes the configuration, not verified GDI output.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Direct clipping</p></td>
+<td><p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativePlatformClip" title="rbcNativeX11.Rbc_NativePlatformClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativePlatformClip()</span></code></a> returns false, selecting
+shared scratch clipping.</p></td>
+<td><p><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativePlatformClip" title="rbcNativeWindows.Rbc_NativePlatformClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativePlatformClip()</span></code></a> returns true even after
+partial setup failure. A None drawable suppresses drawing; unclip is required.</p></td>
+</tr>
+<tr class="row-even"><td><p>Opaque bitmap runs</p></td>
+<td><p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeOpaqueBitmapRun" title="rbcNativeX11.Rbc_NativeOpaqueBitmapRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeOpaqueBitmapRun()</span></code></a> requests shared fallback.</p></td>
+<td><p><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeOpaqueBitmapRun" title="rbcNativeWindows.Rbc_NativeOpaqueBitmapRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeOpaqueBitmapRun()</span></code></a> attempts a copy batch;
+replay policy remains with <a class="reference internal" href="native-reference.html#c.rbcNativeShared.Rbc_NativeBitmapRun" title="rbcNativeShared.Rbc_NativeBitmapRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeShared.Rbc_NativeBitmapRun()</span></code></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Counts are records, not bytes: traces count points; strip/arc operations count
+Segment2D pairs; bar operations count rectangles. Polygon-symbol stride includes
+the repeated closing point, whereas the distinct-vertex count excludes it.
+These interfaces consume already mapped coordinates; parameter documentation
+does not imply that every backend clamps or clips out-of-range geometry.</p>
+</section>
 <section id="batch-lifetime-and-coordinate-conversion">
 <h2>Batch lifetime and coordinate conversion<a class="headerlink" href="#batch-lifetime-and-coordinate-conversion" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBeginTrace</span></code> allocates context and point workspace together. X11
+<p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeBeginTrace" title="rbcNativeX11.Rbc_NativeBeginTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeBeginTrace()</span></code></a> allocates context and point workspace together. X11
 capacity follows the request-size limit. Windows uses a smaller 100-point base
 capacity for wide polylines, otherwise the request-derived size. Continuation
 chunks repeat the preceding endpoint to preserve connectivity; they do not
@@ -98,7 +155,7 @@ restart at an unrelated sample.</p>
 <p>The borrowed GC carries the configured raster operation and drawing style.
 X11 converts trace coordinates to <code class="docutils literal notranslate"><span class="pre">short</span></code> and emits <code class="docutils literal notranslate"><span class="pre">XDrawLines</span></code>. Windows
 converts to <code class="docutils literal notranslate"><span class="pre">int</span></code> and emits <code class="docutils literal notranslate"><span class="pre">Polyline</span></code> while retaining one acquired DC and
-selected pen/brush across the trace batch. <code class="docutils literal notranslate"><span class="pre">Rbc_NativeEndTrace</span></code> restores the
+selected pen/brush across the trace batch. <a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeEndTrace" title="rbcNativeX11.Rbc_NativeEndTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeEndTrace()</span></code></a> restores the
 previously selected objects, deletes the objects created by the batch, releases
 DC state and frees the allocation. It does not free the GC or graph.</p>
 <p>Independent strips have their own path. X11 delegates to native segments;
@@ -113,7 +170,7 @@ Callers supply mapped geometry with appropriate clipping.</p>
 </section>
 <section id="polygon-and-symbol-batches">
 <h2>Polygon and symbol batches<a class="headerlink" href="#polygon-and-symbol-batches" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonPointCount</span></code> rejects undersized or unrepresentable requests;
+<p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativePolygonPointCount" title="rbcNativeX11.Rbc_NativePolygonPointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativePolygonPointCount()</span></code></a> rejects undersized or unrepresentable requests;
 X11 additionally checks its polygon request limit. A rejected polygon is not
 automatically split, since splitting arbitrary filled polygons changes their
 interior. Components that can safely partition their geometry do so before
@@ -137,7 +194,7 @@ owns a reusable frame and, if needed, a graph-sized scratch pixmap. Dimensions
 must remain stable for that stack lifetime. Frames intersect requested bounds
 with the parent’s rectangle and drawable bounds; endpoint arithmetic uses a
 wide integer before clamping. Coordinates remain absolute widget coordinates.</p>
-<p>After every push, obtain <code class="docutils literal notranslate"><span class="pre">Rbc_NativeClipDrawable</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> means no drawing
+<p>After every push, obtain <a class="reference internal" href="native-reference.html#c.rbcNativeShared.Rbc_NativeClipDrawable" title="rbcNativeShared.Rbc_NativeClipDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeShared.Rbc_NativeClipDrawable()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">None</span></code> means no drawing
 is permitted, whether the intersection was empty or setup failed. The frame
 still exists and must be popped. Reusing the previous drawable would bypass the
 clip and can paint into adjacent tracks.</p>
@@ -160,7 +217,7 @@ intersects the rectangle and promotes that clip to a meta region. The meta
 region survives bitmap drawing that installs a separate clip mask. A temporary
 Tk-compatible drawable wraps the DC so existing native operations use it.
 Pop frees the wrapper, restores the saved DC state and releases the acquisition.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformClip</span></code> returning true means the platform has handled the
+<p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativePlatformClip" title="rbcNativeX11.Rbc_NativePlatformClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativePlatformClip()</span></code></a> returning true means the platform has handled the
 request, not necessarily that it produced a drawable. Failed Windows setup can
 return true with <code class="docutils literal notranslate"><span class="pre">None</span></code>; callers must skip drawing and still unwind the frame.
 X11 returns false, selecting scratch clipping. Do not turn a Windows setup
@@ -174,13 +231,13 @@ and any additional GDI state it changed.</p>
 </section>
 <section id="runs-and-fallback-boundaries">
 <h2>Runs and fallback boundaries<a class="headerlink" href="#runs-and-fallback-boundaries" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativeRun</span></code> calls its run callback synchronously. Windows acquires and
+<p><a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeRun" title="rbcNativeX11.Rbc_NativeRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeRun()</span></code></a> calls its run callback synchronously. Windows acquires and
 wraps one destination DC for the whole run. If acquisition or wrapping fails,
 it calls the run on the original drawable instead. X11 invokes the callback on
 the original drawable directly. Callback data and temporary targets must not
 escape the call, and the callback must not invalidate borrowed graph resources.
 This is an internal drawing callback, not a Tcl evaluation boundary.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBitmapRun</span></code> is restricted to opaque, unmasked, GXcopy-compatible
+<p><a class="reference internal" href="native-reference.html#c.rbcNativeShared.Rbc_NativeBitmapRun" title="rbcNativeShared.Rbc_NativeBitmapRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeShared.Rbc_NativeBitmapRun()</span></code></a> is restricted to opaque, unmasked, GXcopy-compatible
 bitmaps. Windows first tries the optimized opaque-bitmap batch; X11 declines it.
 Fallback clears the supplied GC’s clip mask/origin and replays <code class="docutils literal notranslate"><span class="pre">XCopyPlane</span></code>
 for all positions. Replaying after a partial optimized failure is safe because
@@ -198,8 +255,8 @@ X11 path alone does not exercise GDI state restoration or Windows presentation.<
 <p>The shared implementation is deliberately more specific than a general drawing
 API. It consumes mapped geometry and borrowed resource styles. It does not
 perform layout, repair invalid geometry, or uniformly preserve GC state.</p>
-<table class="docutils align-default" id="id1">
-<caption><span class="caption-text">State changes made by shared helpers</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">State changes made by shared helpers</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
 <colgroup>
 <col style="width: 28.0%" />
 <col style="width: 42.0%" />
@@ -298,8 +355,8 @@ radius before casting. Both store unsigned-short diameters. These are historical
 rasterization rules, not general validation for arbitrarily large coordinates.
 Interval selection advances the caller’s mutable counter for every examined
 center; skipped centers still contribute to the next batch’s phase.</p>
-<table class="docutils align-default" id="id2">
-<caption><span class="caption-text">X11 optional-service results</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">X11 optional-service results</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
 <colgroup>
 <col style="width: 30.0%" />
 <col style="width: 25.0%" />
@@ -356,8 +413,8 @@ rasterization. These paths do not share a universal coordinate-conversion rule.<
 of diameter <code class="docutils literal notranslate"><span class="pre">2*radius+1</span></code>. Translated copies reproduce that geometry without
 substituting an independently approximated circle. The template arrays and batch
 buffers are owned by the call and released even when setup selects fallback.</p>
-<table class="docutils align-default" id="id3">
-<caption><span class="caption-text">Windows symbol batching rules</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Windows symbol batching rules</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 35.0%" />
@@ -428,8 +485,8 @@ failures; they are not a blanket recovery guarantee for every native operation.<
 <p>The resource helpers in rbcWinDraw.c isolate private Tk Windows types. A drawable
 wrapper, a DC acquisition record and a pixmap wrapper have different ownership
 rules even though each bridges native Windows handles to Tk representations.</p>
-<table class="docutils align-default" id="id4">
-<caption><span class="caption-text">Windows wrapper ownership</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">Windows wrapper ownership</span><a class="headerlink" href="#id5" title="Link to this table">¶</a></caption>
 <colgroup>
 <col style="width: 30.0%" />
 <col style="width: 35.0%" />
@@ -585,8 +642,8 @@ Photo blocks are traversed using their own pitch, pixel size and alpha offset.
 The photo-mask path and RBC color-image mask path retain different row traversal
 orders before CreateBitmapIndirect; they should not be consolidated by assuming
 identical source storage. Both return owned Tk pixmaps when a mask is created.</p>
-<table class="docutils align-default" id="id5">
-<caption><span class="caption-text">Monochrome transform contracts</span><a class="headerlink" href="#id5" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">Monochrome transform contracts</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 40.0%" />
@@ -645,6 +702,7 @@ interface must account for lifetime and encoding separately.</p>
 <li><a class="reference internal" href="#">Native renderer internals</a><ul>
 <li><a class="reference internal" href="#component-facing-screen-operations">Component-facing screen operations</a></li>
 <li><a class="reference internal" href="#platform-responsibilities">Platform responsibilities</a></li>
+<li><a class="reference internal" href="#backend-contract-navigation">Backend contract navigation</a></li>
 <li><a class="reference internal" href="#batch-lifetime-and-coordinate-conversion">Batch lifetime and coordinate conversion</a></li>
 <li><a class="reference internal" href="#polygon-and-symbol-batches">Polygon and symbol batches</a></li>
 <li><a class="reference internal" href="#rectangular-clip-frames">Rectangular clip frames</a></li>

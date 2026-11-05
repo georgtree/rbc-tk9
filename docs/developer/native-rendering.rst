@@ -53,10 +53,56 @@ GC state to GDI operations and supplies specialized raster/XOR helpers. It is
 not another renderer context or an alternative graph mapper. New component code
 should not bypass the renderer to call it directly.
 
+Backend contract navigation
+----------------------------
+
+The native reference documents parameter counts, coordinate units and ownership
+at each backend entry point. These are private services; graph components enter
+through the screen adapters described above. Platform-specific references are
+separate because the same function name can have different resource and failure
+contracts on X11 and Windows.
+
+.. list-table:: Batch interfaces and platform contracts
+   :header-rows: 1
+   :widths: 22 39 39
+
+   * - Service
+     - X11
+     - Windows
+   * - Trace lifetime
+     - :c:func:`rbcNativeX11.Rbc_NativeBeginTrace` owns point workspace.
+       :c:func:`rbcNativeX11.Rbc_NativeEndTrace` frees it.
+     - :c:func:`rbcNativeWindows.Rbc_NativeBeginTrace` also retains a DC and
+       selected objects; :c:func:`rbcNativeWindows.Rbc_NativeEndTrace` restores them.
+   * - Fill-only polygon batch
+     - :c:func:`rbcNativeX11.Rbc_NativeBeginPolygonBatch` returns NULL;
+       use the ordinary fill path.
+     - :c:func:`rbcNativeWindows.Rbc_NativeBeginPolygonBatch` reserves vertex
+       workspace. Each :c:func:`rbcNativeWindows.Rbc_NativeBatchPolygon` must fit it.
+   * - Bar borders
+     - :c:func:`rbcNativeX11.Rbc_NativeBarBorders` declines optimization.
+     - :c:func:`rbcNativeWindows.Rbc_NativeBarBorders` handles supported bevels;
+       its result describes the configuration, not verified GDI output.
+   * - Direct clipping
+     - :c:func:`rbcNativeX11.Rbc_NativePlatformClip` returns false, selecting
+       shared scratch clipping.
+     - :c:func:`rbcNativeWindows.Rbc_NativePlatformClip` returns true even after
+       partial setup failure. A None drawable suppresses drawing; unclip is required.
+   * - Opaque bitmap runs
+     - :c:func:`rbcNativeX11.Rbc_NativeOpaqueBitmapRun` requests shared fallback.
+     - :c:func:`rbcNativeWindows.Rbc_NativeOpaqueBitmapRun` attempts a copy batch;
+       replay policy remains with :c:func:`rbcNativeShared.Rbc_NativeBitmapRun`.
+
+Counts are records, not bytes: traces count points; strip/arc operations count
+Segment2D pairs; bar operations count rectangles. Polygon-symbol stride includes
+the repeated closing point, whereas the distinct-vertex count excludes it.
+These interfaces consume already mapped coordinates; parameter documentation
+does not imply that every backend clamps or clips out-of-range geometry.
+
 Batch lifetime and coordinate conversion
 ----------------------------------------
 
-``Rbc_NativeBeginTrace`` allocates context and point workspace together. X11
+:c:func:`rbcNativeX11.Rbc_NativeBeginTrace` allocates context and point workspace together. X11
 capacity follows the request-size limit. Windows uses a smaller 100-point base
 capacity for wide polylines, otherwise the request-derived size. Continuation
 chunks repeat the preceding endpoint to preserve connectivity; they do not
@@ -65,7 +111,7 @@ restart at an unrelated sample.
 The borrowed GC carries the configured raster operation and drawing style.
 X11 converts trace coordinates to ``short`` and emits ``XDrawLines``. Windows
 converts to ``int`` and emits ``Polyline`` while retaining one acquired DC and
-selected pen/brush across the trace batch. ``Rbc_NativeEndTrace`` restores the
+selected pen/brush across the trace batch. :c:func:`rbcNativeX11.Rbc_NativeEndTrace` restores the
 previously selected objects, deletes the objects created by the batch, releases
 DC state and frees the allocation. It does not free the GC or graph.
 
@@ -83,7 +129,7 @@ Callers supply mapped geometry with appropriate clipping.
 Polygon and symbol batches
 --------------------------
 
-``Rbc_NativePolygonPointCount`` rejects undersized or unrepresentable requests;
+:c:func:`rbcNativeX11.Rbc_NativePolygonPointCount` rejects undersized or unrepresentable requests;
 X11 additionally checks its polygon request limit. A rejected polygon is not
 automatically split, since splitting arbitrary filled polygons changes their
 interior. Components that can safely partition their geometry do so before
@@ -111,7 +157,7 @@ must remain stable for that stack lifetime. Frames intersect requested bounds
 with the parent's rectangle and drawable bounds; endpoint arithmetic uses a
 wide integer before clamping. Coordinates remain absolute widget coordinates.
 
-After every push, obtain ``Rbc_NativeClipDrawable``. ``None`` means no drawing
+After every push, obtain :c:func:`rbcNativeShared.Rbc_NativeClipDrawable`. ``None`` means no drawing
 is permitted, whether the intersection was empty or setup failed. The frame
 still exists and must be popped. Reusing the previous drawable would bypass the
 clip and can paint into adjacent tracks.
@@ -138,7 +184,7 @@ region survives bitmap drawing that installs a separate clip mask. A temporary
 Tk-compatible drawable wraps the DC so existing native operations use it.
 Pop frees the wrapper, restores the saved DC state and releases the acquisition.
 
-``Rbc_NativePlatformClip`` returning true means the platform has handled the
+:c:func:`rbcNativeX11.Rbc_NativePlatformClip` returning true means the platform has handled the
 request, not necessarily that it produced a drawable. Failed Windows setup can
 return true with ``None``; callers must skip drawing and still unwind the frame.
 X11 returns false, selecting scratch clipping. Do not turn a Windows setup
@@ -154,14 +200,14 @@ and any additional GDI state it changed.
 Runs and fallback boundaries
 ----------------------------
 
-``Rbc_NativeRun`` calls its run callback synchronously. Windows acquires and
+:c:func:`rbcNativeX11.Rbc_NativeRun` calls its run callback synchronously. Windows acquires and
 wraps one destination DC for the whole run. If acquisition or wrapping fails,
 it calls the run on the original drawable instead. X11 invokes the callback on
 the original drawable directly. Callback data and temporary targets must not
 escape the call, and the callback must not invalidate borrowed graph resources.
 This is an internal drawing callback, not a Tcl evaluation boundary.
 
-``Rbc_NativeBitmapRun`` is restricted to opaque, unmasked, GXcopy-compatible
+:c:func:`rbcNativeShared.Rbc_NativeBitmapRun` is restricted to opaque, unmasked, GXcopy-compatible
 bitmaps. Windows first tries the optimized opaque-bitmap batch; X11 declines it.
 Fallback clears the supplied GC's clip mask/origin and replays ``XCopyPlane``
 for all positions. Replaying after a partial optimized failure is safe because

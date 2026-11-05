@@ -47,46 +47,87 @@
 <p>These declarations in <code class="docutils literal notranslate"><span class="pre">rbcRenderNative.h</span></code> are private backend services.
 Components use <code class="docutils literal notranslate"><span class="pre">rbcRender.h</span></code> instead. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for platform
 behavior and ownership that cannot be inferred from a function signature.</p>
+<p>The entries retain implementation-specific parameter contracts. Inputs described
+as borrowed must remain live through the call, or through batch destruction when
+retained by a constructor. Counts and dimensions are documented individually;
+short-coordinate conversion is not a general overflow check.</p>
 <section id="trace-batches">
 <h2>Trace batches<a class="headerlink" href="#trace-batches" title="Link to this heading">¶</a></h2>
 <p>The X11 constructor and destructor contracts are included with the platform
 implementation below. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for the shared lifetime
-contract and Windows acquisition/restoration requirements.</p>
+contract and Windows acquisition/restoration requirements. Start with
+<a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeBeginTrace" title="rbcNativeX11.Rbc_NativeBeginTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeBeginTrace()</span></code></a>, submit
+<a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePolyline" title="rbcNativeX11.Rbc_NativePolyline"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativePolyline()</span></code></a>, and release with
+<a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeEndTrace" title="rbcNativeX11.Rbc_NativeEndTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeEndTrace()</span></code></a>. Independent strips use
+<a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeStrips" title="rbcNativeX11.Rbc_NativeStrips"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeStrips()</span></code></a> without a retained trace context.</p>
 </section>
 <section id="clip-stacks">
 <h2>Clip stacks<a class="headerlink" href="#clip-stacks" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_NativeCreateClip">
-<span class="target" id="rbc_render_native_8h_1ae1b1ab6b43b77fd863db4200df3a37d4"></span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeCreateClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativeCreateClip" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_render_native_8h_1adafa714b52bd1d04d469c943fe481541"></span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeCreateClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">copyGC</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">useDC</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativeCreateClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a native rectangular clip stack without pushing a clip. </p>
 <p>
-Borrows graph, base drawable and any supplied copy GC. A missing copy GC is acquired lazily and owned by the stack. A nonzero final argument permits platform DC clipping; otherwise use scratch targets. Keep graph dimensions stable while the stack is live: scratch pixmaps are cached per nesting depth. </p>
+Borrows graph, base drawable and any supplied copy GC. A missing copy GC is acquired lazily and owned by the stack. A nonzero final argument permits platform DC clipping; otherwise use scratch targets. Keep graph dimensions stable while the stack is live: scratch pixmaps are cached per nesting depth.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Owned stack, to be released with Rbc_NativeDestroyClip.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until the returned context is released. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed target, kept valid until the returned context is released. </p></li>
+<li><p><strong>copyGC</strong> – <strong>[in]</strong> Borrowed copy GC, or NULL to acquire one lazily and let the stack own it. </p></li>
+<li><p><strong>useDC</strong> – <strong>[in]</strong> Nonzero permits platform DC clipping; zero selects scratch targets. </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_NativePushClip">
-<span class="target" id="rbc_render_native_8h_1afd44818fb0b013a243b48b76ef60d298"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePushClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativePushClip" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_render_native_8h_1ac938fb59cfaeb8d7f0a7b69d8c8cc9ad"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePushClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clip</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativePushClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Push an intersection with the parent clip and graph drawable bounds. </p>
-<p>Arguments after the stack are x, y, width and height in absolute widget pixels. Nonpositive sizes create an empty frame. Query Rbc_NativeClipDrawable after every push; None means empty or failed output, and drawing must be skipped. Every push still requires a pop. A scratch target is seeded from its parent and preserves absolute coordinates. </p>
+<p>Arguments after the stack are x, y, width and height in absolute widget pixels. Nonpositive sizes create an empty frame. Query Rbc_NativeClipDrawable after every push; None means empty or failed output, and drawing must be skipped. Every push still requires a pop. A scratch target is seeded from its parent and preserves absolute coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip</strong> – <strong>[inout]</strong> Live non-NULL clip stack with its borrowed resources intact. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Absolute left edge in widget pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Absolute top edge in widget pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Clip width; nonpositive values create an empty frame. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Clip height; nonpositive values create an empty frame. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_NativePopClip">
-<span class="target" id="rbc_render_native_8h_1a6036ac7efd501c2957242b5a038a9616"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePopClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativePopClip" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_render_native_8h_1aa0426de517a8c08c372593438c5f89df"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePopClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clip</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativePopClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Finish the active clip and restore its parent target. </p>
-<p>Copies the visible scratch rectangle back, or restores/releases platform DC state. An empty stack is a no-op. Frame/workspace allocations are retained for reuse until destruction; borrowed drawables are not freed. </p>
+<p>Copies the visible scratch rectangle back, or restores/releases platform DC state. An empty stack is a no-op. Frame/workspace allocations are retained for reuse until destruction; borrowed drawables are not freed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip</strong> – <strong>[inout]</strong> Live non-NULL clip stack with its borrowed resources intact. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_NativeDestroyClip">
-<span class="target" id="rbc_render_native_8h_1ab570691d7b3e1a605039b8714c6cde26"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeDestroyClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativeDestroyClip" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_render_native_8h_1a4a728f86f0ff21c69c3ab282c26bf912"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeDestroyClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clip</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NativeDestroyClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Unwind and free a live native clip stack. </p>
-<p>Pops remaining frames (committing their output), frees all cached scratch pixmaps and frame records, and releases only an internally acquired copy GC. Requires a non-NULL stack and live borrowed graph/display resources. </p>
+<p>Pops remaining frames (committing their output), frees all cached scratch pixmaps and frame records, and releases only an internally acquired copy GC. Requires a non-NULL stack and live borrowed graph/display resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip</strong> – <strong>[in]</strong> Live non-NULL clip stack; destroyed by this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -119,77 +160,212 @@ component resources or perform graph layout.</p>
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeText">
 <span class="target" id="group__native__shared__drawing_1gac17a7a590fd360a60390998e03b26be2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeText</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeText" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw text through the existing Tk-based text service. </p>
-<p>Borrows string and style for the call. Retains native font selection, rotation, anchors, padding and active/disabled styling in Rbc_DrawText. No text resource is retained by this wrapper. </p>
+<p>Borrows string and style for the call. Retains native font selection, rotation, anchors, padding and active/disabled styling in Rbc_DrawText. No text resource is retained by this wrapper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated text, consumed during this call. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed text style with live font/GC resources; the text service may refresh its GC state. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeTextLayout">
 <span class="target" id="group__native__shared__drawing_1gadfd41fd06e063d382baff40bf2c397f4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeTextLayout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">layout</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeTextLayout" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw an already constructed text layout. </p>
-<p>Borrows layout and style; delegates to Rbc_DrawTextLayout without rebuilding or freeing the cached layout. </p>
+<p>Borrows layout and style; delegates to Rbc_DrawTextLayout without rebuilding or freeing the cached layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>layout</strong> – <strong>[in]</strong> Borrowed cached text layout; no ownership transfer. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed text style with live font/GC resources; the text service may refresh its GC state. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeTextSize">
 <span class="target" id="group__native__shared__drawing_1ga1bb81ed123145132f9f9442a31ab0a02"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeTextSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Dim2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeTextSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw text and return its rotated dimensions. </p>
-<p>Delegates to Rbc_DrawText2 using borrowed text/style and caller-provided size storage. Axis-limit placement uses these dimensions for later labels. </p>
+<p>Delegates to Rbc_DrawText2 using borrowed text/style and caller-provided size storage. Axis-limit placement uses these dimensions for later labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated text, consumed during this call. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed text style with live font/GC resources; the text service may refresh its GC state. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>size</strong> – <strong>[out]</strong> Required caller-owned storage receiving the rotated text extent. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeBitmap">
 <span class="target" id="group__native__shared__drawing_1gaaee3e3b6b77a9fcfd7f4d73dfb44a038"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderBitmapStyle" title="Rbc_RenderBitmapStyle"><span class="n"><span class="pre">Rbc_RenderBitmapStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeBitmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint a mapped bitmap and optional background polygon. </p>
-<p>Borrows mapped rectangle and style resources. Converts the supplied bounded background point array to short coordinates and fills it as Convex. Installs the bitmap mask and destination-relative clip origin on the private bitmap GC, then copies plane one. Leaves that clip state installed; does not retain or free bitmap/mask resources. Caller must honor the fixed outline capacity. </p>
+<p>Borrows mapped rectangle and style resources. Converts the supplied bounded background point array to short coordinates and fills it as Convex. Installs the bitmap mask and destination-relative clip origin on the private bitmap GC, then copies plane one. Leaves that clip state installed; does not retain or free bitmap/mask resources. Caller must honor the fixed outline capacity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>r</strong> – <strong>[in]</strong> Borrowed destination rectangle; its dimensions select the source extent starting at (0,0). </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed bitmap style; backgroundCount must fit RBC_RENDER_BITMAP_OUTLINE_POINTS. Its private GC clip state is modified. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeImage">
 <span class="target" id="group__native__shared__drawing_1gac494bb399dd392f2ecbc77fc3c4e35c1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Redraw a complete Tk image at a mapped position. </p>
-<p>Queries the borrowed image size and delegates image-type drawing and alpha handling to Tk_RedrawImage. Does not scale, retain or free the image. </p>
+<p>Queries the borrowed image size and delegates image-type drawing and alpha handling to Tk_RedrawImage. Does not scale, retain or free the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>image</strong> – <strong>[in]</strong> Borrowed live Tk image; its entire current extent is redrawn. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeCopyArea">
 <span class="target" id="group__native__shared__drawing_1ga581625250a57fa41f8f5b004afc2ae27"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeCopyArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">destination</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcY</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">dstX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">dstY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeCopyArea" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a native drawable rectangle using the supplied GC. </p>
-<p>Borrows both drawables, window and GC; passes source/destination coordinates and unsigned dimensions to XCopyArea. Does not change the supplied GC or introduce a separate plot clip. </p>
+<p>Borrows both drawables, window and GC; passes source/destination coordinates and unsigned dimensions to XCopyArea. Does not change the supplied GC or introduce a separate plot clip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>source</strong> – <strong>[in]</strong> Borrowed source drawable compatible with destination and gc. </p></li>
+<li><p><strong>destination</strong> – <strong>[in]</strong> Borrowed destination drawable. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>srcX</strong> – <strong>[in]</strong> Source rectangle X coordinate in pixels. </p></li>
+<li><p><strong>srcY</strong> – <strong>[in]</strong> Source rectangle Y coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative rectangle width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative rectangle height in pixels. </p></li>
+<li><p><strong>dstX</strong> – <strong>[in]</strong> Destination rectangle X coordinate in pixels. </p></li>
+<li><p><strong>dstY</strong> – <strong>[in]</strong> Destination rectangle Y coordinate in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativePixmap">
 <span class="target" id="group__native__shared__drawing_1ga4bcafee45d8d9e20a7dd3293dc167b15"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePixmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">pixmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativePixmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a pixmap from its origin into a mapped rectangle. </p>
-<p>Borrows graph, pixmap and GC. Uses rectangle dimensions and destination position with Rbc_NativeCopyArea; the pixmap is neither scaled nor freed. </p>
+<p>Borrows graph, pixmap and GC. Uses rectangle dimensions and destination position with Rbc_NativeCopyArea; the pixmap is neither scaled nor freed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>pixmap</strong> – <strong>[in]</strong> Borrowed source pixmap, readable from (0,0) over the supplied rectangle dimensions. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>r</strong> – <strong>[in]</strong> Borrowed destination rectangle; its dimensions select the source extent starting at (0,0). </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeBorder">
 <span class="target" id="group__native__shared__drawing_1ga231bc7844ae660430c05fc87ae72973f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBorder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fill</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeBorder" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw or fill a native relief border. </p>
-<p>The fill flag chooses Fill3DRectangle; otherwise uses Rbc_Draw3DRectangle. Borrows window/border and preserves the two paths’ different fill semantics. Decorations may use this service even when element geometry uses Cairo. </p>
+<p>The fill flag chooses Fill3DRectangle; otherwise uses Rbc_Draw3DRectangle. Borrows window/border and preserves the two paths’ different fill semantics. Decorations may use this service even when element geometry uses Cairo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed Tk border supplying relief shading resources. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative rectangle width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative rectangle height in pixels. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Relief border thickness in pixels. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief constant. </p></li>
+<li><p><strong>fill</strong> – <strong>[in]</strong> Nonzero fills the interior as well as drawing the relief; zero draws only the border. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeRectangle">
 <span class="target" id="group__native__shared__drawing_1ga7d7505b0906e807783a1a90be5211b71"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a native rectangle with a tile or the supplied GC. </p>
-<p>A non-NULL borrowed tile takes precedence and uses Rbc_TileRectangle with its existing origin. Otherwise calls XFillRectangle after converting sizes to unsigned integers. Callers supply valid nonnegative dimensions. </p>
+<p>A non-NULL borrowed tile takes precedence and uses Rbc_TileRectangle with its existing origin. Otherwise calls XFillRectangle after converting sizes to unsigned integers. Callers supply valid nonnegative dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed fill GC, required only when tile is NULL. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Optional borrowed tile taking precedence over gc; retains its existing pattern origin. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative rectangle width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative rectangle height in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeFocus">
 <span class="target" id="group__native__shared__drawing_1ga89cdb5c4638f9f8f0358b2f771ebde87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeFocus</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeFocus" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw the Tk focus highlight. </p>
-<p>Borrows the live window and configured GC; delegates width handling and painting to Tk_DrawFocusHighlight. </p>
+<p>Borrows the live window and configured GC; delegates width handling and painting to Tk_DrawFocusHighlight.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Focus highlight thickness in pixels, passed to Tk. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeSegments">
 <span class="target" id="group__native__shared__drawing_1gaca46db4484cb0434d1d56c46534aee30"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw graph segments through the shared bounded segment helper. </p>
-<p>Borrows graph, drawable, GC and mapped segments. DrawSegments owns temporary conversion storage and handles protocol clipping and request batching. </p>
+<p>Borrows graph, drawable, GC and mapped segments. DrawSegments owns temporary conversion storage and handles protocol clipping and request batching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs; readable for the supplied segment count. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of Segment2D records, not endpoints. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -203,77 +379,201 @@ component resources or perform graph layout.</p>
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeSymbolPoints">
 <span class="target" id="group__native__shared__drawing_1ga66f26780b8a0aadc731be920d9710f9e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeSymbolPoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeSymbolPoints" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw mapped symbol centers using native shape batches. </p>
-<p>Borrows graph, points and style resources; shape-specific temporary buffers and scaled bitmaps are released before return. For size below three, draws all centers as points with fillGC and bypasses symbol type/interval handling. Larger symbols use circle/square platform batches, segment crosses, polygon templates or scaled bitmaps. Interval-aware branches advance style-&gt;counter for examined centers, including skipped ones. Bitmap symbols mutate outline GC clip state. Requires valid mapped coordinates and a nonnegative count. </p>
+<p>Borrows graph, points and style resources; shape-specific temporary buffers and scaled bitmaps are released before return. For size below three, draws all centers as points with fillGC and bypasses symbol type/interval handling. Larger symbols use circle/square platform batches, segment crosses, polygon templates or scaled bitmaps. Interval-aware branches advance style-&gt;counter for examined centers, including skipped ones. Bitmap symbols mutate outline GC clip state. Requires valid mapped coordinates and a nonnegative count.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed symbol style; interval-aware branches advance its counter for examined centers. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Mapped symbol size in pixels; sizes below three select the point-only path. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of mapped symbol centers. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed mapped center array with nSymbolPts entries. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeFillPolygon">
 <span class="target" id="group__native__shared__drawing_1ga93bca2999dc318845593c0279b5a1a27"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeFillPolygon</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeFillPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a tiled or stippled native polygon. </p>
-<p>Rejects absent points, unavailable tile pixmaps and unsupported point counts. Owns temporary short-coordinate points. A tile takes precedence and its origin is reset through Rbc_SetTileOrigin before drawing. Otherwise a non-None stipple selects Complex XFillPolygon using the already configured GC. With neither tile nor stipple this helper intentionally draws nothing. </p>
+<p>Rejects absent points, unavailable tile pixmaps and unsupported point counts. Owns temporary short-coordinate points. A tile takes precedence and its origin is reset through Rbc_SetTileOrigin before drawing. Otherwise a non-None stipple selects Complex XFillPolygon using the already configured GC. With neither tile nor stipple this helper intentionally draws nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Optional borrowed tile taking precedence; its origin is reset for the graph before drawing. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Non-None enables the configured GC polygon fill when no tile is supplied; None alone does not select solid filling. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped polygon vertices with count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of input records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeBars">
 <span class="target" id="group__native__shared__drawing_1ga8345f8bdbcad1098eff37a6cf39801fb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBars</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeBars" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill mapped bar rectangles, then draw relief borders. </p>
-<p>Borrows graph, style and rectangles. Positive fillOpacity enables native filling; this helper does not alpha-blend fractional opacity. Packs eligible rectangles into request-sized XRectangle batches, flushing before wider int-argument fallback calls. Attempts platform border batching before per-rectangle relief fallback. Allocation/capacity failure in the fill path returns before borders. Requires valid mapped geometry and configured GCs. </p>
+<p>Borrows graph, style and rectangles. Positive fillOpacity enables native filling; this helper does not alpha-blend fractional opacity. Packs eligible rectangles into request-sized XRectangle batches, flushing before wider int-argument fallback calls. Attempts platform border batching before per-rectangle relief fallback. Allocation/capacity failure in the fill path returns before borders. Requires valid mapped geometry and configured GCs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed bar style and its live color, border and GC resources. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array with the supplied rectangle count. </p></li>
+<li><p><strong>nRects</strong> – <strong>[in]</strong> Number of rectangle records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeArcStroke">
 <span class="target" id="group__native__shared__drawing_1ga66f51adea449414f88ceee66d8a0a722"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeArcStroke</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeArcStroke" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Join contiguous arc segments into native polylines. </p>
-<p>Requires nonnegative count, valid mapped segments and representable sizes. Zero count is a no-op. Exact endpoint equality joins adjacent segments; gaps start separate XDrawLines calls. Owns point and per-run XPoint buffers, with short-coordinate conversion. Outer allocation failure skips all drawing; per-run failure skips that run. Unlike DrawSegments, does not protocol-clip or split a run to the X request-size limit. </p>
+<p>Requires nonnegative count, valid mapped segments and representable sizes. Zero count is a no-op. Exact endpoint equality joins adjacent segments; gaps start separate XDrawLines calls. Owns point and per-run XPoint buffers, with short-coordinate conversion. Outer allocation failure skips all drawing; per-run failure skips that run. Unlike DrawSegments, does not protocol-clip or split a run to the X request-size limit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped arc segments; consecutive equal endpoints join a run. Caller bounds each run for native conversion/request limits. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of Segment2D records, not endpoints. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClipDrawable">
 <span class="target" id="group__native__shared__drawing_1ga35337b02865817d24dab5b3421d12e97"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeClipDrawable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip" title="Rbc_NativeClip"><span class="n"><span class="pre">Rbc_NativeClip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clip</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClipDrawable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the active clip target or the base drawable. </p>
-<p>Requires a live non-NULL stack. None means the active frame is empty or failed; callers must skip drawing but still pop that frame. The target is borrowed and must not outlive its frame/stack. </p>
+<p>Requires a live non-NULL stack. None means the active frame is empty or failed; callers must skip drawing but still pop that frame. The target is borrowed and must not outlive its frame/stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip</strong> – <strong>[in]</strong> Live non-NULL clip stack with its borrowed resources intact. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeScreenSegments">
 <span class="target" id="group__native__shared__drawing_1ga9398e9c53a6b486b3a72190f6191e7ec"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeScreenSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeScreenSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw independent native segments without a Graph argument. </p>
-<p>Uses the borrowed window display and the same DrawSegments conversion, protocol clipping, temporary storage and request batching as graph segments. </p>
+<p>Uses the borrowed window display and the same DrawSegments conversion, protocol clipping, temporary storage and request batching as graph segments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying display and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs; readable for the supplied segment count. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of Segment2D records, not endpoints. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeArrowHead">
 <span class="target" id="group__native__shared__drawing_1gabee5a715533c6ac9ed9c0a990341c642"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arrow</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeArrowHead" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Scan-convert a five-vertex arrowhead at integer pixel centers. </p>
-<p>Borrows the mapped arrow and GC. Keeps doubles until selecting covered pixels; rounding vertices first distorts narrow diagonal necks. Half-open edges count shared vertices once. Clips spans to graph and signed-short bounds, then sends batches of at most 128 one-pixel-high rectangles. Requires finite geometry; the enclosing renderer retains track clipping. </p>
+<p>Borrows the mapped arrow and GC. Keeps doubles until selecting covered pixels; rounding vertices first distorts narrow diagonal necks. Half-open edges count shared vertices once. Clips spans to graph and signed-short bounds, then sends batches of at most 128 one-pixel-high rectangles. Requires finite geometry; the enclosing renderer retains track clipping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>arrow</strong> – <strong>[in]</strong> Borrowed finite array of RBC_RENDER_ARROW_POINTS vertices, including the repeated closing vertex. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeTextBackground">
 <span class="target" id="group__native__shared__drawing_1ga44d6c9a50d7f60ed43f3d7eaf8559a8e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeTextBackground</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outline</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">anchor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeTextBackground" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a four-corner text background polygon. </p>
-<p>Borrows outline, anchor and GC. Adds the anchor before short conversion and fills with Convex/CoordModeOrigin. Requires four mapped outline points; does not impose a plot clip or retain point storage. </p>
+<p>Borrows outline, anchor and GC. Adds the anchor before short conversion and fills with Convex/CoordModeOrigin. Requires four mapped outline points; does not impose a plot clip or retain point storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>outline</strong> – <strong>[in]</strong> Four borrowed text-background vertices relative to anchor. </p></li>
+<li><p><strong>anchor</strong> – <strong>[in]</strong> Borrowed mapped text anchor added to each outline vertex before short conversion. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeLegendLine">
 <span class="target" id="group__native__shared__drawing_1gaaccbd431148354c04eab1671f6158b7a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeLegendLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeLegendLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a two-row legend line sample. </p>
-<p>Uses two independent XDrawLine requests, preserving the original dash restart on each row. Borrows graph, target and configured GC. </p>
+<p>Uses two independent XDrawLine requests, preserving the original dash restart on each row. Borrows graph, target and configured GC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Half-length of each horizontal sample line; rows are y and y+1. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeLegendBar">
 <span class="target" id="group__native__shared__drawing_1gaa7f95254683290e5e7f474e2b18f38f2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeLegendBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeLegendBar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a square legend fill sample with a local pattern origin. </p>
-<p>Sets the borrowed GC tile/stipple origin to the sample position, fills the square, then resets that origin to zero. Does not restore a nonzero previous origin; callers must use the established legend GC contract. </p>
+<p>Sets the borrowed GC tile/stipple origin to the sample position, fills the square, then resets that origin to zero. Does not restore a nonzero previous origin; callers must use the established legend GC contract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[inout]</strong> Borrowed fill GC; stipple origin is set to (x,y) then reset to (0,0). </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in pixels. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Nonnegative side length of the filled sample square. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeBitmapRun">
 <span class="target" id="group__native__shared__drawing_1ga6dbaf84272f11e4561aabb8ca8746b73"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBitmapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeBitmapRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a run of opaque bitmap copies with platform fallback. </p>
-<p>Ignores absent positions or nonpositive counts. Tries the platform opaque batch first, then clears GC clip mask/origin and replays all positions with XCopyPlane if declined. Requires unmasked GXcopy-compatible input so replay after partial optimized failure is safe. Borrows all resources and leaves fallback GC clipping cleared; do not use for masked or XOR runs. </p>
+<p>Ignores absent positions or nonpositive counts. Tries the platform opaque batch first, then clears GC clip mask/origin and replays all positions with XCopyPlane if declined. Requires unmasked GXcopy-compatible input so replay after partial optimized failure is safe. Borrows all resources and leaves fallback GC clipping cleared; do not use for masked or XOR runs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit source bitmap, readable over width by height pixels. </p></li>
+<li><p><strong>gc</strong> – <strong>[inout]</strong> Borrowed opaque GXcopy-compatible GC; shared fallback clears its mask and clip origin. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive source bitmap width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive source bitmap height in pixels. </p></li>
+<li><p><strong>positions</strong> – <strong>[in]</strong> Borrowed array of count integer destination origins. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of run items; nonpositive counts suppress drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -308,21 +608,48 @@ also has Windows implementations with different resource and batching rules.</p>
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativePolygonPointLimit">
 <span class="target" id="group__native__x11__drawing_1gae260bf116aea6d400e5b25c14b03b73c"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonPointLimit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePolygonPointLimit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the raw X11 polygon request capacity. </p>
-<p>Uses XPoint request sizing for the borrowed graph display. Component clipping allowances are not subtracted here; this is not a promise that any polygon can be split safely. </p>
+<p>Uses XPoint request sizing for the borrowed graph display. Component clipping allowances are not subtracted here; this is not a promise that any polygon can be split safely.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativePolyline">
 <span class="target" id="group__native__x11__drawing_1ga82469865729ac1f8fd4290efe8ce4da1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace" title="Rbc_NativeTrace"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">screenPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePolyline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a connected trace in request-sized X11 chunks. </p>
-<p>Borrows context and mapped points; NULL context/points, fewer than two points or insufficient capacity are no-ops. Converts directly to short coordinates. Each continuation repeats the previous endpoint, using the extra workspace slot reserved by BeginTrace. Separate requests preserve connectivity but do not carry an explicit accumulated dash offset. GC state remains borrowed. </p>
+<p>Borrows context and mapped points; NULL context/points, fewer than two points or insufficient capacity are no-ops. Converts directly to short coordinates. Each continuation repeats the previous endpoint, using the extra workspace slot reserved by BeginTrace. Separate requests preserve connectivity but do not carry an explicit accumulated dash offset. GC state remains borrowed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live native trace context returned by Rbc_NativeBeginTrace; NULL is accepted. </p></li>
+<li><p><strong>screenPts</strong> – <strong>[in]</strong> Borrowed mapped polyline vertices with nPoints entries; NULL suppresses drawing. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of polyline vertices; fewer than two draws nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeStrips">
 <span class="target" id="group__native__x11__drawing_1gab53f31433b56e3fed242962f4b4bc478"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeStrips</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeStrips" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delegate independent X11 strips to shared segment drawing. </p>
-<p>Rbc_NativeSegments handles protocol clipping, conversion and request batching. No additional context or resource is acquired here. </p>
+<p>Rbc_NativeSegments handles protocol clipping, conversion and request batching. No additional context or resource is acquired here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured drawing GC, including raster operation, clip and style. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs; readable for the supplied segment count. </p></li>
+<li><p><strong>nSegments</strong> – <strong>[in]</strong> Number of Segment2D records, not endpoints. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -331,12 +658,20 @@ also has Windows implementations with different resource and batching rules.</p>
 <dd><p>Allocate X11 trace state and point workspace together. </p>
 <p>Allocate a reusable native polyline batch.</p>
 <p>Borrows graph, drawable and configured GC. Reserves request capacity minus one as the base chunk size, plus one continuation endpoint slot. Returns NULL for insufficient capacity, size overflow or allocation failure. Release the owned allocation with Rbc_NativeEndTrace.</p>
-<p>Allocate X11 trace state and point workspace together.</p>
+<p>
+Allocate X11 trace state and point workspace together.</p>
 <p>
 Borrows graph, drawable and configured GC until Rbc_NativeEndTrace. Owns point workspace; Windows also acquires a DC and selects owned pen/brush resources for the batch. Geometry supplied to subsequent calls is consumed synchronously. This is a backend service, not a component constructor. </p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Owned context, or NULL when request capacity or allocation prevents it.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until the returned context is released. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed target, kept valid until the returned context is released. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC, kept valid until the returned batch is released.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned context, or NULL when request capacity or allocation prevents it.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -347,8 +682,16 @@ Borrows graph, drawable and configured GC until Rbc_NativeEndTrace. Owns point w
 <dd><p>Free the X11 trace allocation. </p>
 <p>Release a native trace batch; NULL is accepted.</p>
 <p>Accepts NULL. Does not free the borrowed graph, drawable or GC and does not flush or synchronize the X server.</p>
-<p>Free the X11 trace allocation.</p>
+<p>
+Free the X11 trace allocation.</p>
 <p>Windows restores the previously selected pen/brush before deleting the batch-owned objects and releasing its DC state. Frees context/workspace without freeing the borrowed GC, drawable or graph. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned trace context consumed by this call; NULL is accepted.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -362,63 +705,156 @@ Borrows graph, drawable and configured GC until Rbc_NativeEndTrace. Owns point w
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeCircles">
 <span class="target" id="group__native__x11__drawing_1ga738c1d4012cf6a80899a370f94f98e6a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeCircles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeCircles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw selected circle symbols in X11 arc batches. </p>
-<p>Owns one XArc array sized for all input centers, then submits request-sized chunks with fill before outline per chunk. Positive interval advances the style counter for every examined center. Converts centers to short before subtracting radius; diameter becomes unsigned short. Nonpositive count, size overflow, allocation failure or unusable request capacity skips output. Borrows style GCs and requires mapped coordinates and valid radius. </p>
+<p>Owns one XArc array sized for all input centers, then submits request-sized chunks with fill before outline per chunk. Positive interval advances the style counter for every examined center. Converts centers to short before subtracting radius; diameter becomes unsigned short. Nonpositive count, size overflow, allocation failure or unusable request capacity skips output. Borrows style GCs and requires mapped coordinates and valid radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning the drawable and GC resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed symbol style; interval-aware branches advance its counter for examined centers. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of mapped symbol centers. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed mapped center array with nSymbolPts entries. </p></li>
+<li><p><strong>radius</strong> – <strong>[in]</strong> Circle radius in pixels; caller supplies representable center/radius arithmetic. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeSquares">
 <span class="target" id="group__native__x11__drawing_1ga2f4c6299c1890b3322e3fe418660eab6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeSquares</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">r</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeSquares" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw selected square symbols in X11 rectangle batches. </p>
-<p>Owns a temporary array sized for all centers, then emits bounded requests with fill before outline per chunk. Positive interval advances the mutable style counter for every center examined. Subtracts radius before short conversion, unlike circles; diameter becomes unsigned short. Nonpositive count, size overflow, allocation failure or unusable capacity skips output. </p>
+<p>Owns a temporary array sized for all centers, then emits bounded requests with fill before outline per chunk. Positive interval advances the mutable style counter for every center examined. Subtracts radius before short conversion, unlike circles; diameter becomes unsigned short. Nonpositive count, size overflow, allocation failure or unusable capacity skips output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning the drawable and GC resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed symbol style; interval-aware branches advance its counter for examined centers. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of mapped symbol centers. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed mapped center array with nSymbolPts entries. </p></li>
+<li><p><strong>r</strong> – <strong>[in]</strong> Square half-size in pixels; caller supplies representable center/radius arithmetic. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativePolygonPointCount">
 <span class="target" id="group__native__x11__drawing_1ga12f8da3cb7281eb62562e4bb0ed6e609"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonPointCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePolygonPointCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a single X11 polygon request length. </p>
-<p>Returns the int count only when at least three vertices fit both INT_MAX and the display request limit. Otherwise returns zero. Does not partition a polygon or inspect its geometry. </p>
+<p>Returns the int count only when at least three vertices fit both INT_MAX and the display request limit. Otherwise returns zero. Does not partition a polygon or inspect its geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning the drawable and GC resources. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of polygon vertices, including any repeated closing point. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeBarRectangles">
 <span class="target" id="group__native__x11__drawing_1ga1fa263842eccca567dc673e59552cf4b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBarRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">XRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeBarRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit one prepared bar-fill rectangle batch. </p>
-<p>Borrows graph, drawable, style GC and XRectangle array. Caller has already validated count and packed coordinates to fit the request; no allocation or additional clipping is performed here. </p>
+<p>Borrows graph, drawable, style GC and XRectangle array. Caller has already validated count and packed coordinates to fit the request; no allocation or additional clipping is performed here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed bar style and its live color, border and GC resources. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed prepacked XRectangle array; caller has bounded count for the platform request. </p></li>
+<li><p><strong>nRects</strong> – <strong>[in]</strong> Number of rectangle records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeBeginPolygonBatch">
 <span class="target" id="group__native__x11__drawing_1ga7d9f78046adf2f3e8672276f36abbec7"></span><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBeginPolygonBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">maxPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeBeginPolygonBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decline the optional fill-only polygon optimization on X11. </p>
-<p>Always returns NULL without acquiring resources. The shared caller must use its ordinary polygon path; NULL does not mean an empty clipping region. </p>
+<p>Always returns NULL without acquiring resources. The shared caller must use its ordinary polygon path; NULL does not mean an empty clipping region.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until the returned context is released. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed target, kept valid until the returned context is released. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC, kept valid until the returned batch is released. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>maxPoints</strong> – <strong>[in]</strong> Maximum number of vertices in any polygon submitted to the returned batch. Unused by this X11 fallback stub. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeBatchPolygon">
 <span class="target" id="group__native__x11__drawing_1ga68299b2ac42a223ac9fb4cacbe76903b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBatchPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">batch</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeBatchPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Provide the unused X11 polygon-batch interface entry. </p>
-<p>No operation. X11 BeginPolygonBatch never returns a context, so callers should select the ordinary drawing path instead. </p>
+<p>No operation. X11 BeginPolygonBatch never returns a context, so callers should select the ordinary drawing path instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> – <strong>[inout]</strong> Live owned polygon batch returned by Rbc_NativeBeginPolygonBatch. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped polygon vertices with count entries. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of input records, not bytes. Unused by this X11 fallback stub. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeEndPolygonBatch">
 <span class="target" id="group__native__x11__drawing_1ga987d6d3edc22009a0be65debb05aac54"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeEndPolygonBatch</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">batch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeEndPolygonBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release storage passed to the X11 polygon-batch endpoint. </p>
-<p>Calls ckfree on the argument. No context is normally created by the X11 constructor; this interface exists to match the platform backend contract. </p>
+<p>Calls ckfree on the argument. No context is normally created by the X11 constructor; this interface exists to match the platform backend contract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> – <strong>[in]</strong> Owned polygon batch consumed by this call; Windows requires non-NULL. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativePolygonSymbols">
 <span class="target" id="group__native__x11__drawing_1ga05fc9d02493bd6d4d31654ec61a4f4b1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">polygons</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">stride</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">vertices</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePolygonSymbols" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill all polygon symbols, then draw all outlines. </p>
-<p>Borrows preconverted polygons and style GCs. Stride includes the closing point and is used for both fill and line requests. Twelve-vertex templates use Complex fill; others use Convex. Interval selection was performed by the shared caller. Does not allocate, clip or split individual polygons. </p>
+<p>Borrows preconverted polygons and style GCs. Stride includes the closing point and is used for both fill and line requests. Twelve-vertex templates use Complex fill; others use Convex. Interval selection was performed by the shared caller. Does not allocate, clip or split individual polygons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning the drawable and GC resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed symbol style and GCs; caller has already selected the symbol intervals. </p></li>
+<li><p><strong>polygons</strong> – <strong>[in]</strong> Borrowed packed XPoint polygons, with stride points per polygon. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of packed polygon records. </p></li>
+<li><p><strong>stride</strong> – <strong>[in]</strong> Points per polygon record, including its repeated closing vertex. </p></li>
+<li><p><strong>vertices</strong> – <strong>[in]</strong> Distinct vertices per polygon; twelve selects the concave plus/cross fill policy. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeBarBorders">
 <span class="target" id="group__native__x11__drawing_1ga113cda7954c83db6cd45da8f168f8910"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBarBorders</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeBarBorders" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decline optimized bar borders on X11. </p>
-<p>Always returns FALSE without drawing. The shared bar helper then draws relief borders individually. </p>
+<p>Always returns FALSE without drawing. The shared bar helper then draws relief borders individually.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed bar style and its live color, border and GC resources. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array with the supplied rectangle count. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of mapped bar rectangles. Unused by this X11 fallback stub. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -432,28 +868,75 @@ Borrows graph, drawable and configured GC until Rbc_NativeEndTrace. Owns point w
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativePlatformClip">
 <span class="target" id="group__native__x11__drawing_1ga07a9a2436bb1759537e3aeea20efc21d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePlatformClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">parent</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">left</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">top</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">right</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">bottom</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">state</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">drawablePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePlatformClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decline direct platform clipping on X11. </p>
-<p>Returns FALSE and leaves the output drawable untouched. The shared clip stack then creates or reuses its scratch target. This is a fallback signal, not a successfully installed empty clip. </p>
+<p>Returns FALSE and leaves the output drawable untouched. The shared clip stack then creates or reuses its scratch target. This is a fallback signal, not a successfully installed empty clip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>parent</strong> – <strong>[in]</strong> Borrowed parent drawable whose clipping and pixels must remain live through unclip. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>left</strong> – <strong>[in]</strong> Inclusive left clip edge in absolute pixels. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>top</strong> – <strong>[in]</strong> Inclusive top clip edge in absolute pixels. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>right</strong> – <strong>[in]</strong> Exclusive right clip edge in absolute pixels. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>bottom</strong> – <strong>[in]</strong> Exclusive bottom clip edge in absolute pixels. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>state</strong> – <strong>[inout]</strong> Unused X11 platform payload; no storage is accessed. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>drawablePtr</strong> – <strong>[inout]</strong> Unused output pointer; left unchanged on X11. Unused by this X11 fallback stub. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativePlatformUnclip">
 <span class="target" id="group__native__x11__drawing_1gae4ec039b0ce655004aa3787da8163a0b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePlatformUnclip</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">state</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePlatformUnclip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Provide the unused X11 direct-clip cleanup entry. </p>
-<p>No operation; shared scratch clipping handles commit and resource lifetime. </p>
+<p>No operation; shared scratch clipping handles commit and resource lifetime.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – <strong>[inout]</strong> Unused X11 platform payload; no storage is accessed. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Temporary platform wrapper to release, or None after partial setup; ignored on X11. Unused by this X11 fallback stub. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeRun">
 <span class="target" id="group__native__x11__drawing_1ga52e9d4809aabea8f88e63179bece44c1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderRunProc" title="Rbc_RenderRunProc"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invoke a native run callback synchronously on its original target. </p>
-<p>Calls proc only when data is non-NULL and count is positive. Borrows data and drawable, with no wrapper or DC acquisition. A valid callback is required for nonempty runs; it must not retain temporary drawing resources. </p>
+<p>Calls proc only when data is non-NULL and count is positive. Borrows data and drawable, with no wrapper or DC acquisition. A valid callback is required for nonempty runs; it must not retain temporary drawing resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. </p></li>
+<li><p><strong>data</strong> – <strong>[in]</strong> Borrowed callback-specific run data; NULL suppresses the run. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of run items; nonpositive counts suppress drawing. </p></li>
+<li><p><strong>proc</strong> – <strong>[in]</strong> Required synchronous callback for a nonempty run; must not retain the target or destroy drawing resources. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeOpaqueBitmapRun">
 <span class="target" id="group__native__x11__drawing_1gac00640f977866efe60086260cce00e47"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeOpaqueBitmapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeOpaqueBitmapRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decline optimized opaque bitmap runs on X11. </p>
-<p>Always returns FALSE without drawing or modifying GC state. The shared bitmap-run helper performs the complete XCopyPlane fallback. </p>
+<p>Always returns FALSE without drawing or modifying GC state. The shared bitmap-run helper performs the complete XCopyPlane fallback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph; its display and drawing resources must remain live during the call. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable in mapped pixel coordinates. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit source bitmap, readable over width by height pixels. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed opaque GXcopy-compatible GC; masked or XOR copies are outside this interface contract. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive source bitmap width in pixels. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive source bitmap height in pixels. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>positions</strong> – <strong>[in]</strong> Borrowed array of count integer destination origins. Unused by this X11 fallback stub. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of run items; nonpositive counts suppress drawing. Unused by this X11 fallback stub. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

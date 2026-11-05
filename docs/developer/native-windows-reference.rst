@@ -3,6 +3,15 @@ Windows native backend C reference
 
 Windows contracts use a separate Doxygen XML project so identical backend
 function and structure names cannot merge with the X11 implementation.
+Parameter descriptions identify retained DC/batch state, caller-owned clip
+payloads, and temporary drawables. Return values that select fallback are not
+interchangeable with drawing-success reports; see :doc:`native-rendering`.
+
+For a retained polygon batch, pair
+:c:func:`rbcNativeWindows.Rbc_NativeBeginPolygonBatch` with
+:c:func:`rbcNativeWindows.Rbc_NativeEndPolygonBatch`. For direct clipping,
+:c:func:`rbcNativeWindows.Rbc_NativePlatformUnclip` must unwind even partial
+setup from :c:func:`rbcNativeWindows.Rbc_NativePlatformClip`.
 
 .. c:namespace:: rbcNativeWindows
 

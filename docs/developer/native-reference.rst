@@ -5,12 +5,21 @@ These declarations in ``rbcRenderNative.h`` are private backend services.
 Components use ``rbcRender.h`` instead. See :doc:`native-rendering` for platform
 behavior and ownership that cannot be inferred from a function signature.
 
+The entries retain implementation-specific parameter contracts. Inputs described
+as borrowed must remain live through the call, or through batch destruction when
+retained by a constructor. Counts and dimensions are documented individually;
+short-coordinate conversion is not a general overflow check.
+
 Trace batches
 -------------
 
 The X11 constructor and destructor contracts are included with the platform
 implementation below. See :doc:`native-rendering` for the shared lifetime
-contract and Windows acquisition/restoration requirements.
+contract and Windows acquisition/restoration requirements. Start with
+:c:func:`rbcNativeX11.Rbc_NativeBeginTrace`, submit
+:c:func:`rbcNativeX11.Rbc_NativePolyline`, and release with
+:c:func:`rbcNativeX11.Rbc_NativeEndTrace`. Independent strips use
+:c:func:`rbcNativeX11.Rbc_NativeStrips` without a retained trace context.
 
 Clip stacks
 -----------
