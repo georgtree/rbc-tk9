@@ -370,7 +370,7 @@ static void ComputeMargins(Graph *graphPtr);
 static Axis *CreateAxis(Graph *graphPtr, char *name, int margin);
 static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr);
 static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr);
-static int GetAxis(Graph *graphPtr, const char *name, Rbc_Uid classUid, Axis **axisPtrPtr);
+static int GetAxis(Graph *graphPtr, const char *axisName, Rbc_Uid classUid, Axis **axisPtrPtr);
 static void FreeAxis(Graph *graphPtr, Axis *axisPtr);
 static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr);

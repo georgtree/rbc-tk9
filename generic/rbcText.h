@@ -157,8 +157,5 @@ void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, const char *string, TextSt
 void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr, TextStyle *stylePtr, int x, int y);
 void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *stylePtr, int x, int y,
                    Dim2D *areaPtr);
-Pixmap Rbc_CreateTextBitmap(Tk_Window tkwin, TextLayout *textPtr, TextStyle *stylePtr, int *widthPtr, int *heightPtr);
-int Rbc_DrawRotatedText(Display *display, Drawable drawable, int x, int y, double theta, TextStyle *stylePtr,
-                        TextLayout *textPtr);
 
 #endif /* _RBCTEXT */

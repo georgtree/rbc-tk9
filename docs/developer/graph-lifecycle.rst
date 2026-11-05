@@ -186,8 +186,8 @@ component pointer. Preservation and validation serve different purposes:
 :c:func:`rbcGraphCommands.Rbc_GraphInstCmdProc` preserves the graph around operation dispatch. It also
 rejects snapshot/export rendering from an active formatter before temporary
 output dimensions can disturb the outer layout. Idle drawing has no such
-command scope: ``DisplayGraph`` separately preserves the graph and interpreter
-and saves/restores interpreter state around ``DisplayGraphFrame``.
+command scope: :c:func:`DisplayGraph` separately preserves the graph and interpreter
+and saves/restores interpreter state around :c:func:`DisplayGraphFrame`.
 
 Frame drawing and presentation
 ------------------------------
@@ -235,7 +235,7 @@ same lifecycle, with two distinct cleanup phases:
    frees geometry-settle state, and uses ``Tcl_EventuallyFree`` to request final
    graph disposal. Outstanding preserves defer that final disposal.
 
-``DestroyGraph`` then destroys markers and elements before tracks, axes and
+:c:func:`DestroyGraph` then destroys markers and elements before tracks, axes and
 pens; releases remaining components, bindings and drawing resources; and frees
 the record. Keeping that order matters because components refer to other
 components. Do not move Tk-dependent resource release into the final free
@@ -305,7 +305,7 @@ Screen composition and snapshot capture
 grids, Polar/Smith labels, under markers, lowered legends, axis-limit annotations
 and ordinary elements. It checks callback validity after the Polar label stage.
 Its caller must also check validity because a void drawing return does not
-communicate cancellation. ``Rbc_DrawGraph`` adds above markers, active elements,
+communicate cancellation. :c:func:`Rbc_DrawGraph` adds above markers, active elements,
 margins, raised legends, outer border and focus decoration around that layer.
 
 Margin drawing sets a shared tile origin and fills four rectangles surrounding

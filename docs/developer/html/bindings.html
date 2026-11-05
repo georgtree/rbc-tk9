@@ -133,7 +133,7 @@ binding that its tag callback may have supplied.</p>
 </section>
 <section id="graph-hit-priority">
 <h2>Graph hit priority<a class="headerlink" href="#graph-hit-priority" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">PickEntry</span></code> first updates layout when <code class="docutils literal notranslate"><span class="pre">MAP_ALL</span></code> is pending. Layout can invoke
+<p><a class="reference internal" href="binding-reference.html#c.PickEntry" title="PickEntry"><code class="xref c c-func docutils literal notranslate"><span class="pre">PickEntry()</span></code></a> first updates layout when <code class="docutils literal notranslate"><span class="pre">MAP_ALL</span></code> is pending. Layout can invoke
 axis-format scripts, so a hit test is not necessarily free of Tcl callbacks.
 If layout is cancelled, picking returns no object.</p>
 <p>A local legend’s visible rectangle excludes ordinary graph hits. Outside the
@@ -148,7 +148,7 @@ element’s <code class="docutils literal notranslate"><span class="pre">closest
 <p>An element must be visible, not plot-hidden, and in normal state. Dirty element
 mapping or pending X/Y vector notification excludes it from this search.
 Track-owned elements additionally require a usable viewport and a pointer
-inside it. <code class="docutils literal notranslate"><span class="pre">Rbc_EnterTrack</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_LeaveTrack</span></code> bracket the element’s
+inside it. <a class="reference internal" href="mapping-reference.html#c.Rbc_EnterTrack" title="Rbc_EnterTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_EnterTrack()</span></code></a> and <a class="reference internal" href="mapping-reference.html#c.Rbc_LeaveTrack" title="Rbc_LeaveTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LeaveTrack()</span></code></a> bracket the element’s
 closest-point calculation. This preserves shared component algorithms while
 using the correct track transformation.</p>
 <p>The element search uses the graph halo, guarded against integer overflow, and
@@ -158,10 +158,10 @@ algorithms with a generic rectangular hit test.</p>
 </section>
 <section id="legend-picking-and-occlusion">
 <h2>Legend picking and occlusion<a class="headerlink" href="#legend-picking-and-occlusion" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">LegendAtPoint</span></code> resolves raised legends before lowered legends, testing the
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendAtPoint" title="rbcGrLegendBindings.LegendAtPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendAtPoint()</span></code></a> resolves raised legends before lowered legends, testing the
 global legend then track legends within each pass. External global legends use
-their own window. <code class="docutils literal notranslate"><span class="pre">LegendContains</span></code> tests the full visible legend rectangle,
-including blank padding; <code class="docutils literal notranslate"><span class="pre">PickLegendIn</span></code> separately determines whether that
+their own window. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendContains" title="rbcGrLegendBindings.LegendContains"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendContains()</span></code></a> tests the full visible legend rectangle,
+including blank padding; <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.PickLegendIn" title="rbcGrLegendBindings.PickLegendIn"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.PickLegendIn()</span></code></a> separately determines whether that
 location selects an entry. Thus blank legend padding can occlude a track
 background without becoming an element hit.</p>
 <p>Local legend hits must also lie inside their track’s viewport. Entry lookup
@@ -171,7 +171,7 @@ geometry. Keep picking consistent with drawing when changing legend layout.</p>
 </section>
 <section id="pointer-transitions-and-button-state">
 <h2>Pointer transitions and button state<a class="headerlink" href="#pointer-transitions-and-button-state" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">BindProc</span></code> receives Tk events and updates the remembered modifier state:</p>
+<p><a class="reference internal" href="binding-reference.html#c.BindProc" title="BindProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">BindProc()</span></code></a> receives Tk events and updates the remembered modifier state:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 28.0%" />
@@ -201,7 +201,7 @@ restore the borrowed event’s original state field.</p></td>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">PickCurrentItem</span></code> saves a crossing-shaped pointer event for later reuse.
+<p><a class="reference internal" href="binding-reference.html#c.PickCurrentItem" title="PickCurrentItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">PickCurrentItem()</span></code></a> saves a crossing-shaped pointer event for later reuse.
 A window Leave means no target and bypasses hit testing. When the target changes
 without a button grab, it sends Leave to the old target and Enter to the new
 one, using <code class="docutils literal notranslate"><span class="pre">NotifyAncestor</span></code> detail.</p>
@@ -222,7 +222,7 @@ corresponding lifetime and state invariants.</p>
 </section>
 <section id="dispatch-and-configuration">
 <h2>Dispatch and configuration<a class="headerlink" href="#dispatch-and-configuration" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">DoEvent</span></code> collects the keys and invokes <code class="docutils literal notranslate"><span class="pre">Tk_BindEvent</span></code> synchronously. Up to
+<p><a class="reference internal" href="binding-reference.html#c.DoEvent" title="DoEvent"><code class="xref c c-func docutils literal notranslate"><span class="pre">DoEvent()</span></code></a> collects the keys and invokes <code class="docutils literal notranslate"><span class="pre">Tk_BindEvent</span></code> synchronously. Up to
 32 keys use stack storage; larger lists use a temporary allocated array. RBC
 owns these containers, while the owner supplies stable key storage. Tk handles
 binding matching and script evaluation. The tag callback itself should collect
@@ -242,7 +242,7 @@ synthetically generated virtual event by this module.</p>
 the Tk binding table and registers an event handler; destruction unregisters
 that handler and frees the table immediately. No generic reference count keeps
 individual components alive.</p>
-<p><code class="docutils literal notranslate"><span class="pre">BindProc</span></code> preserves <code class="docutils literal notranslate"><span class="pre">bindPtr-&gt;clientData</span></code>, which graph and legend tables set
+<p><a class="reference internal" href="binding-reference.html#c.BindProc" title="BindProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">BindProc()</span></code></a> preserves <code class="docutils literal notranslate"><span class="pre">bindPtr-&gt;clientData</span></code>, which graph and legend tables set
 to the graph record. Graph final disposal is deferred until that preserve is
 released. This keeps graph-owned binding tables alive through ordinary widget
 destruction from a binding script. It does not authorize directly destroying
@@ -255,7 +255,7 @@ objects, evaluate scripts, or immediately repick. The owner manages any separate
 tag-key cleanup and determines when geometry is ready for another pick.</p>
 <p><a class="reference internal" href="binding-reference.html#c.Rbc_PickCurrentItem" title="Rbc_PickCurrentItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PickCurrentItem()</span></code></a> is synchronous and adds no preserve scope of its
 own. Its caller must retain the owner/table and check state after callbacks.
-<code class="docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView</span></code> does so around stationary-pointer repicking, checks the
+<a class="reference internal" href="scroll-reference.html#c.Rbc_NotifyTrackView" title="Rbc_NotifyTrackView"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView()</span></code></a> does so around stationary-pointer repicking, checks the
 window again before scrollbar notification, and skips this work during export.
 This prevents temporary export geometry from changing the screen’s current track.</p>
 <p><a class="reference internal" href="binding-reference.html#c.Rbc_MoveBindingTable" title="Rbc_MoveBindingTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MoveBindingTable()</span></code></a> moves only the handler registration and window

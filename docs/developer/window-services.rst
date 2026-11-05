@@ -146,3 +146,10 @@ caller-mutable GC without choosing its line style.
 :c:func:`Rbc_MaxRequestSize` returns a record count, using a byte size per record,
 not a byte allocation size. :c:func:`Rbc_Draw3DRectangle` takes drawable pixel
 coordinates and preserves the native relief border policy.
+
+Dash storage boundary
+---------------------
+
+:c:func:`GetDashCount` reads at most RBC_MAX_DASH_VALUES bytes and stops at the
+first zero. :c:func:`Rbc_SetDashes` uses that count with the descriptor offset;
+this scan does not parse or validate a Tcl dash expression.

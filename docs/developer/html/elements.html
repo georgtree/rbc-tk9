@@ -70,12 +70,12 @@ input. Its ownership depends on how it was populated:</p>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ParseElemVectorObj</span></code> first tries named-vector lookup. Otherwise it parses
+<p><a class="reference internal" href="element-reference.html#c.Rbc_ParseElemVectorObj" title="Rbc_ParseElemVectorObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ParseElemVectorObj()</span></code></a> first tries named-vector lookup. Otherwise it parses
 the option as a list of numeric expressions. This shared parser accepts real
 vectors only; polar complex input has a separate implementation and must not
 be inferred from this parser’s contract. Parsing initializes the candidate,
 so passing an already populated candidate would lose its owned resources.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemVector</span></code> detaches a client ID or frees a literal array, then zeros
+<p><a class="reference internal" href="element-reference.html#c.Rbc_FreeElemVector" title="Rbc_FreeElemVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeElemVector()</span></code></a> detaches a client ID or frees a literal array, then zeros
 the slot. It never destroys the named source vector. Borrowed vector data must
 not be freed or treated as stable across source updates. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>
 for vector storage and observer lifetime.</p>
@@ -83,7 +83,7 @@ for vector storage and observer lifetime.</p>
 <section id="staging-and-commit">
 <h2>Staging and commit<a class="headerlink" href="#staging-and-commit" title="Link to this heading">¶</a></h2>
 <p>The live element must not receive partially validated inputs.
-<code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemDataTransaction</span></code> collects common data into temporary slots.
+<a class="reference internal" href="element-reference.html#c.Rbc_PrepareElemDataTransaction" title="Rbc_PrepareElemDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PrepareElemDataTransaction()</span></code></a> collects common data into temporary slots.
 On initial configuration it handles relevant defaults; explicit arguments are
 processed in their original order. Looking only at the final retained Tcl
 option objects would hide an invalid earlier occurrence of a repeated option.</p>
@@ -95,13 +95,13 @@ Failure frees staged resources and leaves the live slots unchanged.</p>
 needed, including axes, pens, styles, tags and state. All fallible preparation
 must finish before committing these resources. This complements Tk option
 rollback; it is not replaced by it. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemDataTransaction</span></code> releases replaced live slots and transfers
-the staged records into them. Only then does the private <code class="docutils literal notranslate"><span class="pre">CommitElemVector</span></code>
+<p><a class="reference internal" href="element-reference.html#c.Rbc_CommitElemDataTransaction" title="Rbc_CommitElemDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CommitElemDataTransaction()</span></code></a> releases replaced live slots and transfers
+the staged records into them. Only then does the private <a class="reference internal" href="element-reference.html#c.CommitElemVector" title="CommitElemVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">CommitElemVector()</span></code></a>
 install the named-vector callback: its client data must point to the stable
 member of the element, never a temporary stack candidate. Commit clears the
 staged mask and moved candidates. Freeing the transaction afterward is safe.
 An abandoned successful transaction must also be freed.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ElemDataTransactionPointCount</span></code> returns the smaller effective X/Y length
+<p><a class="reference internal" href="element-reference.html#c.Rbc_ElemDataTransactionPointCount" title="Rbc_ElemDataTransactionPointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ElemDataTransactionPointCount()</span></code></a> returns the smaller effective X/Y length
 without committing. It selects staged or retained slots and queries current
 named-vector lengths without consuming pending notifications. Literal inputs use
 their stored counts. It is an ordinary paired-data helper, not the polymorphic
@@ -109,7 +109,7 @@ point-count service used for polar elements.</p>
 </section>
 <section id="updates-and-invalidation">
 <h2>Updates and invalidation<a class="headerlink" href="#updates-and-invalidation" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">VectorChangedProc</span></code> receives the stable data slot as client data. On update
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.VectorChangedProc" title="rbcGrElemData.VectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemData.VectorChangedProc()</span></code></a> receives the stable data slot as client data. On update
 it reads the changed interval while that notification is active, reacquires
 the vector record through its ID and refreshes the borrowed array, length,
 capacity and extrema. On destruction it clears the client ID, array and
@@ -167,7 +167,7 @@ source vectors or double-freeing Tk-owned values.</p>
 <h2>Synchronous layout before idle notifications<a class="headerlink" href="#synchronous-layout-before-idle-notifications" title="Link to this heading">¶</a></h2>
 <p>Vector updates normally notify clients at idle. A command can replace vector
 storage and immediately request export or axis limits before that notification
-runs. <code class="docutils literal notranslate"><span class="pre">Rbc_SyncElementVectors</span></code> refreshes pending coordinate, weight and error
+runs. <a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_SyncElementVectors" title="rbcGrElemData.Rbc_SyncElementVectors"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemData.Rbc_SyncElementVectors()</span></code></a> refreshes pending coordinate, weight and error
 slots before graph layout or axis reset uses their borrowed arrays. It marks
 mapping and ranges dirty without delivering client callbacks or processing Tcl
 events. A full change is recorded because exact ranged metadata is only

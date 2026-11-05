@@ -316,7 +316,6 @@ int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashes
  * @param[in] dashesPtr Borrowed dash descriptor with a readable RBC_MAX_DASH_VALUES array and pixel offset.
  */
 void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr);
-Rbc_Dashes *Rbc_GetDashes(GC gc);
 
 /* -------------------------------------------------------------------
  *

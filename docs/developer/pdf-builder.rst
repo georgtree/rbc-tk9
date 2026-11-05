@@ -13,7 +13,7 @@ See :doc:`exports` and :doc:`pdf-builder-reference`.
 One export, one builder
 -----------------------
 
-After :c:func:`Rbc_ExportInit`, :c:func:`Rbc_PdfBegin` attaches a new ``PdfDocument`` to
+After :c:func:`Rbc_ExportInit`, :c:func:`Rbc_PdfBegin` attaches a new :c:func:`rbcGraphExportCommands.PdfDocument` to
 ``backendData``. It stores scale/height and appends ``q`` plus the initial matrix
 to the current content buffer. This maps downward-increasing screen Y to PDF's
 page coordinates while converting pixels to physical points. The graph command

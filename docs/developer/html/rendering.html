@@ -298,7 +298,7 @@ lifecycle. <code class="docutils literal notranslate"><span class="pre">rbcGrSvg
 and channel delivery. PostScript retains its lifecycle in <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>.
 <code class="docutils literal notranslate"><span class="pre">rbcPdf.c</span></code> owns PDF resources, streams, offsets and serialization.</p>
 <p>Export contexts borrow document tokens. Errors use the first static message
-recorded by <code class="docutils literal notranslate"><span class="pre">Rbc_ExportError</span></code>; context destruction does not finalize output.
+recorded by <a class="reference internal" href="export-reference.html#c.Rbc_ExportError" title="Rbc_ExportError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportError()</span></code></a>; context destruction does not finalize output.
 SVG remains UTF-8 text and PDF binary data. Font discovery and embedding remain
 in the font modules.</p>
 </section>

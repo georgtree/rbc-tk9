@@ -77,7 +77,7 @@ binding that its tag callback may have supplied.
 Graph hit priority
 ------------------
 
-``PickEntry`` first updates layout when ``MAP_ALL`` is pending. Layout can invoke
+:c:func:`PickEntry` first updates layout when ``MAP_ALL`` is pending. Layout can invoke
 axis-format scripts, so a hit test is not necessarily free of Tcl callbacks.
 If layout is cancelled, picking returns no object.
 
@@ -93,7 +93,7 @@ plot extents, the picker considers axes. Inside the plot, it tests:
 An element must be visible, not plot-hidden, and in normal state. Dirty element
 mapping or pending X/Y vector notification excludes it from this search.
 Track-owned elements additionally require a usable viewport and a pointer
-inside it. ``Rbc_EnterTrack`` and ``Rbc_LeaveTrack`` bracket the element's
+inside it. :c:func:`Rbc_EnterTrack` and :c:func:`Rbc_LeaveTrack` bracket the element's
 closest-point calculation. This preserves shared component algorithms while
 using the correct track transformation.
 
@@ -105,10 +105,10 @@ algorithms with a generic rectangular hit test.
 Legend picking and occlusion
 ----------------------------
 
-``LegendAtPoint`` resolves raised legends before lowered legends, testing the
+:c:func:`rbcGrLegendBindings.LegendAtPoint` resolves raised legends before lowered legends, testing the
 global legend then track legends within each pass. External global legends use
-their own window. ``LegendContains`` tests the full visible legend rectangle,
-including blank padding; ``PickLegendIn`` separately determines whether that
+their own window. :c:func:`rbcGrLegendBindings.LegendContains` tests the full visible legend rectangle,
+including blank padding; :c:func:`rbcGrLegendBindings.PickLegendIn` separately determines whether that
 location selects an entry. Thus blank legend padding can occlude a track
 background without becoming an element hit.
 
@@ -120,7 +120,7 @@ geometry. Keep picking consistent with drawing when changing legend layout.
 Pointer transitions and button state
 ------------------------------------
 
-``BindProc`` receives Tk events and updates the remembered modifier state:
+:c:func:`BindProc` receives Tk events and updates the remembered modifier state:
 
 .. list-table::
    :header-rows: 1
@@ -140,7 +140,7 @@ Pointer transitions and button state
    * - Key press / release
      - Dispatch using current state; an explicit focus object takes precedence.
 
-``PickCurrentItem`` saves a crossing-shaped pointer event for later reuse.
+:c:func:`PickCurrentItem` saves a crossing-shaped pointer event for later reuse.
 A window Leave means no target and bypasses hit testing. When the target changes
 without a button grab, it sends Leave to the old target and Enter to the new
 one, using ``NotifyAncestor`` detail.
@@ -165,7 +165,7 @@ corresponding lifetime and state invariants.
 Dispatch and configuration
 --------------------------
 
-``DoEvent`` collects the keys and invokes ``Tk_BindEvent`` synchronously. Up to
+:c:func:`DoEvent` collects the keys and invokes ``Tk_BindEvent`` synchronously. Up to
 32 keys use stack storage; larger lists use a temporary allocated array. RBC
 owns these containers, while the owner supplies stable key storage. Tk handles
 binding matching and script evaluation. The tag callback itself should collect
@@ -188,7 +188,7 @@ the Tk binding table and registers an event handler; destruction unregisters
 that handler and frees the table immediately. No generic reference count keeps
 individual components alive.
 
-``BindProc`` preserves ``bindPtr->clientData``, which graph and legend tables set
+:c:func:`BindProc` preserves ``bindPtr->clientData``, which graph and legend tables set
 to the graph record. Graph final disposal is deferred until that preserve is
 released. This keeps graph-owned binding tables alive through ordinary widget
 destruction from a binding script. It does not authorize directly destroying
@@ -203,7 +203,7 @@ tag-key cleanup and determines when geometry is ready for another pick.
 
 :c:func:`Rbc_PickCurrentItem` is synchronous and adds no preserve scope of its
 own. Its caller must retain the owner/table and check state after callbacks.
-``Rbc_NotifyTrackView`` does so around stationary-pointer repicking, checks the
+:c:func:`Rbc_NotifyTrackView` does so around stationary-pointer repicking, checks the
 window again before scrollbar notification, and skips this work during export.
 This prevents temporary export geometry from changing the screen's current track.
 

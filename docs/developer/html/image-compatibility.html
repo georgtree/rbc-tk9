@@ -86,7 +86,7 @@ private structures or adding more consumers of Tk-owned pixmaps and GCs.</p>
 It retains the interpreter result object while consuming that name, since
 instance acquisition may replace the interpreter result on failure.</p>
 <p>On success, the caller owns the instance and is responsible for removing the
-named image as well. The installed <code class="docutils literal notranslate"><span class="pre">TempImageChangedProc</span></code> does nothing;
+named image as well. The installed <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.TempImageChangedProc" title="rbcImageStorage.TempImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.TempImageChangedProc()</span></code></a> does nothing;
 <code class="docutils literal notranslate"><span class="pre">clientData</span></code> is passed through without ownership transfer. Despite its old
 comment, the callback does not currently take action when the image is deleted.
 Temporary photos are ordinary named Tk images, not hidden storage immune to

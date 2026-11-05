@@ -484,3 +484,7 @@
 /** @addtogroup winop_commands
  * @ingroup rbc_images
  */
+
+/** @addtogroup shared_draw_helpers
+ * @ingroup rbc_infrastructure
+ */

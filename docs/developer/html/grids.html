@@ -83,7 +83,7 @@ or permission to retain the temporary view.</p>
 <section id="segment-mapping">
 <h2>Segment mapping<a class="headerlink" href="#segment-mapping" title="Link to this heading">¶</a></h2>
 <p><a class="reference internal" href="grid-reference.html#c.Rbc_MapGrid" title="Rbc_MapGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapGrid()</span></code></a> frees previous global X/Y segments and resets their counts.
-For an ordinary Cartesian graph, <code class="docutils literal notranslate"><span class="pre">Rbc_GetAxisSegments</span></code> generates segments
+For an ordinary Cartesian graph, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="rbcGrAxisPresentation.Rbc_GetAxisSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetAxisSegments()</span></code></a> generates segments
 from each selected axis’s ticks, including minor ticks when requested.
 Mapping consumes prepared axes and plot geometry; it does not compute a new
 axis range or paint anything.</p>
@@ -94,7 +94,7 @@ scope so segments span the owning plot region. Style ownership and geometry
 ownership are therefore distinct: an inherited style can be shared while every
 track still owns its own mapped segment arrays.</p>
 <p>For polar widgets, mapping delegates according to representation to
-<code class="docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid</span></code>. Their specialized geometry remains
+<a class="reference internal" href="polar-reference.html#c.Rbc_MapPolarGrid" title="Rbc_MapPolarGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid()</span></code></a> or <a class="reference internal" href="polar-reference.html#c.Rbc_MapSmithGrid" title="Rbc_MapSmithGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a>. Their specialized geometry remains
 behind the same grid output interface. Tick-list and label-format settings for
 those representations should not be mistaken for Cartesian per-track options.</p>
 <p>Hidden state is evaluated at output, not used to avoid rebuilding these caches.

@@ -80,7 +80,7 @@ adapter:</p>
 </table>
 <p><code class="docutils literal notranslate"><span class="pre">-z0</span></code> is validated as positive and finite. Grid angular tick values use degrees;
 this must not be confused with the radians used for polar element input.
-Axis inversion and screen scaling happen later through <code class="docutils literal notranslate"><span class="pre">Rbc_Map2D</span></code>.</p>
+Axis inversion and screen scaling happen later through <a class="reference internal" href="mapping-reference.html#c.Rbc_Map2D" title="Rbc_Map2D"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Map2D()</span></code></a>.</p>
 <p>The direct Cartesian/gamma adapters can return nonfinite coordinates; success only means
 that the source sample was available. Mapping callers still check finite values and
 domain validity. Complex conversion uses <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ComplexDivide" title="rbcGrLineConfiguration.ComplexDivide"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ComplexDivide()</span></code></a>,
@@ -90,7 +90,7 @@ before a failed conversion, so callers must honor its return value.</p>
 </section>
 <section id="complex-vector-ownership">
 <h2>Complex-vector ownership<a class="headerlink" href="#complex-vector-ownership" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ParseComplexVectorObj</span></code> accepts a named complex RBC vector, with no list
+<p><a class="reference internal" href="polar-reference.html#c.ParseComplexVectorObj" title="ParseComplexVectorObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseComplexVectorObj()</span></code></a> accepts a named complex RBC vector, with no list
 fallback. It allocates a client ID, verifies the vector type and borrows the
 record and numeric array. A null/empty option produces an empty candidate.
 It initializes its destination rather than releasing an existing candidate.</p>

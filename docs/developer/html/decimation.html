@@ -50,11 +50,11 @@ must not silently change the contracts of the others.
 See <a class="reference internal" href="decimation-reference.html"><span class="doc">Line decimation C reference</span></a> for selected static helper contracts.</p>
 <section id="eligibility-and-density">
 <h2>Eligibility and density<a class="headerlink" href="#eligibility-and-density" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">CanPixelDecimateLine</span></code> enables the optimization only for automatic decimation
+<p><a class="reference internal" href="decimation-reference.html#c.CanPixelDecimateLine" title="CanPixelDecimateLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">CanPixelDecimateLine()</span></code></a> enables the optimization only for automatic decimation
 on ordinary XY line or strip elements, with unsmoothed geometry, fewer than two
 palette pens and no tile/stipple area fill. Polar elements and document exports
 retain the full mapping path. These checks protect geometry and style semantics.</p>
-<p><code class="docutils literal notranslate"><span class="pre">LineNeedsPixelDecimation</span></code> separately tests the complete paired source count
+<p><a class="reference internal" href="decimation-reference.html#c.LineNeedsPixelDecimation" title="LineNeedsPixelDecimation"><code class="xref c c-func docutils literal notranslate"><span class="pre">LineNeedsPixelDecimation()</span></code></a> separately tests the complete paired source count
 against the current plot span in the physical data-X direction. This is screen
 X normally and screen Y for inverted axes. Current thresholds are eight samples
 per pixel for native rendering and four for Cairo. Invalid or subpixel spans

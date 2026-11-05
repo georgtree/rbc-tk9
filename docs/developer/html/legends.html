@@ -328,7 +328,7 @@ safety should be inferred from double buffering.</p>
 <section id="external-windows-and-command-routing">
 <h2>External windows and command routing<a class="headerlink" href="#external-windows-and-command-routing" title="Link to this heading">¶</a></h2>
 <p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.PrepareLegendWindow" title="rbcGrLegendLifetime.PrepareLegendWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.PrepareLegendWindow()</span></code></a> creates the window, instance association, exposure/structure
-event handler and a command forwarding to <code class="docutils literal notranslate"><span class="pre">Rbc_GraphInstCmdProc</span></code>. The external
+event handler and a command forwarding to <a class="reference internal" href="graph-reference.html#c.rbcGraphCommands.Rbc_GraphInstCmdProc" title="rbcGraphCommands.Rbc_GraphInstCmdProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphCommands.Rbc_GraphInstCmdProc()</span></code></a>. The external
 window command is consequently a graph dispatcher alias in behavior, not a
 separate legend-only command. Creation does not pack or map the window.</p>
 <p>Replacing an external window prepares the new one first. Closing the old one

@@ -924,12 +924,9 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </dl>
 </dd></dl>
 
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="c var">
+<dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.CreateLineMarker">
-<span class="target" id="group__marker__line__geometry_1ga0cbeef6fdc8fe4ede4f190c834bc4a2b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateLineMarker</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.CreateLineMarker" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__marker__line__geometry_1gaa6667c2cd3256a40246fbbde2b87f9d6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateLineMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.CreateLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a zeroed line record and install initial class/style values. </p>
 <p>Uses the RBC allocation wrapper, sets the class, disables XOR and selects butt caps/miter joins. Returns the embedded common marker; the caller owns option initialization, registry insertion and eventual destruction. </p>
 </dd></dl>
@@ -1028,6 +1025,13 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.CreatePolygonMarker">
+<span class="target" id="group__marker__polygon__geometry_1ga8fd57ca1a2a02e3753d9f67ee21e7fb0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreatePolygonMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.CreatePolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate polygon storage with its class and initial line style. </p>
+<p>Returns the embedded common marker, with butt caps/miter joins and other fields zeroed. Common creation configures options and registers the record. The same allocation layout is reused by arc markers. </p>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.MapArcMarker">
 <span class="target" id="group__marker__polygon__geometry_1gaa73e9c313a462364bce58ce04ba06deb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.MapArcMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map an ellipse box and build bounded flattened geometry caches. </p>
@@ -1072,19 +1076,9 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </dl>
 </dd></dl>
 
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="c var">
-<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.CreatePolygonMarker">
-<span class="target" id="group__marker__polygon__geometry_1ga8fd57ca1a2a02e3753d9f67ee21e7fb0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreatePolygonMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.CreatePolygonMarker" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Allocate polygon storage with its class and initial line style. </p>
-<p>Returns the embedded common marker, with butt caps/miter joins and other fields zeroed. Common creation configures options and registers the record. The same allocation layout is reused by arc markers. </p>
-</dd></dl>
-
-<dl class="c var">
+<dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.CreateArcMarker">
-<span class="target" id="group__marker__polygon__geometry_1gac7f76a3053dd7e472297683d0133133c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateArcMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.CreateArcMarker" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__marker__polygon__geometry_1gac7f76a3053dd7e472297683d0133133c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateArcMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.CreateArcMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate polygon storage and substitute the arc callback class. </p>
 <p>Delegates allocation/default style to CreatePolygonMarker, then changes only classPtr when non-NULL. Common initialization installs arc options; configuration and cleanup remain the polygon class implementations. </p>
 </dd></dl>
@@ -1465,12 +1459,9 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </dl>
 </dd></dl>
 
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="c var">
+<dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBitmap.CreateBitmapMarker">
-<span class="target" id="group__marker__bitmap_1gaea8b2320ce249d4c10ecdca4a9ef4370"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.CreateBitmapMarker" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__marker__bitmap_1gaea8b2320ce249d4c10ecdca4a9ef4370"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBitmap.CreateBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a zeroed bitmap record and select its callback class. </p>
 <p>Returns the embedded common marker. Common creation supplies options, registry membership and later destruction; no bitmap is acquired here. </p>
 </dd></dl>
@@ -1618,12 +1609,9 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </dl>
 </dd></dl>
 
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="c var">
+<dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerImage.CreateImageMarker">
-<span class="target" id="group__marker__image_1gab1c666e35917dca4fa8099fb08f4a20c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateImageMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.CreateImageMarker" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__marker__image_1gab1c666e35917dca4fa8099fb08f4a20c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateImageMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerImage.CreateImageMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a zeroed image record and set its class. </p>
 <p>Returns the embedded common marker for common option initialization and registry insertion. Acquires no image resources itself. </p>
 </dd></dl>
@@ -1767,12 +1755,9 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </dl>
 </dd></dl>
 
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="c var">
+<dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerText.CreateTextMarker">
-<span class="target" id="group__marker__text_1ga31a1e8428c99e5334b26f7c193de8d5d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateTextMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.CreateTextMarker" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__marker__text_1ga31a1e8428c99e5334b26f7c193de8d5d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateTextMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerText.CreateTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate text storage with an internally north-west text style. </p>
 <p>Initializes the text style, class and four-pixel padding. The internal style anchor differs from the marker anchor applied during mapping. Common creation installs configured options and takes record ownership. </p>
 </dd></dl>
@@ -1947,6 +1932,13 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerWindow.CreateWindowMarker">
+<span class="target" id="group__marker__window_1gaeac4446275714a06af10655eae87a989"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateWindowMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.CreateWindowMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a zeroed window marker and set its class. </p>
+<p>Returns the embedded common record; common configuration later resolves and acquires geometry management of a child. No child is created here. </p>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerWindow.ChildEventProc">
 <span class="target" id="group__marker__window_1ga60643404699821cfba4bec1bace72ddb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChildEventProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.ChildEventProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clear a destroyed child token while retaining the marker record. </p>
@@ -1989,16 +1981,6 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </ul>
 </dd>
 </dl>
-</dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="c var">
-<dt class="sig sig-object c" id="c.rbcGrMarkerWindow.CreateWindowMarker">
-<span class="target" id="group__marker__window_1gaeac4446275714a06af10655eae87a989"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateWindowMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerWindow.CreateWindowMarker" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Allocate a zeroed window marker and set its class. </p>
-<p>Returns the embedded common record; common configuration later resolves and acquires geometry management of a child. No child is created here. </p>
 </dd></dl>
 
 </div>
@@ -2430,7 +2412,7 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <li><a class="reference internal" href="#c.rbcGrMarkerLine.ParseArrowShape"><code class="docutils literal notranslate"><span class="pre">ParseArrowShape()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerLine.ConfigureLineMarker"><code class="docutils literal notranslate"><span class="pre">ConfigureLineMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerLine.FreeLineMarker"><code class="docutils literal notranslate"><span class="pre">FreeLineMarker()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrMarkerLine.CreateLineMarker"><code class="docutils literal notranslate"><span class="pre">CreateLineMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.CreateLineMarker"><code class="docutils literal notranslate"><span class="pre">CreateLineMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerLine.LineMarker"><code class="docutils literal notranslate"><span class="pre">LineMarker</span></code></a></li>
 </ul>
 </li>
@@ -2440,11 +2422,11 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <li><a class="reference internal" href="#c.rbcGrMarkerPolygon.RegionInPolygonMarker"><code class="docutils literal notranslate"><span class="pre">RegionInPolygonMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerPolygon.ConfigurePolygonMarker"><code class="docutils literal notranslate"><span class="pre">ConfigurePolygonMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerPolygon.FreePolygonMarker"><code class="docutils literal notranslate"><span class="pre">FreePolygonMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.CreatePolygonMarker"><code class="docutils literal notranslate"><span class="pre">CreatePolygonMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerPolygon.MapArcMarker"><code class="docutils literal notranslate"><span class="pre">MapArcMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerPolygon.PointInArcMarker"><code class="docutils literal notranslate"><span class="pre">PointInArcMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerPolygon.RegionInArcMarker"><code class="docutils literal notranslate"><span class="pre">RegionInArcMarker()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.CreatePolygonMarker"><code class="docutils literal notranslate"><span class="pre">CreatePolygonMarker</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.CreateArcMarker"><code class="docutils literal notranslate"><span class="pre">CreateArcMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.CreateArcMarker"><code class="docutils literal notranslate"><span class="pre">CreateArcMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerPolygon.PolygonMarker"><code class="docutils literal notranslate"><span class="pre">PolygonMarker</span></code></a></li>
 </ul>
 </li>
@@ -2474,7 +2456,7 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <li><a class="reference internal" href="#c.rbcGrMarkerBitmap.DrawBitmapMarker"><code class="docutils literal notranslate"><span class="pre">DrawBitmapMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerBitmap.BitmapMarkerExport"><code class="docutils literal notranslate"><span class="pre">BitmapMarkerExport()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerBitmap.FreeBitmapMarker"><code class="docutils literal notranslate"><span class="pre">FreeBitmapMarker()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrMarkerBitmap.CreateBitmapMarker"><code class="docutils literal notranslate"><span class="pre">CreateBitmapMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBitmap.CreateBitmapMarker"><code class="docutils literal notranslate"><span class="pre">CreateBitmapMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerBitmap.BitmapMarker"><code class="docutils literal notranslate"><span class="pre">BitmapMarker</span></code></a></li>
 </ul>
 </li>
@@ -2487,7 +2469,7 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <li><a class="reference internal" href="#c.rbcGrMarkerImage.DrawImageMarker"><code class="docutils literal notranslate"><span class="pre">DrawImageMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerImage.ImageMarkerExport"><code class="docutils literal notranslate"><span class="pre">ImageMarkerExport()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerImage.FreeImageMarker"><code class="docutils literal notranslate"><span class="pre">FreeImageMarker()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrMarkerImage.CreateImageMarker"><code class="docutils literal notranslate"><span class="pre">CreateImageMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerImage.CreateImageMarker"><code class="docutils literal notranslate"><span class="pre">CreateImageMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerImage.ImageMarker"><code class="docutils literal notranslate"><span class="pre">ImageMarker</span></code></a></li>
 </ul>
 </li>
@@ -2500,7 +2482,7 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <li><a class="reference internal" href="#c.rbcGrMarkerText.DrawTextMarker"><code class="docutils literal notranslate"><span class="pre">DrawTextMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerText.TextMarkerExport"><code class="docutils literal notranslate"><span class="pre">TextMarkerExport()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerText.FreeTextMarker"><code class="docutils literal notranslate"><span class="pre">FreeTextMarker()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrMarkerText.CreateTextMarker"><code class="docutils literal notranslate"><span class="pre">CreateTextMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerText.CreateTextMarker"><code class="docutils literal notranslate"><span class="pre">CreateTextMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerText.TextMarker"><code class="docutils literal notranslate"><span class="pre">TextMarker</span></code></a></li>
 </ul>
 </li>
@@ -2515,10 +2497,10 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.SyncWindowMarkers"><code class="docutils literal notranslate"><span class="pre">SyncWindowMarkers()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.WindowMarkerExport"><code class="docutils literal notranslate"><span class="pre">WindowMarkerExport()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.FreeWindowMarker"><code class="docutils literal notranslate"><span class="pre">FreeWindowMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerWindow.CreateWindowMarker"><code class="docutils literal notranslate"><span class="pre">CreateWindowMarker()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.ChildEventProc"><code class="docutils literal notranslate"><span class="pre">ChildEventProc()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.ChildGeometryProc"><code class="docutils literal notranslate"><span class="pre">ChildGeometryProc()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.ChildCustodyProc"><code class="docutils literal notranslate"><span class="pre">ChildCustodyProc()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrMarkerWindow.CreateWindowMarker"><code class="docutils literal notranslate"><span class="pre">CreateWindowMarker</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.WindowMarker"><code class="docutils literal notranslate"><span class="pre">WindowMarker</span></code></a></li>
 </ul>
 </li>

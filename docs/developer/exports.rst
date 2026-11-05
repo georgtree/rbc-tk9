@@ -165,7 +165,7 @@ PostScript policy and delivery
 
 PostScript retains its own option transaction and output command because it
 also handles page setup, printer mappings and optional preview formats.
-``GraphToPostScript`` borrows a PostScript token, redirects the export buffer
+:c:func:`rbcGraphPostscript.GraphToPostScript` borrows a PostScript token, redirects the export buffer
 to that token, enters export mode, prepares the page and traverses components.
 It appends the trailer on success, ends export mode and frees shared state.
 The outer command releases the PostScript token. Unlike SVG/PDF, this path does

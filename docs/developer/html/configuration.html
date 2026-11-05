@@ -103,7 +103,7 @@ contexts or reverse callbacks. Calling it after committing a derived resource
 cannot make that resource transactional. Likewise, do not free saved options
 again after rollback. Initialization failure and destruction have their own
 cleanup paths; a saved configuration transaction is not a general destructor.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ConfigureElementOptions</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> is a concrete example. It exposes
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.ConfigureElementOptions" title="rbcGrElemLifecycle.ConfigureElementOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.ConfigureElementOptions()</span></code></a> in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> is a concrete example. It exposes
 the changed-option mask and borrowed original argument vector to the concrete
 element configurator. For trackgraphs it first validates that the requested
 track exists and that the mapped Y axis belongs to it. Only successful
@@ -136,7 +136,7 @@ It is not a value parser and does not replace <code class="docutils literal notr
 required Tk window context is still available. Derived resources, observers,
 bindings and record storage remain with the owning component. Avoid freeing
 the same resource both through Tk and through manual component cleanup.</p>
-<p>For example, <code class="docutils literal notranslate"><span class="pre">ReleaseGraphOptionResources</span></code> uses initialization and release
+<p>For example, <a class="reference internal" href="graph-reference.html#c.rbcGraphOptions.ReleaseGraphOptionResources" title="rbcGraphOptions.ReleaseGraphOptionResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphOptions.ReleaseGraphOptionResources()</span></code></a> uses initialization and release
 flags to guard repeated cleanup. It clears configuration argument context,
 calls <code class="docutils literal notranslate"><span class="pre">Tk_FreeConfigOptions</span></code>, releases the option table, and clears the table
 pointer. Graphics contexts, the title shadow and tile are handled separately.

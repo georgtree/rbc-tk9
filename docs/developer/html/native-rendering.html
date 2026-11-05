@@ -223,9 +223,9 @@ return true with <code class="docutils literal notranslate"><span class="pre">No
 X11 returns false, selecting scratch clipping. Do not turn a Windows setup
 failure into an unclipped retry.</p>
 <p>The drawable wrapper borrows its HDC: freeing the wrapper does not release the
-DC. Conversely, <code class="docutils literal notranslate"><span class="pre">Rbc_WinAcquireDrawableDC</span></code> allocates a release-state record
+DC. Conversely, <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsResources.Rbc_WinAcquireDrawableDC" title="rbcWindowsResources.Rbc_WinAcquireDrawableDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinAcquireDrawableDC()</span></code></a> allocates a release-state record
 even if acquisition produces no HDC. The record must always be passed to
-<code class="docutils literal notranslate"><span class="pre">Rbc_WinReleaseDrawableDC</span></code>. That helper releases Tk’s drawable state and its
+<a class="reference internal" href="native-windows-reference.html#c.rbcWindowsResources.Rbc_WinReleaseDrawableDC" title="rbcWindowsResources.Rbc_WinReleaseDrawableDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinReleaseDrawableDC()</span></code></a>. That helper releases Tk’s drawable state and its
 own record; backend code remains responsible for restoring selected objects
 and any additional GDI state it changed.</p>
 </section>

@@ -26,13 +26,13 @@ input. Its ownership depends on how it was populated:
      - Vector client ID
      - Vector record, numeric array and owning element pointer
 
-``Rbc_ParseElemVectorObj`` first tries named-vector lookup. Otherwise it parses
+:c:func:`Rbc_ParseElemVectorObj` first tries named-vector lookup. Otherwise it parses
 the option as a list of numeric expressions. This shared parser accepts real
 vectors only; polar complex input has a separate implementation and must not
 be inferred from this parser's contract. Parsing initializes the candidate,
 so passing an already populated candidate would lose its owned resources.
 
-``Rbc_FreeElemVector`` detaches a client ID or frees a literal array, then zeros
+:c:func:`Rbc_FreeElemVector` detaches a client ID or frees a literal array, then zeros
 the slot. It never destroys the named source vector. Borrowed vector data must
 not be freed or treated as stable across source updates. See :doc:`vectors`
 for vector storage and observer lifetime.
@@ -41,7 +41,7 @@ Staging and commit
 ------------------
 
 The live element must not receive partially validated inputs.
-``Rbc_PrepareElemDataTransaction`` collects common data into temporary slots.
+:c:func:`Rbc_PrepareElemDataTransaction` collects common data into temporary slots.
 On initial configuration it handles relevant defaults; explicit arguments are
 processed in their original order. Looking only at the final retained Tcl
 option objects would hide an invalid earlier occurrence of a repeated option.
@@ -56,14 +56,14 @@ needed, including axes, pens, styles, tags and state. All fallible preparation
 must finish before committing these resources. This complements Tk option
 rollback; it is not replaced by it. See :doc:`configuration`.
 
-``Rbc_CommitElemDataTransaction`` releases replaced live slots and transfers
-the staged records into them. Only then does the private ``CommitElemVector``
+:c:func:`Rbc_CommitElemDataTransaction` releases replaced live slots and transfers
+the staged records into them. Only then does the private :c:func:`CommitElemVector`
 install the named-vector callback: its client data must point to the stable
 member of the element, never a temporary stack candidate. Commit clears the
 staged mask and moved candidates. Freeing the transaction afterward is safe.
 An abandoned successful transaction must also be freed.
 
-``Rbc_ElemDataTransactionPointCount`` returns the smaller effective X/Y length
+:c:func:`Rbc_ElemDataTransactionPointCount` returns the smaller effective X/Y length
 without committing. It selects staged or retained slots and queries current
 named-vector lengths without consuming pending notifications. Literal inputs use
 their stored counts. It is an ordinary paired-data helper, not the polymorphic
@@ -72,7 +72,7 @@ point-count service used for polar elements.
 Updates and invalidation
 ------------------------
 
-``VectorChangedProc`` receives the stable data slot as client data. On update
+:c:func:`rbcGrElemData.VectorChangedProc` receives the stable data slot as client data. On update
 it reads the changed interval while that notification is active, reacquires
 the vector record through its ID and refreshes the borrowed array, length,
 capacity and extrema. On destruction it clears the client ID, array and
@@ -142,7 +142,7 @@ Synchronous layout before idle notifications
 
 Vector updates normally notify clients at idle. A command can replace vector
 storage and immediately request export or axis limits before that notification
-runs. ``Rbc_SyncElementVectors`` refreshes pending coordinate, weight and error
+runs. :c:func:`rbcGrElemData.Rbc_SyncElementVectors` refreshes pending coordinate, weight and error
 slots before graph layout or axis reset uses their borrowed arrays. It marks
 mapping and ranges dirty without delivering client callbacks or processing Tcl
 events. A full change is recorded because exact ranged metadata is only

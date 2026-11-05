@@ -66,7 +66,7 @@ not reliably restore the pixels that were changed originally.</p>
 </section>
 <section id="motion-and-geometry-changes">
 <h2>Motion and geometry changes<a class="headerlink" href="#motion-and-geometry-changes" title="Link to this heading">¶</a></h2>
-<p>On Windows, a position-only configuration uses <code class="docutils literal notranslate"><span class="pre">MoveCrosshairs</span></code>. It computes
+<p>On Windows, a position-only configuration uses <a class="reference internal" href="crosshair-reference.html#c.rbcWindowsCrosshairs.MoveCrosshairs" title="rbcWindowsCrosshairs.MoveCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsCrosshairs.MoveCrosshairs()</span></code></a>. It computes
 old and new visibility, compares segment geometry, and submits old erase and new
 draw segments together. Unchanged geometry avoids unnecessary work. This keeps
 ordinary pointer motion from acquiring a separate drawing context between the
@@ -163,7 +163,7 @@ helper contracts.</p>
 <td><p>Mapped and actually visible</p></td>
 <td><p>Neither reads nor writes it; unmapped calls leave visible unchanged</p></td>
 </tr>
-<tr class="row-even"><td><p>Windows <code class="docutils literal notranslate"><span class="pre">MoveCrosshairs</span></code></p></td>
+<tr class="row-even"><td><p>Windows <a class="reference internal" href="crosshair-reference.html#c.rbcWindowsCrosshairs.MoveCrosshairs" title="rbcWindowsCrosshairs.MoveCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsCrosshairs.MoveCrosshairs()</span></code></a></p></td>
 <td><p>Computes old/new eligibility, including hidden and mapping</p></td>
 <td><p>Reads it; always stores the new hotspot, segments and actual visibility</p></td>
 </tr>

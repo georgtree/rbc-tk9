@@ -191,9 +191,9 @@ X11 returns false, selecting scratch clipping. Do not turn a Windows setup
 failure into an unclipped retry.
 
 The drawable wrapper borrows its HDC: freeing the wrapper does not release the
-DC. Conversely, ``Rbc_WinAcquireDrawableDC`` allocates a release-state record
+DC. Conversely, :c:func:`rbcWindowsResources.Rbc_WinAcquireDrawableDC` allocates a release-state record
 even if acquisition produces no HDC. The record must always be passed to
-``Rbc_WinReleaseDrawableDC``. That helper releases Tk's drawable state and its
+:c:func:`rbcWindowsResources.Rbc_WinReleaseDrawableDC`. That helper releases Tk's drawable state and its
 own record; backend code remains responsible for restoring selected objects
 and any additional GDI state it changed.
 

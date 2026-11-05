@@ -41,3 +41,9 @@ Native stroke setup
 -------------------
 
 .. doxygenfunction:: Rbc_NativeLineWidth
+
+Dash descriptor scanning
+------------------------
+
+.. doxygengroup:: shared_draw_helpers
+   :members:

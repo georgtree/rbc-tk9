@@ -33,7 +33,7 @@ adapter:
 
 ``-z0`` is validated as positive and finite. Grid angular tick values use degrees;
 this must not be confused with the radians used for polar element input.
-Axis inversion and screen scaling happen later through ``Rbc_Map2D``.
+Axis inversion and screen scaling happen later through :c:func:`Rbc_Map2D`.
 
 The direct Cartesian/gamma adapters can return nonfinite coordinates; success only means
 that the source sample was available. Mapping callers still check finite values and
@@ -45,7 +45,7 @@ before a failed conversion, so callers must honor its return value.
 Complex-vector ownership
 ------------------------
 
-``ParseComplexVectorObj`` accepts a named complex RBC vector, with no list
+:c:func:`ParseComplexVectorObj` accepts a named complex RBC vector, with no list
 fallback. It allocates a client ID, verifies the vector type and borrows the
 record and numeric array. A null/empty option produces an empty candidate.
 It initializes its destination rather than releasing an existing candidate.

@@ -11,9 +11,9 @@ and ``rbcGrElem.h``. See :doc:`pen-reference` for selected contracts.
 Named and embedded pens
 -----------------------
 
-A named pen belongs to the graph's pen table. Successful ``Rbc_GetPen`` lookup
+A named pen belongs to the graph's pen table. Successful :c:func:`Rbc_GetPen` lookup
 checks its type and increments its reference count. Each acquisition must be
-paired with ``Rbc_FreePen``. Lookup maps strip and polar requirements to the
+paired with :c:func:`Rbc_FreePen`. Lookup maps strip and polar requirements to the
 line class; a bar pen is not interchangeable with a line pen.
 
 Elements also have a built-in pen and may select named normal or active pens.
@@ -58,9 +58,9 @@ normal style and borrows the element's normal pen. Additional entries acquire
 named-pen references and carry weight ranges. The palette's first entry must
 remain present for style selection, even with no additional styles.
 
-``Rbc_FreePalette`` releases the counted references and removes entries after
+:c:func:`Rbc_FreePalette` releases the counted references and removes entries after
 the first. Despite its name, it does not destroy the chain or release that
-first borrowed pen. The private ``DestroyPalette`` helper performs the full
+first borrowed pen. The private :c:func:`DestroyPalette` helper performs the full
 chain destruction after releasing those entries. Confusing these two operations
 can either leak a chain or release a reference the palette never owned.
 
@@ -73,7 +73,7 @@ See :doc:`elements` for the shared transaction model.
 Selecting a style
 -----------------
 
-``Rbc_StyleMap`` allocates one pointer per effective data point and initializes
+:c:func:`Rbc_StyleMap` allocates one pointer per effective data point and initializes
 all entries to the normal style. It considers weights only up to the smaller
 of the weight length and the point count. Missing weights and unmatched values
 therefore leave the normal style selected.
@@ -94,13 +94,13 @@ unconditionally. Size overflow follows the allocator's fatal-error convention.
 Resource teardown
 -----------------
 
-``Rbc_ReleasePenTkResources`` releases derived resources through the concrete
+:c:func:`Rbc_ReleasePenTkResources` releases derived resources through the concrete
 pen destructor before freeing Tk-managed colors, fonts, borders or bitmaps.
 It retains pen records and the registry, and guards against repeated resource
 release. This pass needs a live Tk window and covers registered named pens;
 embedded pens belong to element cleanup.
 
-``Rbc_DestroyPens`` finally destroys the remaining records and hash table.
+:c:func:`Rbc_DestroyPens` finally destroys the remaining records and hash table.
 It does not wait for reference counts, so element references must already have
 been released. See :doc:`graph-lifecycle` for graph teardown ordering.
 
@@ -113,7 +113,7 @@ fully demonstrate.
 Creation and command boundaries
 -------------------------------
 
-``Rbc_CreatePen`` returns a graph-owned pointer without acquiring a counted
+:c:func:`rbcGrPen.Rbc_CreatePen` returns a graph-owned pointer without acquiring a counted
 reference. It scans explicit option pairs for ``-type`` before selecting the
 concrete constructor; the accepted preliminary prefixes have three through
 five bytes, and the last recognized occurrence determines construction.
@@ -121,10 +121,10 @@ Explicit ``bar``, ``line`` and ``strip`` types are accepted by this scan;
 strip uses line storage. A supplied polar or strip default class is likewise
 normalized to line. Subsequent Tk configuration still validates the options.
 
-A new record is registered before initialization. ``InitPenOptions`` creates
+A new record is registered before initialization. :c:func:`rbcGrPen.InitPenOptions` creates
 its option table and initializes the named Pen component, freeing partially
 initialized Tk resources if initialization fails. Explicit options pass through
-``ConfigurePenOptions``; with no explicit options the concrete configurator
+:c:func:`rbcGrPen.ConfigurePenOptions`; with no explicit options the concrete configurator
 still runs to build derived resources from defaults. Failure destroys a newly
 created record and removes its registry entry.
 
@@ -175,14 +175,14 @@ ordinary option rollback must not be used as evidence of callback safety.
 Candidate palettes and default ranges
 -------------------------------------
 
-``ParseStylesObj`` clears its output pointer before doing any work. It always
+:c:func:`ParseStylesObj` clears its output pointer before doing any work. It always
 constructs the reserved normal-style entry, including for NULL or empty style
 lists, and borrows the element's current normal pen there. Additional entries
 use the concrete record size supplied by the caller, which must accommodate
 ``PenStyle``. The first additional entry defaults to range 0 through 1, the
 second to 1 through 2, and so on.
 
-``GetPenStyleFromObj`` accepts exactly one or three list elements. The three-item
+:c:func:`GetPenStyleFromObj` accepts exactly one or three list elements. The three-item
 form converts both endpoints before acquiring a named pen, so invalid numeric
 input cannot leak that reference. It uses Tcl numeric conversion rather than
 expression evaluation. A one-item specification retains the initialized default
@@ -193,17 +193,17 @@ as empty. Keep it distinct from the style mapper's check for a stored
 nonpositive range.
 
 Palette pen compatibility is checked against the element's class. The
-``penType`` argument retained by ``StageElemStyles`` is currently unused; it
+``penType`` argument retained by :c:func:`StageElemStyles` is currently unused; it
 does not override that class check. Stage helpers acquire/parse a successor
 before releasing the earlier candidate. This matters for repeated options and
 for delete-pending pens whose last reference could otherwise disappear.
 
-``StageElemPen`` similarly records NULL as an explicitly staged choice: normal
+:c:func:`StageElemPen` similarly records NULL as an explicitly staged choice: normal
 NULL selects the built-in pen at commit, whereas active NULL disables the
 active pen. An unsuccessful lookup retains the previous candidate. The outer
 transaction decides whether to continue, commit, or release all staged values.
 
 An unattached palette entry that fails parsing is freed separately. Entries
-already attached are cleaned through ``DestroyPalette``, which releases counted
+already attached are cleaned through :c:func:`DestroyPalette`, which releases counted
 style pens and destroys the chain without releasing the borrowed first pen.
 Neither staging nor cleanup implicitly replaces the live element palette.

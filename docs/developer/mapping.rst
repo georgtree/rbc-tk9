@@ -131,7 +131,7 @@ Nested scopes need separate saved records and restoration in reverse order.
 These helpers neither install a renderer clip nor preserve object lifetime;
 cleanup on every return path remains the caller's responsibility.
 
-During axis mapping, ``Rbc_MapAxes`` first lays out tracks, then walks margin
+During axis mapping, :c:func:`rbcGrAxisPresentation.Rbc_MapAxes` first lays out tracks, then walks margin
 axes. Track axes accumulate their own axis offsets, allowing multiple local
 axes. Completely clipped tracks are skipped. Axis geometry uses the full track
 rectangle so its placement remains stable while scrolling; visible bounds
@@ -145,7 +145,7 @@ records. ``GRAPH_EXPORT`` prevents temporary layout from being announced as
 an ordinary screen view change. Track layout also avoids committing its
 export-clamped offset to the stored screen scroll position.
 
-SVG and PDF use ``OutputGraphExport`` in ``rbcGrExport.c``. It saves screen
+SVG and PDF use :c:func:`rbcGraphExportCommands.OutputGraphExport` in ``rbcGrExport.c``. It saves screen
 dimensions, lays out the requested export size, generates the document, then
 restores dimensions and requests another layout. Immediate screen remapping is
 attempted only while the window exists and axis formatting has not invalidated
@@ -153,7 +153,7 @@ it. A prior export error is preserved across that restoration attempt; a
 restoration error can fail an otherwise successful export.
 
 PostScript retains its separate preamble and document orchestration in
-``rbcGrPs.c``. The shared ``Rbc_ExportEndGraph`` clears export state, returns to
+``rbcGrPs.c``. The shared :c:func:`Rbc_ExportEndGraph` clears export state, returns to
 window dimensions and schedules remapping/redraw when the window still exists.
 Do not assume this helper alone synchronously restores every geometry cache.
 New export paths must account for failure and callback-driven destruction as

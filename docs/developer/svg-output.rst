@@ -19,7 +19,7 @@ root close. On success it creates a Tcl string from the document buffer. The
 shared command checks export status and owns delivery with UTF-8/LF settings.
 An unsuccessful partially generated document must not be returned as valid SVG.
 
-``Rbc_RenderCreateSvg`` allocates a zeroed context containing shared export
+:c:func:`Rbc_RenderCreateSvg` allocates a zeroed context containing shared export
 state and bitmap-symbol definition state. It borrows the token and its buffer;
 renderer completion frees the context without closing the document. All contexts
 must finish before shared export storage and font resources are released.

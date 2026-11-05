@@ -234,7 +234,7 @@ Their inputs and temporary resources have distinct ownership:</p>
 <p><a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_ColorImageToPsData" title="rbcPsRaster.Rbc_ColorImageToPsData"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_ColorImageToPsData()</span></code></a> traverses rows from bottom to top. RGB output emits
 red, green and blue bytes. Its one-component branch emits the bitwise complement
 of the red channel; it does not itself calculate luminance. The outer serializer
-first calls <code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToGreyscale</span></code> for noncolor output, modifying the
+first calls <a class="reference internal" href="image-color-reference.html#c.Rbc_ColorImageToGreyscale" title="Rbc_ColorImageToGreyscale"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ColorImageToGreyscale()</span></code></a> for noncolor output, modifying the
 borrowed image. Both monochrome and greyscale token modes use this same raster
 branch; they do not threshold each pixel into a one-bit mask. Alpha is ignored,
 so transparent samples are neither omitted nor composited with a background.</p>

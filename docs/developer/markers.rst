@@ -13,12 +13,12 @@ Coordinates and mapping
 
 Marker world coordinates are owned by the marker. Class mapping builds display
 geometry using its selected axes, anchor, pixel offsets and other type-specific
-options. ``Rbc_MapMarkers`` visits the display list and maps items selected by
+options. :c:func:`Rbc_MapMarkers` visits the display list and maps items selected by
 ``MAP_ALL`` or ``MAP_ITEM``. Hidden markers and markers with no coordinates are
 skipped; a successful dispatch clears the item's mapping flag.
 
 The private marker :c:func:`rbcGrMarkerMapping.HMap`, :c:func:`rbcGrMarkerMapping.VMap` and :c:func:`rbcGrMarkerMapping.MapPoint` helpers are distinct from
-``Rbc_HMap``, ``Rbc_VMap`` and ``Rbc_Map2D``. Marker parsing represents elastic
+:c:func:`Rbc_HMap`, :c:func:`Rbc_VMap` and :c:func:`Rbc_Map2D`. Marker parsing represents elastic
 ``Inf`` and ``-Inf`` endpoints using positive and negative ``DBL_MAX``.
 These sentinels select normalized endpoints before applying descending direction
 and screen orientation. They must not simply be sent through the ordinary
@@ -104,7 +104,7 @@ class callback, not a capture of the screen's XOR state.
 Export and cleanup
 ------------------
 
-``Rbc_MarkersExport`` walks the same display list and selects the requested
+:c:func:`Rbc_MarkersExport` walks the same display list and selects the requested
 layer. It checks for an export callback, coordinates and visibility. Non-window
 track markers get an export clip around their class exporter and are skipped
 when wholly clipped or in collapsed regions. Window export follows its own
@@ -114,12 +114,12 @@ the shared marker pass does not create an independently laid-out copy of the
 child widget.
 
 Resource release is separate from record destruction. While the Tk window is
-live, ``Rbc_ReleaseMarkerTkResources`` invokes each initialized class's cleanup,
+live, :c:func:`Rbc_ReleaseMarkerTkResources` invokes each initialized class's cleanup,
 frees common coordinates and tags, releases axis references, and frees the
 Tk option record and table. Its release guard prevents repeating this work.
 :c:func:`rbcGrMarkerLifetime.DestroyMarker` also handles failed initialization, removes bindings and
 registry/display-list membership, and frees the record. The whole-registry
-``Rbc_DestroyMarkers`` then destroys marker tables and the display list.
+:c:func:`Rbc_DestroyMarkers` then destroys marker tables and the display list.
 See :doc:`configuration` and :doc:`graph-lifecycle` for the broader ordering.
 
 Changes should be checked with both marker layers, overlapping display order,
@@ -333,7 +333,7 @@ Geometric markers: line, polygon and arc
 These three classes share renderer services but deliberately retain different
 geometry and picking contracts. ``LineMarker`` owns its segment array and
 private GC, with fixed-size arrowhead arrays inside the record.
-``PolygonMarker`` is also the storage type for arcs: ``CreateArcMarker`` changes
+``PolygonMarker`` is also the storage type for arcs: :c:func:`rbcGrMarkerPolygon.CreateArcMarker` changes
 the class callback table, while configuration and resource release continue to
 use :c:func:`rbcGrMarkerPolygon.ConfigurePolygonMarker` and :c:func:`rbcGrMarkerPolygon.FreePolygonMarker`.
 
@@ -681,7 +681,7 @@ does not map hidden children to manufacture an export image.
 Pass dispatch and batching
 --------------------------
 
-``Rbc_DrawMarkers`` first synchronizes real window children regardless of the
+:c:func:`Rbc_DrawMarkers` first synchronizes real window children regardless of the
 requested under/over pass. Trackgraphs then use :c:func:`rbcGrMarkerBatches.DrawTrackMarkers` and return;
 ordinary graphs continue through stroke reuse and, on Windows, native batches.
 All paths borrow marker records and their mapped resources. They assume the
@@ -761,7 +761,7 @@ their class-specific continuous-curve path. Style equality compares width, cap,
 join and RGB values, not pointer identity.
 
 Compatible strokes reuse an open renderer context, but each marker still calls
-``Rbc_RenderSegments`` separately. Merging all paths into one stroke would
+:c:func:`Rbc_RenderSegments` separately. Merging all paths into one stroke would
 change antialiased overlap coverage. Incompatible visible content closes the
 context before dispatch; failure to create one falls back to the class draw
 callback. Context reuse therefore changes setup cost, not painter order.
@@ -780,7 +780,7 @@ Trackgraphs do not enter the ordinary native-batch allocation pass. They walk
 visible markers in order, drawing graph-wide markers directly and track-owned
 markers through one reusable clip context. Each local rectangle is bounded by
 the graph drawable; zero-width and very short regions are skipped. Class drawing
-runs between ``Rbc_EnterTrack``/``Rbc_LeaveTrack`` calls, and clip scopes are ended
+runs between :c:func:`Rbc_EnterTrack`/:c:func:`Rbc_LeaveTrack` calls, and clip scopes are ended
 before advancing. No shared Tk GC is rewritten to enforce track clipping.
 
 Document export has its own ordered traversal and class callbacks, not the
@@ -796,7 +796,7 @@ Windows scratch ownership
 The ordinary Windows pass owns all five scratch arrays: line segments, polygon
 segments, polygon-fill marker pointers, text-marker pointers and bitmap
 positions. Flush helpers reset batch bookkeeping but do not release storage.
-After the final synchronous flush, ``Rbc_DrawMarkers`` frees every allocated
+After the final synchronous flush, :c:func:`Rbc_DrawMarkers` frees every allocated
 array before ending the marker render target. NULL arrays from unused batches
 or allocation failures require no release. Freeing the text-marker pointer
 array does not free the markers, layouts or fonts it borrowed.

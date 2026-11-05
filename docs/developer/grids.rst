@@ -49,7 +49,7 @@ Segment mapping
 ---------------
 
 :c:func:`Rbc_MapGrid` frees previous global X/Y segments and resets their counts.
-For an ordinary Cartesian graph, ``Rbc_GetAxisSegments`` generates segments
+For an ordinary Cartesian graph, :c:func:`rbcGrAxisPresentation.Rbc_GetAxisSegments` generates segments
 from each selected axis's ticks, including minor ticks when requested.
 Mapping consumes prepared axes and plot geometry; it does not compute a new
 axis range or paint anything.
@@ -62,7 +62,7 @@ ownership are therefore distinct: an inherited style can be shared while every
 track still owns its own mapped segment arrays.
 
 For polar widgets, mapping delegates according to representation to
-``Rbc_MapPolarGrid`` or ``Rbc_MapSmithGrid``. Their specialized geometry remains
+:c:func:`Rbc_MapPolarGrid` or :c:func:`Rbc_MapSmithGrid`. Their specialized geometry remains
 behind the same grid output interface. Tick-list and label-format settings for
 those representations should not be mistaken for Cartesian per-track options.
 

@@ -53,11 +53,11 @@ See <a class="reference internal" href="marker-reference.html"><span class="doc"
 <h2>Coordinates and mapping<a class="headerlink" href="#coordinates-and-mapping" title="Link to this heading">¶</a></h2>
 <p>Marker world coordinates are owned by the marker. Class mapping builds display
 geometry using its selected axes, anchor, pixel offsets and other type-specific
-options. <code class="docutils literal notranslate"><span class="pre">Rbc_MapMarkers</span></code> visits the display list and maps items selected by
+options. <a class="reference internal" href="marker-reference.html#c.Rbc_MapMarkers" title="Rbc_MapMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapMarkers()</span></code></a> visits the display list and maps items selected by
 <code class="docutils literal notranslate"><span class="pre">MAP_ALL</span></code> or <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code>. Hidden markers and markers with no coordinates are
 skipped; a successful dispatch clears the item’s mapping flag.</p>
 <p>The private marker <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.HMap" title="rbcGrMarkerMapping.HMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.HMap()</span></code></a>, <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.VMap" title="rbcGrMarkerMapping.VMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.VMap()</span></code></a> and <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerMapping.MapPoint" title="rbcGrMarkerMapping.MapPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerMapping.MapPoint()</span></code></a> helpers are distinct from
-<code class="docutils literal notranslate"><span class="pre">Rbc_HMap</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_VMap</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_Map2D</span></code>. Marker parsing represents elastic
+<a class="reference internal" href="mapping-reference.html#c.Rbc_HMap" title="Rbc_HMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_HMap()</span></code></a>, <a class="reference internal" href="mapping-reference.html#c.Rbc_VMap" title="Rbc_VMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VMap()</span></code></a> and <a class="reference internal" href="mapping-reference.html#c.Rbc_Map2D" title="Rbc_Map2D"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Map2D()</span></code></a>. Marker parsing represents elastic
 <code class="docutils literal notranslate"><span class="pre">Inf</span></code> and <code class="docutils literal notranslate"><span class="pre">-Inf</span></code> endpoints using positive and negative <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code>.
 These sentinels select normalized endpoints before applying descending direction
 and screen orientation. They must not simply be sent through the ordinary
@@ -131,7 +131,7 @@ class callback, not a capture of the screen’s XOR state.</p>
 </section>
 <section id="export-and-cleanup">
 <h2>Export and cleanup<a class="headerlink" href="#export-and-cleanup" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_MarkersExport</span></code> walks the same display list and selects the requested
+<p><a class="reference internal" href="marker-reference.html#c.Rbc_MarkersExport" title="Rbc_MarkersExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MarkersExport()</span></code></a> walks the same display list and selects the requested
 layer. It checks for an export callback, coordinates and visibility. Non-window
 track markers get an export clip around their class exporter and are skipped
 when wholly clipped or in collapsed regions. Window export follows its own
@@ -140,12 +140,12 @@ Backend capture support and export options determine the resulting content;
 the shared marker pass does not create an independently laid-out copy of the
 child widget.</p>
 <p>Resource release is separate from record destruction. While the Tk window is
-live, <code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseMarkerTkResources</span></code> invokes each initialized class’s cleanup,
+live, <a class="reference internal" href="marker-reference.html#c.Rbc_ReleaseMarkerTkResources" title="Rbc_ReleaseMarkerTkResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReleaseMarkerTkResources()</span></code></a> invokes each initialized class’s cleanup,
 frees common coordinates and tags, releases axis references, and frees the
 Tk option record and table. Its release guard prevents repeating this work.
 <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLifetime.DestroyMarker" title="rbcGrMarkerLifetime.DestroyMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLifetime.DestroyMarker()</span></code></a> also handles failed initialization, removes bindings and
 registry/display-list membership, and frees the record. The whole-registry
-<code class="docutils literal notranslate"><span class="pre">Rbc_DestroyMarkers</span></code> then destroys marker tables and the display list.
+<a class="reference internal" href="marker-reference.html#c.Rbc_DestroyMarkers" title="Rbc_DestroyMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyMarkers()</span></code></a> then destroys marker tables and the display list.
 See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> and <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the broader ordering.</p>
 <p>Changes should be checked with both marker layers, overlapping display order,
 track scrolling and inversion, child hide/remap transitions, XOR replacement,
@@ -365,7 +365,7 @@ remap when the marker is shown again.</p>
 <p>These three classes share renderer services but deliberately retain different
 geometry and picking contracts. <code class="docutils literal notranslate"><span class="pre">LineMarker</span></code> owns its segment array and
 private GC, with fixed-size arrowhead arrays inside the record.
-<code class="docutils literal notranslate"><span class="pre">PolygonMarker</span></code> is also the storage type for arcs: <code class="docutils literal notranslate"><span class="pre">CreateArcMarker</span></code> changes
+<code class="docutils literal notranslate"><span class="pre">PolygonMarker</span></code> is also the storage type for arcs: <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.CreateArcMarker" title="rbcGrMarkerPolygon.CreateArcMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.CreateArcMarker()</span></code></a> changes
 the class callback table, while configuration and resource release continue to
 use <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.ConfigurePolygonMarker" title="rbcGrMarkerPolygon.ConfigurePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.ConfigurePolygonMarker()</span></code></a> and <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.FreePolygonMarker" title="rbcGrMarkerPolygon.FreePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.FreePolygonMarker()</span></code></a>.</p>
 <table class="docutils align-default" id="id4">
@@ -735,7 +735,7 @@ does not map hidden children to manufacture an export image.</p>
 </section>
 <section id="pass-dispatch-and-batching">
 <h2>Pass dispatch and batching<a class="headerlink" href="#pass-dispatch-and-batching" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_DrawMarkers</span></code> first synchronizes real window children regardless of the
+<p><a class="reference internal" href="marker-reference.html#c.Rbc_DrawMarkers" title="Rbc_DrawMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawMarkers()</span></code></a> first synchronizes real window children regardless of the
 requested under/over pass. Trackgraphs then use <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.DrawTrackMarkers" title="rbcGrMarkerBatches.DrawTrackMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.DrawTrackMarkers()</span></code></a> and return;
 ordinary graphs continue through stroke reuse and, on Windows, native batches.
 All paths borrow marker records and their mapped resources. They assume the
@@ -820,7 +820,7 @@ a FALSE result must not be used, even if some fields were written. Arcs retain
 their class-specific continuous-curve path. Style equality compares width, cap,
 join and RGB values, not pointer identity.</p>
 <p>Compatible strokes reuse an open renderer context, but each marker still calls
-<code class="docutils literal notranslate"><span class="pre">Rbc_RenderSegments</span></code> separately. Merging all paths into one stroke would
+<a class="reference internal" href="reference.html#c.Rbc_RenderSegments" title="Rbc_RenderSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSegments()</span></code></a> separately. Merging all paths into one stroke would
 change antialiased overlap coverage. Incompatible visible content closes the
 context before dispatch; failure to create one falls back to the class draw
 callback. Context reuse therefore changes setup cost, not painter order.</p>
@@ -837,7 +837,7 @@ eligibility. Text and bitmap native services remain renderer responsibilities.</
 visible markers in order, drawing graph-wide markers directly and track-owned
 markers through one reusable clip context. Each local rectangle is bounded by
 the graph drawable; zero-width and very short regions are skipped. Class drawing
-runs between <code class="docutils literal notranslate"><span class="pre">Rbc_EnterTrack</span></code>/<code class="docutils literal notranslate"><span class="pre">Rbc_LeaveTrack</span></code> calls, and clip scopes are ended
+runs between <a class="reference internal" href="mapping-reference.html#c.Rbc_EnterTrack" title="Rbc_EnterTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_EnterTrack()</span></code></a>/<a class="reference internal" href="mapping-reference.html#c.Rbc_LeaveTrack" title="Rbc_LeaveTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LeaveTrack()</span></code></a> calls, and clip scopes are ended
 before advancing. No shared Tk GC is rewritten to enforce track clipping.</p>
 <p>Document export has its own ordered traversal and class callbacks, not the
 screen batches. It filters layer/coordinates/hidden state and associated hidden
@@ -851,7 +851,7 @@ retain their mapped-child capture behavior.</p>
 <p>The ordinary Windows pass owns all five scratch arrays: line segments, polygon
 segments, polygon-fill marker pointers, text-marker pointers and bitmap
 positions. Flush helpers reset batch bookkeeping but do not release storage.
-After the final synchronous flush, <code class="docutils literal notranslate"><span class="pre">Rbc_DrawMarkers</span></code> frees every allocated
+After the final synchronous flush, <a class="reference internal" href="marker-reference.html#c.Rbc_DrawMarkers" title="Rbc_DrawMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawMarkers()</span></code></a> frees every allocated
 array before ending the marker render target. NULL arrays from unused batches
 or allocation failures require no release. Freeing the text-marker pointer
 array does not free the markers, layouts or fonts it borrowed.</p>

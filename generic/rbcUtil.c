@@ -50,7 +50,7 @@ void strtolower(register char *s) {
 }
 #endif /* !HAVE_STRTOLOWER */
 
-#ifndef HAVE_STRCASECMP
+#if !defined(HAVE_STRCASECMP) || defined(RBC_DOXYGEN)
 
 static unsigned char caseTable[] = {
     (unsigned char)'\000', (unsigned char)'\001', (unsigned char)'\002', (unsigned char)'\003', (unsigned char)'\004',
@@ -107,28 +107,16 @@ static unsigned char caseTable[] = {
     (unsigned char)'\377',
 };
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcUtil_internals
+ * @brief Compare byte strings using the fallback case-folding table.
  *
- * strcasecmp --
- *
- *      Compare two strings, disregarding case.
- *
- * Parameters:
- *      CONST char *s1
- *      CONST char *s2
- *
- * Results:
- *      Returns a signed integer representing the following:
- *
- *        zero      - two strings are equal
- *        negative  - first string is less than second
- *        positive  - first string is greater than second
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns zero for equality, negative when s1 sorts before s2, or positive when
+ * s1 sorts after s2. Uses the fixed 256-entry table, not Tcl Unicode or the current
+ * C locale; neither input is modified. This fallback is compiled only when the
+ * platform lacks HAVE_STRCASECMP.
+ * @param[in] s1 Borrowed first byte string; readable through its terminating NUL.
+ * @param[in] s2 Borrowed second byte string with the same readability requirement.
  */
 int strcasecmp(CONST char *s1, CONST char *s2) {
     unsigned char *s = (unsigned char *)s1;
@@ -141,29 +129,17 @@ int strcasecmp(CONST char *s1, CONST char *s2) {
     return (caseTable[*s] - caseTable[*t]);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup rbcUtil_internals
+ * @brief Compare byte strings using the fallback case-folding table.
  *
- * strncasecmp --
- *
- *      Compare two strings, disregarding case, up to a given length.
- *
- * Parameters:
- *      CONST char *s1
- *      CONST char *s2
- *      size_t length
- *
- * Results:
- *      Returns a signed integer representing the following:
- *
- *        zero      - two strings are equal
- *        negative  - first string is less than second
- *        positive  - first string is greater than second
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns zero for equality, negative when s1 sorts before s2, or positive when
+ * s1 sorts after s2. Uses the fixed 256-entry table, not Tcl Unicode or the current
+ * C locale; neither input is modified. This fallback is compiled only when the
+ * platform lacks HAVE_STRCASECMP.
+ * @param[in] s1 Borrowed first byte string; readable through its terminating NUL or the length bound.
+ * @param[in] s2 Borrowed second byte string with the same readability requirement.
+ * @param[in] length Maximum bytes compared; zero returns equality without reading either input.
  */
 int strncasecmp(CONST char *s1, CONST char *s2, size_t length) {
     register unsigned char *s = (unsigned char *)s1;

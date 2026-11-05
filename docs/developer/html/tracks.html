@@ -93,7 +93,7 @@ gaps. Its content extent may exceed the viewport. Each track stores full world
 bounds and their clamped visible bounds. Components must use world bounds for
 mapping and visible bounds for clipping; using visible height as the data
 scale would move data when scrolling. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for paired
-<code class="docutils literal notranslate"><span class="pre">Rbc_EnterTrack</span></code>/<code class="docutils literal notranslate"><span class="pre">Rbc_LeaveTrack</span></code> scopes and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for the
+<a class="reference internal" href="mapping-reference.html#c.Rbc_EnterTrack" title="Rbc_EnterTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_EnterTrack()</span></code></a>/<a class="reference internal" href="mapping-reference.html#c.Rbc_LeaveTrack" title="Rbc_LeaveTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LeaveTrack()</span></code></a> scopes and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for the
 separate stack-offset and local data-axis scroll operations.</p>
 <p><a class="reference internal" href="track-reference.html#c.SetTrackSash" title="SetTrackSash"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetTrackSash()</span></code></a> in fitted mode adjusts the adjacent pair’s weights while preserving their sum.
 If the pair has no room beyond its minima, the operation does nothing. In
@@ -122,7 +122,7 @@ first have those components moved or deleted. Each removed track releases its
 bindings, local grid and legend, axis references, pointer array and name.
 The remaining axis chain is then synchronized for redraw.</p>
 <p>Graph teardown follows a different entry point: after dependent components are
-disposed of, <code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTracks</span></code> releases the entire list before axes are
+disposed of, <a class="reference internal" href="track-reference.html#c.Rbc_DestroyTracks" title="Rbc_DestroyTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a> releases the entire list before axes are
 destroyed. It does not revalidate user-facing dependencies or schedule redraw.
 Keep binding tables, the Tk window and other component cleanup resources alive
 until their owners have been released; see <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>

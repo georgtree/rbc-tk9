@@ -241,8 +241,8 @@ component pointer. Preservation and validation serve different purposes:</p>
 <p><a class="reference internal" href="graph-reference.html#c.rbcGraphCommands.Rbc_GraphInstCmdProc" title="rbcGraphCommands.Rbc_GraphInstCmdProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphCommands.Rbc_GraphInstCmdProc()</span></code></a> preserves the graph around operation dispatch. It also
 rejects snapshot/export rendering from an active formatter before temporary
 output dimensions can disturb the outer layout. Idle drawing has no such
-command scope: <code class="docutils literal notranslate"><span class="pre">DisplayGraph</span></code> separately preserves the graph and interpreter
-and saves/restores interpreter state around <code class="docutils literal notranslate"><span class="pre">DisplayGraphFrame</span></code>.</p>
+command scope: <a class="reference internal" href="graph-reference.html#c.DisplayGraph" title="DisplayGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">DisplayGraph()</span></code></a> separately preserves the graph and interpreter
+and saves/restores interpreter state around <a class="reference internal" href="graph-reference.html#c.DisplayGraphFrame" title="DisplayGraphFrame"><code class="xref c c-func docutils literal notranslate"><span class="pre">DisplayGraphFrame()</span></code></a>.</p>
 </section>
 <section id="frame-drawing-and-presentation">
 <h2>Frame drawing and presentation<a class="headerlink" href="#frame-drawing-and-presentation" title="Link to this heading">¶</a></h2>
@@ -285,7 +285,7 @@ window may realize it, so a freed cursor must not remain installed. Clear
 frees geometry-settle state, and uses <code class="docutils literal notranslate"><span class="pre">Tcl_EventuallyFree</span></code> to request final
 graph disposal. Outstanding preserves defer that final disposal.</p></li>
 </ol>
-<p><code class="docutils literal notranslate"><span class="pre">DestroyGraph</span></code> then destroys markers and elements before tracks, axes and
+<p><a class="reference internal" href="graph-reference.html#c.DestroyGraph" title="DestroyGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">DestroyGraph()</span></code></a> then destroys markers and elements before tracks, axes and
 pens; releases remaining components, bindings and drawing resources; and frees
 the record. Keeping that order matters because components refer to other
 components. Do not move Tk-dependent resource release into the final free
@@ -361,7 +361,7 @@ coordinate rounding remains unchanged.</p>
 grids, Polar/Smith labels, under markers, lowered legends, axis-limit annotations
 and ordinary elements. It checks callback validity after the Polar label stage.
 Its caller must also check validity because a void drawing return does not
-communicate cancellation. <code class="docutils literal notranslate"><span class="pre">Rbc_DrawGraph</span></code> adds above markers, active elements,
+communicate cancellation. <a class="reference internal" href="graph-reference.html#c.Rbc_DrawGraph" title="Rbc_DrawGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawGraph()</span></code></a> adds above markers, active elements,
 margins, raised legends, outer border and focus decoration around that layer.</p>
 <p>Margin drawing sets a shared tile origin and fills four rectangles surrounding
 the plot. Nonpositive rectangles are skipped at the fill helper. The plot

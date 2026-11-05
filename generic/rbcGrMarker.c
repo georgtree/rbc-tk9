@@ -744,15 +744,19 @@ _Static_assert(offsetof(PolygonMarker, core) == 0, "Marker core must be first in
 
 static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportContext *exportPtr);
 static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable);
-static MarkerCreateProc CreateArcMarker;
+static Marker *CreateArcMarker(void);
 static MarkerMapProc MapArcMarker;
 static MarkerPointProc PointInArcMarker;
 static MarkerRegionProc RegionInArcMarker;
 static MarkerDrawProc DrawArcMarker;
 static MarkerExportProc ArcMarkerExport;
 
-static MarkerCreateProc CreateBitmapMarker, CreateLineMarker, CreateImageMarker, CreatePolygonMarker, CreateTextMarker,
-    CreateWindowMarker;
+static Marker *CreateBitmapMarker(void);
+static Marker *CreateLineMarker(void);
+static Marker *CreateImageMarker(void);
+static Marker *CreatePolygonMarker(void);
+static Marker *CreateTextMarker(void);
+static Marker *CreateWindowMarker(void);
 static MarkerDrawProc DrawBitmapMarker, DrawLineMarker, DrawImageMarker, DrawPolygonMarker, DrawTextMarker,
     DrawWindowMarker;
 static MarkerFreeProc FreeBitmapMarker, FreeLineMarker, FreeImageMarker, FreePolygonMarker, FreeTextMarker,
@@ -4600,7 +4604,7 @@ static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
  * butt caps/miter joins. Returns the embedded common marker; the caller owns
  * option initialization, registry insertion and eventual destruction.
  */
-static Marker *CreateLineMarker() {
+static Marker *CreateLineMarker(void) {
     LineMarker *lmPtr;
 
     lmPtr = RbcCalloc(1, sizeof(LineMarker));

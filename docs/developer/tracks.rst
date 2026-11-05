@@ -60,7 +60,7 @@ gaps. Its content extent may exceed the viewport. Each track stores full world
 bounds and their clamped visible bounds. Components must use world bounds for
 mapping and visible bounds for clipping; using visible height as the data
 scale would move data when scrolling. See :doc:`mapping` for paired
-``Rbc_EnterTrack``/``Rbc_LeaveTrack`` scopes and :doc:`scrolling` for the
+:c:func:`Rbc_EnterTrack`/:c:func:`Rbc_LeaveTrack` scopes and :doc:`scrolling` for the
 separate stack-offset and local data-axis scroll operations.
 
 :c:func:`SetTrackSash` in fitted mode adjusts the adjacent pair's weights while preserving their sum.
@@ -94,7 +94,7 @@ bindings, local grid and legend, axis references, pointer array and name.
 The remaining axis chain is then synchronized for redraw.
 
 Graph teardown follows a different entry point: after dependent components are
-disposed of, ``Rbc_DestroyTracks`` releases the entire list before axes are
+disposed of, :c:func:`Rbc_DestroyTracks` releases the entire list before axes are
 destroyed. It does not revalidate user-facing dependencies or schedule redraw.
 Keep binding tables, the Tk window and other component cleanup resources alive
 until their owners have been released; see :doc:`graph-lifecycle`.

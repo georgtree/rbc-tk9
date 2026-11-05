@@ -237,7 +237,7 @@ and channel delivery. PostScript retains its lifecycle in ``rbcGrPs.c``.
 ``rbcPdf.c`` owns PDF resources, streams, offsets and serialization.
 
 Export contexts borrow document tokens. Errors use the first static message
-recorded by ``Rbc_ExportError``; context destruction does not finalize output.
+recorded by :c:func:`Rbc_ExportError`; context destruction does not finalize output.
 SVG remains UTF-8 text and PDF binary data. Font discovery and embedding remain
 in the font modules.
 

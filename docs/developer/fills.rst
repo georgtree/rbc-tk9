@@ -37,7 +37,7 @@ Ordinary area geometry
 ----------------------
 
 :c:func:`rbcGrLineMapping.MapLine` clears old geometry, maps the source points, applies
-smoothing and any explicit geometric reduction, then calls ``MapFillArea``. Configured
+smoothing and any explicit geometric reduction, then calls :c:func:`MapFillArea`. Configured
 area fills exclude the pixel-density decimation path; explicit ``-reduce`` remains
 separate. See :doc:`decimation` and :doc:`splines`.
 
@@ -70,7 +70,7 @@ when either axis is logarithmic or the mapped origin is nonfinite. Chord adds
 no auxiliary vertex.
 
 The mapper allocates temporary unclipped points and a clipping destination,
-with overflow checks and capacity ``3 * inputCount + 1``. ``Rbc_PolyRectClip``
+with overflow checks and capacity ``3 * inputCount + 1``. :c:func:`Rbc_PolyRectClip`
 generates the closing edge and clips against the current graph/track extents.
 The temporary input is freed; a successful destination transfers to the line.
 Too few clipped points or allocation failure leaves no new area. Plot clipping
@@ -79,7 +79,7 @@ and its allocation contract are described in :doc:`geometry`.
 Error-band geometry
 -------------------
 
-``MapErrorBand`` runs before center-line mapping and reads original source
+:c:func:`MapErrorBand` runs before center-line mapping and reads original source
 arrays. Symbol thinning, center-line decimation and geometric reduction cannot
 remove an independently varying uncertainty bound. A band needs an enabled
 X/Y mode, a tile or pattern, and at least two usable samples.
@@ -100,13 +100,13 @@ the same X-first, then Y corner convention as the trace; inversion changes
 which screen coordinate implements that step. Boundaries are not independently
 spline-smoothed.
 
-``AppendErrorBandPolygon`` copies the upper boundary forward and the lower
+:c:func:`AppendErrorBandPolygon` copies the upper boundary forward and the lower
 boundary backward, then clips the polygon. Each successful node owns its point
 array; nodes are linked through ``errorBand.polygons`` in traversal order.
 Temporary upper/lower workspaces are freed after mapping. Failure to construct
 one polygon omits that piece; already appended pieces are retained.
 
-The workspace also respects ``Rbc_RenderPolygonPointLimit``. A finite native
+The workspace also respects :c:func:`Rbc_RenderPolygonPointLimit`. A finite native
 limit reserves worst-case clipping expansion and closure space. Long runs split
 at shared boundary samples so neighboring pieces meet. Cairo, export and the
 current Windows native backend report no finite point-count bound; native X11
@@ -121,7 +121,7 @@ annotations. These fills are element-level resources, rather than per-point
 palette styles. Picking remains based on the element's trace/symbol geometry;
 the fill polygon does not introduce a separate interior-hit operation.
 
-``DrawLineFill`` borrows the polygons and resources. A tile takes precedence over a
+:c:func:`DrawLineFill` borrows the polygons and resources. A tile takes precedence over a
 pattern; a tile without a pixmap suppresses output. With Cairo selected,
 :c:func:`rbcGrLineOutput.DrawRenderedFill` first attempts a photo tile or an
 opacity-aware pattern. The tile path uses image transparency and does not receive the
@@ -131,7 +131,7 @@ identical transparency support merely from the common polygon interface.
 
 Export builds ``Rbc_RenderFillStyle`` and uses export fill contexts with the
 mapped geometry. It preserves area-before-band ordering and supplies tiles
-through ``Rbc_RenderSetFillTile``. PostScript retains its opaque/tile-background
+through :c:func:`Rbc_RenderSetFillTile`. PostScript retains its opaque/tile-background
 policy; format capabilities remain the renderer's responsibility. See
 :doc:`rendering` and :doc:`exports`.
 

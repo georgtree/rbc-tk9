@@ -357,6 +357,28 @@ Updates segments, adds requested visible hairs, copies the frame to the window, 
 </dd></dl>
 
 </section>
+<section id="windows-position-only-transition">
+<h2>Windows position-only transition<a class="headerlink" href="#windows-position-only-transition" title="Link to this heading">¶</a></h2>
+<p>This function is extracted from the Windows branch separately. Its documented
+scope does not change the compiled symbol or the shared crosshair interfaces.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsCrosshairs.MoveCrosshairs">
+<span class="target" id="group__crosshair__internals_1ga92a5abfe4ca56b60880389e6642dd0b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MoveCrosshairs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Crosshairs</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">hotSpotPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsCrosshairs.MoveCrosshairs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Batch Windows position-only XOR erasure and drawing. </p>
+<p>Requires unchanged drawing style/GC and a live graph/window. Computes new segments from hotSpotPtr and current graph bounds; compares both visibility and endpoints to avoid redrawing identical geometry. Submits up to four old/new segments in one renderer call, preserving a single native drawing batch.</p>
+<p>Always updates hotspot, segments and visible, including when unmapped or hidden. Does not alter hidden or allocate a replacement GC. Only appropriate for position-only configuration; style changes must erase with the old GC. No Tcl callbacks or event processing may intervene in this transition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed live graph with current plot bounds. </p></li>
+<li><p><strong>chPtr</strong> – <strong>[inout]</strong> Prepared crosshairs with unchanged style/GC; hotspot, segments and visible state are replaced. </p></li>
+<li><p><strong>hotSpotPtr</strong> – <strong>[in]</strong> Borrowed new hotspot in widget pixels; copied, not retained. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -398,6 +420,10 @@ Updates segments, adds requested visible hairs, copies the frame to the window, 
 <li><a class="reference internal" href="#c.rbcCrosshairs.OffOp"><code class="docutils literal notranslate"><span class="pre">OffOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcCrosshairs.ToggleOp"><code class="docutils literal notranslate"><span class="pre">ToggleOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcCrosshairs.Rbc_CrosshairsOp"><code class="docutils literal notranslate"><span class="pre">Rbc_CrosshairsOp()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-position-only-transition">Windows position-only transition</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsCrosshairs.MoveCrosshairs"><code class="docutils literal notranslate"><span class="pre">MoveCrosshairs()</span></code></a></li>
 </ul>
 </li>
 </ul>

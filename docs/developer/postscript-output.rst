@@ -188,7 +188,7 @@ Their inputs and temporary resources have distinct ownership:
 :c:func:`rbcPsRaster.Rbc_ColorImageToPsData` traverses rows from bottom to top. RGB output emits
 red, green and blue bytes. Its one-component branch emits the bitwise complement
 of the red channel; it does not itself calculate luminance. The outer serializer
-first calls ``Rbc_ColorImageToGreyscale`` for noncolor output, modifying the
+first calls :c:func:`Rbc_ColorImageToGreyscale` for noncolor output, modifying the
 borrowed image. Both monochrome and greyscale token modes use this same raster
 branch; they do not threshold each pixel into a one-bit mask. Alpha is ignored,
 so transparent samples are neither omitted nor composited with a background.

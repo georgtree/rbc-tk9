@@ -273,8 +273,8 @@ rectangles and errors into pen groups, keeping the corresponding index maps in
 step. Style slices borrow the resulting storage. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a> clears palette
 views, frees mapped arrays and zeros pointers/counts; source vectors remain
 owned by their original creators.</p>
-<p>Normal drawing batches rectangles through <code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars</span></code> and
-<code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles</span></code>. Export has its own callbacks consuming mapped bar
+<p>Normal drawing batches rectangles through <a class="reference internal" href="reference.html#c.Rbc_RenderBeginBars" title="Rbc_RenderBeginBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars()</span></code></a> and
+<a class="reference internal" href="reference.html#c.Rbc_RenderFillRectangles" title="Rbc_RenderFillRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles()</span></code></a>. Export has its own callbacks consuming mapped bar
 geometry and pen styles. Value labels and legend samples are separate drawing
 paths. A legend sample outside the plot is not evidence that a bar escaped its
 clip.</p>

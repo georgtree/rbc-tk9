@@ -69,7 +69,7 @@ cannot make that resource transactional. Likewise, do not free saved options
 again after rollback. Initialization failure and destruction have their own
 cleanup paths; a saved configuration transaction is not a general destructor.
 
-``ConfigureElementOptions`` in ``rbcGrElem.c`` is a concrete example. It exposes
+:c:func:`rbcGrElemLifecycle.ConfigureElementOptions` in ``rbcGrElem.c`` is a concrete example. It exposes
 the changed-option mask and borrowed original argument vector to the concrete
 element configurator. For trackgraphs it first validates that the requested
 track exists and that the mapped Y axis belongs to it. Only successful
@@ -107,7 +107,7 @@ required Tk window context is still available. Derived resources, observers,
 bindings and record storage remain with the owning component. Avoid freeing
 the same resource both through Tk and through manual component cleanup.
 
-For example, ``ReleaseGraphOptionResources`` uses initialization and release
+For example, :c:func:`rbcGraphOptions.ReleaseGraphOptionResources` uses initialization and release
 flags to guard repeated cleanup. It clears configuration argument context,
 calls ``Tk_FreeConfigOptions``, releases the option table, and clears the table
 pointer. Graphics contexts, the title shadow and tile are handled separately.

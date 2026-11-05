@@ -165,7 +165,7 @@ track still changes the active-track state and must be paired with leave.
 Nested scopes need separate saved records and restoration in reverse order.
 These helpers neither install a renderer clip nor preserve object lifetime;
 cleanup on every return path remains the caller’s responsibility.</p>
-<p>During axis mapping, <code class="docutils literal notranslate"><span class="pre">Rbc_MapAxes</span></code> first lays out tracks, then walks margin
+<p>During axis mapping, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_MapAxes" title="rbcGrAxisPresentation.Rbc_MapAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_MapAxes()</span></code></a> first lays out tracks, then walks margin
 axes. Track axes accumulate their own axis offsets, allowing multiple local
 axes. Completely clipped tracks are skipped. Axis geometry uses the full track
 rectangle so its placement remains stable while scrolling; visible bounds
@@ -177,14 +177,14 @@ still govern later clipping.</p>
 records. <code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code> prevents temporary layout from being announced as
 an ordinary screen view change. Track layout also avoids committing its
 export-clamped offset to the stored screen scroll position.</p>
-<p>SVG and PDF use <code class="docutils literal notranslate"><span class="pre">OutputGraphExport</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcGrExport.c</span></code>. It saves screen
+<p>SVG and PDF use <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> in <code class="docutils literal notranslate"><span class="pre">rbcGrExport.c</span></code>. It saves screen
 dimensions, lays out the requested export size, generates the document, then
 restores dimensions and requests another layout. Immediate screen remapping is
 attempted only while the window exists and axis formatting has not invalidated
 it. A prior export error is preserved across that restoration attempt; a
 restoration error can fail an otherwise successful export.</p>
 <p>PostScript retains its separate preamble and document orchestration in
-<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>. The shared <code class="docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph</span></code> clears export state, returns to
+<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>. The shared <a class="reference internal" href="export-reference.html#c.Rbc_ExportEndGraph" title="Rbc_ExportEndGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a> clears export state, returns to
 window dimensions and schedules remapping/redraw when the window still exists.
 Do not assume this helper alone synchronously restores every geometry cache.
 New export paths must account for failure and callback-driven destruction as

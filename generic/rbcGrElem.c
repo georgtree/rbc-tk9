@@ -64,7 +64,7 @@ static int GetIndex(Tcl_Interp *interp, Tcl_Size nPoints, const char *string, Tc
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr);
 static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 static void DestroyElement(Graph *graphPtr, Element *elemPtr);
-static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newList);
+static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj);
 static int InitElementOptions(Graph *graphPtr, Element *elemPtr);
 static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[],
                                    int *maskPtr);

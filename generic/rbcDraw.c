@@ -1,3 +1,7 @@
+/** @defgroup shared_draw_helpers Shared native drawing helpers
+ * Private GC and dash support beneath component drawing.
+ */
+
 /*
  * rbcDraw.c --
  *
@@ -62,6 +66,14 @@ void Rbc_FreePrivateGC(Display *display, GC gc) {
     XFreeGC(display, gc);
 }
 
+/**
+ * @ingroup shared_draw_helpers
+ * @brief Count dash bytes up to the first zero or the fixed descriptor capacity.
+ *
+ * Returns a count from zero through RBC_MAX_DASH_VALUES. Does not validate dash
+ * lengths or alter the descriptor.
+ * @param[in] dashesPtr Borrowed descriptor with readable values array; offset is not examined.
+ */
 static int GetDashCount(const Rbc_Dashes *dashesPtr) {
     int n;
 

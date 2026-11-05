@@ -52,7 +52,7 @@ It retains the interpreter result object while consuming that name, since
 instance acquisition may replace the interpreter result on failure.
 
 On success, the caller owns the instance and is responsible for removing the
-named image as well. The installed ``TempImageChangedProc`` does nothing;
+named image as well. The installed :c:func:`rbcImageStorage.TempImageChangedProc` does nothing;
 ``clientData`` is passed through without ownership transfer. Despite its old
 comment, the callback does not currently take action when the image is deleted.
 Temporary photos are ordinary named Tk images, not hidden storage immune to

@@ -181,6 +181,12 @@ caller-mutable GC without choosing its line style.
 not a byte allocation size. <a class="reference internal" href="window-service-reference.html#c.Rbc_Draw3DRectangle" title="Rbc_Draw3DRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Draw3DRectangle()</span></code></a> takes drawable pixel
 coordinates and preserves the native relief border policy.</p>
 </section>
+<section id="dash-storage-boundary">
+<h2>Dash storage boundary<a class="headerlink" href="#dash-storage-boundary" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="window-service-reference.html#c.GetDashCount" title="GetDashCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetDashCount()</span></code></a> reads at most RBC_MAX_DASH_VALUES bytes and stops at the
+first zero. <a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a> uses that count with the descriptor offset;
+this scan does not parse or validate a Tcl dash expression.</p>
+</section>
 </section>
 
 
@@ -201,6 +207,7 @@ coordinates and preserves the native relief border policy.</p>
 <li><a class="reference internal" href="#identifier-and-table-lifetime-details">Identifier and table lifetime details</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#resource-and-stroke-argument-boundaries">Resource and stroke argument boundaries</a></li>
+<li><a class="reference internal" href="#dash-storage-boundary">Dash storage boundary</a></li>
 </ul>
 </li>
 </ul>

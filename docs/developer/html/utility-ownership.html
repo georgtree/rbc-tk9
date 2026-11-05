@@ -183,6 +183,13 @@ recoverable parser with a diagnostic and explicit cleanup.</p>
 string. It uses the C locale’s unsigned-byte case mapping in place; it is not
 Tcl Unicode conversion and does not allocate a replacement string.</p>
 </section>
+<section id="fallback-byte-string-comparisons">
+<h2>Fallback byte-string comparisons<a class="headerlink" href="#fallback-byte-string-comparisons" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="utility-reference.html#c.strcasecmp" title="strcasecmp"><code class="xref c c-func docutils literal notranslate"><span class="pre">strcasecmp()</span></code></a> and <a class="reference internal" href="utility-reference.html#c.strncasecmp" title="strncasecmp"><code class="xref c c-func docutils literal notranslate"><span class="pre">strncasecmp()</span></code></a> use the fixed byte-folding table
+when the platform lacks these routines. Their ordering is not Tcl Unicode
+ordering and does not follow the C locale used by <a class="reference internal" href="utility-reference.html#c.strtolower" title="strtolower"><code class="xref c c-func docutils literal notranslate"><span class="pre">strtolower()</span></code></a>.
+The bounded comparison reads at most its byte limit and stops at NUL.</p>
+</section>
 </section>
 
 
@@ -203,6 +210,7 @@ Tcl Unicode conversion and does not allocate a replacement string.</p>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 <li><a class="reference internal" href="#dictionary-ordering-and-fatal-diagnostics">Dictionary ordering and fatal diagnostics</a></li>
 <li><a class="reference internal" href="#byte-string-case-conversion">Byte-string case conversion</a></li>
+<li><a class="reference internal" href="#fallback-byte-string-comparisons">Fallback byte-string comparisons</a></li>
 </ul>
 </li>
 </ul>

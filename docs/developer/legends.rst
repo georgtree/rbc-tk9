@@ -306,7 +306,7 @@ External windows and command routing
 ------------------------------------
 
 :c:func:`rbcGrLegendLifetime.PrepareLegendWindow` creates the window, instance association, exposure/structure
-event handler and a command forwarding to ``Rbc_GraphInstCmdProc``. The external
+event handler and a command forwarding to :c:func:`rbcGraphCommands.Rbc_GraphInstCmdProc`. The external
 window command is consequently a graph dispatcher alias in behavior, not a
 separate legend-only command. Creation does not pack or map the window.
 

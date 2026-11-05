@@ -232,6 +232,37 @@
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.strcasecmp">
+<span class="target" id="group__rbc_util__internals_1ga706b36f3a672f84685576723c3928baa"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strcasecmp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">s1</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">s2</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.strcasecmp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare byte strings using the fallback case-folding table. </p>
+<p>Returns zero for equality, negative when s1 sorts before s2, or positive when s1 sorts after s2. Uses the fixed 256-entry table, not Tcl Unicode or the current C locale; neither input is modified. This fallback is compiled only when the platform lacks HAVE_STRCASECMP. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s1</strong> – <strong>[in]</strong> Borrowed first byte string; readable through its terminating NUL. </p></li>
+<li><p><strong>s2</strong> – <strong>[in]</strong> Borrowed second byte string with the same readability requirement. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.strncasecmp">
+<span class="target" id="group__rbc_util__internals_1ga815234a9c9a64aed1cc4cf38db7f212f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strncasecmp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">s1</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">s2</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.strncasecmp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare byte strings using the fallback case-folding table. </p>
+<p>Returns zero for equality, negative when s1 sorts before s2, or positive when s1 sorts after s2. Uses the fixed 256-entry table, not Tcl Unicode or the current C locale; neither input is modified. This fallback is compiled only when the platform lacks HAVE_STRCASECMP. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s1</strong> – <strong>[in]</strong> Borrowed first byte string; readable through its terminating NUL or the length bound. </p></li>
+<li><p><strong>s2</strong> – <strong>[in]</strong> Borrowed second byte string with the same readability requirement. </p></li>
+<li><p><strong>length</strong> – <strong>[in]</strong> Maximum bytes compared; zero returns equality without reading either input. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DictionaryCompare">
 <span class="target" id="group__rbc_util__internals_1gaa7df6b97d37de13c623a91c199fe3bdc"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DictionaryCompare</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">left</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DictionaryCompare" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare names using numeric runs and case-insensitive Unicode letters. </p>
@@ -324,6 +355,8 @@
 <li><a class="reference internal" href="#c.Rbc_RandomDouble"><code class="docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a></li>
 <li><a class="reference internal" href="#ordering-stdio-and-fatal-diagnostics">Ordering, stdio and fatal diagnostics</a><ul>
 <li><a class="reference internal" href="#c.strtolower"><code class="docutils literal notranslate"><span class="pre">strtolower()</span></code></a></li>
+<li><a class="reference internal" href="#c.strcasecmp"><code class="docutils literal notranslate"><span class="pre">strcasecmp()</span></code></a></li>
+<li><a class="reference internal" href="#c.strncasecmp"><code class="docutils literal notranslate"><span class="pre">strncasecmp()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_DictionaryCompare"><code class="docutils literal notranslate"><span class="pre">Rbc_DictionaryCompare()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_Assert"><code class="docutils literal notranslate"><span class="pre">Rbc_Assert()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_Panic"><code class="docutils literal notranslate"><span class="pre">Rbc_Panic()</span></code></a></li>

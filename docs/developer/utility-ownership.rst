@@ -145,3 +145,11 @@ Byte-string case conversion
 :c:func:`strtolower` is a platform fallback for a writable NUL-terminated byte
 string. It uses the C locale's unsigned-byte case mapping in place; it is not
 Tcl Unicode conversion and does not allocate a replacement string.
+
+Fallback byte-string comparisons
+--------------------------------
+
+:c:func:`strcasecmp` and :c:func:`strncasecmp` use the fixed byte-folding table
+when the platform lacks these routines. Their ordering is not Tcl Unicode
+ordering and does not follow the C locale used by :c:func:`strtolower`.
+The bounded comparison reads at most its byte limit and stops at NUL.

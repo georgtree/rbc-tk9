@@ -177,7 +177,7 @@ do not alter any accepted values or runtime error behavior.</p>
 <code class="docutils literal notranslate"><span class="pre">rbcColorPairOption</span></code>. No current in-tree C option table references that
 adapter. It should not be confused with the maintained Tk option transactions
 used by the graph components.</p>
-<p>Its private <code class="docutils literal notranslate"><span class="pre">GetColorPair</span></code> acquires foreground and background independently,
+<p>Its private <a class="reference internal" href="value-reference.html#c.GetColorPair" title="GetColorPair"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetColorPair()</span></code></a> acquires foreground and background independently,
 then assigns the output pair only after both succeed. If background lookup
 fails, it releases an acquired foreground reference while retaining the original
 Tk diagnostic and leaving the output pair unchanged. NULL and default-color
@@ -189,12 +189,12 @@ success, including empty and default colors, through <code class="docutils liter
 <section id="legacy-adapter-replacement-and-printing">
 <h2>Legacy adapter replacement and printing<a class="headerlink" href="#legacy-adapter-replacement-and-printing" title="Link to this heading">¶</a></h2>
 <p>The old string callbacks receive a record and byte offset. Those fields must
-already contain valid initialized values. <code class="docutils literal notranslate"><span class="pre">StringToDistance</span></code> forwards the
+already contain valid initialized values. <a class="reference internal" href="value-reference.html#c.StringToDistance" title="StringToDistance"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToDistance()</span></code></a> forwards the
 sign policy encoded in client data and commits only a converted integer.
-<code class="docutils literal notranslate"><span class="pre">StringToShadow</span></code> stages a color and optional offset, then releases the old
-color itself. <code class="docutils literal notranslate"><span class="pre">StringToColorPair</span></code> similarly stages the complete pair before
+<a class="reference internal" href="value-reference.html#c.StringToShadow" title="StringToShadow"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToShadow()</span></code></a> stages a color and optional offset, then releases the old
+color itself. <a class="reference internal" href="value-reference.html#c.StringToColorPair" title="StringToColorPair"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToColorPair()</span></code></a> similarly stages the complete pair before
 releasing the old fields. These replacement callbacks are distinct from
-<a class="reference internal" href="value-reference.html#c.Rbc_GetShadowFromObj" title="Rbc_GetShadowFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetShadowFromObj()</span></code></a> and <code class="docutils literal notranslate"><span class="pre">GetColorPair</span></code>, whose successful outputs transfer
+<a class="reference internal" href="value-reference.html#c.Rbc_GetShadowFromObj" title="Rbc_GetShadowFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetShadowFromObj()</span></code></a> and <a class="reference internal" href="value-reference.html#c.GetColorPair" title="GetColorPair"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetColorPair()</span></code></a>, whose successful outputs transfer
 resources without disposing of the previous destination.</p>
 <p>NULL/empty shadow input clears both fields. A nonempty shadow list requires
 one or two elements; its default offset is one. The color-pair list accepts
@@ -234,11 +234,11 @@ Do not call these callbacks directly with an uninitialized release callback.
 Color-pair printing deliberately transfers a heap-backed DString rather than
 freeing it; an inline DString is copied first. Adding an unconditional
 Tcl_DStringFree at the end would invalidate the returned heap buffer.
-<code class="docutils literal notranslate"><span class="pre">NameOfColor</span></code> itself returns borrowed text, which the list builder copies.</p>
+<a class="reference internal" href="value-reference.html#c.NameOfColor" title="NameOfColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">NameOfColor()</span></code></a> itself returns borrowed text, which the list builder copies.</p>
 <p>The private parser reference also records the smaller matching boundaries:
-<code class="docutils literal notranslate"><span class="pre">IsFillPrefix</span></code> checks byte lengths and rejects empty prefixes, <code class="docutils literal notranslate"><span class="pre">DoCheck</span></code>
-applies only a sign restriction, and <code class="docutils literal notranslate"><span class="pre">GetState</span></code> requires exact names.
-<code class="docutils literal notranslate"><span class="pre">GetStringList</span></code> clears its output before parsing, so its failure behavior
+<a class="reference internal" href="value-reference.html#c.IsFillPrefix" title="IsFillPrefix"><code class="xref c c-func docutils literal notranslate"><span class="pre">IsFillPrefix()</span></code></a> checks byte lengths and rejects empty prefixes, <a class="reference internal" href="value-reference.html#c.DoCheck" title="DoCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">DoCheck()</span></code></a>
+applies only a sign restriction, and <a class="reference internal" href="value-reference.html#c.GetState" title="GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetState()</span></code></a> requires exact names.
+<a class="reference internal" href="value-reference.html#c.GetStringList" title="GetStringList"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetStringList()</span></code></a> clears its output before parsing, so its failure behavior
 must not be mistaken for the staged replacement behavior of these adapters.</p>
 </section>
 <section id="output-parameters-are-not-interchangeable">

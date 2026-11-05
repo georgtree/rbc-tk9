@@ -230,8 +230,8 @@ step. Style slices borrow the resulting storage. :c:func:`rbcGrBarGeometry.Reset
 views, frees mapped arrays and zeros pointers/counts; source vectors remain
 owned by their original creators.
 
-Normal drawing batches rectangles through ``Rbc_RenderBeginBars`` and
-``Rbc_RenderFillRectangles``. Export has its own callbacks consuming mapped bar
+Normal drawing batches rectangles through :c:func:`Rbc_RenderBeginBars` and
+:c:func:`Rbc_RenderFillRectangles`. Export has its own callbacks consuming mapped bar
 geometry and pen styles. Value labels and legend samples are separate drawing
 paths. A legend sample outside the plot is not evidence that a bar escaped its
 clip.

@@ -86,3 +86,24 @@ page filenames and group identifiers stable when reorganizing navigation.
 members. It is included in both platform documentation projects. Keep those
 relationships aligned with the Sphinx subsystem pages; avoid rendering a whole
 parent group recursively when its members already have dedicated reference pages.
+
+Extraction checks for declarations and platform branches
+--------------------------------------------------------
+
+A comment can exist in source without producing the intended function entry.
+In particular, function-typedef declarations for argument-free marker constructors
+were extracted as variables. Use explicit matching prototypes for these helpers
+and check that their Doxygen member kind is function. Keep parameter names in
+forward declarations consistent with definitions so generated signatures and
+parameter descriptions agree.
+
+Windows-only helpers require the Windows XML input list and an explicit
+``:project: rbc-win`` reference when the normal project cannot see their branch.
+Do not enable WIN32 globally in the default project to expose one function.
+Private declarations with no implementation or caller should be removed rather
+than documented as supported interfaces. Public installed headers and stubs
+require a separate compatibility review.
+
+The byte-comparison fallbacks use an RBC_DOXYGEN branch so their contracts remain
+visible even when the configured platform has native replacements. This selector
+is for extraction only and is not enabled in ordinary compilation.

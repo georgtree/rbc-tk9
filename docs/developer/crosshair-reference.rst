@@ -38,3 +38,16 @@ Implementation helpers
    :members:
 
 .. c:namespace-pop::
+
+Windows position-only transition
+--------------------------------
+
+This function is extracted from the Windows branch separately. Its documented
+scope does not change the compiled symbol or the shared crosshair interfaces.
+
+.. c:namespace-push:: rbcWindowsCrosshairs
+
+.. doxygenfunction:: MoveCrosshairs
+   :project: rbc-win
+
+.. c:namespace-pop::

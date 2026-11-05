@@ -218,7 +218,7 @@ screen remapping in PostScript.</p>
 <h2>PostScript policy and delivery<a class="headerlink" href="#postscript-policy-and-delivery" title="Link to this heading">¶</a></h2>
 <p>PostScript retains its own option transaction and output command because it
 also handles page setup, printer mappings and optional preview formats.
-<code class="docutils literal notranslate"><span class="pre">GraphToPostScript</span></code> borrows a PostScript token, redirects the export buffer
+<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a> borrows a PostScript token, redirects the export buffer
 to that token, enters export mode, prepares the page and traverses components.
 It appends the trailer on success, ends export mode and frees shared state.
 The outer command releases the PostScript token. Unlike SVG/PDF, this path does

@@ -120,6 +120,24 @@ members. It is included in both platform documentation projects. Keep those
 relationships aligned with the Sphinx subsystem pages; avoid rendering a whole
 parent group recursively when its members already have dedicated reference pages.</p>
 </section>
+<section id="extraction-checks-for-declarations-and-platform-branches">
+<h2>Extraction checks for declarations and platform branches<a class="headerlink" href="#extraction-checks-for-declarations-and-platform-branches" title="Link to this heading">¶</a></h2>
+<p>A comment can exist in source without producing the intended function entry.
+In particular, function-typedef declarations for argument-free marker constructors
+were extracted as variables. Use explicit matching prototypes for these helpers
+and check that their Doxygen member kind is function. Keep parameter names in
+forward declarations consistent with definitions so generated signatures and
+parameter descriptions agree.</p>
+<p>Windows-only helpers require the Windows XML input list and an explicit
+<code class="docutils literal notranslate"><span class="pre">:project:</span> <span class="pre">rbc-win</span></code> reference when the normal project cannot see their branch.
+Do not enable WIN32 globally in the default project to expose one function.
+Private declarations with no implementation or caller should be removed rather
+than documented as supported interfaces. Public installed headers and stubs
+require a separate compatibility review.</p>
+<p>The byte-comparison fallbacks use an RBC_DOXYGEN branch so their contracts remain
+visible even when the configured platform has native replacements. This selector
+is for extraction only and is not enabled in ordinary compilation.</p>
+</section>
 </section>
 
 
@@ -137,6 +155,7 @@ parent group recursively when its members already have dedicated reference pages
 <li><a class="reference internal" href="#contract-contents">Contract contents</a></li>
 <li><a class="reference internal" href="#migration-and-review">Migration and review</a></li>
 <li><a class="reference internal" href="#navigation-and-groups">Navigation and groups</a></li>
+<li><a class="reference internal" href="#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
 </ul>
 </li>
 </ul>

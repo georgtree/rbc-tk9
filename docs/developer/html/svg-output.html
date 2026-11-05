@@ -58,7 +58,7 @@ output, finishes embedded fonts after successful traversal, and appends the
 root close. On success it creates a Tcl string from the document buffer. The
 shared command checks export status and owns delivery with UTF-8/LF settings.
 An unsuccessful partially generated document must not be returned as valid SVG.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg</span></code> allocates a zeroed context containing shared export
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a> allocates a zeroed context containing shared export
 state and bitmap-symbol definition state. It borrows the token and its buffer;
 renderer completion frees the context without closing the document. All contexts
 must finish before shared export storage and font resources are released.

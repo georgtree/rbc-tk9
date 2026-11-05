@@ -29,7 +29,7 @@ not reliably restore the pixels that were changed originally.
 Motion and geometry changes
 ---------------------------
 
-On Windows, a position-only configuration uses ``MoveCrosshairs``. It computes
+On Windows, a position-only configuration uses :c:func:`rbcWindowsCrosshairs.MoveCrosshairs`. It computes
 old and new visibility, compares segment geometry, and submits old erase and new
 draw segments together. Unchanged geometry avoids unnecessary work. This keeps
 ordinary pointer motion from acquiring a separate drawing context between the
@@ -133,7 +133,7 @@ The low-level visibility helpers deliberately do not implement the same policy:
    * - :c:func:`rbcCrosshairs.TurnOffHairs`
      - Mapped and actually visible
      - Neither reads nor writes it; unmapped calls leave visible unchanged
-   * - Windows ``MoveCrosshairs``
+   * - Windows :c:func:`rbcWindowsCrosshairs.MoveCrosshairs`
      - Computes old/new eligibility, including hidden and mapping
      - Reads it; always stores the new hotspot, segments and actual visibility
 

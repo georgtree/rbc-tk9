@@ -10,12 +10,12 @@ See :doc:`decimation-reference` for selected static helper contracts.
 Eligibility and density
 -----------------------
 
-``CanPixelDecimateLine`` enables the optimization only for automatic decimation
+:c:func:`CanPixelDecimateLine` enables the optimization only for automatic decimation
 on ordinary XY line or strip elements, with unsmoothed geometry, fewer than two
 palette pens and no tile/stipple area fill. Polar elements and document exports
 retain the full mapping path. These checks protect geometry and style semantics.
 
-``LineNeedsPixelDecimation`` separately tests the complete paired source count
+:c:func:`LineNeedsPixelDecimation` separately tests the complete paired source count
 against the current plot span in the physical data-X direction. This is screen
 X normally and screen Y for inverted axes. Current thresholds are eight samples
 per pixel for native rendering and four for Cairo. Invalid or subpixel spans
