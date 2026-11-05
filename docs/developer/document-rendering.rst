@@ -29,7 +29,7 @@ cached style when drawing. In particular, PostScript's ``DashesProc`` and
 one configured batch before another context changes them; ``gsave`` does not
 isolate these definitions. This differs from PDF's local graphics-state scopes.
 
-Use ``Rbc_RenderEnd`` rather than calling the backend destructor directly.
+Use :c:func:`Rbc_RenderEnd` rather than calling the backend destructor directly.
 It unwinds explicit clips tracked by the common dispatcher, then frees the
 context. It does not finish the document, release builder resources or balance
 a separate plot-begin scope. Plot begin/end must remain paired by the caller.
@@ -72,7 +72,7 @@ background. Tiles use photo pixels when available, otherwise the shared Tk image
 capture helper. Tile placement accounts for the graph's offsets within its
 containing toplevel; pattern matrices also include page scale and Y reversal.
 
-``Rbc_RenderSetFillTile`` borrows the new tile and invalidates the cached pattern
+:c:func:`Rbc_RenderSetFillTile` borrows the new tile and invalidates the cached pattern
 ID for SVG/PDF. Existing document resources remain owned by the export. Other
 style mutation is not a general cache-invalidation API: construct another fill
 context when changing the style.
@@ -215,3 +215,31 @@ document resources, while :c:func:`PdfImageUse` places the resulting object ID.
 :c:func:`SvgBase64`. Byte-count and channel-layout requirements remain the
 caller's responsibility even where helpers check size limits. Returned resource
 IDs and handled flags do not replace the export document's error status.
+
+Shared backend setup
+---------------------
+
+:c:func:`Rbc_RenderCreateSvg`, :c:func:`Rbc_RenderCreatePdf` and
+:c:func:`Rbc_RenderCreatePostscript` allocate operation contexts without creating
+a document. The initialized export token remains borrowed. A PDF builder or
+PostScript token must be ready before the first drawing operation. These
+constructors are internal building blocks; component code normally uses the
+style-aware constructors in :doc:`reference`.
+
+:c:func:`Rbc_RenderExportLineStyle` caches cap/join settings and
+:c:func:`Rbc_RenderExportDashBackground` copies an optional color for SVG/PDF.
+The corresponding PostScript setup is immediate:
+:c:func:`Rbc_RenderPostscriptStroke`, :c:func:`Rbc_RenderPostscriptSymbol` and
+:c:func:`Rbc_RenderPostscriptBarSymbol` emit attributes or procedure definitions.
+The style pointers do not transfer ownership of colors or bitmaps.
+
+:c:func:`Rbc_RenderExportRasterImage` returns a caller-owned color image; NULL
+can mean ordinary omission or capture failure, so also inspect the document
+error state. :c:func:`Rbc_RenderExportSymbolRound` preserves legacy rounding
+halfway away from zero and requires a finite value whose adjusted result fits
+an int. Neither helper is a general input-validation boundary.
+
+:c:func:`Rbc_RenderExportEnd` only frees the context allocation. Call
+:c:func:`Rbc_RenderEnd` to unwind tracked clips first, and finish the separate
+plot scope before doing so. Backend resources and document buffers remain the
+export owner's responsibility.

@@ -59,79 +59,168 @@ ownership of the source image, font or mapped point array.</p>
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderCreatePostscript">
-<span class="target" id="group__export__backend_1ga0a66b15b58c07b9e996b0334f5a0dc15"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderCreatePostscript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderCreatePostscript" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1gaf6d26fa6803d2777c67cb6213bc8a18e"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderCreatePostscript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderCreatePostscript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a zeroed PostScript renderer borrowing an initialized token. </p>
-<p>Requires backendData to hold a live PsToken. Owns only the returned context; release through Rbc_RenderEnd. Does not begin a page, load the prolog or own the export buffer. </p>
+<p>Requires backendData to hold a live PsToken. Owns only the returned context; release through Rbc_RenderEnd. Does not begin a page, load the prolog or own the export buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Initialized matching-backend export context, borrowed until Rbc_RenderEnd; backend resources must be ready before drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderCreateSvg">
-<span class="target" id="group__export__backend_1gaad0eca1f1735e6e99c23622425f8e70a"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderCreateSvg</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderCreateSvg" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga3ceecf290efb7ae1e573994c3a95f3e2"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderCreateSvg</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderCreateSvg" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a zeroed SVG renderer borrowing an export token. </p>
-<p>Installs the SVG operation table without beginning or finalizing a document. The token outlives the context; release through Rbc_RenderEnd. </p>
+<p>Installs the SVG operation table without beginning or finalizing a document. The token outlives the context; release through Rbc_RenderEnd.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Initialized matching-backend export context, borrowed until Rbc_RenderEnd; backend resources must be ready before drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderCreatePdf">
-<span class="target" id="group__export__backend_1gaf9e83cbe9be96e2dbe844fea84edc9d8"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderCreatePdf</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderCreatePdf" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga376489e8eaecc4478097c8fd9c8974e8"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderCreatePdf</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderCreatePdf" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a zeroed PDF renderer borrowing an initialized export token. </p>
-<p>The PDF builder must already be attached before drawing. Installs operations but does not initialize fonts, serialize the page or own document resources. Release through Rbc_RenderEnd. </p>
+<p>The PDF builder must already be attached before drawing. Installs operations but does not initialize fonts, serialize the page or own document resources. Release through Rbc_RenderEnd.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Initialized matching-backend export context, borrowed until Rbc_RenderEnd; backend resources must be ready before drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderPostscriptStroke">
-<span class="target" id="group__export__backend_1ga1d95878c637f0637bd44af11cfc18380"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptStroke</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptStroke" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga4c39dcb0bf845a6e62c13be315cd87d2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptStroke</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptStroke" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit PostScript line attributes and remember whether dashes are enabled. </p>
-<p>Requires a PostScript context. Delegates width/color/dash conversion to the token and borrows input resources. Dash-background procedure setup is separate. </p>
+<p>Requires a PostScript context. Delegates width/color/dash conversion to the token and borrows input resources. Dash-background procedure setup is separate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live export renderer context; borrowed document state remains owned by its caller. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Non-NULL borrowed foreground passed to the legacy PostScript line-attribute helper. </p></li>
+<li><p><strong>lineWidth</strong> – <strong>[in]</strong> Stroke width in display pixels, using legacy PostScript normalization. </p></li>
+<li><p><strong>dashes</strong> – <strong>[in]</strong> Optional borrowed dash pattern; NULL selects a solid stroke. </p></li>
+<li><p><strong>capStyle</strong> – <strong>[in]</strong> X cap-style constant converted to PostScript line-cap state. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> X join-style constant converted to PostScript line-join state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderPostscriptSymbol">
-<span class="target" id="group__export__backend_1gaa79287ea81c98b0f29da6599aaf4c1d6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptSymbol</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderSymbolStyle" title="Rbc_RenderSymbolStyle"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptSymbol" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga48147556f4cf400505a35c515910fc1f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptSymbol</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderSymbolStyle" title="Rbc_RenderSymbolStyle"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptSymbol" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Define a legacy PostScript symbol batch and its size correction. </p>
-<p>Requires a valid symbol type, live graph and valid bitmap resources when selected. Defines DrawSymbolProc in the document dictionary, chooses a prolog macro, and emits outline width/dashes. Finish this batch before another context redefines that procedure. </p>
+<p>Requires a valid symbol type, live graph and valid bitmap resources when selected. Defines DrawSymbolProc in the document dictionary, chooses a prolog macro, and emits outline width/dashes. Finish this batch before another context redefines that procedure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live export renderer context; borrowed document state remains owned by its caller. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed style and its referenced colors/bitmaps; resources remain valid during setup and drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderPostscriptBarSymbol">
-<span class="target" id="group__export__backend_1ga42da80e8e3b0742911c7cbbad323250d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptBarSymbol</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptBarSymbol" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga7eef1829d60f98bd4feba39db54b83b1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPostscriptBarSymbol</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPostscriptBarSymbol" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Define the unscaled square procedure used for bar legend samples. </p>
-<p>Requires a PostScript fill context and live graph for stipples. Borrows style resources, emits DrawSymbolProc and records size. Retains the legacy solid/stipple fallback and ignores image-tile opacity. </p>
+<p>Requires a PostScript fill context and live graph for stipples. Borrows style resources, emits DrawSymbolProc and records size. Retains the legacy solid/stipple fallback and ignores image-tile opacity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live export renderer context; borrowed document state remains owned by its caller. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed style and its referenced colors/bitmaps; resources remain valid during setup and drawing. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Unscaled legend square size in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderExportEnd">
-<span class="target" id="group__export__backend_1ga782943d9c2fc2304f4c5be29129a4797"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportEnd" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1gaef8735a31a3792e8ea3bec79737060be"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Free only the allocated renderer context. </p>
-<p>Called after common Rbc_RenderEnd unwinds explicit clips. Does not balance a separately opened plot scope or free the borrowed export token, graph, styles, tiles, document resources or output buffer. Requires non-NULL context. </p>
+<p>Called after common Rbc_RenderEnd unwinds explicit clips. Does not balance a separately opened plot scope or free the borrowed export token, graph, styles, tiles, document resources or output buffer. Requires non-NULL context.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned non-NULL allocation released here, after common dispatcher clip cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderExportLineStyle">
-<span class="target" id="group__export__backend_1ga8d2002f262b51b1dfe21c120202b3ff0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportLineStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportLineStyle" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga0a2c78573ec34747becc54a19264d8f1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportLineStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">cap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">join</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportLineStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Cache PDF/SVG cap and join settings for later drawing. </p>
-<p>Requires an export context using the shared state layout. Emits nothing and does not affect existing output; PostScript has its own immediate setter. </p>
+<p>Requires an export context using the shared state layout. Emits nothing and does not affect existing output; PostScript has its own immediate setter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live export renderer context; borrowed document state remains owned by its caller. </p></li>
+<li><p><strong>cap</strong> – <strong>[in]</strong> X cap-style constant cached for subsequent SVG/PDF strokes. </p></li>
+<li><p><strong>join</strong> – <strong>[in]</strong> X join-style constant cached for subsequent SVG/PDF strokes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderExportDashBackground">
-<span class="target" id="group__export__backend_1ga107844175579c2c0dc5b11c8116b95d3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportDashBackground</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportDashBackground" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga3e0a5126d5a22a2fdd85d48750b5dc68"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportDashBackground</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportDashBackground" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy an optional PDF/SVG dash-background color. </p>
-<p>NULL disables the background. Stores the XColor value, not a borrowed color pointer, and emits nothing immediately. </p>
+<p>NULL disables the background. Stores the XColor value, not a borrowed color pointer, and emits nothing immediately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live export renderer context; borrowed document state remains owned by its caller. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Color copied by value, or NULL to disable the off-dash background. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderExportRasterImage">
-<span class="target" id="group__export__backend_1gac8e6561bbb597bdabbf82dc2058cfdd1"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportRasterImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportRasterImage" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga5faa6a594fa5fbb45e232b0d422c2b81"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportRasterImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportRasterImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Capture a Tk image over black and white to reconstruct RGBA. </p>
-<p>Requires a live export window and valid Tk image on its owning thread. Deleted, empty or NULL images return NULL without recording an error. Allocation/capture failures record an export error. Owns temporary pixmap, GC and captures; frees all intermediates and returns one caller-owned Rbc_ColorImage on success. Release it with Rbc_FreeColorImage. Alpha is inferred from the maximum channel difference and RGB is unpremultiplied; this is a raster approximation, not access to original image pixels. Tk image display procedures run synchronously; the helper does not itself guard against arbitrary custom-image callback destruction. </p>
+<p>Requires a live export window and valid Tk image on its owning thread. Deleted, empty or NULL images return NULL without recording an error. Allocation/capture failures record an export error. Owns temporary pixmap, GC and captures; frees all intermediates and returns one caller-owned Rbc_ColorImage on success. Release it with Rbc_FreeColorImage. Alpha is inferred from the maximum channel difference and RGB is unpremultiplied; this is a raster approximation, not access to original image pixels. Tk image display procedures run synchronously; the helper does not itself guard against arbitrary custom-image callback destruction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Export context with a live window used for capture and first-error reporting. </p></li>
+<li><p><strong>image</strong> – <strong>[in]</strong> Borrowed image handle, or NULL; must survive synchronous image display callbacks. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RenderExportSymbolRound">
-<span class="target" id="group__export__backend_1gae9a01b56e5bbfa83a9124f3e3d174ee1"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportSymbolRound</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportSymbolRound" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__backend_1ga6a4e5ec06f7edf8943e80394e6976c26"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportSymbolRound</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderExportSymbolRound" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round a finite symbol measurement halfway away from zero. </p>
-<p>Requires the adjusted value to fit int. Preserves legacy export size corrections; does not provide overflow checking. </p>
+<p>Requires the adjusted value to fit int. Preserves legacy export size corrections; does not provide overflow checking.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – <strong>[in]</strong> Finite pixel measurement whose adjusted value fits a native int. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

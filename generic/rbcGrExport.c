@@ -15,6 +15,9 @@
  * Requires an offset for a correctly aligned int member of Graph. Returns a
  * borrowed pointer valid only while the graph is alive. Does not validate
  * the offset or allocate storage; format policies are trusted private data.
+ *
+ * @param[in] graphPtr Live graph containing the requested integer field.
+ * @param[in] offset Byte offset of an aligned native int member of Graph.
  */
 static int *ExportOptionField(Graph *graphPtr, int offset) {
     return (int *)((char *)graphPtr + offset);
@@ -27,6 +30,9 @@ static int *ExportOptionField(Graph *graphPtr, int offset) {
  * Borrows the graph and concrete option specification. Returns a new object
  * at reference count zero, using internalOffset to locate the int field.
  * Boolean options are reported as integer zero or one, not original spelling.
+ *
+ * @param[in] graphPtr Graph whose current option value is read.
+ * @param[in] spec Concrete option specification; internalOffset selects an int member.
  */
 static Tcl_Obj *ExportOptionValue(Graph *graphPtr, const Tk_OptionSpec *spec) {
     return Tcl_NewIntObj(*ExportOptionField(graphPtr, spec->internalOffset));
@@ -39,6 +45,9 @@ static Tcl_Obj *ExportOptionValue(Graph *graphPtr, const Tk_OptionSpec *spec) {
  * Borrows graph and spec, reads the current integer value, and passes its
  * new object to Rbc_GetComponentOptionInfo. Returns a new, unreferenced
  * description object. Does not retain the graph, specification or Tk table.
+ *
+ * @param[in] graphPtr Graph whose current option value is read.
+ * @param[in] spec Concrete option specification supplying names, default and integer offset.
  */
 static Tcl_Obj *ExportOptionInfo(Graph *graphPtr, const Tk_OptionSpec *spec) {
     return Rbc_GetComponentOptionInfo(spec, ExportOptionValue(graphPtr, spec));
@@ -51,6 +60,9 @@ static Tcl_Obj *ExportOptionInfo(Graph *graphPtr, const Tk_OptionSpec *spec) {
  * resources. The temporary option table is freed on success and failure.
  * @return TCL_OK, or TCL_ERROR for invalid options or negative dimensions.
  * Failure is graph-initialization failure, not a rollback transaction.
+ *
+ * @param[inout] graphPtr Borrowed graph; caller keeps the record alive throughout the operation.
+ * @param[in] format Borrowed immutable format policy with integer-backed option fields and valid callbacks.
  */
 int Rbc_InitGraphExportOptions(Graph *graphPtr, const Rbc_GraphExportFormat *format) {
     Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, format->options);
@@ -77,6 +89,12 @@ int Rbc_InitGraphExportOptions(Graph *graphPtr, const Rbc_GraphExportFormat *for
  * before all conversions succeed. Repeated valid options use the last value,
  * but an invalid earlier occurrence still fails. Unsupported specification
  * types are programming errors and panic. Returns TCL_OK after committing.
+ *
+ * @param[inout] graphPtr Borrowed graph; caller keeps the record alive throughout the operation.
+ * @param[inout] interp Result and diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] format Borrowed immutable format policy with integer-backed option fields and valid callbacks.
+ * @param[in] objc Number of entries in the option/value slice; zero is allowed.
+ * @param[in] objv Borrowed option/value pairs starting at index zero, without command words; see @ref rbc_command_arguments.
  */
 static int SetExportOptions(Graph *graphPtr, Tcl_Interp *interp, const Rbc_GraphExportFormat *format,
                             Tcl_Size objc, Tcl_Obj *const objv[]) {
@@ -140,6 +158,11 @@ done:
  * channel/write error across cleanup; otherwise propagates close failure.
  * TCL_OK clears the interpreter result. This is not atomic replacement: an
  * open or delivery failure may leave an empty or partial destination.
+ *
+ * @param[inout] interp Result and diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] format Policy supplying channel encoding, translation and diagnostic label.
+ * @param[in] fileName Borrowed Tcl filesystem path; opening with w may truncate it.
+ * @param[in] document Complete borrowed document object, kept alive through writing and closing.
  */
 static int WriteExportDocument(Tcl_Interp *interp, const Rbc_GraphExportFormat *format, Tcl_Obj *fileName,
                                Tcl_Obj *document) {
@@ -184,6 +207,11 @@ static int WriteExportDocument(Tcl_Interp *interp, const Rbc_GraphExportFormat *
  * storage on every path. freeProc must accept an uninitialized backend.
  * The enclosing widget command protects graph lifetime across callbacks.
  * Returns TCL_OK or TCL_ERROR; persistent export options are not restored.
+ *
+ * @param[inout] graphPtr Borrowed graph; caller keeps the record alive throughout the operation.
+ * @param[inout] interp Result and diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] format Borrowed immutable format policy with integer-backed option fields and valid callbacks.
+ * @param[in] fileName Borrowed destination path, or NULL to return the document as the Tcl result.
  */
 static int OutputGraphExport(Graph *graphPtr, Tcl_Interp *interp, const Rbc_GraphExportFormat *format,
                              Tcl_Obj *fileName) {
@@ -253,6 +281,12 @@ static int OutputGraphExport(Graph *graphPtr, Tcl_Interp *interp, const Rbc_Grap
  * restores screen layout when callback state permits, and then delivers the
  * complete document. Backend and shared context cleanup run on every path.
  * @return TCL_OK or TCL_ERROR with an interpreter diagnostic.
+ *
+ * @param[inout] graphPtr Borrowed graph; caller keeps the record alive throughout the operation.
+ * @param[inout] interp Result and diagnostic interpreter; see @ref rbc_interp_argument.
+ * @param[in] objc Full command argument count, at least three.
+ * @param[in] objv Borrowed full command vector; objv[2] is cget, configure or output; see @ref rbc_command_arguments.
+ * @param[in] format Borrowed immutable format policy with integer-backed option fields and valid callbacks.
  */
 int Rbc_GraphExportOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
                       const Rbc_GraphExportFormat *format) {
@@ -305,6 +339,12 @@ int Rbc_GraphExportOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  * the append destination. Call only on an uninitialized or already freed record;
  * this does not release an earlier document. Font embedding starts disabled.
  * The caller supplies backend state and any alternate buffer after this call.
+ *
+ * @param[out] exportPtr Caller-owned fresh or previously freed record; existing resources are not released.
+ * @param[in] backend Document backend selected for subsequent renderer dispatch.
+ * @param[in] interp Interpreter borrowed for the entire export; see @ref rbc_interp_argument.
+ * @param[in] tkwin Window borrowed for screen metrics and resources throughout export.
+ * @param[in] decorations Whether traversal includes decorative backgrounds, borders and separators.
  */
 void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl_Interp *interp, Tk_Window tkwin,
                     int decorations) {
@@ -335,6 +375,8 @@ int Rbc_ExportError(Rbc_ExportContext *exportPtr, const char *message) {
  * Does not free the caller's context, backendData, or an alternate buffer.
  * The format owner must release backend resources separately. No renderer
  * context may still be using these resources.
+ *
+ * @param[inout] exportPtr Initialized context whose font cache and embedded storage are released; backend cleanup is separate.
  */
 void Rbc_ExportFree(Rbc_ExportContext *exportPtr) {
     Rbc_ExportFontsFree(exportPtr);
@@ -345,6 +387,9 @@ void Rbc_ExportFree(Rbc_ExportContext *exportPtr) {
  * @brief Append a NULL-terminated sequence of C strings to the current buffer.
  * The initialized context borrows buffer; callers must keep that DString alive.
  * This helper neither checks nor clears an existing export error.
+ *
+ * @param[inout] exportPtr Initialized document context with a live current output buffer.
+ * @param[in] ... NUL-terminated strings followed by a pointer-valued NULL sentinel; embedded NULs terminate each string.
  */
 void Rbc_ExportAppend(Rbc_ExportContext *exportPtr, ...) {
     va_list args;
@@ -362,6 +407,10 @@ void Rbc_ExportAppend(Rbc_ExportContext *exportPtr, ...) {
  * Uses temporary heap storage when the local formatting buffer is too small.
  * A formatting failure records a static export error; it does not set the Tcl
  * result. The caller must check the context's error before delivering output.
+ *
+ * @param[inout] exportPtr Initialized document context with a live current output buffer.
+ * @param[in] format Borrowed printf format string.
+ * @param[in] ... Arguments matching the format conversions; referenced strings remain valid during formatting.
  */
 void Rbc_ExportFormat(Rbc_ExportContext *exportPtr, const char *format, ...) {
     va_list args, copy;
@@ -391,6 +440,8 @@ void Rbc_ExportFormat(Rbc_ExportContext *exportPtr, const char *format, ...) {
  * @brief Mark a graph as exporting, using requested size for unset dimensions.
  * Requires a live Tk window. Does not perform layout or preserve old dimensions.
  * Pair with Rbc_ExportEndGraph on all paths; this flag is not a nesting counter.
+ *
+ * @param[inout] graphPtr Graph with a live window; dimensions and GRAPH_EXPORT may change.
  */
 void Rbc_ExportBeginGraph(Graph *graphPtr) {
     if (graphPtr->height <= 1) {
@@ -407,6 +458,8 @@ void Rbc_ExportBeginGraph(Graph *graphPtr) {
  * With a live window, replace graph dimensions by actual Tk dimensions, replace
  * flags with MAP_WORLD and schedule redraw. Does not remap immediately or
  * restore a saved flag set. With a destroyed window, only clear GRAPH_EXPORT.
+ *
+ * @param[inout] graphPtr Retained graph record after export; tkwin may be NULL after callback destruction.
  */
 void Rbc_ExportEndGraph(Graph *graphPtr) {
     graphPtr->flags &= ~GRAPH_EXPORT;
@@ -428,6 +481,9 @@ void Rbc_ExportEndGraph(Graph *graphPtr) {
  * background and plot border, not legend/title/axis inclusion. Components
  * supply their own visibility rules. Does not return status; the enclosing
  * traversal inspects the accumulated export error after rendering.
+ *
+ * @param[in] graphPtr Live graph with mapped export dimensions, margins and component resources.
+ * @param[inout] exportPtr Initialized document context with a live current output buffer.
  */
 static void MarginsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -480,6 +536,9 @@ static void MarginsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
  * Crosshairs are not exported. No screen geometry restoration is performed.
  * @return TCL_OK, or TCL_ERROR on invalid callback state or a recorded export
  * error. Successful traversal does not imply successful format finalization.
+ *
+ * @param[inout] graphPtr Retained graph already laid out for export; caller owns export mode and callback lifetime protection.
+ * @param[inout] exportPtr Initialized document context with a live current output buffer.
  */
 int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     int x, y, width, height;

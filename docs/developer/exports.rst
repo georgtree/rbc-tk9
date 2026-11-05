@@ -27,18 +27,18 @@ and does not extend the installed C API.
    * - Resource
      - Ownership and release
    * - ``storage``
-     - Embedded DString, released by ``Rbc_ExportFree``.
+     - Embedded DString, released by :c:func:`Rbc_ExportFree`.
    * - ``buffer``
      - Append destination; normally aliases storage. PostScript redirects it
        to its separately owned token DString. Shared cleanup does not free an
        alternate buffer.
    * - ``backendData``
-     - Format-owned state. PDF releases it through ``Rbc_PdfFree``; PostScript
+     - Format-owned state. PDF releases it through :c:func:`Rbc_PdfFree`; PostScript
        releases its token in its command cleanup.
    * - ``fontData``
      - Document-local font cache, released by shared export cleanup.
    * - ``error``
-     - Borrowed static message. ``Rbc_ExportError`` retains the first failure;
+     - Borrowed static message. :c:func:`Rbc_ExportError` retains the first failure;
        it does not itself set the interpreter result.
 
 Append and formatting helpers write to the current buffer. They do not stop
@@ -122,15 +122,15 @@ Integer query objects report normalized values rather than the original input
 spelling. Initialization may write fields before failing; it belongs to graph
 construction, unlike the rollback guarantee of runtime configuration.
 
-SvgDocument frames an XML document with pixel dimensions and an equal viewBox.
+:c:func:`rbcGraphExportCommands.SvgDocument` frames an XML document with pixel dimensions and an equal viewBox.
 After shared traversal succeeds, it finalizes font definitions, closes the SVG
 and copies the buffer into a new Tcl string. The closing tag is appended even
-on failure, but no partial document is returned. PdfDocument initializes the
+on failure, but no partial document is returned. :c:func:`rbcGraphExportCommands.PdfDocument` initializes the
 PDF builder using horizontal screen pixels/millimeters to obtain points per
 pixel, traverses the graph and invokes the binary serializer only on success.
 Neither adapter opens files or restores screen geometry.
 
-OutputGraphExport acquires a reference to a document returned by the callback
+:c:func:`rbcGraphExportCommands.OutputGraphExport` acquires a reference to a document returned by the callback
 and releases it after delivery or failure. A callback must return a non-NULL
 new object on success; cleanup accepts NULL on failure. Backend cleanup still
 runs when initial layout fails before the document callback is entered. A new
@@ -140,7 +140,7 @@ cleanup, and must tolerate that partially initialized state.
 Graph traversal and geometry
 ----------------------------
 
-``Rbc_ExportGraph`` assumes export geometry is already mapped. It opens the
+:c:func:`Rbc_ExportGraph` assumes export geometry is already mapped. It opens the
 plot output context and emits the plot background, optional track separators,
 grids and polar/Smith labels. It then validates callback state before continuing
 with under-markers, unraised local/global legends, axis limits, elements,
@@ -152,9 +152,9 @@ services decide effective visibility. Track components own their scopes and
 clipping. Crosshairs are screen-only. See :doc:`markers`, :doc:`grids` and
 :doc:`legends` for component-specific output rules.
 
-``Rbc_ExportBeginGraph`` supplies requested Tk dimensions when graph dimensions
+:c:func:`Rbc_ExportBeginGraph` supplies requested Tk dimensions when graph dimensions
 are not yet usable and sets ``GRAPH_EXPORT``. It does not save geometry or
-perform layout. ``Rbc_ExportEndGraph`` clears the flag; for a surviving window
+perform layout. :c:func:`Rbc_ExportEndGraph` clears the flag; for a surviving window
 it adopts actual Tk dimensions, replaces graph flags with ``MAP_WORLD`` and
 schedules redraw. It is not a general state-stack operation and is not nestable.
 See :doc:`mapping` for immediate screen restoration in SVG/PDF versus deferred
@@ -189,3 +189,35 @@ See :doc:`export-reference` for the shared C contracts. See :doc:`pdf-builder` f
 resource ownership and serialization, and :doc:`text-fonts` for font ownership.
 
 See :doc:`svg-output` for SVG definitions, escaped text and inline image encoding.
+
+Parameter slices and failure boundaries
+---------------------------------------
+
+:c:func:`Rbc_GraphExportOp` receives the full widget command, with the operation
+at index two. Its private parser :c:func:`rbcGraphExportCommands.SetExportOptions`
+receives only the option/value slice, starting at index zero. Passing the full
+command to that parser would interpret command words as options. The parser
+stages integer values before committing; :c:func:`Rbc_InitGraphExportOptions`
+instead initializes a new graph and does not promise rollback on failure.
+
+The document callback output is also deliberately narrower than the command
+result. :c:func:`rbcGraphExportCommands.SvgDocument` leaves its output pointer
+unchanged on failure. :c:func:`rbcGraphExportCommands.PdfDocument` leaves it
+unchanged when traversal fails, but writes NULL when serialization fails.
+:c:func:`rbcGraphExportCommands.OutputGraphExport` initializes that pointer to
+NULL, takes a reference when a document is returned, and releases it after
+result delivery or failure. New callbacks must follow this ownership contract.
+
+:c:func:`Rbc_ExportAppend` takes C strings terminated by a pointer-valued NULL
+sentinel, not a byte count. :c:func:`Rbc_ExportFormat` takes printf arguments.
+Both append to the context's current buffer, which may differ from its embedded
+storage; neither suppresses output because an earlier error was recorded.
+:c:func:`Rbc_ExportError` records the first static error string without setting
+the Tcl result. Final traversal or serialization must turn that failure into a
+command error before delivery.
+
+:c:func:`rbcGraphExportCommands.WriteExportDocument` only receives a complete
+document. Its success means writing and closing succeeded, not that replacement
+was atomic. Keeping the Tcl object alive through channel operations is the
+caller's responsibility; the helper neither takes ownership of the document
+nor retains the filename after returning.

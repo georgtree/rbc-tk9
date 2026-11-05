@@ -66,7 +66,7 @@ cached style when drawing. In particular, PostScript’s <code class="docutils l
 <code class="docutils literal notranslate"><span class="pre">DrawSymbolProc</span></code> are dictionary definitions shared by the document. Complete
 one configured batch before another context changes them; <code class="docutils literal notranslate"><span class="pre">gsave</span></code> does not
 isolate these definitions. This differs from PDF’s local graphics-state scopes.</p>
-<p>Use <code class="docutils literal notranslate"><span class="pre">Rbc_RenderEnd</span></code> rather than calling the backend destructor directly.
+<p>Use <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> rather than calling the backend destructor directly.
 It unwinds explicit clips tracked by the common dispatcher, then frees the
 context. It does not finish the document, release builder resources or balance
 a separate plot-begin scope. Plot begin/end must remain paired by the caller.</p>
@@ -103,7 +103,7 @@ only its resource ID. Stipples become horizontal bitmap runs over an optional
 background. Tiles use photo pixels when available, otherwise the shared Tk image
 capture helper. Tile placement accounts for the graph’s offsets within its
 containing toplevel; pattern matrices also include page scale and Y reversal.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSetFillTile</span></code> borrows the new tile and invalidates the cached pattern
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderSetFillTile" title="Rbc_RenderSetFillTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSetFillTile()</span></code></a> borrows the new tile and invalidates the cached pattern
 ID for SVG/PDF. Existing document resources remain owned by the export. Other
 style mutation is not a general cache-invalidation API: construct another fill
 context when changing the style.</p>
@@ -260,6 +260,30 @@ document resources, while <a class="reference internal" href="document-render-re
 caller’s responsibility even where helpers check size limits. Returned resource
 IDs and handled flags do not replace the export document’s error status.</p>
 </section>
+<section id="shared-backend-setup">
+<h2>Shared backend setup<a class="headerlink" href="#shared-backend-setup" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePdf" title="Rbc_RenderCreatePdf"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePdf()</span></code></a> and
+<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePostscript" title="Rbc_RenderCreatePostscript"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePostscript()</span></code></a> allocate operation contexts without creating
+a document. The initialized export token remains borrowed. A PDF builder or
+PostScript token must be ready before the first drawing operation. These
+constructors are internal building blocks; component code normally uses the
+style-aware constructors in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportLineStyle" title="Rbc_RenderExportLineStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportLineStyle()</span></code></a> caches cap/join settings and
+<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportDashBackground" title="Rbc_RenderExportDashBackground"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportDashBackground()</span></code></a> copies an optional color for SVG/PDF.
+The corresponding PostScript setup is immediate:
+<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptStroke" title="Rbc_RenderPostscriptStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptStroke()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptSymbol" title="Rbc_RenderPostscriptSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptSymbol()</span></code></a> and
+<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptBarSymbol" title="Rbc_RenderPostscriptBarSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptBarSymbol()</span></code></a> emit attributes or procedure definitions.
+The style pointers do not transfer ownership of colors or bitmaps.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportRasterImage" title="Rbc_RenderExportRasterImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportRasterImage()</span></code></a> returns a caller-owned color image; NULL
+can mean ordinary omission or capture failure, so also inspect the document
+error state. <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportSymbolRound" title="Rbc_RenderExportSymbolRound"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportSymbolRound()</span></code></a> preserves legacy rounding
+halfway away from zero and requires a finite value whose adjusted result fits
+an int. Neither helper is a general input-validation boundary.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportEnd" title="Rbc_RenderExportEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportEnd()</span></code></a> only frees the context allocation. Call
+<a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> to unwind tracked clips first, and finish the separate
+plot scope before doing so. Backend resources and document buffers remain the
+export owner’s responsibility.</p>
+</section>
 </section>
 
 
@@ -280,6 +304,7 @@ IDs and handled flags do not replace the export document’s error status.</p>
 <li><a class="reference internal" href="#text-borders-and-symbols">Text, borders and symbols</a></li>
 <li><a class="reference internal" href="#errors-and-callback-boundaries">Errors and callback boundaries</a></li>
 <li><a class="reference internal" href="#backend-parameter-and-scope-contracts">Backend parameter and scope contracts</a></li>
+<li><a class="reference internal" href="#shared-backend-setup">Shared backend setup</a></li>
 </ul>
 </li>
 </ul>
