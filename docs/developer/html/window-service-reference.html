@@ -91,28 +91,57 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.Rbc_GetRealWindowId">
 <span class="target" id="rbc_int_8h_1a4b42fed6e014e46c943cbd6978ce487d"></span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetRealWindowId</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetRealWindowId" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a native client or toplevel-wrapper identifier. </p>
-<p>May realize the borrowed Tk window. X11 queries the toplevel parent; Windows returns a raw HWND cast to Window. It is not a portable Tk drawable token. No ownership transfers. X11 keeps the realized client if parent lookup fails; callers must still distinguish native wrapper IDs from Tk drawable tokens. </p>
+<p>May realize the borrowed Tk window. X11 queries the toplevel parent; Windows returns a raw HWND cast to Window. It is not a portable Tk drawable token. No ownership transfers. X11 keeps the realized client if parent lookup fails; callers must still distinguish native wrapper IDs from Tk drawable tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window on its owning thread; may be realized to obtain a native ID, but is not retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SetWindowInstanceData">
 <span class="target" id="rbc_int_8h_1a39f1587d0089d79b12964156082a969d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetWindowInstanceData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">instanceData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetWindowInstanceData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Associate a borrowed payload with a Tk window in its interpreter. </p>
-<p>Lazily allocate a one-word-key table as Tcl associated data. Replacing a value does not free the old payload. The caller must remove the entry before the window/payload becomes invalid; interpreter cleanup frees only the table. </p>
+<p>Lazily allocate a one-word-key table as Tcl associated data. Replacing a value does not free the old payload. The caller must remove the entry before the window/payload becomes invalid; interpreter cleanup frees only the table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window on its owning thread, supplying the interpreter/display and native resource context. </p></li>
+<li><p><strong>instanceData</strong> – <strong>[in]</strong> Borrowed payload stored without a reference or destructor; replacement does not release the previous payload. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetWindowInstanceData">
 <span class="target" id="rbc_int_8h_1a4103cc5d4097b78af6642ea74f3cebfd"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetWindowInstanceData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetWindowInstanceData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Look up a borrowed per-window payload. </p>
-<p>Return NULL for a missing entry or an absent interpreter table. Lookup does not allocate a table and does not retain the payload or Tk window. Require a live Tk_Window even when no association exists. </p>
+<p>Return NULL for a missing entry or an absent interpreter table. Lookup does not allocate a table and does not retain the payload or Tk window. Require a live Tk_Window even when no association exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window on its owning thread, supplying the interpreter/display and native resource context. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DeleteWindowInstanceData">
 <span class="target" id="rbc_int_8h_1aeb5d6fde3978fc6506e70e6d49be178b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DeleteWindowInstanceData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DeleteWindowInstanceData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Remove a per-window association without freeing its payload. </p>
-<p>Require a live window. An absent table or missing entry is a no-op and does not allocate storage. The window owner is responsible for removing its association during teardown. </p>
+<p>Require a live window. An absent table or missing entry is a no-op and does not allocate storage. The window owner is responsible for removing its association during teardown.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window on its owning thread, supplying the interpreter/display and native resource context. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="window-lookup-and-table-cleanup-internals">
@@ -126,21 +155,44 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.rbcWindowHelpers.rbcGetParent">
 <span class="target" id="group__window__helpers_1ga7b15fc8e2bcb0945ac7332237eca6486"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rbcGetParent</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="n"><span class="pre">window</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowHelpers.rbcGetParent" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query an X window parent and release the returned child array. </p>
-<p>Returns None when XQueryTree reports failure. Owns the query child array only on success and releases it with XFree before returning. The returned parent identifier is borrowed; no window is realized or retained here. </p>
+<p>Returns None when XQueryTree reports failure. Owns the query child array only on success and releases it with XFree before returning. The returned parent identifier is borrowed; no window is realized or retained here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed live X display owning the supplied drawable and resources. </p></li>
+<li><p><strong>window</strong> – <strong>[in]</strong> Existing X window ID on display; queried without realizing or retaining it. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcWindowHelpers.GetWindowId">
 <span class="target" id="group__window__helpers_1ga2dacdd11c1aee45fa5fb8b2f6027783c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetWindowId</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowHelpers.GetWindowId" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Realize a Tk client and select its immediate X11 parent for a toplevel. </p>
-<p>Non-toplevel windows retain their client ID. For toplevels, a successful non-None parent replaces it; failed lookup retains the client ID. This does not guarantee a particular window-manager decoration ancestor. Requires a live window and does not change ownership or map it explicitly. </p>
+<p>Non-toplevel windows retain their client ID. For toplevels, a successful non-None parent replaces it; failed lookup retains the client ID. This does not guarantee a particular window-manager decoration ancestor. Requires a live window and does not change ownership or map it explicitly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window on its owning thread; may be realized to obtain a native ID, but is not retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcWindowHelpers.AssocDataCleanup">
 <span class="target" id="group__window__helpers_1ga00c9a0ae68bb6437c49c326eb87cd3f4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AssocDataCleanup</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">assocData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowHelpers.AssocDataCleanup" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release the interpreter-owned association table and its allocation. </p>
-<p>Registered as a Tcl associated-data delete callback. Hash entries contain borrowed Tk_Window keys and borrowed payloads; neither is dereferenced or released. The interp argument is unused. Requires the table allocation installed by Rbc_SetWindowInstanceData, not a caller-owned hash table. </p>
+<p>Registered as a Tcl associated-data delete callback. Hash entries contain borrowed Tk_Window keys and borrowed payloads; neither is dereferenced or released. The interp argument is unused. Requires the table allocation installed by Rbc_SetWindowInstanceData, not a caller-owned hash table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>assocData</strong> – <strong>[inout]</strong> Owned hash-table allocation installed as interpreter associated data; entries and allocation are released, payloads remain borrowed. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Unused interpreter-delete callback argument; no interpreter result or variables are accessed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

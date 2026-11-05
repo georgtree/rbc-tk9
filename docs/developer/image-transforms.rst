@@ -205,28 +205,28 @@ and matching resource cleanup independently of the rendered result.
 X11 capture dimensions and visual channels
 ------------------------------------------
 
-The X11 helpers distinguish geometric dimensions, pixel counts and packed row
-sizes. ``GetBitmapDimension`` rounds upward with ``ceil`` and returns zero when
-the result is nonfinite, below one or above ``INT_MAX``. Pixel-count and packed
-row helpers instead treat negative arguments as internal programming errors
-and panic. A packed one-bit row occupies ceiling(width/8) bytes; it is not the
-DWORD-aligned Windows representation.
+The X11 helpers distinguish geometric dimensions, pixel counts and packed row sizes.
+:c:func:`rbcX11Image.GetBitmapDimension` rounds upward with ``ceil`` and returns zero
+when the result is nonfinite, below one or above ``INT_MAX``. Pixel-count and packed row
+helpers instead treat negative arguments as internal programming errors and panic. A
+packed one-bit row occupies ceiling(width/8) bytes; it is not the DWORD-aligned Windows
+representation.
 
-Drawable capture installs a temporary Tk handler for ``BadMatch`` from
-``X_GetImage``. ``XGetImageErrorProc`` only records failure in the caller's
-status slot. ``XSync`` runs before the handler is removed, keeping that slot
-alive while asynchronous errors are delivered. Capture frees any returned
-XImage on that failure path. This handler does not suppress every possible X
-error or provide a Tcl error message.
+Drawable capture installs a temporary Tk handler for ``BadMatch`` from ``X_GetImage``.
+:c:func:`rbcX11Image.XGetImageErrorProc` only records failure in the caller's status
+slot. ``XSync`` runs before the handler is removed, keeping that slot alive while
+asynchronous errors are delivered. Capture frees any returned XImage on that failure
+path. This handler does not suppress every possible X error or provide a Tcl error
+message.
 
-For TrueColor capture, ``ComputeMasks`` builds local extraction shifts from
-nonzero contiguous RGB masks in the X11 pixel layout. Channels with fewer than
-eight bits are shifted left, preserving the existing behavior: maximum five-bit
-and six-bit values become 248 and 252, rather than 255. Eight-bit values pass
-through unchanged. Channels wider than eight bits discard their low bits before
-indexing the 256-entry gamma table; a ten-bit value of 1023 therefore becomes
-255, and 512 becomes 128. This prevents an out-of-bounds lookup on 30-bit
-TrueColor displays without changing the per-pixel extraction structure.
+For TrueColor capture, :c:func:`rbcX11Image.ComputeMasks` builds local extraction shifts
+from nonzero contiguous RGB masks in the X11 pixel layout. Channels with fewer than
+eight bits are shifted left, preserving the existing behavior: maximum five-bit and
+six-bit values become 248 and 252, rather than 255. Eight-bit values pass through
+unchanged. Channels wider than eight bits discard their low bits before indexing the
+256-entry gamma table; a ten-bit value of 1023 therefore becomes 255, and 512 becomes
+128. This prevents an out-of-bounds lookup on 30-bit TrueColor displays without changing
+the per-pixel extraction structure.
 
 Mask bit counts are computed during capture setup using the low 32 bits of
 each visual mask. Ordinary captures prepare only three channel masks. The gamma

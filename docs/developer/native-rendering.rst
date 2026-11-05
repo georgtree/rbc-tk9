@@ -254,12 +254,12 @@ perform layout, repair invalid geometry, or uniformly preserve GC state.
      - Advances the mutable style counter while examining centers.
      - Preserve the counter across related batches.
 
-For symbols smaller than three pixels, the current implementation draws all
-centers with the fill GC and returns before symbol-type or interval dispatch.
-Larger symbols preserve their historical templates and rounding: circle/square
-paths are platform batches, simple crosses are independent segments, and filled
-shapes use polygon templates. The helper named Round rounds ties away from zero;
-it assumes a finite result that fits int.
+For symbols smaller than three pixels, the current implementation draws all centers with
+the fill GC and returns before symbol-type or interval dispatch. Larger symbols preserve
+their historical templates and rounding: circle/square paths are platform batches,
+simple crosses are independent segments, and filled shapes use polygon templates. The
+helper named :c:func:`rbcNativeShared.Round` rounds ties away from zero; it assumes a
+finite result that fits int.
 
 Native bar filling tests whether fillOpacity is positive; it does not implement
 fractional alpha blending here. Representable rectangles are batched; an
@@ -277,12 +277,13 @@ already contains the required fill configuration.
 Arc strokes and arrowheads
 --------------------------
 
-Arc strokes combine segments only when successive endpoints compare exactly
-equal. Each connected run becomes one XDrawLines request; a gap starts another
-request and therefore another native dash phase. The current path converts to
-short coordinates without the protocol clipping and request-size chunking used
-by DrawSegments. Its callers must supply bounded mapped runs. A failed outer
-allocation skips the stroke; a failed per-run allocation skips only that run.
+Arc strokes combine segments only when successive endpoints compare exactly equal. Each
+connected run becomes one XDrawLines request; a gap starts another request and therefore
+another native dash phase. The current path converts to short coordinates without the
+protocol clipping and request-size chunking used by
+:c:func:`rbcNativeShared.DrawSegments`. Its callers must supply bounded mapped runs. A
+failed outer allocation skips the stroke; a failed per-run allocation skips only that
+run.
 
 Arrowheads instead retain floating-point vertices until scan conversion. At each
 integer row, half-open edges avoid counting shared vertices twice; sorted
@@ -631,3 +632,55 @@ buffer. The text is borrowed until the next call and is not thread-local. It
 strips trailing line endings and supplies a numeric fallback, but uses the ANSI
 FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl
 interface must account for lifetime and encoding separately.
+
+Internal template and buffer contracts
+--------------------------------------
+
+:c:func:`rbcNativeWindows.GetCirclePathTemplate` owns the temporary GDI path and
+transfers two allocated arrays only on success. Its radius must keep
+``2*radius+1`` representable; the function rejects a nonpositive radius but is
+not an arbitrary-integer overflow checker. Release both arrays with ``ckfree``.
+:c:func:`rbcNativeWindows.LoadCirclePath` then translates that template into
+caller-sized buffers without allocating or checking capacity.
+:c:func:`rbcNativeWindows.DrawCirclePathBatch` borrows those buffers and the
+selected DC resources. The caller decides whether a failed batch may safely be
+replayed through :c:func:`rbcNativeWindows.DrawCircleCentersDirect`.
+
+:c:func:`rbcNativeWindows.LoadPolygonBatch` uses polygon offsets and a source
+stride that includes closure, while its per-polygon copy count may omit closure
+for filling. It widens existing ``XPoint`` shorts into ``POINT`` coordinates;
+it cannot recover precision already lost before entry. Destination capacity
+and source bounds belong to the caller.
+
+The bevel helpers :c:func:`rbcNativeWindows.DrawWin3DRectangle1` and
+:c:func:`rbcNativeWindows.DrawWinRbcOuter3DBorder` borrow extracted colors and a
+prepared DC. :c:func:`rbcNativeWindows.Clamp3DBorderWidth` limits an already valid
+positive width against the rectangle dimensions. The shared
+:c:func:`rbcNativeShared.Fill3DRectangle` retains the historical outer-border
+adjustment before delegating the remaining fill to Tk.
+
+Bitmap packing and output ownership
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:c:func:`rbcWindowsImages.GetMonoBitmapStride` returns DWORD-aligned row bytes;
+:c:func:`rbcX11Image.GetPackedBitmapRowBytes` returns tightly packed row bytes.
+Neither alone validates the complete image allocation. The X11 pixel-count
+helper :c:func:`rbcX11Image.GetUnixImagePixelCount` checks dimension multiplication,
+while :c:func:`rbcX11Image.GetBitmapDimension` converts a finite rounded extent.
+These helpers have different failure contracts: panic, zero result and ordinary
+status-returning callers must not be treated interchangeably.
+
+:c:func:`rbcWindowsImages.Rbc_RotateBitmap` assigns output dimensions only after
+its initial argument validation; subsequent checked failure leaves them zero.
+:c:func:`rbcWindowsImages.Rbc_ScaleRotateBitmapRegion` expects a region within the
+virtual image, especially for exact quadrant mappings. A successful returned
+pixmap is owned by the caller. In contrast,
+:c:func:`rbcWindowsImages.Rbc_ScaleBitmap` does not independently report a failed
+``StretchBlt``: a non-None pixmap alone is not proof of a successful copy.
+
+:c:func:`rbcWindowsImages.Rbc_PhotoImageMask` borrows a photo block's pixels even
+though the descriptor is passed by value.
+:c:func:`rbcWindowsImages.Rbc_ColorImageMask` similarly borrows the color image.
+Both represent exactly transparent pixels with a binary mask; partial alpha
+is opaque for these operations. :c:func:`rbcWindowsImages.Rbc_DrawableToColorImage`
+instead returns a newly owned, fully opaque color image after gamma conversion.

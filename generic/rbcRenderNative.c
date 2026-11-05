@@ -23,6 +23,13 @@
  * clips endpoints to signed-short protocol bounds before truncating to short.
  * Returns without drawing if capacity or allocation fails; frees workspace.
  * This protocol clipping does not replace the owning component plot clip.
+ *
+ * @param[in] display Borrowed live display, or NULL to skip drawing.
+ * @param[in] drawable Borrowed destination drawable compatible with the window/display; no ownership is
+ *   transferred.
+ * @param[in] gc Borrowed configured GC compatible with the destination drawable.
+ * @param[in] segments Borrowed array of nSegments double-coordinate segments, or NULL to skip drawing.
+ * @param[in] nSegments Segment count; nonpositive counts draw nothing.
  */
 static void DrawSegments(Display *display, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
     XSegment *xSegments;
@@ -112,6 +119,19 @@ static void DrawSegments(Display *display, Drawable drawable, GC gc, const Segme
  * shrinks the rectangle and delegates the remainder to Tk. X11 uses the
  * default GC for one outer shade; Windows uses the corresponding border GC.
  * Does not allocate or release the borrowed border GCs.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed destination drawable compatible with the window/display; no ownership is
+ *   transferred.
+ * @param[in] border Borrowed Tk 3D border on the window display; border GCs are neither retained nor freed.
+ * @param[in] x Left destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] y Top destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] width Positive rectangle width in pixels; endpoint arithmetic must remain representable.
+ * @param[in] height Positive rectangle height in pixels; endpoint arithmetic must remain representable.
+ * @param[in] borderWidth Positive requested bevel width in pixels, bounded before use by the caller.
+ * @param[in] relief Tk relief passed to the final Tk fill; raised/sunken may receive the historical outer-layer
+ *   adjustment.
  */
 static void Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief) {
@@ -398,6 +418,8 @@ void Rbc_NativeSegments(Graph *graphPtr, Drawable drawable, GC gc, const Segment
  *
  * Adds or subtracts one half before conversion to int. Requires a finite
  * value whose adjusted result fits int; this is not a general range check.
+ *
+ * @param[in] x Finite coordinate whose adjustment by plus or minus one half fits int; no range check occurs.
  */
 INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 

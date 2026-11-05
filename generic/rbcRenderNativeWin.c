@@ -324,6 +324,16 @@ enum {
  * Aborts the temporary path after extraction. Returns FALSE on invalid radius,
  * path failure or allocation failure, releasing partial arrays. On success
  * the caller owns both arrays; radius arithmetic must be representable.
+ *
+ * @param[in,out] dc Borrowed compatible DC with no path the caller needs to preserve; a temporary GDI ellipse
+ *   path is created and aborted.
+ * @param[in] radius Positive circle radius; twice the radius plus one and translated coordinates must remain
+ *   representable.
+ * @param[out] pointsPtrPtr Required output initialized to NULL; successful point-array ownership transfers to
+ *   the caller for ckfree.
+ * @param[out] typesPtrPtr Required output initialized to NULL; successful GDI type-array ownership transfers to
+ *   the caller for ckfree.
+ * @param[out] nPointsPtr Required output initialized to zero; number of entries in both arrays on TRUE.
  */
 static int GetCirclePathTemplate(HDC dc, int radius, POINT **pointsPtrPtr, BYTE **typesPtrPtr, int *nPointsPtr) {
     POINT *points;
@@ -397,6 +407,18 @@ static int GetCirclePathTemplate(HDC dc, int radius, POINT **pointsPtrPtr, BYTE 
  * Borrows template arrays and copies point types unchanged. Translates points
  * by center minus radius. Caller provides capacity for nTemplatePoints and
  * representable LONG coordinates; no allocation or validation occurs.
+ *
+ * @param[out] dstPoints Writable destination with capacity for nTemplatePoints POINT entries, separate from the
+ *   template.
+ * @param[out] dstTypes Writable parallel destination with capacity for nTemplatePoints BYTE entries.
+ * @param[in] templatePoints Borrowed origin-based ellipse template containing nTemplatePoints entries.
+ * @param[in] templateTypes Borrowed matching GDI path-type bytes, copied unchanged.
+ * @param[in] nTemplatePoints Nonnegative template entry count; source bounds and destination capacity are
+ *   caller-validated.
+ * @param[in] x Horizontal circle center in DC coordinates; translated POINT values must fit LONG.
+ * @param[in] y Vertical circle center in DC coordinates; translated POINT values must fit LONG.
+ * @param[in] radius Positive circle radius; twice the radius plus one and translated coordinates must remain
+ *   representable.
  */
 static void LoadCirclePath(POINT *dstPoints, BYTE *dstTypes, const POINT *templatePoints, const BYTE *templateTypes,
                            int nTemplatePoints, LONG x, LONG y, int radius) {
@@ -420,6 +442,13 @@ static void LoadCirclePath(POINT *dstPoints, BYTE *dstTypes, const POINT *templa
  * Borrows DC and centers and preserves the existing radius-plus-one far edge.
  * Used to replay a failed copy-compatible batch. Does not own GDI state or
  * report individual drawing failures.
+ *
+ * @param[in,out] dc Borrowed destination DC with suitable mapping and selected pen/brush; not acquired or
+ *   released here.
+ * @param[in] centers Borrowed array of nCenters circle centers in DC coordinates.
+ * @param[in] nCenters Nonnegative center count; no array bounds checks are performed.
+ * @param[in] radius Positive circle radius; twice the radius plus one and translated coordinates must remain
+ *   representable.
  */
 static void DrawCircleCentersDirect(HDC dc, const POINT *centers, int nCenters, int radius) {
     int i;
@@ -437,6 +466,14 @@ static void DrawCircleCentersDirect(HDC dc, const POINT *centers, int nCenters, 
  * BeginPath/EndPath, then use FillPath or StrokeAndFillPath. Returns the GDI
  * success result; aborts failed construction paths. Caller owns DC, arrays
  * and selected pen/brush and decides whether replay is safe.
+ *
+ * @param[in,out] dc Borrowed destination DC with suitable mapping and selected pen/brush; not acquired or
+ *   released here.
+ * @param[in] points Borrowed array of nPoints translated GDI path points.
+ * @param[in] types Borrowed parallel array of nPoints GDI path types.
+ * @param[in] nPoints Positive number of initialized point entries; caller validates array bounds.
+ * @param[in] doFill Nonzero builds and fills a path; zero submits outline geometry directly.
+ * @param[in] doOutline Nonzero adds a stroke when filling; the outline-only path always uses PolyDraw.
  */
 static int DrawCirclePathBatch(HDC dc, const POINT *points, const BYTE *types, int nPoints, int doFill, int doOutline) {
     if (!doFill) {
@@ -790,6 +827,14 @@ void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymb
  * nPoints chooses fill vertices without closure or the complete outline.
  * Copies count polygons starting at first, widening existing short values
  * to LONG. Caller ensures all bounds and destination capacity.
+ *
+ * @param[out] points Writable POINT buffer with capacity for count times nPoints entries.
+ * @param[in] polygons Borrowed packed XPoint polygons; stride includes each polygon closure.
+ * @param[in] first Zero-based first polygon offset, not a vertex offset.
+ * @param[in] count Nonnegative number of polygons to copy; source bounds and products are caller-validated.
+ * @param[in] stride Positive XPoint entries per complete source polygon, including closure.
+ * @param[in] nPoints Vertices copied per polygon, no greater than stride; omit closure for fills or include it
+ *   for outlines.
  */
 static void LoadPolygonBatch(POINT *points, const XPoint *polygons, Tcl_Size first, Tcl_Size count, int stride,
                              int nPoints) {
@@ -1085,6 +1130,15 @@ int Rbc_NativePolygonPointCount(Display *display, Tcl_Size nPoints) {
  * Borrows DC and extracted colors. Clamps the bevel for tiny rectangles.
  * Draws left, right, top and bottom strips in Tk order; unsupported relief
  * draws nothing. Does not acquire a DC or retain color resources.
+ *
+ * @param[in,out] dc Borrowed destination DC with suitable mapping and selected pen/brush; not acquired or
+ *   released here.
+ * @param[in] colorsPtr Borrowed extracted flat/light/dark border colors, valid throughout drawing.
+ * @param[in] x Left destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] y Top destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] width Positive rectangle width in pixels; endpoint arithmetic must remain representable.
+ * @param[in] height Positive rectangle height in pixels; endpoint arithmetic must remain representable.
+ * @param[in] relief Tk relief selector; only TK_RELIEF_RAISED and TK_RELIEF_SUNKEN draw in this helper.
  */
 static void DrawWin3DRectangle1(HDC dc, const Rbc_Win3DBorderColors *colorsPtr, int x, int y, int width, int height,
                                 int relief) {
@@ -1138,6 +1192,15 @@ static void DrawWin3DRectangle1(HDC dc, const Rbc_Win3DBorderColors *colorsPtr, 
  * Requires dimensions greater than two; supports raised/sunken relief only.
  * Uses the historical flat/light/dark color selection and right, top, bottom,
  * left drawing order. Borrows DC and colors without allocating state.
+ *
+ * @param[in,out] dc Borrowed destination DC with suitable mapping and selected pen/brush; not acquired or
+ *   released here.
+ * @param[in] colorsPtr Borrowed extracted flat/light/dark border colors, valid throughout drawing.
+ * @param[in] x Left destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] y Top destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] width Positive rectangle width in pixels; endpoint arithmetic must remain representable.
+ * @param[in] height Positive rectangle height in pixels; endpoint arithmetic must remain representable.
+ * @param[in] relief Tk relief selector; only TK_RELIEF_RAISED and TK_RELIEF_SUNKEN draw in this helper.
  */
 static void DrawWinRbcOuter3DBorder(HDC dc, const Rbc_Win3DBorderColors *colorsPtr, int x, int y, int width, int height,
                                     int relief) {
@@ -1194,6 +1257,10 @@ static void DrawWinRbcOuter3DBorder(HDC dc, const Rbc_Win3DBorderColors *colorsP
  *
  * Returns the effective width using the same sequential width/height checks
  * as Tk. Callers supply positive bounded dimensions and border widths.
+ *
+ * @param[in] width Positive bounded rectangle width in pixels.
+ * @param[in] height Positive bounded rectangle height in pixels.
+ * @param[in] borderWidth Positive requested border width; result is limited by half each dimension.
  */
 static int Clamp3DBorderWidth(int width, int height, int borderWidth) {
     if (width < 2 * borderWidth) {

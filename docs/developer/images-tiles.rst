@@ -248,24 +248,24 @@ so geometry has already crossed the native short-coordinate boundary.
      - XFillPolygon uses Complex and CoordModeOrigin; transparency adds a
        polygon-sized one-bit clip mask.
 
-Windows TileRegion aligns the first repetition at or before the destination
-origin, then crops color copies along the boundary. Opaque copies use SRCCOPY.
-Masked copies use SRCAND followed by SRCPAINT, with destination text/background
-colors set for monochrome expansion. Source and mask DCs are borrowed by this
-inner helper; the enclosing shape function owns acquisition, selection and
-release. It restores the old source bitmap before deleting the memory DC.
+Windows :c:func:`rbcWindowsTiles.TileRegion` aligns the first repetition at or before
+the destination origin, then crops color copies along the boundary. Opaque copies use
+SRCCOPY. Masked copies use SRCAND followed by SRCPAINT, with destination text/background
+colors set for monochrome expansion. Source and mask DCs are borrowed by this inner
+helper; the enclosing shape function owns acquisition, selection and release. It
+restores the old source bitmap before deleting the memory DC.
 
 Windows masked copies use the same source coordinates for the mask and color
 passes, including cropped first rows and columns. The private tile harness
 checks resulting pixels against the tile origin for both positive and negative
 origins, including untouched pixels outside the requested rectangle.
 
-X11 RectangleMask translates the client origin into rectangle-local coordinates
-and fills an owned one-bit pixmap with FillOpaqueStippled. PolygonMask translates
-copied points into bounding-box coordinates, clears its bitmap, then uses
-FillStippled for the polygon interior. Both release temporary GCs and return
-pixmaps which the drawing caller must free. Transparency is represented by
-binary masks here, not continuous-alpha compositing.
+X11 RectangleMask translates the client origin into rectangle-local coordinates and
+fills an owned one-bit pixmap with FillOpaqueStippled.
+:c:func:`rbcTileMasks.PolygonMask` translates copied points into bounding-box
+coordinates, clears its bitmap, then uses FillStippled for the polygon interior. Both
+release temporary GCs and return pixmaps which the drawing caller must free.
+Transparency is represented by binary masks here, not continuous-alpha compositing.
 
 Masked X11 drawing temporarily installs that mask and its destination origin on
 the shared tile GC, then explicitly resets the clip to None and origin to zero.

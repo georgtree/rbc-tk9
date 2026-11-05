@@ -523,19 +523,48 @@
 <dt class="sig sig-object c" id="c.rbcTileMasks.RectangleMask">
 <span class="target" id="group__tile__native__masks_1gacd475b1f98104f76fe7887fa131c201e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RectangleMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xOrigin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">yOrigin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileMasks.RectangleMask" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build an X11 rectangle-sized repeating transparency mask. </p>
-<p>Requires positive dimensions and a valid one-bit stipple. Allocates a depth-one pixmap, fills it using FillOpaqueStippled at the client origin translated into mask-local coordinates, and releases the temporary private GC. Returns an owned pixmap for Tk_FreePixmap; does not modify the source mask or return an error status. </p>
+<p>Requires positive dimensions and a valid one-bit stipple. Allocates a depth-one pixmap, fills it using FillOpaqueStippled at the client origin translated into mask-local coordinates, and releases the temporary private GC. Returns an owned pixmap for Tk_FreePixmap; does not modify the source mask or return an error status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed live X display owning the supplied drawable and resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable compatible with the window/display; no ownership is transferred. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Left destination coordinate in pixels; coordinate arithmetic must remain representable. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Top destination coordinate in pixels; coordinate arithmetic must remain representable. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive rectangle width in pixels; endpoint arithmetic must remain representable. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive rectangle height in pixels; endpoint arithmetic must remain representable. </p></li>
+<li><p><strong>mask</strong> – <strong>[in]</strong> Borrowed valid depth-one repeating stipple; not consumed or modified. </p></li>
+<li><p><strong>xOrigin</strong> – <strong>[in]</strong> Horizontal tile origin in destination coordinates, translated into mask-local coordinates here. </p></li>
+<li><p><strong>yOrigin</strong> – <strong>[in]</strong> Vertical tile origin in destination coordinates, translated into mask-local coordinates here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileMasks.PolygonMask">
 <span class="target" id="group__tile__native__masks_1gae17db453d2aa8827dc1909971fd34b3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolygonMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="n"><span class="pre">Region2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">regionPtr</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xOrigin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">yOrigin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileMasks.PolygonMask" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build an X11 polygon-shaped repeating transparency mask. </p>
-<p>Uses the supplied inclusive bounding box to allocate a depth-one pixmap. Copies and translates XPoint coordinates, clears the mask with the default GC foreground, then draws a Complex polygon using FillStippled and the translated client origin. Frees temporary points and GC; returns an owned pixmap for Tk_FreePixmap. Requires a valid nonempty point array and bounds; translated coordinates are still stored as XPoint shorts. </p>
+<p>Uses the supplied inclusive bounding box to allocate a depth-one pixmap. Copies and translates XPoint coordinates, clears the mask with the default GC foreground, then draws a Complex polygon using FillStippled and the translated client origin. Frees temporary points and GC; returns an owned pixmap for Tk_FreePixmap. Requires a valid nonempty point array and bounds; translated coordinates are still stored as XPoint shorts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed live X display owning the supplied drawable and resources. </p></li>
+<li><p><strong>pointArr</strong> – <strong>[in]</strong> Borrowed nonempty array of nPoints absolute XPoint coordinates; not modified. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Positive number of initialized point entries; caller validates array bounds. </p></li>
+<li><p><strong>regionPtr</strong> – <strong>[in]</strong> Borrowed inclusive nonempty polygon bounds; translated coordinates must fit XPoint shorts. </p></li>
+<li><p><strong>mask</strong> – <strong>[in]</strong> Borrowed valid depth-one repeating stipple; not consumed or modified. </p></li>
+<li><p><strong>xOrigin</strong> – <strong>[in]</strong> Horizontal tile origin in destination coordinates, translated into mask-local coordinates here. </p></li>
+<li><p><strong>yOrigin</strong> – <strong>[in]</strong> Vertical tile origin in destination coordinates, translated into mask-local coordinates here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
-<p>The mask helper reference above describes X11. Windows TileRegion and DC
-batching are described in <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> and beside their definitions;
-the default Doxygen preprocessing selects the non-Windows implementation.</p>
+<p>The mask helper reference above describes X11. Windows tiled shapes and
+<a class="reference internal" href="native-windows-reference.html#c.rbcWindowsTiles.TileRegion" title="rbcWindowsTiles.TileRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsTiles.TileRegion()</span></code></a> are extracted separately in
+<a class="reference internal" href="native-windows-reference.html"><span class="doc">Windows native backend C reference</span></a>; see <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for origin and DC batching
+rules.</p>
 </section>
 <section id="storage-and-coordinate-implementation">
 <h2>Storage and coordinate implementation<a class="headerlink" href="#storage-and-coordinate-implementation" title="Link to this heading">¶</a></h2>

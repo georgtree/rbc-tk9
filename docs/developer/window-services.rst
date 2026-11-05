@@ -62,10 +62,10 @@ Native identifiers
 ------------------
 
 ``rbcWindow.c`` distinguishes a Tk client from its window-manager wrapper.
-Rbc_GetRealWindowId can realize the client and returns the parent for a
-toplevel. On Windows its result is a raw HWND cast to Window, not Tk's drawable
-wrapper. Passing that value to an API expecting a Tk drawable is incorrect.
-The winop snapshot path deliberately uses Tk_WindowId for Tk path arguments.
+:c:func:`Rbc_GetRealWindowId` can realize the client and returns the parent for a
+toplevel. On Windows its result is a raw HWND cast to Window, not Tk's drawable wrapper.
+Passing that value to an API expecting a Tk drawable is incorrect. The winop snapshot
+path deliberately uses Tk_WindowId for Tk path arguments.
 
 On X11 the helper queries the tree and releases the returned child array.
 If the parent lookup fails or returns None, the helper keeps the realized
@@ -96,13 +96,13 @@ is distinct from explicitly mapping it; these calls do not request mapping or
 wait for a window manager to finish reparenting it. A returned ID is therefore
 a current native identity, not a retained resource or a stable wrapper promise.
 
-On X11, ``rbcGetParent`` owns only the child-array allocation returned by
-XQueryTree. It frees that array before returning the parent ID. GetWindowId
-retains the realized client when the parent query fails. On Windows,
-GetWindowHandle uses Tk_GetHWND and GetParent directly; a NULL parent is not
-replaced by the client. The shared Window return type does not erase this
-platform difference. Callers needing Tk drawing operations must use Tk's own
-drawable token, not reinterpret a returned HWND as one.
+On X11, :c:func:`rbcWindowHelpers.rbcGetParent` owns only the child-array allocation
+returned by XQueryTree. It frees that array before returning the parent ID.
+:c:func:`rbcWindowHelpers.GetWindowId` retains the realized client when the parent query
+fails. On Windows, :c:func:`rbcWindowsHandles.GetWindowHandle` uses Tk_GetHWND and
+GetParent directly; a NULL parent is not replaced by the client. The shared Window
+return type does not erase this platform difference. Callers needing Tk drawing
+operations must use Tk's own drawable token, not reinterpret a returned HWND as one.
 
 Association storage is attached to the interpreter obtained from the supplied
 Tk window. It is not a global path-name registry: keys are Tk_Window pointer
@@ -111,12 +111,12 @@ allowed but indistinguishable from a missing entry through the lookup API.
 Replacing a payload neither calls its destructor nor informs its former owner.
 
 Deleting the final entry leaves the empty table attached to the interpreter.
-AssocDataCleanup eventually deletes hash entries and the table allocation; it
-does not visit, release or notify payloads. Owners must remove associations
-while their Tk windows are still live, before pointer identities can become
-stale or be reused. There is no reference acquisition, weak-reference mechanism
-or automatic per-window cleanup in this layer. These requirements also apply
-when lookup happens during component teardown or callbacks.
+:c:func:`rbcWindowHelpers.AssocDataCleanup` eventually deletes hash entries and the
+table allocation; it does not visit, release or notify payloads. Owners must remove
+associations while their Tk windows are still live, before pointer identities can become
+stale or be reused. There is no reference acquisition, weak-reference mechanism or
+automatic per-window cleanup in this layer. These requirements also apply when lookup
+happens during component teardown or callbacks.
 
 Maintenance checks
 ------------------

@@ -186,6 +186,8 @@ void Rbc_NativeEndTrace(Rbc_NativeTrace *ctx) {
  *
  * Adds or subtracts one half before int conversion. Requires finite input
  * within int range. This local helper is currently unused by X11 drawing.
+ *
+ * @param[in] x Finite coordinate whose adjustment by plus or minus one half fits int; no range check occurs.
  */
 INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 

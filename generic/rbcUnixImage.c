@@ -33,6 +33,9 @@
  * Returns width times height, including zero for an empty dimension. Negative dimensions or overflow
  * panic rather than returning a recoverable Tcl error. Does not check a later pixel-byte
  * multiplication or allocate storage.
+ *
+ * @param[in] width Nonnegative image width; a negative value causes Tcl_Panic.
+ * @param[in] height Nonnegative image height; a negative value or product overflow causes Tcl_Panic.
  */
 static size_t GetUnixImagePixelCount(int width, int height) {
     if ((width < 0) || (height < 0)) {
@@ -49,6 +52,8 @@ static size_t GetUnixImagePixelCount(int width, int height) {
  * @brief Compute bytes per tightly packed one-bit bitmap row.
  * Returns ceiling(width/8) using size_t arithmetic, including zero for width zero. Negative width
  * panics. This is byte packing, not the Windows DWORD-aligned bitmap stride.
+ *
+ * @param[in] width Nonnegative width in bits/pixels; zero returns zero bytes and a negative width panics.
  */
 static size_t GetPackedBitmapRowBytes(int width) {
     if (width < 0) {
@@ -63,6 +68,9 @@ static size_t GetPackedBitmapRowBytes(int width) {
  * Applies ceil and accepts only finite results from 1 through INT_MAX. Returns zero for invalid,
  * nonpositive or unrepresentable rounded dimensions. Does not allocate or set an interpreter
  * diagnostic.
+ *
+ * @param[in] value Geometric pixel extent to round upward; invalid or unrepresentable rounded dimensions return
+ *   zero.
  */
 static int GetBitmapDimension(double value) {
     value = ceil(value);
@@ -85,6 +93,8 @@ typedef struct {
  * @brief Find the lowest set bit in a 32-bit visual component mask.
  * Examines at most 32 positions and returns 32 when none is set. Caller supplies a nonzero valid
  * TrueColor mask before using the result as a shift. Does not allocate or inspect a display.
+ *
+ * @param[in] mask Visual component mask within the low 32 bits; no display resource ownership is involved.
  */
 static int ShiftCount(register unsigned int mask) {
     int count;
@@ -104,6 +114,8 @@ static int ShiftCount(register unsigned int mask) {
  * Uses parallel masked tallies over the low 32 bits, returning zero for a zero mask. The caller
  * supplies a visual component mask within that range. Runs during mask preparation, not once
  * per captured pixel.
+ *
+ * @param[in] mask Visual component mask within the low 32 bits; no display resource ownership is involved.
  */
 static int CountBits(register unsigned long mask) {
     /* 16  2-bit tallies */
@@ -127,6 +139,11 @@ static int CountBits(register unsigned long mask) {
  * without low-bit replication. Wider components discard low bits by increasing the extraction shift,
  * so ten-bit channels cannot index beyond the 256-entry gamma table. Eight-bit extraction is
  * unchanged. No display calls, shared mutable state or allocation occur.
+ *
+ * @param[in] visualPtr Borrowed TrueColor visual with valid nonzero contiguous RGB masks in a 32-bit pixel
+ *   layout.
+ * @param[out] masks Required caller-owned shift metadata; all extraction shifts and eight-bit adjustments are
+ *   assigned.
  */
 static void ComputeMasks(const Visual *visualPtr, TrueColorMasks *masks) {
     int count;
@@ -164,6 +181,10 @@ static void ComputeMasks(const Visual *visualPtr, TrueColorMasks *masks) {
  * Sets the retained integer slot to TCL_ERROR and returns zero to mark the error handled. Does not
  * inspect error fields, report Tcl diagnostics or release resources. The caller keeps the slot alive
  * until XSync has delivered errors and the temporary Tk handler is removed.
+ *
+ * @param[in,out] clientData Borrowed int status slot kept alive until XSync and handler removal; set to
+ *   TCL_ERROR.
+ * @param[in] errEventPtr Unused borrowed X error event; its fields are not inspected.
  */
 static int XGetImageErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     int *errorPtr = clientData;

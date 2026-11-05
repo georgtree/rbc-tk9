@@ -107,3 +107,18 @@ into Tk pixmap ownership. A handle returned by
 :c:func:`rbcWindowsResources.Rbc_WinGetPixmapHandle` is borrowed and must not be
 independently deleted. These ownership rules differ from the transient static
 window wrapper returned by :c:func:`rbcWindowsResources.Rbc_WinWindowFromHWND`.
+
+Tiled shapes
+-------------
+
+These contracts describe the Windows DC implementation, separately from the
+same-named X11 helpers in :doc:`image-tile-reference`. Origins and mask/color
+source offsets must agree across cropped copies; see :doc:`images-tiles`.
+
+.. c:namespace:: rbcWindowsTiles
+
+.. doxygengroup:: tile_windows_drawing
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::

@@ -36,6 +36,9 @@
  * Returns zero for nonpositive width or width too large for the alignment
  * addition. Otherwise returns ((width + 31) & ~31) / 8 bytes. Height and total
  * allocation-size validation remain with the caller.
+ *
+ * @param[in] width Requested monochrome width in pixels; nonpositive or alignment-overflowing values return
+ *   zero.
  */
 static int GetMonoBitmapStride(int width) {
     if ((width <= 0) || (width > INT_MAX - 31)) {
@@ -55,6 +58,16 @@ static int GetMonoBitmapStride(int width) {
  * Releases temporary bitmap/DC resources and any copied system palette.
  * Returns NULL on checked capture failures; caller frees a successful image
  * with Rbc_FreeColorImage. Not every GDI acquisition/selection is validated.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed source drawable compatible with tkwin; copied without ownership transfer.
+ * @param[in] x Source rectangle left coordinate in pixels.
+ * @param[in] y Source rectangle top coordinate in pixels.
+ * @param[in] width Positive rectangle width in pixels; endpoint arithmetic must remain representable.
+ * @param[in] height Positive rectangle height in pixels; endpoint arithmetic must remain representable.
+ * @param[in] inputGamma Finite positive exponent applied to normalized RGB channels; invalid values return
+ *   NULL.
  */
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma) {
@@ -171,6 +184,11 @@ done:
  * the existing photo-specific row traversal before CreateBitmapIndirect.
  * Returns an owned Tk pixmap, or None for all-opaque input, invalid dimensions
  * or bitmap creation failure. Releases temporary bits; caller frees the pixmap.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] src Photo-block descriptor copied by value; pixel storage is borrowed and must expose valid pitch,
+ *   pixelSize and alpha offset.
  */
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     Pixmap bitmap;
@@ -244,6 +262,10 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
  * source pixels in logical row order. Returns None for all-opaque input or
  * checked failure, otherwise an owned Tk pixmap to free with Tk_FreePixmap.
  * Temporary bit storage is released after wrapping the native bitmap.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] image Borrowed valid RBC color image; source pixels and alpha remain unchanged.
  */
 Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     Pixmap bitmap;
@@ -315,6 +337,18 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
  * checks. Frees readback bits and temporary storage; failed upload frees the
  * destination. Returns None on checked failure, otherwise owned pixmap and
  * dimensions. Caller releases the pixmap with Tk_FreePixmap.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] srcBitmap Borrowed monochrome source pixmap on the window display, readable at the supplied source
+ *   dimensions.
+ * @param[in] srcWidth Positive source bitmap width in pixels.
+ * @param[in] srcHeight Positive source bitmap height in pixels.
+ * @param[in] theta Finite rotation angle in degrees, normalized to a full turn internally.
+ * @param[out] destWidthPtr Required width output, separate from destHeightPtr; zeroed after initial validation
+ *   and assigned on success.
+ * @param[out] destHeightPtr Required height output, separate from destWidthPtr; initial validation failure
+ *   leaves it untouched.
  */
 Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, double theta, int *destWidthPtr,
                         int *destHeightPtr) {
@@ -571,6 +605,16 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
  * Returns None if pixmap allocation fails. This path does not validate sizes
  * or test DC acquisition and StretchBlt success separately; callers must
  * supply valid dimensions. A returned pixmap is not proof of successful copy.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] srcBitmap Borrowed monochrome source pixmap on the window display, readable at the supplied source
+ *   dimensions.
+ * @param[in] srcWidth Positive source bitmap width in pixels.
+ * @param[in] srcHeight Positive source bitmap height in pixels.
+ * @param[in] destWidth Positive destination bitmap width in pixels; caller validates native allocation limits.
+ * @param[in] destHeight Positive destination bitmap height in pixels; caller validates native allocation
+ *   limits.
  */
 Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int destWidth, int destHeight) {
     Rbc_WinDrawableDC *srcStatePtr;
@@ -607,6 +651,22 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
  * Callers must keep region offsets and coordinate arithmetic representable
  * and within the virtual image. Checks stride/storage limits and frees the
  * destination on checked readback/upload failure. Caller owns successful pixmap.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] srcBitmap Borrowed monochrome source pixmap on the window display, readable at the supplied source
+ *   dimensions.
+ * @param[in] srcWidth Positive source bitmap width in pixels.
+ * @param[in] srcHeight Positive source bitmap height in pixels.
+ * @param[in] regionX Left offset inside the virtual scaled/rotated image; the complete region must fit and
+ *   arithmetic must be representable.
+ * @param[in] regionY Top offset inside the virtual scaled/rotated image; the complete region must fit and
+ *   arithmetic must be representable.
+ * @param[in] regionWidth Positive width of the requested destination region in pixels.
+ * @param[in] regionHeight Positive height of the requested destination region in pixels.
+ * @param[in] virtWidth Positive width of the complete virtual image, not the allocated region.
+ * @param[in] virtHeight Positive height of the complete virtual image, not the allocated region.
+ * @param[in] theta Finite rotation angle in degrees, normalized to a full turn internally.
  */
 Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight,
                                    int regionX, int regionY, int regionWidth, int regionHeight,

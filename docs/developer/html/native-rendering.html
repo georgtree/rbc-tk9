@@ -295,12 +295,12 @@ perform layout, repair invalid geometry, or uniformly preserve GC state.</p>
 </tr>
 </tbody>
 </table>
-<p>For symbols smaller than three pixels, the current implementation draws all
-centers with the fill GC and returns before symbol-type or interval dispatch.
-Larger symbols preserve their historical templates and rounding: circle/square
-paths are platform batches, simple crosses are independent segments, and filled
-shapes use polygon templates. The helper named Round rounds ties away from zero;
-it assumes a finite result that fits int.</p>
+<p>For symbols smaller than three pixels, the current implementation draws all centers with
+the fill GC and returns before symbol-type or interval dispatch. Larger symbols preserve
+their historical templates and rounding: circle/square paths are platform batches,
+simple crosses are independent segments, and filled shapes use polygon templates. The
+helper named <a class="reference internal" href="native-reference.html#c.rbcNativeShared.Round" title="rbcNativeShared.Round"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeShared.Round()</span></code></a> rounds ties away from zero; it assumes a
+finite result that fits int.</p>
 <p>Native bar filling tests whether fillOpacity is positive; it does not implement
 fractional alpha blending here. Representable rectangles are batched; an
 out-of-range XRectangle flushes that batch before the wider-argument Xlib call.
@@ -315,12 +315,13 @@ already contains the required fill configuration.</p>
 </section>
 <section id="arc-strokes-and-arrowheads">
 <h2>Arc strokes and arrowheads<a class="headerlink" href="#arc-strokes-and-arrowheads" title="Link to this heading">¶</a></h2>
-<p>Arc strokes combine segments only when successive endpoints compare exactly
-equal. Each connected run becomes one XDrawLines request; a gap starts another
-request and therefore another native dash phase. The current path converts to
-short coordinates without the protocol clipping and request-size chunking used
-by DrawSegments. Its callers must supply bounded mapped runs. A failed outer
-allocation skips the stroke; a failed per-run allocation skips only that run.</p>
+<p>Arc strokes combine segments only when successive endpoints compare exactly equal. Each
+connected run becomes one XDrawLines request; a gap starts another request and therefore
+another native dash phase. The current path converts to short coordinates without the
+protocol clipping and request-size chunking used by
+<a class="reference internal" href="native-reference.html#c.rbcNativeShared.DrawSegments" title="rbcNativeShared.DrawSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeShared.DrawSegments()</span></code></a>. Its callers must supply bounded mapped runs. A
+failed outer allocation skips the stroke; a failed per-run allocation skips only that
+run.</p>
 <p>Arrowheads instead retain floating-point vertices until scan conversion. At each
 integer row, half-open edges avoid counting shared vertices twice; sorted
 intersections define filled pixel spans. The helper clips spans to graph and
@@ -687,6 +688,52 @@ strips trailing line endings and supplies a numeric fallback, but uses the ANSI
 FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl
 interface must account for lifetime and encoding separately.</p>
 </section>
+<section id="internal-template-and-buffer-contracts">
+<h2>Internal template and buffer contracts<a class="headerlink" href="#internal-template-and-buffer-contracts" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.GetCirclePathTemplate" title="rbcNativeWindows.GetCirclePathTemplate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.GetCirclePathTemplate()</span></code></a> owns the temporary GDI path and
+transfers two allocated arrays only on success. Its radius must keep
+<code class="docutils literal notranslate"><span class="pre">2*radius+1</span></code> representable; the function rejects a nonpositive radius but is
+not an arbitrary-integer overflow checker. Release both arrays with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>.
+<a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.LoadCirclePath" title="rbcNativeWindows.LoadCirclePath"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.LoadCirclePath()</span></code></a> then translates that template into
+caller-sized buffers without allocating or checking capacity.
+<a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawCirclePathBatch" title="rbcNativeWindows.DrawCirclePathBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.DrawCirclePathBatch()</span></code></a> borrows those buffers and the
+selected DC resources. The caller decides whether a failed batch may safely be
+replayed through <a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawCircleCentersDirect" title="rbcNativeWindows.DrawCircleCentersDirect"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.DrawCircleCentersDirect()</span></code></a>.</p>
+<p><a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.LoadPolygonBatch" title="rbcNativeWindows.LoadPolygonBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.LoadPolygonBatch()</span></code></a> uses polygon offsets and a source
+stride that includes closure, while its per-polygon copy count may omit closure
+for filling. It widens existing <code class="docutils literal notranslate"><span class="pre">XPoint</span></code> shorts into <code class="docutils literal notranslate"><span class="pre">POINT</span></code> coordinates;
+it cannot recover precision already lost before entry. Destination capacity
+and source bounds belong to the caller.</p>
+<p>The bevel helpers <a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawWin3DRectangle1" title="rbcNativeWindows.DrawWin3DRectangle1"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.DrawWin3DRectangle1()</span></code></a> and
+<a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.DrawWinRbcOuter3DBorder" title="rbcNativeWindows.DrawWinRbcOuter3DBorder"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.DrawWinRbcOuter3DBorder()</span></code></a> borrow extracted colors and a
+prepared DC. <a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Clamp3DBorderWidth" title="rbcNativeWindows.Clamp3DBorderWidth"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Clamp3DBorderWidth()</span></code></a> limits an already valid
+positive width against the rectangle dimensions. The shared
+<a class="reference internal" href="native-reference.html#c.rbcNativeShared.Fill3DRectangle" title="rbcNativeShared.Fill3DRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeShared.Fill3DRectangle()</span></code></a> retains the historical outer-border
+adjustment before delegating the remaining fill to Tk.</p>
+<section id="bitmap-packing-and-output-ownership">
+<h3>Bitmap packing and output ownership<a class="headerlink" href="#bitmap-packing-and-output-ownership" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.GetMonoBitmapStride" title="rbcWindowsImages.GetMonoBitmapStride"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.GetMonoBitmapStride()</span></code></a> returns DWORD-aligned row bytes;
+<a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetPackedBitmapRowBytes" title="rbcX11Image.GetPackedBitmapRowBytes"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetPackedBitmapRowBytes()</span></code></a> returns tightly packed row bytes.
+Neither alone validates the complete image allocation. The X11 pixel-count
+helper <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetUnixImagePixelCount" title="rbcX11Image.GetUnixImagePixelCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetUnixImagePixelCount()</span></code></a> checks dimension multiplication,
+while <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetBitmapDimension" title="rbcX11Image.GetBitmapDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetBitmapDimension()</span></code></a> converts a finite rounded extent.
+These helpers have different failure contracts: panic, zero result and ordinary
+status-returning callers must not be treated interchangeably.</p>
+<p><a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_RotateBitmap" title="rbcWindowsImages.Rbc_RotateBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_RotateBitmap()</span></code></a> assigns output dimensions only after
+its initial argument validation; subsequent checked failure leaves them zero.
+<a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_ScaleRotateBitmapRegion" title="rbcWindowsImages.Rbc_ScaleRotateBitmapRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_ScaleRotateBitmapRegion()</span></code></a> expects a region within the
+virtual image, especially for exact quadrant mappings. A successful returned
+pixmap is owned by the caller. In contrast,
+<a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_ScaleBitmap" title="rbcWindowsImages.Rbc_ScaleBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_ScaleBitmap()</span></code></a> does not independently report a failed
+<code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code>: a non-None pixmap alone is not proof of a successful copy.</p>
+<p><a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_PhotoImageMask" title="rbcWindowsImages.Rbc_PhotoImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_PhotoImageMask()</span></code></a> borrows a photo block’s pixels even
+though the descriptor is passed by value.
+<a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_ColorImageMask" title="rbcWindowsImages.Rbc_ColorImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_ColorImageMask()</span></code></a> similarly borrows the color image.
+Both represent exactly transparent pixels with a binary mask; partial alpha
+is opaque for these operations. <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_DrawableToColorImage" title="rbcWindowsImages.Rbc_DrawableToColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_DrawableToColorImage()</span></code></a>
+instead returns a newly owned, fully opaque color image after gamma conversion.</p>
+</section>
+</section>
 </section>
 
 
@@ -722,6 +769,10 @@ interface must account for lifetime and encoding separately.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#windows-bitmap-capture-and-transforms">Windows bitmap capture and transforms</a></li>
+<li><a class="reference internal" href="#internal-template-and-buffer-contracts">Internal template and buffer contracts</a><ul>
+<li><a class="reference internal" href="#bitmap-packing-and-output-ownership">Bitmap packing and output ownership</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

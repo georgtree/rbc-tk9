@@ -17,6 +17,7 @@
 #include "rbcTile.h"
 
 /**
+ * @defgroup tile_windows_drawing Windows tiled shape drawing
  * @defgroup tile_lifecycle Tile cache lifecycle
  * @brief Interpreter registries, native cache refresh and client notifications.
  */
@@ -717,6 +718,18 @@ void Rbc_SetTSOrigin(Tk_Window tkwin, TileClient *clientPtr, int x, int y) {
  * copies combine SRCAND and SRCPAINT with matching mask/color source offsets
  * at cropped tile boundaries. Does not
  * acquire/release DCs or report BitBlt failure.
+ *
+ * @param[in] srcDC Borrowed memory DC with the cached tile color bitmap selected.
+ * @param[in,out] destDC Borrowed destination DC receiving repeated clipped copies; clipping/mapping state is
+ *   established by the caller.
+ * @param[in] maskDC Borrowed matching monochrome-mask DC, or NULL for opaque SRCCOPY.
+ * @param[in] clientPtr Borrowed live tile client with current cached pixmap, positive tile dimensions and
+ *   destination-relative origin.
+ * @param[in] x Left destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] y Top destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] width Positive rectangle width in pixels; endpoint arithmetic must remain representable.
+ * @param[in] height Positive rectangle height in pixels; endpoint arithmetic must remain representable.
+ * @ingroup tile_windows_drawing
  */
 static void TileRegion(HDC srcDC, HDC destDC, HDC maskDC, TileClient *clientPtr, int x, int y, int width, int height) {
     Tile *tilePtr = clientPtr->tilePtr;
@@ -817,6 +830,16 @@ static void TileRegion(HDC srcDC, HDC destDC, HDC maskDC, TileClient *clientPtr,
  * rule and tiles the bounds. Restores bitmap selection, deletes temporary
  * DC/region and releases acquired DCs. Explicitly clears the polygon clip
  * before release; does not report allocation or native drawing failures.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed destination drawable compatible with the window/display; no ownership is
+ *   transferred.
+ * @param[in] clientPtr Borrowed live tile client with current cached pixmap, positive tile dimensions and
+ *   destination-relative origin.
+ * @param[in] pointArr Borrowed nonempty array of nPoints absolute XPoint coordinates; not modified.
+ * @param[in] nPoints Positive number of initialized point entries; caller validates array bounds.
+ * @ingroup tile_windows_drawing
  */
 void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XPoint pointArr[], int nPoints) {
     HBITMAP oldBitmap;
@@ -903,6 +926,17 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
  * acquires the mask DC for TileRegion. Restores the selected bitmap, deletes
  * the memory DC and releases acquired DCs. Native API failures are not
  * propagated; no tile refresh or window ownership is acquired.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed compatible destination drawable; None causes no drawing.
+ * @param[in] clientPtr Borrowed live tile client with current cached pixmap, positive tile dimensions and
+ *   destination-relative origin.
+ * @param[in] x Left destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] y Top destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] width Destination width in pixels; nonpositive values cause no drawing.
+ * @param[in] height Destination height in pixels; nonpositive values cause no drawing.
+ * @ingroup tile_windows_drawing
  */
 void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, int width, int height) {
     HBITMAP oldBitmap;
@@ -946,6 +980,15 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
  * and calls TileRegion for each rectangle. Restores bitmap selection and
  * releases DCs after the batch. Borrows the array; uses client-stored origin
  * and requires usable cached tile resources.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed compatible destination drawable; None causes no drawing.
+ * @param[in] clientPtr Borrowed live tile client with current cached pixmap, positive tile dimensions and
+ *   destination-relative origin.
+ * @param[in] rectArr Borrowed array of nRectangles absolute rectangles; NULL causes no drawing.
+ * @param[in] nRectangles Rectangle count; nonpositive counts cause no drawing.
+ * @ingroup tile_windows_drawing
  */
 void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XRectangle rectArr[],
                         Tcl_Size nRectangles) {
@@ -1006,6 +1049,19 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
  * translated into mask-local coordinates, and releases the temporary private
  * GC. Returns an owned pixmap for Tk_FreePixmap; does not modify the source
  * mask or return an error status.
+ *
+ * @param[in] display Borrowed live X display owning the supplied drawable and resources.
+ * @param[in] drawable Borrowed destination drawable compatible with the window/display; no ownership is
+ *   transferred.
+ * @param[in] x Left destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] y Top destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] width Positive rectangle width in pixels; endpoint arithmetic must remain representable.
+ * @param[in] height Positive rectangle height in pixels; endpoint arithmetic must remain representable.
+ * @param[in] mask Borrowed valid depth-one repeating stipple; not consumed or modified.
+ * @param[in] xOrigin Horizontal tile origin in destination coordinates, translated into mask-local coordinates
+ *   here.
+ * @param[in] yOrigin Vertical tile origin in destination coordinates, translated into mask-local coordinates
+ *   here.
  */
 static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, int width, int height, Pixmap mask,
                             int xOrigin, int yOrigin) {
@@ -1036,6 +1092,16 @@ static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, i
  * installs it on the shared server GC, fills, resets clip mask/origin to
  * None/zero and frees the mask. Does not preserve a previously installed
  * server-GC clip or force tile refresh.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed compatible destination drawable; None causes no drawing.
+ * @param[in,out] clientPtr Borrowed live client with usable cached tile resources; shared GC clip state may be
+ *   changed and reset during masked drawing.
+ * @param[in] x Left destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] y Top destination coordinate in pixels; coordinate arithmetic must remain representable.
+ * @param[in] width Destination width in pixels; nonpositive values cause no drawing.
+ * @param[in] height Destination height in pixels; nonpositive values cause no drawing.
  */
 void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, int width, int height) {
     Tile *tilePtr;
@@ -1070,6 +1136,14 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
  * XFillRectangles in request-sized chunks while retaining Tcl_Size offsets.
  * If no rectangle fits the reported request limit, returns without drawing.
  * Borrows array and tile resources; does not refresh the cache.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed compatible destination drawable; None causes no drawing.
+ * @param[in,out] clientPtr Borrowed live client with usable cached tile resources; shared GC clip state may be
+ *   changed and reset during masked drawing.
+ * @param[in] rectArr Borrowed array of nRectangles absolute rectangles; NULL causes no drawing.
+ * @param[in] nRectangles Rectangle count; nonpositive counts cause no drawing.
  */
 void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XRectangle rectArr[],
                         Tcl_Size nRectangles) {
@@ -1119,6 +1193,17 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
  * translated client origin. Frees temporary points and GC; returns an owned
  * pixmap for Tk_FreePixmap. Requires a valid nonempty point array and bounds;
  * translated coordinates are still stored as XPoint shorts.
+ *
+ * @param[in] display Borrowed live X display owning the supplied drawable and resources.
+ * @param[in] pointArr Borrowed nonempty array of nPoints absolute XPoint coordinates; not modified.
+ * @param[in] nPoints Positive number of initialized point entries; caller validates array bounds.
+ * @param[in] regionPtr Borrowed inclusive nonempty polygon bounds; translated coordinates must fit XPoint
+ *   shorts.
+ * @param[in] mask Borrowed valid depth-one repeating stipple; not consumed or modified.
+ * @param[in] xOrigin Horizontal tile origin in destination coordinates, translated into mask-local coordinates
+ *   here.
+ * @param[in] yOrigin Vertical tile origin in destination coordinates, translated into mask-local coordinates
+ *   here.
  */
 static Pixmap PolygonMask(Display *display, XPoint *pointArr, int nPoints, Region2D *regionPtr, Pixmap mask,
                           int xOrigin, int yOrigin) {
@@ -1159,6 +1244,15 @@ static Pixmap PolygonMask(Display *display, XPoint *pointArr, int nPoints, Regio
  * computes inclusive bounds, installs PolygonMask on the shared GC, fills,
  * resets clip mask/origin to None/zero and frees the temporary mask. Unlike
  * rectangle helpers this path does not reject None or empty input itself.
+ *
+ * @param[in] tkwin Borrowed live Tk window on its owning thread, supplying the interpreter/display and native
+ *   resource context.
+ * @param[in] drawable Borrowed destination drawable compatible with the window/display; no ownership is
+ *   transferred.
+ * @param[in,out] clientPtr Borrowed live client with usable cached tile resources; shared GC clip state may be
+ *   changed and reset during masked drawing.
+ * @param[in] pointArr Borrowed nonempty array of nPoints absolute XPoint coordinates; not modified.
+ * @param[in] nPoints Positive number of initialized point entries; caller validates array bounds.
  */
 void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XPoint pointArr[], int nPoints) {
     Tile *tilePtr;

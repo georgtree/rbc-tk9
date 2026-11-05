@@ -146,14 +146,40 @@ component resources or perform graph layout.</p>
 <dt class="sig sig-object c" id="c.rbcNativeShared.DrawSegments">
 <span class="target" id="group__native__shared__drawing_1gaf3da6a70780e8ad91c9d997437eefada"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.DrawSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw independent segments in bounded X requests. </p>
-<p>Borrows the display, drawable, GC and input array. Ignores absent display/ segments or nonpositive counts. Allocates one request-sized XSegment buffer; clips endpoints to signed-short protocol bounds before truncating to short. Returns without drawing if capacity or allocation fails; frees workspace. This protocol clipping does not replace the owning component plot clip. </p>
+<p>Borrows the display, drawable, GC and input array. Ignores absent display/ segments or nonpositive counts. Allocates one request-sized XSegment buffer; clips endpoints to signed-short protocol bounds before truncating to short. Returns without drawing if capacity or allocation fails; frees workspace. This protocol clipping does not replace the owning component plot clip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed live display, or NULL to skip drawing. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable compatible with the window/display; no ownership is transferred. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC compatible with the destination drawable. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed array of nSegments double-coordinate segments, or NULL to skip drawing. </p></li>
+<li><p><strong>nSegments</strong> – <strong>[in]</strong> Segment count; nonpositive counts draw nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeShared.Fill3DRectangle">
 <span class="target" id="group__native__shared__drawing_1gad18fe007dad95d68c4f1de1fef8cf8a5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Fill3DRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Fill3DRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a rectangle with the historical native relief adjustment. </p>
-<p>Borrows the window and border. For raised/sunken borders wider than one pixel and rectangles larger than two pixels, draws the outer four lines, shrinks the rectangle and delegates the remainder to Tk. X11 uses the default GC for one outer shade; Windows uses the corresponding border GC. Does not allocate or release the borrowed border GCs. </p>
+<p>Borrows the window and border. For raised/sunken borders wider than one pixel and rectangles larger than two pixels, draws the outer four lines, shrinks the rectangle and delegates the remainder to Tk. X11 uses the default GC for one outer shade; Windows uses the corresponding border GC. Does not allocate or release the borrowed border GCs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window on its owning thread, supplying the interpreter/display and native resource context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination drawable compatible with the window/display; no ownership is transferred. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed Tk 3D border on the window display; border GCs are neither retained nor freed. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Left destination coordinate in pixels; coordinate arithmetic must remain representable. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Top destination coordinate in pixels; coordinate arithmetic must remain representable. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive rectangle width in pixels; endpoint arithmetic must remain representable. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive rectangle height in pixels; endpoint arithmetic must remain representable. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Positive requested bevel width in pixels, bounded before use by the caller. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief passed to the final Tk fill; raised/sunken may receive the historical outer-layer adjustment. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -372,7 +398,14 @@ component resources or perform graph layout.</p>
 <dt class="sig sig-object c" id="c.rbcNativeShared.Round">
 <span class="target" id="group__native__shared__drawing_1ga7e1f054b83999d92f7e25e02fecbab55"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Round</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeShared.Round" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round a representable symbol coordinate away from zero at ties. </p>
-<p>Adds or subtracts one half before conversion to int. Requires a finite value whose adjusted result fits int; this is not a general range check. </p>
+<p>Adds or subtracts one half before conversion to int. Requires a finite value whose adjusted result fits int; this is not a general range check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite coordinate whose adjustment by plus or minus one half fits int; no range check occurs. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -698,7 +731,14 @@ Free the X11 trace allocation.</p>
 <dt class="sig sig-object c" id="c.rbcNativeX11.Round">
 <span class="target" id="group__native__x11__drawing_1ga7e1f054b83999d92f7e25e02fecbab55"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Round</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeX11.Round" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round a representable coordinate away from zero at ties. </p>
-<p>Adds or subtracts one half before int conversion. Requires finite input within int range. This local helper is currently unused by X11 drawing. </p>
+<p>Adds or subtracts one half before int conversion. Requires finite input within int range. This local helper is currently unused by X11 drawing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite coordinate whose adjustment by plus or minus one half fits int; no range check occurs. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
