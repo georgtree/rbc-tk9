@@ -132,7 +132,7 @@ Extents describe data bounds for axis scaling; mapping prepares display
 geometry; normal and active drawing consume it. Export and legend-symbol
 operations have separate callbacks. Closest-point callbacks report through
 <code class="docutils literal notranslate"><span class="pre">ClosestSearch</span></code>, including data coordinates and an original data index.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_MapElements</span></code> walks the display list, skipping hidden and plot-hidden
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.Rbc_MapElements" title="rbcGrElemLifecycle.Rbc_MapElements"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.Rbc_MapElements()</span></code></a> walks the display list, skipping hidden and plot-hidden
 elements. It remaps when the graph requests all items or the element has
 <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code> set. Each mapping call runs within a paired track viewport scope,
 and the item flag is cleared afterward. Native remapping also records a graph
@@ -149,7 +149,7 @@ have their own geometry and must not be mistaken for plot pixels by image tests.
 </section>
 <section id="destruction">
 <h2>Destruction<a class="headerlink" href="#destruction" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ReleaseElementResources</span></code> clears borrowed configuration arguments and invokes
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.ReleaseElementResources" title="rbcGrElemLifecycle.ReleaseElementResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.ReleaseElementResources()</span></code></a> clears borrowed configuration arguments and invokes
 the concrete destructor before freeing Tk-managed option resources. Derived
 GCs may still refer to colors, fonts or bitmaps owned by the option table.
 The concrete destructor is called even after failed option initialization:
@@ -407,26 +407,26 @@ snapshot is released on success and failure. Existing unrelated/stale fields
 other than the six optional error fields retain their previous behavior.</p>
 <p>GetIndex receives a captured point count before evaluating non-<code class="docutils literal notranslate"><span class="pre">end</span></code> input
 as a Tcl expression. It converts the result to Tcl_Size and checks against those
-captured bounds. ActivateOp supplies lifetime protection and checks all staged indices against
+captured bounds. <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ActivateOp" title="rbcGrElemCommands.ActivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ActivateOp()</span></code></a> supplies lifetime protection and checks all staged indices against
 current lengths before commit. Exact <code class="docutils literal notranslate"><span class="pre">end</span></code> avoids expression
 evaluation; empty elements are rejected before either path.</p>
 </section>
 <section id="registry-and-display-list-ownership">
 <h2>Registry and display-list ownership<a class="headerlink" href="#registry-and-display-list-ownership" title="Link to this heading">¶</a></h2>
 <p>The element registry owns records; the display chain contains borrowed pointers.
-NameToElement searches the registry without filtering visibility. Creating an
+<a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.NameToElement" title="rbcGrElemLifecycle.NameToElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.NameToElement()</span></code></a> searches the registry without filtering visibility. Creating an
 element reserves its registry entry before initializing options, then configures
 both defaults and explicit arguments. Failure destroys the partial record.
 Success prepends the record to the display list and invalidates mapping and axes.
 Trackgraphs accept line, strip and bar elements through this shared path.</p>
-<p>RebuildDisplayList parses the complete Tcl list before replacing membership.
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.RebuildDisplayList" title="rbcGrElemLifecycle.RebuildDisplayList"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.RebuildDisplayList()</span></code></a> parses the complete Tcl list before replacing membership.
 Malformed syntax leaves the old list intact. Successful parsing clears the chain
 and marks every registered element hidden, then appends recognized names in input
 order and unhides them. Unknown names are ignored; repeated names retain only
 their first occurrence. The temporary hidden state doubles as the membership
 check, so rebuilding needs no additional set or repeated chain scans. This is not
 deletion: omitted elements remain addressable in the registry.</p>
-<p>DestroyElement removes bindings, legend references, resources, all matching
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.DestroyElement" title="rbcGrElemLifecycle.DestroyElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.DestroyElement()</span></code></a> removes bindings, legend references, resources, all matching
 chain links and the registry entry before freeing the name and record. Rebuilding
 maintains unique membership; destruction also defensively removes every borrowed
 reference, saving the next link before unlinking the current one. Redraw is queued
@@ -434,22 +434,22 @@ once when a non-hidden element was displayed.</p>
 </section>
 <section id="option-initialization-and-resource-lifetime">
 <h2>Option initialization and resource lifetime<a class="headerlink" href="#option-initialization-and-resource-lifetime" title="Link to this heading">¶</a></h2>
-<p>InitElementOptions obtains the element component resource name and uses class
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.InitElementOptions" title="rbcGrElemLifecycle.InitElementOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.InitElementOptions()</span></code></a> obtains the element component resource name and uses class
 <code class="docutils literal notranslate"><span class="pre">Element</span></code>. It is a no-op after successful initialization. If Tk option setup
 fails, it frees partially initialized option values and the option table; the
 concrete constructor’s own allocations still need destruction.</p>
-<p>ConfigureElementOptions retains Tk saved options while validating track ownership
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.ConfigureElementOptions" title="rbcGrElemLifecycle.ConfigureElementOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.ConfigureElementOptions()</span></code></a> retains Tk saved options while validating track ownership
 and running concrete configuration. Trackgraph Y axes must belong to the selected
 track; a nonempty track is rejected on ordinary graphs. The original argument
 vector and option mask are borrowed transaction context, cleared before restoring
 options on failure or releasing saved options on success. Concrete configuration
 must still stage derived resources: Tk rollback alone cannot undo arbitrary writes
 to live C fields. The optional output mask is written only on success.</p>
-<p>Resource teardown and record teardown are separate. Rbc_ReleaseElementTkResources
+<p>Resource teardown and record teardown are separate. <a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.Rbc_ReleaseElementTkResources" title="rbcGrElemLifecycle.Rbc_ReleaseElementTkResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.Rbc_ReleaseElementTkResources()</span></code></a>
 walks the registry while the Tk window remains usable, including elements omitted
-from the display list. Repeated resource release is guarded. Rbc_DestroyElements
+from the display list. Repeated resource release is guarded. <a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.Rbc_DestroyElements" title="rbcGrElemLifecycle.Rbc_DestroyElements"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.Rbc_DestroyElements()</span></code></a>
 later destroys records without deleting hash entries during hash traversal, then
-deletes both hash tables and the display chain. DestroyElement releases resources
+deletes both hash tables and the display chain. <a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.DestroyElement" title="rbcGrElemLifecycle.DestroyElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.DestroyElement()</span></code></a> releases resources
 and registry membership immediately, but uses Tcl_EventuallyFree for the record
 itself so an activation callback can retain its identity until validation ends.
 Preservation does not keep released resources usable. That final container destruction
@@ -469,7 +469,7 @@ only the diagnostic element comments are PostScript-specific. Viewport entry and
 renderer clipping are separate, balanced scopes. Scrolled tracks and track bar
 elements use the full-callback clip; other paths retain their existing concrete
 clipping behavior.</p>
-<p>Rbc_GraphUpdateNeeded is deliberately narrower than a general redraw predicate.
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.Rbc_GraphUpdateNeeded" title="rbcGrElemLifecycle.Rbc_GraphUpdateNeeded"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.Rbc_GraphUpdateNeeded()</span></code></a> is deliberately narrower than a general redraw predicate.
 It checks pending X/Y vector notifications only for visible display-list elements.
 It neither processes notifications nor synchronizes arrays, and does not inspect
 weights, error inputs or concrete polar data slots. Callers needing current data
@@ -478,7 +478,7 @@ as proof that every input is current.</p>
 </section>
 <section id="command-dispatch-and-query-domains">
 <h2>Command dispatch and query domains<a class="headerlink" href="#command-dispatch-and-query-domains" title="Link to this heading">¶</a></h2>
-<p>Rbc_ElementOp validates the operation and argument count using the typed elemOps
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.Rbc_ElementOp" title="rbcGrElemCommands.Rbc_ElementOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.Rbc_ElementOp()</span></code></a> validates the operation and argument count using the typed elemOps
 table before calling a handler. The supplied class UID selects creation behavior;
 most other handlers operate on the named record regardless of that UID. This
 entry point does not add record lifetime protection around Tcl evaluation.</p>
@@ -511,38 +511,38 @@ entry point does not add record lifetime protection around Tcl evaluation.</p>
 </tr>
 </tbody>
 </table>
-<p>GetOp currently treats an unsupported selector as a successful no-result operation,
-not an error. It does not perform picking. CgetOp delegates to Tk option-value
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.GetOp" title="rbcGrElemCommands.GetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.GetOp()</span></code></a> currently treats an unsupported selector as a successful no-result operation,
+not an error. It does not perform picking. <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.CgetOp" title="rbcGrElemCommands.CgetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.CgetOp()</span></code></a> delegates to Tk option-value
 retrieval; configure queries use Tk option-information retrieval instead.</p>
 </section>
 <section id="binding-tokens">
 <h2>Binding tokens<a class="headerlink" href="#binding-tokens" title="Link to this heading">¶</a></h2>
-<p>Rbc_MakeElementTag interns a string in the graph’s element tag table and returns
-the table-owned key as the binding token. Rbc_AppendElementBindingTags appends
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.Rbc_MakeElementTag" title="rbcGrElemCommands.Rbc_MakeElementTag"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.Rbc_MakeElementTag()</span></code></a> interns a string in the graph’s element tag table and returns
+the table-owned key as the binding token. <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.Rbc_AppendElementBindingTags" title="rbcGrElemCommands.Rbc_AppendElementBindingTags"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.Rbc_AppendElementBindingTags()</span></code></a> appends
 name, class and configured tags in that order. It neither clears the receiving
 list nor removes repeated tags. These helpers assemble lookup keys; they do not
 run binding scripts. Tokens remain valid until the tag table is destroyed.
-BindOp may intern a new tag even when subsequent binding configuration fails.</p>
+<a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.BindOp" title="rbcGrElemCommands.BindOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.BindOp()</span></code></a> may intern a new tag even when subsequent binding configuration fails.</p>
 </section>
 <section id="mutation-boundaries">
 <h2>Mutation boundaries<a class="headerlink" href="#mutation-boundaries" title="Link to this heading">¶</a></h2>
-<p>ConfigureOp resolves the leading names before mutation, then configures them
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ConfigureOp" title="rbcGrElemCommands.ConfigureOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ConfigureOp()</span></code></a> resolves the leading names before mutation, then configures them
 sequentially. Each element has its own Tk/derived-resource transaction; a failure
 on a later element does not roll back earlier ones. Queries with several names
 return information for the first one. Successful mutations synchronize hidden
 state with display membership and invalidate axes, mapping and layout. The final
 redraw scheduling is reached only after the loop completes successfully.</p>
-<p>DeleteOp and DeactivateOp instead resolve and act on each name in sequence.
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.DeleteOp" title="rbcGrElemCommands.DeleteOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.DeleteOp()</span></code></a> and <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.DeactivateOp" title="rbcGrElemCommands.DeactivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.DeactivateOp()</span></code></a> instead resolve and act on each name in sequence.
 A later missing name leaves earlier changes in place. Repeated deletion names
 therefore produce an error after the first deletion. Deactivation clears the
 active flag and owned index array; if a later lookup fails, its final redraw
 request is not reached. These operations do not promise command-wide atomicity.</p>
-<p>ActivateOp stages explicit indices before replacing the old selection. Allocation
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ActivateOp" title="rbcGrElemCommands.ActivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ActivateOp()</span></code></a> stages explicit indices before replacing the old selection. Allocation
 or ordinary conversion failure frees the candidate without changing the old
 selection. No explicit indices means whole-element activation, represented by a
 count of -1. Explicit indices retain order and duplicates, and successful commit
 sets both ELEM_ACTIVE and ACTIVE_PENDING.</p>
-<p>Index expressions may invoke application code. ActivateOp preserves the element
+<p>Index expressions may invoke application code. <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ActivateOp" title="rbcGrElemCommands.ActivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ActivateOp()</span></code></a> preserves the element
 record during evaluation, while the widget dispatcher preserves the graph.
 After each successful evaluation it checks window existence and the element’s
 resource-release flag before accessing data again. Deletion, same-name recreation,
@@ -564,19 +564,19 @@ successful outer command then replaces that selection with its own candidate.</p
 </section>
 <section id="closest-search-phases">
 <h2>Closest-search phases<a class="headerlink" href="#closest-search-phases" title="Link to this heading">¶</a></h2>
-<p>ClosestOp synchronizes common data inputs and resets axes when requested before
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ClosestOp" title="rbcGrElemCommands.ClosestOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ClosestOp()</span></code></a> synchronizes common data inputs and resets axes when requested before
 parsing coordinates and switches. It does not map dirty elements as part of the
 search: records marked MAP_ITEM or with pending X/Y notifications are skipped.
 Explicit hidden or unplotted names cause an error; an implicit search skips them
 and visits the display chain in reverse. Track eligibility additionally requires
 a noncollapsed viewport containing the query position.</p>
-<p>ParseClosestOptions starts at argument six and accepts unambiguous switch
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ParseClosestOptions" title="rbcGrElemCommands.ParseClosestOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ParseClosestOptions()</span></code></a> starts at argument six and accepts unambiguous switch
 abbreviations. Direction values must be exactly x, y or both; halo values use
 nonnegative screen-distance conversion; interpolation uses Tcl boolean parsing.
 Parsing stops at the first non-option or after –. It updates a local search
 record incrementally, so parse failure need not roll back already parsed fields.
 The final hit comparison is strictly less than the halo, not less than or equal.</p>
-<p>Search and metadata collection finish before PublishClosestInfo runs any array
+<p>Search and metadata collection finish before <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.PublishClosestInfo" title="rbcGrElemCommands.PublishClosestInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.PublishClosestInfo()</span></code></a> runs any array
 traces. The caller retains the result dictionary while publication clears six
 optional error fields and writes the snapshot. A miss writes an empty name;
 other old metadata fields are not generally erased. A write error preserves

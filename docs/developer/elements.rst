@@ -99,7 +99,7 @@ geometry; normal and active drawing consume it. Export and legend-symbol
 operations have separate callbacks. Closest-point callbacks report through
 ``ClosestSearch``, including data coordinates and an original data index.
 
-``Rbc_MapElements`` walks the display list, skipping hidden and plot-hidden
+:c:func:`rbcGrElemLifecycle.Rbc_MapElements` walks the display list, skipping hidden and plot-hidden
 elements. It remaps when the graph requests all items or the element has
 ``MAP_ITEM`` set. Each mapping call runs within a paired track viewport scope,
 and the item flag is cleared afterward. Native remapping also records a graph
@@ -119,7 +119,7 @@ have their own geometry and must not be mistaken for plot pixels by image tests.
 Destruction
 -----------
 
-``ReleaseElementResources`` clears borrowed configuration arguments and invokes
+:c:func:`rbcGrElemLifecycle.ReleaseElementResources` clears borrowed configuration arguments and invokes
 the concrete destructor before freeing Tk-managed option resources. Derived
 GCs may still refer to colors, fonts or bitmaps owned by the option table.
 The concrete destructor is called even after failed option initialization:
@@ -390,7 +390,7 @@ other than the six optional error fields retain their previous behavior.
 
 GetIndex receives a captured point count before evaluating non-``end`` input
 as a Tcl expression. It converts the result to Tcl_Size and checks against those
-captured bounds. ActivateOp supplies lifetime protection and checks all staged indices against
+captured bounds. :c:func:`rbcGrElemCommands.ActivateOp` supplies lifetime protection and checks all staged indices against
 current lengths before commit. Exact ``end`` avoids expression
 evaluation; empty elements are rejected before either path.
 
@@ -398,13 +398,13 @@ Registry and display-list ownership
 -----------------------------------
 
 The element registry owns records; the display chain contains borrowed pointers.
-NameToElement searches the registry without filtering visibility. Creating an
+:c:func:`rbcGrElemLifecycle.NameToElement` searches the registry without filtering visibility. Creating an
 element reserves its registry entry before initializing options, then configures
 both defaults and explicit arguments. Failure destroys the partial record.
 Success prepends the record to the display list and invalidates mapping and axes.
 Trackgraphs accept line, strip and bar elements through this shared path.
 
-RebuildDisplayList parses the complete Tcl list before replacing membership.
+:c:func:`rbcGrElemLifecycle.RebuildDisplayList` parses the complete Tcl list before replacing membership.
 Malformed syntax leaves the old list intact. Successful parsing clears the chain
 and marks every registered element hidden, then appends recognized names in input
 order and unhides them. Unknown names are ignored; repeated names retain only
@@ -412,7 +412,7 @@ their first occurrence. The temporary hidden state doubles as the membership
 check, so rebuilding needs no additional set or repeated chain scans. This is not
 deletion: omitted elements remain addressable in the registry.
 
-DestroyElement removes bindings, legend references, resources, all matching
+:c:func:`rbcGrElemLifecycle.DestroyElement` removes bindings, legend references, resources, all matching
 chain links and the registry entry before freeing the name and record. Rebuilding
 maintains unique membership; destruction also defensively removes every borrowed
 reference, saving the next link before unlinking the current one. Redraw is queued
@@ -421,12 +421,12 @@ once when a non-hidden element was displayed.
 Option initialization and resource lifetime
 -------------------------------------------
 
-InitElementOptions obtains the element component resource name and uses class
+:c:func:`rbcGrElemLifecycle.InitElementOptions` obtains the element component resource name and uses class
 ``Element``. It is a no-op after successful initialization. If Tk option setup
 fails, it frees partially initialized option values and the option table; the
 concrete constructor's own allocations still need destruction.
 
-ConfigureElementOptions retains Tk saved options while validating track ownership
+:c:func:`rbcGrElemLifecycle.ConfigureElementOptions` retains Tk saved options while validating track ownership
 and running concrete configuration. Trackgraph Y axes must belong to the selected
 track; a nonempty track is rejected on ordinary graphs. The original argument
 vector and option mask are borrowed transaction context, cleared before restoring
@@ -434,11 +434,11 @@ options on failure or releasing saved options on success. Concrete configuration
 must still stage derived resources: Tk rollback alone cannot undo arbitrary writes
 to live C fields. The optional output mask is written only on success.
 
-Resource teardown and record teardown are separate. Rbc_ReleaseElementTkResources
+Resource teardown and record teardown are separate. :c:func:`rbcGrElemLifecycle.Rbc_ReleaseElementTkResources`
 walks the registry while the Tk window remains usable, including elements omitted
-from the display list. Repeated resource release is guarded. Rbc_DestroyElements
+from the display list. Repeated resource release is guarded. :c:func:`rbcGrElemLifecycle.Rbc_DestroyElements`
 later destroys records without deleting hash entries during hash traversal, then
-deletes both hash tables and the display chain. DestroyElement releases resources
+deletes both hash tables and the display chain. :c:func:`rbcGrElemLifecycle.DestroyElement` releases resources
 and registry membership immediately, but uses Tcl_EventuallyFree for the record
 itself so an activation callback can retain its identity until validation ends.
 Preservation does not keep released resources usable. That final container destruction
@@ -461,7 +461,7 @@ renderer clipping are separate, balanced scopes. Scrolled tracks and track bar
 elements use the full-callback clip; other paths retain their existing concrete
 clipping behavior.
 
-Rbc_GraphUpdateNeeded is deliberately narrower than a general redraw predicate.
+:c:func:`rbcGrElemLifecycle.Rbc_GraphUpdateNeeded` is deliberately narrower than a general redraw predicate.
 It checks pending X/Y vector notifications only for visible display-list elements.
 It neither processes notifications nor synchronizes arrays, and does not inspect
 weights, error inputs or concrete polar data slots. Callers needing current data
@@ -471,7 +471,7 @@ as proof that every input is current.
 Command dispatch and query domains
 -----------------------------------
 
-Rbc_ElementOp validates the operation and argument count using the typed elemOps
+:c:func:`rbcGrElemCommands.Rbc_ElementOp` validates the operation and argument count using the typed elemOps
 table before calling a handler. The supplied class UID selects creation behavior;
 most other handlers operate on the named record regardless of that UID. This
 entry point does not add record lifetime protection around Tcl evaluation.
@@ -496,43 +496,43 @@ Queries do not all enumerate the same collection:
    * - get current
      - Current binding item only when the context and concrete class are elements.
 
-GetOp currently treats an unsupported selector as a successful no-result operation,
-not an error. It does not perform picking. CgetOp delegates to Tk option-value
+:c:func:`rbcGrElemCommands.GetOp` currently treats an unsupported selector as a successful no-result operation,
+not an error. It does not perform picking. :c:func:`rbcGrElemCommands.CgetOp` delegates to Tk option-value
 retrieval; configure queries use Tk option-information retrieval instead.
 
 Binding tokens
 --------------
 
-Rbc_MakeElementTag interns a string in the graph's element tag table and returns
-the table-owned key as the binding token. Rbc_AppendElementBindingTags appends
+:c:func:`rbcGrElemCommands.Rbc_MakeElementTag` interns a string in the graph's element tag table and returns
+the table-owned key as the binding token. :c:func:`rbcGrElemCommands.Rbc_AppendElementBindingTags` appends
 name, class and configured tags in that order. It neither clears the receiving
 list nor removes repeated tags. These helpers assemble lookup keys; they do not
 run binding scripts. Tokens remain valid until the tag table is destroyed.
-BindOp may intern a new tag even when subsequent binding configuration fails.
+:c:func:`rbcGrElemCommands.BindOp` may intern a new tag even when subsequent binding configuration fails.
 
 Mutation boundaries
 -------------------
 
-ConfigureOp resolves the leading names before mutation, then configures them
+:c:func:`rbcGrElemCommands.ConfigureOp` resolves the leading names before mutation, then configures them
 sequentially. Each element has its own Tk/derived-resource transaction; a failure
 on a later element does not roll back earlier ones. Queries with several names
 return information for the first one. Successful mutations synchronize hidden
 state with display membership and invalidate axes, mapping and layout. The final
 redraw scheduling is reached only after the loop completes successfully.
 
-DeleteOp and DeactivateOp instead resolve and act on each name in sequence.
+:c:func:`rbcGrElemCommands.DeleteOp` and :c:func:`rbcGrElemCommands.DeactivateOp` instead resolve and act on each name in sequence.
 A later missing name leaves earlier changes in place. Repeated deletion names
 therefore produce an error after the first deletion. Deactivation clears the
 active flag and owned index array; if a later lookup fails, its final redraw
 request is not reached. These operations do not promise command-wide atomicity.
 
-ActivateOp stages explicit indices before replacing the old selection. Allocation
+:c:func:`rbcGrElemCommands.ActivateOp` stages explicit indices before replacing the old selection. Allocation
 or ordinary conversion failure frees the candidate without changing the old
 selection. No explicit indices means whole-element activation, represented by a
 count of -1. Explicit indices retain order and duplicates, and successful commit
 sets both ELEM_ACTIVE and ACTIVE_PENDING.
 
-Index expressions may invoke application code. ActivateOp preserves the element
+Index expressions may invoke application code. :c:func:`rbcGrElemCommands.ActivateOp` preserves the element
 record during evaluation, while the widget dispatcher preserves the graph.
 After each successful evaluation it checks window existence and the element's
 resource-release flag before accessing data again. Deletion, same-name recreation,
@@ -557,21 +557,21 @@ successful outer command then replaces that selection with its own candidate.
 Closest-search phases
 ---------------------
 
-ClosestOp synchronizes common data inputs and resets axes when requested before
+:c:func:`rbcGrElemCommands.ClosestOp` synchronizes common data inputs and resets axes when requested before
 parsing coordinates and switches. It does not map dirty elements as part of the
 search: records marked MAP_ITEM or with pending X/Y notifications are skipped.
 Explicit hidden or unplotted names cause an error; an implicit search skips them
 and visits the display chain in reverse. Track eligibility additionally requires
 a noncollapsed viewport containing the query position.
 
-ParseClosestOptions starts at argument six and accepts unambiguous switch
+:c:func:`rbcGrElemCommands.ParseClosestOptions` starts at argument six and accepts unambiguous switch
 abbreviations. Direction values must be exactly x, y or both; halo values use
 nonnegative screen-distance conversion; interpolation uses Tcl boolean parsing.
 Parsing stops at the first non-option or after --. It updates a local search
 record incrementally, so parse failure need not roll back already parsed fields.
 The final hit comparison is strictly less than the halo, not less than or equal.
 
-Search and metadata collection finish before PublishClosestInfo runs any array
+Search and metadata collection finish before :c:func:`rbcGrElemCommands.PublishClosestInfo` runs any array
 traces. The caller retains the result dictionary while publication clears six
 optional error fields and writes the snapshot. A miss writes an empty name;
 other old metadata fields are not generally erased. A write error preserves

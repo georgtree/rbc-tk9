@@ -10,17 +10,17 @@ and Tk_ConfigureWidget, not the component Tk_OptionTable transaction machinery.
 Parsing and retained content
 ----------------------------
 
-OpenEpsFile owns a binary stdio FILE and calls ReadPostScript. Windows recognizes
+:c:func:`OpenEpsFile` owns a binary stdio FILE and calls :c:func:`ReadPostScript`. Windows recognizes
 the DOS EPS header and records PostScript/preview section offsets and lengths.
 The parser seeks to the PostScript section and bounds reads by its nonzero
 length. Ordinary EPS input reads to EOF. Failed open/seek/header parsing returns
-a Tcl diagnostic; OpenEpsFile closes its stream on parse failure.
+a Tcl diagnostic; :c:func:`OpenEpsFile` closes its stream on parse failure.
 
-ReadPostScript requires a ``%!PS`` signature and a numeric integer BoundingBox
+:c:func:`ReadPostScript` requires a ``%!PS`` signature and a numeric integer BoundingBox
 in the header. Bounds and extents must fit int, with positive width and height.
 This is a limited metadata parser: it does not implement general PostScript,
 trailer ``(atend)`` bounding-box resolution or arbitrary DSC processing.
-ReadPsLine has a fixed buffer and may split long physical lines. AppendPsLine
+:c:func:`ReadPsLine` has a fixed buffer and may split long physical lines. :c:func:`AppendPsLine`
 adds a newline when a retained chunk lacks one; retained content is therefore
 not guaranteed byte-identical to the source file.
 
@@ -54,7 +54,7 @@ Preview ownership and configuration
      - Tcl_DStringFree / ckfree
    * - psFile
      - Open parser stream
-     - CloseEpsFile
+     - :c:func:`CloseEpsFile`
    * - fillGC / pixmap
      - Tk GC reference / native pixmap
      - Tk_FreeGC / Tk_FreePixmap
@@ -72,7 +72,7 @@ tmpImage and frees the intermediate pixels. With no visible preview it draws a
 placeholder, optionally followed by a fitting title and relief border. All
 screen work uses Tk/native services, without a graph renderer context.
 
-ImageChangedProc does not refresh the saved color snapshot on ordinary source
+:c:func:`ImageChangedProc` does not refresh the saved color snapshot on ordinary source
 photo writes. Its deletion branch clears the source name and schedules canvas redraw, but
 retains the deleted instance until image reconfiguration or item teardown.
 Tk's deletion loop still accesses the instance after the callback returns, so
@@ -83,14 +83,14 @@ detaches tmpImage before its deletion can notify other clients.
 Coordinates and export
 ----------------------
 
-The item stores one canvas anchor plus width and height. ComputeEpsBbox rounds
+The item stores one canvas anchor plus width and height. :c:func:`ComputeEpsBbox` rounds
 the anchor and applies Tk anchoring; the redraw bbox uses exclusive right/bottom
 edges. Point and area picking use this rectangle, not alpha pixels or EPS paths.
-Translate changes the anchor. ScaleEps scales only the anchor about the supplied
+Translate changes the anchor. :c:func:`ScaleEps` scales only the anchor about the supplied
 origin: it does not scale width or height. Resizing the preview requires those
 options to change.
 
-EpsToPostScript is a canvas callback with a no-op prepass. With an EPS file, it
+:c:func:`EpsToPostScript` is a canvas callback with a no-op prepass. With an EPS file, it
 loads ``rbcCanvEps.pro``, establishes translation, scale and clipping, and embeds
 the retained body between BeginEPSF/EndEPSF guards. With no file it serializes
 the cached temporary photo if present; it does not force a new preview render.
@@ -115,7 +115,7 @@ memory measurements. It runs separately from the ordinary suite.
 Preview-byte decoding details
 -----------------------------
 
-``GetHexValue`` reads from the parser's current cursor, requesting a new bounded
+:c:func:`GetHexValue` reads from the parser's current cursor, requesting a new bounded
 chunk when necessary. Each new preview chunk must begin with ``%``. Whitespace
 is skipped before each byte pair, but the two hexadecimal digits must occur in
 the same chunk. A matching ``%%EndPreview`` prefix returns ``TCL_RETURN``;
@@ -123,7 +123,7 @@ malformed text or premature EOF returns ``TCL_ERROR``. Only ``TCL_OK`` supplies
 a decoded byte. These statuses are internal parser control, not Tcl script
 return codes propagated to the canvas command.
 
-``ReadEPSI`` accepts dimensions from 1 through ``SHRT_MAX`` and depths of 1 or
+:c:func:`ReadEPSI` accepts dimensions from 1 through ``SHRT_MAX`` and depths of 1 or
 8 bits. The declared number of preview lines is parsed but not enforced.
 Decoding consumes the bytes needed for the dimensions; it does not separately
 require an end marker after the final pixel. A premature marker or malformed
@@ -147,7 +147,7 @@ provide a working TIFF preview pipeline.
 Small callback and geometry contracts
 -------------------------------------
 
-``EpsOptionSpecified`` is a post-configuration detector, not an option parser.
+:c:func:`EpsOptionSpecified` is a post-configuration detector, not an option parser.
 It scans option-value pairs and accepts option-name prefixes only after Tk's
 configuration call succeeds. It does not independently enforce unique prefixes
 or reject malformed argument lists.

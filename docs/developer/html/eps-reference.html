@@ -55,63 +55,131 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.SkipBlanks">
 <span class="target" id="group__eps__canvas_1ga1a6943c403e7f3e0d2aa2a4f963f2b87"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">SkipBlanks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">EpsParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">piPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SkipBlanks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Locate the first non-whitespace byte in the current parser line. </p>
-<p>Returns a borrowed pointer into piPtr-&gt;line, possibly its terminating NUL. Uses unsigned-byte character classification and does not modify the buffer, read the stream or advance nextPtr. </p>
+<p>Returns a borrowed pointer into piPtr-&gt;line, possibly its terminating NUL. Uses unsigned-byte character classification and does not modify the buffer, read the stream or advance nextPtr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>piPtr</strong> – <strong>[in]</strong> Borrowed parser record whose current line is inspected without advancing state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ReadPsLine">
 <span class="target" id="group__eps__canvas_1gae314006f88d19e5095c97a863e5b9a59"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadPsLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">EpsParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">piPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReadPsLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read one bounded chunk of the PostScript stream. </p>
-<p>Borrow the FILE in piPtr and update bytesRead, lineNumber and line. A nonzero maxBytes limits the PostScript section; zero reads to EOF. Return FALSE at the limit or when fgets fails. Long physical lines may be split into chunks; this is not an arbitrary-length line reader. </p>
+<p>Borrow the FILE in piPtr and update bytesRead, lineNumber and line. A nonzero maxBytes limits the PostScript section; zero reads to EOF. Return FALSE at the limit or when fgets fails. Long physical lines may be split into chunks; this is not an arbitrary-length line reader.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>piPtr</strong> – <strong>[inout]</strong> Caller-owned parser state with the current line and borrowed input stream. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.AppendPsLine">
 <span class="target" id="group__eps__canvas_1gab351a1ac88123eae8dc4f9c5b8f5576a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendPsLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dStringPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">line</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendPsLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Retain a string chunk with exactly one required trailing newline. </p>
-<p>Appends the complete NUL-terminated input to an initialized caller-owned DString. Adds a newline only when the chunk is empty or lacks a final newline; existing content and multiple existing newlines are not normalized. Does not preserve byte identity for unterminated or size-limited source chunks. </p>
+<p>Appends the complete NUL-terminated input to an initialized caller-owned DString. Adds a newline only when the chunk is empty or lacks a final newline; existing content and multiple existing newlines are not normalized. Does not preserve byte identity for unterminated or size-limited source chunks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dStringPtr</strong> – <strong>[inout]</strong> Initialized caller-owned DString receiving appended text. </p></li>
+<li><p><strong>line</strong> – <strong>[in]</strong> Borrowed NUL-terminated text chunk. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ReverseBits">
 <span class="target" id="group__eps__canvas_1ga697b80e079190b7c26e8f2169cf6995f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReverseBits</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">byte</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReverseBits" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reverse the order of all eight bits in one byte. </p>
-<p>Uses successive adjacent-bit, two-bit and nibble swaps. Returns the reversed byte without allocation, parser changes or host-endianness assumptions. </p>
+<p>Uses successive adjacent-bit, two-bit and nibble swaps. Returns the reversed byte without allocation, parser changes or host-endianness assumptions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>byte</strong> – <strong>[in]</strong> Eight-bit value whose bit order is reversed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetHexValue">
 <span class="target" id="group__eps__canvas_1ga18e87a8225d368e9fb942fa5c529d71e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetHexValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">EpsParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">piPtr</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bytePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetHexValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Consume the next two-digit EPSI preview byte. </p>
-<p>Uses nextPtr within the current line or reads another bounded chunk. New chunks must start with a percent sign; whitespace after that prefix and between byte pairs is skipped. Requires both hex digits in the same chunk. Returns TCL_OK and writes bytePtr only for a complete byte, TCL_RETURN for an EndPreview comment prefix, or TCL_ERROR for malformed/truncated input. Updates parser stream position and nextPtr on success; does not set a Tcl diagnostic. </p>
+<p>Uses nextPtr within the current line or reads another bounded chunk. New chunks must start with a percent sign; whitespace after that prefix and between byte pairs is skipped. Requires both hex digits in the same chunk. Returns TCL_OK and writes bytePtr only for a complete byte, TCL_RETURN for an EndPreview comment prefix, or TCL_ERROR for malformed/truncated input. Updates parser stream position and nextPtr on success; does not set a Tcl diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>piPtr</strong> – <strong>[inout]</strong> Caller-owned parser state with the current line and borrowed input stream. </p></li>
+<li><p><strong>bytePtr</strong> – <strong>[out]</strong> Required output written only when a complete preview byte is decoded. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ReadEPSI">
 <span class="target" id="group__eps__canvas_1ga5b5877f028d59bdc1eae745f6cb27a9f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadEPSI</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span>, <span class="n"><span class="pre">EpsParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">piPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReadEPSI" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decode an optional one-bit or eight-bit EPSI preview. </p>
-<p>Requires the current line to contain the recognized BeginPreview header. Accepts positive dimensions through SHRT_MAX and depths 1 or 8; parses but does not enforce the declared line count. Allocates a zeroed image and consumes the required hex bytes. Eight-bit samples become opaque inverted grayscale in bottom-to-top row order. One-bit rows consume high bits first with byte padding per row; zero bits become opaque white and set bits retain the zeroed pixel. Installs the owned image and consumed-line metadata on success. Decode failure frees the temporary and clears line markers, without rewinding input or reporting a Tcl error. Caller supplies an item ready to receive preview ownership. </p>
+<p>Requires the current line to contain the recognized BeginPreview header. Accepts positive dimensions through SHRT_MAX and depths 1 or 8; parses but does not enforce the declared line count. Allocates a zeroed image and consumes the required hex bytes. Eight-bit samples become opaque inverted grayscale in bottom-to-top row order. One-bit rows consume high bits first with byte padding per row; zero bits become opaque white and set bits retain the zeroed pixel. Installs the owned image and consumed-line metadata on success. Decode failure frees the temporary and clears line markers, without rewinding input or reporting a Tcl error. Caller supplies an item ready to receive preview ownership.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>epsPtr</strong> – <strong>[inout]</strong> Canvas-owned EPS item; stream, preview and text ownership changes are described above. </p></li>
+<li><p><strong>piPtr</strong> – <strong>[inout]</strong> Caller-owned parser state with the current line and borrowed input stream. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ReadPostScript">
 <span class="target" id="group__eps__canvas_1gad6e43862fcf698a1a2b11289b4c380ba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReadPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse EPS header metadata and retain its PostScript body. </p>
-<p>Borrow the open psFile; reset the item DString and seek to psStart if needed. Require a percent-bang PS signature and an integer BoundingBox with positive, int-representable extents. Retain title and optional EPSI color preview on the item. Preserve an already-consumed first body line. Return TCL_ERROR with a diagnostic on header/seek failure; this does not restore prior item state. </p>
+<p>Borrow the open psFile; reset the item DString and seek to psStart if needed. Require a percent-bang PS signature and an integer BoundingBox with positive, int-representable extents. Retain title and optional EPSI color preview on the item. Preserve an already-consumed first body line. Return TCL_ERROR with a diagnostic on header/seek failure; this does not restore prior item state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>epsPtr</strong> – <strong>[inout]</strong> Canvas-owned EPS item; stream, preview and text ownership changes are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.OpenEpsFile">
 <span class="target" id="group__eps__canvas_1gadac404acc2b652714ad33805e12f504b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OpenEpsFile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.OpenEpsFile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Open the item file and parse its EPS section. </p>
-<p>Own a binary stdio stream in psFile. On Windows recognize the DOS EPS header and record section offsets and lengths before parsing. Close the stream on seek or parse failure; on success the caller must eventually <a class="reference internal" href="#group__eps__canvas_1ga9bf734cc79c646df273983f3425c8553"><span class="std std-ref">CloseEpsFile()</span></a>. Recorded preview formats do not imply a general TIFF/WMF renderer. </p>
+<p>Own a binary stdio stream in psFile. On Windows recognize the DOS EPS header and record section offsets and lengths before parsing. Close the stream on seek or parse failure; on success the caller must eventually <a class="reference internal" href="#group__eps__canvas_1ga9bf734cc79c646df273983f3425c8553"><span class="std std-ref">CloseEpsFile()</span></a>. Recorded preview formats do not imply a general TIFF/WMF renderer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>epsPtr</strong> – <strong>[inout]</strong> Canvas-owned EPS item; stream, preview and text ownership changes are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CloseEpsFile">
 <span class="target" id="group__eps__canvas_1ga9bf734cc79c646df273983f3425c8553"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CloseEpsFile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CloseEpsFile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Close and clear an item-owned stdio stream if present. </p>
-<p>Does not release parsed text, preview pixels or other item resources. </p>
+<p>Does not release parsed text, preview pixels or other item resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>epsPtr</strong> – <strong>[inout]</strong> Canvas-owned EPS item; stream, preview and text ownership changes are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -125,14 +193,36 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.ImageChangedProc">
 <span class="target" id="group__eps__canvas_1ga8c1f32a61141b0176033e550f1ce5a40"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ImageChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ImageChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Notice deletion of a supplied EPS preview image. </p>
-<p>Ordinary image changes do not refresh the saved color snapshot. If the retained instance is absent or deleted, frees and clears the source name and schedules redraw of the item rectangle. Keeps the image instance token for later reconfiguration/teardown because Tk still visits it after its deletion callback returns. Does not release the snapshot or temporary display photo. </p>
+<p>Ordinary image changes do not refresh the saved color snapshot. If the retained instance is absent or deleted, frees and clears the source name and schedules redraw of the item rectangle. Keeps the image instance token for later reconfiguration/teardown because Tk still visits it after its deletion callback returns. Does not release the snapshot or temporary display photo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed canvas-owned EpsItem registered for image-change notifications. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Changed image rectangle origin; ignored by this deletion-notification callback. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Changed image rectangle origin; ignored by this deletion-notification callback. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Changed image rectangle width; ignored by this callback. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Changed image rectangle height; ignored by this callback. </p></li>
+<li><p><strong>imageWidth</strong> – <strong>[in]</strong> Current image width reported by Tk; ignored by this callback. </p></li>
+<li><p><strong>imageHeight</strong> – <strong>[in]</strong> Current image height reported by Tk; ignored by this callback. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.EpsOptionSpecified">
 <span class="target" id="group__eps__canvas_1ga7a13b5b903ad8b905cc4abf743b23000"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EpsOptionSpecified</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EpsOptionSpecified" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find a supplied option prefix among validated option-value pairs. </p>
-<p>Checks every option word with a following value against optionName, accepting a prefix no longer than the full name. Returns a Boolean without modifying arguments. Does not validate ambiguity, option syntax or values; ConfigureEps calls it after Tk configuration has validated the arguments. A trailing unmatched word is ignored by this helper. </p>
+<p>Checks every option word with a following value against optionName, accepting a prefix no longer than the full name. Returns a Boolean without modifying arguments. Does not validate ambiguity, option syntax or values; ConfigureEps calls it after Tk configuration has validated the arguments. A trailing unmatched word is ignored by this helper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed objv entries; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed validated option/value pairs; a trailing unmatched entry is ignored. </p></li>
+<li><p><strong>optionName</strong> – <strong>[in]</strong> Borrowed full option name against which supplied prefixes are compared. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -146,7 +236,15 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.ComputeEpsBbox">
 <span class="target" id="group__eps__canvas_1gaa011df5cd0700b4479e2e26a57fe9435"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeEpsBbox</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComputeEpsBbox" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map the item anchor and size into integer canvas bounds. </p>
-<p>Round x/y, translate the anchor, then update canvasX/Y and the Tk_Item bbox. Right and bottom bounds are exclusive for canvas redraw. No graph axes, track viewport or renderer clip stack participates. </p>
+<p>Round x/y, translate the anchor, then update canvasX/Y and the Tk_Item bbox. Right and bottom bounds are exclusive for canvas redraw. No graph axes, track viewport or renderer clip stack participates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning canvas; retained item bounds supply the geometry. </p></li>
+<li><p><strong>epsPtr</strong> – <strong>[inout]</strong> Canvas-owned EPS item; stream, preview and text ownership changes are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -160,35 +258,85 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.EpsToPoint">
 <span class="target" id="group__eps__canvas_1ga8b741ddb0e3694aef36cc21754d3d655"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EpsToPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">coordArr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EpsToPoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Measure point distance to the cached EPS item rectangle. </p>
-<p>Uses cached canvas bounds and hypot of horizontal/vertical separation. Returns zero inside or on any rectangle edge, including right and bottom. Does not inspect preview alpha, PostScript paths or relief borders, change the item or invoke callbacks. </p>
+<p>Uses cached canvas bounds and hypot of horizontal/vertical separation. Returns zero inside or on any rectangle edge, including right and bottom. Does not inspect preview alpha, PostScript paths or relief borders, change the item or invoke callbacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning canvas; retained item bounds supply the geometry. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[in]</strong> Borrowed canvas-owned Tk_Item header of an EpsItem. </p></li>
+<li><p><strong>coordArr</strong> – <strong>[in]</strong> Borrowed two-element query point {x,y} in canvas coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.EpsToArea">
 <span class="target" id="group__eps__canvas_1ga0d00111b66ea3fa8852983131e6d28ff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EpsToArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">area</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EpsToArea" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify the EPS rectangle against a canvas query rectangle. </p>
-<p>Requires ordered query bounds. Returns -1 for disjoint rectangles, including edge-only contact, 1 when the query contains the entire item, and 0 for partial overlap. Uses cached bounds without examining image pixels or modifying state. </p>
+<p>Requires ordered query bounds. Returns -1 for disjoint rectangles, including edge-only contact, 1 when the query contains the entire item, and 0 for partial overlap. Uses cached bounds without examining image pixels or modifying state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning canvas; retained item bounds supply the geometry. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[in]</strong> Borrowed canvas-owned Tk_Item header of an EpsItem. </p></li>
+<li><p><strong>area</strong> – <strong>[in]</strong> Borrowed four-element ordered query rectangle {left,top,right,bottom}. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ScaleEps">
 <span class="target" id="group__eps__canvas_1ga532e8c6e3eb455655b58325f3a83f4bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScaleEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">originX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">originY</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ScaleEps" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Scale the anchor position about a canvas origin and recompute bounds. </p>
-<p>Only x/y change. Configured width and height are not multiplied by scaleX/Y; canvas scale is not equivalent to resizing the preview. </p>
+<p>Only x/y change. Configured width and height are not multiplied by scaleX/Y; canvas scale is not equivalent to resizing the preview.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning canvas; retained item bounds supply the geometry. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Borrowed canvas-owned Tk_Item header of an EpsItem. </p></li>
+<li><p><strong>originX</strong> – <strong>[in]</strong> Horizontal canvas coordinate about which the anchor is scaled. </p></li>
+<li><p><strong>originY</strong> – <strong>[in]</strong> Vertical canvas coordinate about which the anchor is scaled. </p></li>
+<li><p><strong>scaleX</strong> – <strong>[in]</strong> Horizontal anchor scale factor; configured width is unchanged. </p></li>
+<li><p><strong>scaleY</strong> – <strong>[in]</strong> Vertical anchor scale factor; configured height is unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.TranslateEps">
 <span class="target" id="group__eps__canvas_1ga9dd15dc381c1d61d7283c2d79f8de952"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TranslateEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">deltaX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">deltaY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TranslateEps" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Move the canvas anchor and recompute the cached item bounds. </p>
-<p>Adds deltaX/deltaY to the anchor, then calls ComputeEpsBbox. Does not change configured dimensions, resample preview pixels or request redraw itself; the canvas operation handles redisplay. </p>
+<p>Adds deltaX/deltaY to the anchor, then calls ComputeEpsBbox. Does not change configured dimensions, resample preview pixels or request redraw itself; the canvas operation handles redisplay.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning canvas; retained item bounds supply the geometry. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Borrowed canvas-owned Tk_Item header of an EpsItem. </p></li>
+<li><p><strong>deltaX</strong> – <strong>[in]</strong> Horizontal displacement in canvas coordinates. </p></li>
+<li><p><strong>deltaY</strong> – <strong>[in]</strong> Vertical displacement in canvas coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.EpsToPostScript">
 <span class="target" id="group__eps__canvas_1gae914577c1a3a409c1f6046cf3ddb2cb7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EpsToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">prepass</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EpsToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append EPS item output to the canvas PostScript result. </p>
-<p>Prepass is a no-op. With a file, load rbcCanvEps.pro, transform and clip to the EPS bounding box, and append the retained body between encapsulation guards. Without a file, serialize the cached temporary photo when present. Own a PsToken for output construction and release it on the handled output paths. This callback does not regenerate a stale preview or export SVG/PDF. </p>
+<p>Prepass is a no-op. With a file, load rbcCanvEps.pro, transform and clip to the EPS bounding box, and append the retained body between encapsulation guards. Without a file, serialize the cached temporary photo when present. Own a PsToken for output construction and release it on the handled output paths. This callback does not regenerate a stale preview or export SVG/PDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>canvas</strong> – <strong>[in]</strong> Borrowed owning canvas; retained item bounds supply the geometry. </p></li>
+<li><p><strong>itemPtr</strong> – <strong>[inout]</strong> Borrowed canvas-owned Tk_Item header of an EpsItem. </p></li>
+<li><p><strong>prepass</strong> – <strong>[in]</strong> Nonzero requests the canvas prepass, which emits no output. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

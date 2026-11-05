@@ -284,6 +284,8 @@ static void AppendPsLine(Tcl_DString *, const char *);
  * @brief Locate the first non-whitespace byte in the current parser line.
  * Returns a borrowed pointer into piPtr->line, possibly its terminating NUL. Uses unsigned-byte
  * character classification and does not modify the buffer, read the stream or advance nextPtr.
+ *
+ * @param[in] piPtr Borrowed parser record whose current line is inspected without advancing state.
  */
 static char *SkipBlanks(EpsParseInfo *piPtr) {
     char *s;
@@ -302,6 +304,8 @@ static char *SkipBlanks(EpsParseInfo *piPtr) {
  * maxBytes limits the PostScript section; zero reads to EOF. Return FALSE at
  * the limit or when fgets fails. Long physical lines may be split into chunks;
  * this is not an arbitrary-length line reader.
+ *
+ * @param[in,out] piPtr Caller-owned parser state with the current line and borrowed input stream.
  */
 static int ReadPsLine(EpsParseInfo *piPtr) {
     int maxChars;
@@ -339,6 +343,9 @@ static int ReadPsLine(EpsParseInfo *piPtr) {
  * only when the chunk is empty or lacks a final newline; existing content and multiple existing
  * newlines are not normalized. Does not preserve byte identity for unterminated or size-limited source
  * chunks.
+ *
+ * @param[in,out] dStringPtr Initialized caller-owned DString receiving appended text.
+ * @param[in] line Borrowed NUL-terminated text chunk.
  */
 static void AppendPsLine(Tcl_DString *dStringPtr, const char *line) {
     size_t length;
@@ -359,6 +366,8 @@ static void AppendPsLine(Tcl_DString *dStringPtr, const char *line) {
  * @brief Reverse the order of all eight bits in one byte.
  * Uses successive adjacent-bit, two-bit and nibble swaps. Returns the reversed byte without
  * allocation, parser changes or host-endianness assumptions.
+ *
+ * @param[in] byte Eight-bit value whose bit order is reversed.
  */
 static unsigned char ReverseBits(unsigned char byte) {
     byte = ((byte >> 1) & 0x55) | ((byte << 1) & 0xaa);
@@ -375,6 +384,9 @@ static unsigned char ReverseBits(unsigned char byte) {
  * digits in the same chunk. Returns TCL_OK and writes bytePtr only for a complete byte, TCL_RETURN for
  * an EndPreview comment prefix, or TCL_ERROR for malformed/truncated input. Updates parser stream
  * position and nextPtr on success; does not set a Tcl diagnostic.
+ *
+ * @param[in,out] piPtr Caller-owned parser state with the current line and borrowed input stream.
+ * @param[out] bytePtr Required output written only when a complete preview byte is decoded.
  */
 static int GetHexValue(EpsParseInfo *piPtr, unsigned char *bytePtr) {
     register char *p;
@@ -433,6 +445,9 @@ static int GetHexValue(EpsParseInfo *piPtr, unsigned char *bytePtr) {
  * consumed-line metadata on success. Decode failure frees the temporary and clears line markers,
  * without rewinding input or reporting a Tcl error. Caller supplies an item ready to receive preview
  * ownership.
+ *
+ * @param[in,out] epsPtr Canvas-owned EPS item; stream, preview and text ownership changes are described above.
+ * @param[in,out] piPtr Caller-owned parser state with the current line and borrowed input stream.
  */
 static void ReadEPSI(EpsItem *epsPtr, EpsParseInfo *piPtr) {
     Rbc_ColorImage image;
@@ -522,6 +537,9 @@ error:
  * int-representable extents. Retain title and optional EPSI color preview on the
  * item. Preserve an already-consumed first body line. Return TCL_ERROR with a
  * diagnostic on header/seek failure; this does not restore prior item state.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] epsPtr Canvas-owned EPS item; stream, preview and text ownership changes are described above.
  */
 static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
     char *field;
@@ -663,6 +681,9 @@ error:
  * and record section offsets and lengths before parsing. Close the stream on
  * seek or parse failure; on success the caller must eventually CloseEpsFile().
  * Recorded preview formats do not imply a general TIFF/WMF renderer.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] epsPtr Canvas-owned EPS item; stream, preview and text ownership changes are described above.
  */
 static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
     FILE *f;
@@ -724,6 +745,8 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
  * @brief Close and clear an item-owned stdio stream if present.
  *
  * Does not release parsed text, preview pixels or other item resources.
+ *
+ * @param[in,out] epsPtr Canvas-owned EPS item; stream, preview and text ownership changes are described above.
  */
 static void CloseEpsFile(EpsItem *epsPtr) {
     if (epsPtr->psFile != NULL) {
@@ -904,6 +927,14 @@ static int CreateEps(Tcl_Interp *interp,    /* Interpreter for error reporting. 
  * or deleted, frees and clears the source name and schedules redraw of the item rectangle. Keeps the
  * image instance token for later reconfiguration/teardown because Tk still visits it after its
  * deletion callback returns. Does not release the snapshot or temporary display photo.
+ *
+ * @param[in,out] clientData Borrowed canvas-owned EpsItem registered for image-change notifications.
+ * @param[in] x Changed image rectangle origin; ignored by this deletion-notification callback.
+ * @param[in] y Changed image rectangle origin; ignored by this deletion-notification callback.
+ * @param[in] width Changed image rectangle width; ignored by this callback.
+ * @param[in] height Changed image rectangle height; ignored by this callback.
+ * @param[in] imageWidth Current image width reported by Tk; ignored by this callback.
+ * @param[in] imageHeight Current image height reported by Tk; ignored by this callback.
  */
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
@@ -926,6 +957,10 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
  * than the full name. Returns a Boolean without modifying arguments. Does not validate ambiguity,
  * option syntax or values; ConfigureEps calls it after Tk configuration has validated the arguments. A
  * trailing unmatched word is ignored by this helper.
+ *
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed validated option/value pairs; a trailing unmatched entry is ignored.
+ * @param[in] optionName Borrowed full option name against which supplied prefixes are compared.
  */
 static int EpsOptionSpecified(Tcl_Size objc, Tcl_Obj *const objv[], const char *optionName) {
     Tcl_Size i;
@@ -1161,6 +1196,9 @@ static int EpsCoords(Tcl_Interp *interp,    /* Used for error reporting. */
  * Round x/y, translate the anchor, then update canvasX/Y and the Tk_Item bbox.
  * Right and bottom bounds are exclusive for canvas redraw. No graph axes,
  * track viewport or renderer clip stack participates.
+ *
+ * @param[in] canvas Borrowed owning canvas; retained item bounds supply the geometry.
+ * @param[in,out] epsPtr Canvas-owned EPS item; stream, preview and text ownership changes are described above.
  */
 static void ComputeEpsBbox(Tk_Canvas canvas, EpsItem *epsPtr) {
     int x, y;
@@ -1304,6 +1342,10 @@ static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
  * Uses cached canvas bounds and hypot of horizontal/vertical separation. Returns zero inside or on any
  * rectangle edge, including right and bottom. Does not inspect preview alpha, PostScript paths or
  * relief borders, change the item or invoke callbacks.
+ *
+ * @param[in] canvas Borrowed owning canvas; retained item bounds supply the geometry.
+ * @param[in] itemPtr Borrowed canvas-owned Tk_Item header of an EpsItem.
+ * @param[in] coordArr Borrowed two-element query point {x,y} in canvas coordinates.
  */
 static double EpsToPoint(Tk_Canvas canvas, Tk_Item *itemPtr, double *coordArr) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
@@ -1335,6 +1377,10 @@ static double EpsToPoint(Tk_Canvas canvas, Tk_Item *itemPtr, double *coordArr) {
  * Requires ordered query bounds. Returns -1 for disjoint rectangles, including edge-only contact, 1
  * when the query contains the entire item, and 0 for partial overlap. Uses cached bounds without
  * examining image pixels or modifying state.
+ *
+ * @param[in] canvas Borrowed owning canvas; retained item bounds supply the geometry.
+ * @param[in] itemPtr Borrowed canvas-owned Tk_Item header of an EpsItem.
+ * @param[in] area Borrowed four-element ordered query rectangle {left,top,right,bottom}.
  */
 static int EpsToArea(Tk_Canvas canvas, Tk_Item *itemPtr, double *area) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
@@ -1356,6 +1402,13 @@ static int EpsToArea(Tk_Canvas canvas, Tk_Item *itemPtr, double *area) {
  *
  * Only x/y change. Configured width and height are not multiplied by scaleX/Y;
  * canvas scale is not equivalent to resizing the preview.
+ *
+ * @param[in] canvas Borrowed owning canvas; retained item bounds supply the geometry.
+ * @param[in,out] itemPtr Borrowed canvas-owned Tk_Item header of an EpsItem.
+ * @param[in] originX Horizontal canvas coordinate about which the anchor is scaled.
+ * @param[in] originY Vertical canvas coordinate about which the anchor is scaled.
+ * @param[in] scaleX Horizontal anchor scale factor; configured width is unchanged.
+ * @param[in] scaleY Vertical anchor scale factor; configured height is unchanged.
  */
 static void ScaleEps(Tk_Canvas canvas, Tk_Item *itemPtr, double originX, double originY, double scaleX, double scaleY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
@@ -1369,6 +1422,11 @@ static void ScaleEps(Tk_Canvas canvas, Tk_Item *itemPtr, double originX, double 
  * @brief Move the canvas anchor and recompute the cached item bounds.
  * Adds deltaX/deltaY to the anchor, then calls ComputeEpsBbox. Does not change configured dimensions,
  * resample preview pixels or request redraw itself; the canvas operation handles redisplay.
+ *
+ * @param[in] canvas Borrowed owning canvas; retained item bounds supply the geometry.
+ * @param[in,out] itemPtr Borrowed canvas-owned Tk_Item header of an EpsItem.
+ * @param[in] deltaX Horizontal displacement in canvas coordinates.
+ * @param[in] deltaY Vertical displacement in canvas coordinates.
  */
 static void TranslateEps(Tk_Canvas canvas, Tk_Item *itemPtr, double deltaX, double deltaY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
@@ -1406,6 +1464,11 @@ static void TranslateEps(Tk_Canvas canvas, Tk_Item *itemPtr, double deltaX, doub
  * Without a file, serialize the cached temporary photo when present. Own a
  * PsToken for output construction and release it on the handled output paths.
  * This callback does not regenerate a stale preview or export SVG/PDF.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] canvas Borrowed owning canvas; retained item bounds supply the geometry.
+ * @param[in,out] itemPtr Borrowed canvas-owned Tk_Item header of an EpsItem.
+ * @param[in] prepass Nonzero requests the canvas prepass, which emits no output.
  */
 static int EpsToPostScript(Tcl_Interp *interp, Tk_Canvas canvas, Tk_Item *itemPtr, int prepass) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;

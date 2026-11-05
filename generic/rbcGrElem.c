@@ -2254,6 +2254,10 @@ void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStyl
  *
  * Writes alongPtr only on success. Returns TCL_ERROR with a diagnostic for
  * other spellings, including abbreviations; does not evaluate Tcl expressions.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Borrowed Tcl value to parse without retaining a reference.
+ * @param[out] alongPtr Required output receiving the direction selector only on success.
  */
 static int GetAlongFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *alongPtr) {
     const char *string;
@@ -2289,6 +2293,15 @@ static const char *const closestOptionNames[] = {"-along", "-halo", "-interpolat
  * nonnegative pixel halos and Tcl booleans for interpolation. Stops at the first
  * non-option or after --, writing nextPtr only on success. Does not resolve
  * trailing element names or execute a search.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
+ * @param[in,out] searchPtr Caller-initialized closest-search record; successful pairs update it without
+ *   rollback.
+ * @param[out] nextPtr Required output receiving the first trailing argument index only on success.
  */
 static int ParseClosestOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
                                ClosestSearch *searchPtr, Tcl_Size *nextPtr) {
@@ -3067,6 +3080,11 @@ static int GetIndex(Tcl_Interp *interp, Tcl_Size nPoints, const char *string, Tc
  * Returns TCL_OK and a borrowed record in elemPtrPtr, or TCL_ERROR with a
  * graph-interpreter diagnostic. Failure leaves the output pointer unchanged.
  * Hidden and non-displayed elements remain eligible; no reference is retained.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in] nameObj Borrowed exact element-name object.
+ * @param[out] elemPtrPtr Required output receiving a borrowed registry element only on success.
  */
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr) {
     Tcl_HashEntry *hPtr;
@@ -3089,6 +3107,11 @@ static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr
  * and class Element. On failure frees partially initialized options and the
  * option table; constructor-owned resources remain for the concrete destructor.
  * Returns TCL_OK or TCL_ERROR. Does not construct derived drawing resources.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] elemPtr Borrowed live element belonging to graphPtr; resource requirements are described
+ *   above.
  */
 static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
     char *componentName;
@@ -3124,6 +3147,14 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
  * Failure restores Tk options while preserving the error diagnostic. Success
  * commits the track, sets optionsConfigured and optionally writes maskPtr.
  * Clears transient argument pointers on both post-conversion exit paths.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] elemPtr Borrowed live element belonging to graphPtr; resource requirements are described
+ *   above.
+ * @param[in] objc Even number of option/value entries in objv.
+ * @param[in] objv Borrowed even-length option/value vector; exposed only during concrete configuration.
+ * @param[out] maskPtr Optional output receiving the Tk change mask on success.
  */
 static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[],
                                    int *maskPtr) {
@@ -3204,6 +3235,11 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
  * so derived GCs are released before their colors, fonts and bitmaps.
  * Requires the owning graph's resource-release context, including a usable Tk
  * window for bitmap options. Does not remove registry or display-list entries.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] elemPtr Borrowed live element belonging to graphPtr; resource requirements are described
+ *   above.
  */
 static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
     if (elemPtr->tkResourcesReleased) {
@@ -3241,6 +3277,9 @@ static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
  * Includes hidden and non-displayed elements. Each release is idempotent through
  * tkResourcesReleased; element records, names and registry entries survive this
  * pass. The graph and its Tk window must remain valid throughout traversal.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
  */
 void Rbc_ReleaseElementTkResources(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
@@ -3262,6 +3301,11 @@ void Rbc_ReleaseElementTkResources(Graph *graphPtr) {
  * Frees the owned name; record storage survives only existing Tcl_Preserve scopes.
  * Released resources and registry identity are no longer usable.
  * Callers destroying the whole registry clear hashPtr before this call.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] elemPtr Owned element to remove; identity and resources become invalid even if record storage
+ *   is preserved.
  */
 static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
     Rbc_ChainLink *linkPtr, *nextPtr;
@@ -3302,6 +3346,13 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
  * Success prepends it to the display list, marks mapping and axes dirty, queues
  * redraw if visible, and returns its name as the Tcl result. Defaults pass
  * through concrete configuration even when no explicit options are supplied.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
+ * @param[in] classUid Interned concrete element class selecting the constructor.
  */
 static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Element *elemPtr;
@@ -3367,6 +3418,10 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * order and unhides it. Unknown names are ignored and their diagnostics cleared.
  * Repeated names retain only their first occurrence. Returns TCL_OK, sets RESET_WORLD and
  * schedules redraw; registry ownership is unchanged.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in] newListObj Borrowed Tcl list of desired display names in drawing order.
  */
 static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj) {
     Tcl_Size nNames;      /* Number of names found in Tcl name list */
@@ -3410,6 +3465,9 @@ static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj) {
  * remains intact. Then deletes the element and tag tables and display chain.
  * This is final teardown, not an idempotent reset or reusable initialization.
  * Resource release must occur in the graph's valid Tk teardown sequence.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
  */
 void Rbc_DestroyElements(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
@@ -3435,6 +3493,9 @@ void Rbc_DestroyElements(Graph *graphPtr) {
  * mapping call. Enters and restores the owning track viewport around dispatch,
  * then clears MAP_ITEM. Screen mapping sets GRAPH_CHANGED; export mapping does
  * not. The caller owns layout sequencing and graph-wide flag cleanup.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
  */
 void Rbc_MapElements(Graph *graphPtr) {
     Element *elemPtr;
@@ -3476,6 +3537,13 @@ void Rbc_MapElements(Graph *graphPtr) {
  * inclusive track bounds with drawable graph dimensions and skips empty bounds.
  * Dispatches only when the renderer supplies a drawable, then balances clip
  * and renderer lifetime. Clipping includes native raised bar borders.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in] drawable Borrowed compatible screen drawable receiving mapped geometry.
+ * @param[in,out] elemPtr Borrowed live element belonging to graphPtr; resource requirements are described
+ *   above.
+ * @param[in] active Nonzero dispatches the active overlay; zero dispatches normal drawing.
  */
 static void DrawClippedTrackElement(Graph *graphPtr, Drawable drawable, Element *elemPtr, int active) {
     RbcTrack *track = elemPtr->track;
@@ -3507,6 +3575,10 @@ static void DrawClippedTrackElement(Graph *graphPtr, Drawable drawable, Element 
  * Skips hidden, plotHidden and collapsed track regions. Enters and restores each
  * track viewport; scrolled tracks and track bars additionally clip the complete
  * callback. Does not remap data or manage element lifetime across callbacks.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in] drawable Borrowed compatible screen drawable receiving mapped geometry.
  */
 void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
     Rbc_ChainLink *linkPtr;
@@ -3538,6 +3610,10 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
  * Uses the same viewport and full-callback clipping policy as Rbc_DrawElements,
  * but dispatches drawActiveProc. The caller controls ordering relative to the
  * normal pass and keeps graph, element and mapped resources alive.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in] drawable Borrowed compatible screen drawable receiving mapped geometry.
  */
 void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
     Rbc_ChainLink *linkPtr;
@@ -3570,6 +3646,10 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
  * renderer clip. Collapsed tracks are skipped. Only PostScript receives element
  * comments; the geometry dispatch also supports SVG and PDF.
  * Does not own exportPtr or perform layout; errors use the export context.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] exportPtr Borrowed export context receiving output and backend error state.
  */
 void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_ChainLink *linkPtr;
@@ -3611,6 +3691,10 @@ void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
  * with an additional ELEM_ACTIVE check and exportActiveProc dispatch.
  * Emits active-element comments only for PostScript. The caller owns the export
  * context and ordering of normal and active passes.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] exportPtr Borrowed export context receiving output and backend error state.
  */
 void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_ChainLink *linkPtr;
@@ -3651,6 +3735,9 @@ void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
  * notifications, synchronize arrays, mark geometry or schedule redraw.
  * This is not an exhaustive dirty-state test: it does not inspect weights,
  * error inputs, concrete polar inputs or elements outside the visible list.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
  */
 int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
     Rbc_ChainLink *linkPtr;
@@ -3676,6 +3763,8 @@ int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
  * Requires a live element whose resources have not been released. Literal slots
  * use cached lengths; named slots query their live vectors. Polar elements use
  * their concrete point-count callback to include complex input.
+ *
+ * @param[in] elemPtr Borrowed live element with unreleased literal or vector input resources.
  */
 static Tcl_Size ActivationPointCount(Element *elemPtr) {
     Tcl_Size nx, ny;
@@ -3702,6 +3791,14 @@ static Tcl_Size ActivationPointCount(Element *elemPtr) {
  * and revalidates every staged index against current data before commit. The
  * enclosing widget command preserves the graph. Script errors retain their
  * original diagnostics; callback side effects are not rolled back.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -3803,6 +3900,10 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
  * Copies a new string key into the table or reuses an existing entry. Returns
  * the table-owned key as a stable binding token until tag-table destruction.
  * Does not require an element with that name or create a binding script.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in] tagName Borrowed NUL-terminated tag name, copied when first interned.
  */
 ClientData Rbc_MakeElementTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
@@ -3821,6 +3922,12 @@ ClientData Rbc_MakeElementTag(Graph *graphPtr, char *tagName) {
  * Does not clear the list or filter repeated tags. Token lifetime belongs to the
  * graph's tag table; list-node lifetime belongs to the receiving list.
  * Does not execute binding scripts.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] elemPtr Borrowed live element belonging to graphPtr; resource requirements are described
+ *   above.
+ * @param[in,out] list Caller-owned list to append to; existing entries are retained.
  */
 void Rbc_AppendElementBindingTags(Graph *graphPtr, Element *elemPtr, Rbc_List list) {
     char **p;
@@ -3843,6 +3950,14 @@ void Rbc_AppendElementBindingTags(Graph *graphPtr, Element *elemPtr, Rbc_List li
  * binding or a live element. Otherwise interns the supplied tag and delegates
  * remaining query/set arguments to Rbc_ConfigureBindingsFromObj.
  * Returns the delegated Tcl status; interning can survive a failed binding call.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
@@ -3869,6 +3984,14 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
  *
  * Passes the complete validated command vector to CreateElement and returns
  * its status and result. This wrapper adds no ownership or rollback layer.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return CreateElement(graphPtr, interp, objc, objv, type);
@@ -3881,6 +4004,14 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size 
  * Resolves the registry record, asks its option table for objv[4], and installs
  * the returned object as the interpreter result. Returns TCL_ERROR for missing
  * elements or invalid options. Does not configure or map the element.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -3977,6 +4108,11 @@ static int AppendClosestErrors(Tcl_Interp *interp, Element *elemPtr, Tcl_Size in
  * A failed write closes dictionary iteration and returns TCL_ERROR with its
  * diagnostic; earlier writes remain. Success sets the integer found result.
  * Unrelated old array fields are retained; publication is not atomic.
+ *
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] varNameObjPtr Borrowed destination array name; writes may invoke variable traces.
+ * @param[in] resultObjPtr Caller-retained dictionary snapshot; must remain live throughout publication.
+ * @param[in] found Search hit flag installed as the command result after successful publication.
  */
 static int PublishClosestInfo(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, Tcl_Obj *resultObjPtr, int found) {
     static const char *names[] = {"xerror", "xlow", "xhigh", "yerror", "ylow", "yhigh"};
@@ -4016,6 +4152,14 @@ static int PublishClosestInfo(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, Tcl_Ob
  * Misses publish an empty name. Returns publication status and releases the
  * retained dictionary on every collection/publication exit; no graph accesses
  * occur after publication begins.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4194,6 +4338,14 @@ error:
  * Failure stops processing; earlier successfully configured elements stay
  * changed. The operation is not a transaction across all named elements.
  * Normal completion schedules backing-store and margin redraw.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4287,6 +4439,14 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Si
  * pointer/count to NULL/zero. A later missing name returns TCL_ERROR without
  * restoring earlier changes or reaching the final redraw request.
  * No arguments change nothing but still schedule redraw on successful completion.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int DeactivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4315,6 +4475,14 @@ static int DeactivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_S
  * Repeating a name therefore deletes it once and then fails lookup. Each
  * destructor handles its own invalidation; successful completion additionally
  * queues graph redraw, including for an empty name list.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4336,6 +4504,14 @@ static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size 
  *
  * Sets a Tcl boolean result and returns TCL_OK. Includes hidden and unplotted
  * elements and does not use NameToElement's missing-name diagnostic.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_HashEntry *hPtr;
@@ -4353,6 +4529,14 @@ static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size 
  * Recognizes line, strip, bar and polar records. Other selectors or contexts
  * return TCL_OK without assigning a result; the command caller supplies the
  * ordinary empty initial result. Does not repick or execute bindings.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register Element *elemPtr;
@@ -4380,6 +4564,14 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size obj
  * Includes hidden elements. No patterns includes every registry entry; otherwise
  * each name is appended once on its first matching pattern. Returns TCL_OK with
  * a new Tcl list in hash iteration order, not drawing order.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4413,6 +4605,14 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size o
  * A supplied list is processed by RebuildDisplayList; parse failure returns
  * immediately. Copies names from the display chain into a new Tcl result list.
  * Does not filter hideplot entries or consult registry iteration order.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int ShowOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4440,6 +4640,14 @@ static int ShowOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
  *
  * Returns TCL_ERROR for an unknown name. The dispatcher type argument does not
  * filter lookup; the result describes the actual element record.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
  */
 static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
@@ -4478,6 +4686,14 @@ static const ElementOpSpec elemOps[] = {
  * errors without invoking a handler; otherwise forwards graph, interpreter,
  * complete argument vector and creation class UID to that handler.
  * Does not retain graph/element records or provide a transaction across commands.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; required live-window and mapped-state conditions are described
+ *   above.
+ * @param[in,out] interp Borrowed interpreter for results and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objc Number of borrowed objv entries; see @ref rbc_command_arguments.
+ * @param[in] objv Borrowed command arguments at the positions described above; see @ref rbc_command_arguments.
+ * @param[in] type Dispatcher-supplied creation class; unused by operations that only query or modify existing
+ *   elements.
  */
 int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid type) {
     int index;
