@@ -163,7 +163,7 @@ scalar, retaining the resolved font, character ID and pixel size.</p></li>
 the candidate program contains the requested glyph. Different sizes can share
 one program. Each record owns bytes, character/glyph arrays and lookup state.</p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportFontCharacter</span></code> first rejects invalid scalars and pre-existing export
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_ExportFontCharacter" title="Rbc_ExportFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFontCharacter()</span></code></a> first rejects invalid scalars and pre-existing export
 errors. On a cache miss it invokes Tk 9’s global <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">actual</span></code> command with
 <code class="docutils literal notranslate"><span class="pre">-displayof</span></code> and the character, so fallback selection is character-specific.
 The query saves/restores interpreter state and retains its result only while
@@ -197,7 +197,7 @@ permissions. Embedding retains outlines rather than performing glyph subsetting.
 <section id="backend-integration-and-cleanup">
 <h2>Backend integration and cleanup<a class="headerlink" href="#backend-integration-and-cleanup" title="Link to this heading">¶</a></h2>
 <p>SVG’s embedded-font path retains Unicode text and uses
-<code class="docutils literal notranslate"><span class="pre">Rbc_FontUnicodeProgram</span></code> to rebuild a cmap for the used characters, including
+<a class="reference internal" href="text-font-reference.html#c.Rbc_FontUnicodeProgram" title="Rbc_FontUnicodeProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontUnicodeProgram()</span></code></a> to rebuild a cmap for the used characters, including
 legacy Symbol mappings. It appends to a caller-initialized DString without
 changing the cached font. Finalization generates font definitions and
 content-derived family names to avoid collisions when separate SVG documents
@@ -210,12 +210,12 @@ adjusts such layout rather than assuming all screen and document glyph metrics
 are identical. Font embedding policy and final document serialization remain
 backend responsibilities. PostScript retains its separate font mapping/token
 path and does not use this cache for embedded outlines.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_FirstExportFont</span></code> returns a borrowed list head. <code class="docutils literal notranslate"><span class="pre">Rbc_ExportFontsFree</span></code>
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_FirstExportFont" title="Rbc_FirstExportFont"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FirstExportFont()</span></code></a> returns a borrowed list head. <a class="reference internal" href="text-font-reference.html#c.Rbc_ExportFontsFree" title="Rbc_ExportFontsFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFontsFree()</span></code></a>
 releases cache entries, programs, character arrays and optional Symbol encodings,
 then clears <code class="docutils literal notranslate"><span class="pre">fontData</span></code>. An empty cache is safe to free. Every returned font
 pointer and table view becomes invalid, but borrowed Tk fonts are not released.
 Partial cache state after an error is retained for this cleanup; do not resume
-serialization after a failed character lookup. Shared <code class="docutils literal notranslate"><span class="pre">Rbc_ExportFree</span></code> calls
+serialization after a failed character lookup. Shared <a class="reference internal" href="export-reference.html#c.Rbc_ExportFree" title="Rbc_ExportFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFree()</span></code></a> calls
 this cleanup as part of ending the document.</p>
 <p>See <a class="reference internal" href="text-font-reference.html"><span class="doc">Text and font C reference</span></a> for maintained contracts for the text services,
 shared sfnt/CFF readers and PDF font resource writer.</p>
@@ -223,11 +223,11 @@ shared sfnt/CFF readers and PDF font resource writer.</p>
 <section id="reader-trust-boundaries">
 <h2>Reader trust boundaries<a class="headerlink" href="#reader-trust-boundaries" title="Link to this heading">¶</a></h2>
 <p>The small big-endian readers and writers do not check buffer lengths. Their
-callers establish readable/writable spans first. Rbc_FontGetTable similarly
-assumes a directory rebuilt by FontProgram; it is not an entry point for arbitrary
+callers establish readable/writable spans first. <a class="reference internal" href="text-font-reference.html#c.Rbc_FontGetTable" title="Rbc_FontGetTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGetTable()</span></code></a> similarly
+assumes a directory rebuilt by <a class="reference internal" href="text-font-reference.html#c.FontProgram" title="FontProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontProgram()</span></code></a>; it is not an entry point for arbitrary
 unvalidated file bytes. A missing table returns a NULL/zero slice. Present slices
 borrow the owning program and cannot outlive it.</p>
-<p>FontProgram accepts TrueType, the legacy true signature and OpenType OTTO. It
+<p><a class="reference internal" href="text-font-reference.html#c.FontProgram" title="FontProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontProgram()</span></code></a> accepts TrueType, the legacy true signature and OpenType OTTO. It
 checks the directory count and table spans, omits DSIG signatures, rejects fvar
 variable-font tables and limits rebuilt storage to 64 MiB. Table data is padded
 to four-byte boundaries, checksums are recalculated and head.checkSumAdjustment
@@ -235,10 +235,10 @@ is repaired. The original table order is retained. This creates an independent
 sfnt for a selected collection face, without removing unused outlines.</p>
 <p>The destination owns its allocation as soon as rebuilding starts. An error in a
 later table or a missing head table therefore requires ordinary font cleanup,
-not merely source cleanup. FontSourceFree releases the temporary input resources;
-FontFree releases the rebuilt program. Neither routine can safely be called twice
+not merely source cleanup. <a class="reference internal" href="text-font-reference.html#c.FontSourceFree" title="FontSourceFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontSourceFree()</span></code></a> releases the temporary input resources;
+<a class="reference internal" href="text-font-reference.html#c.FontFree" title="FontFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontFree()</span></code></a> releases the rebuilt program. Neither routine can safely be called twice
 on the same unchanged record.</p>
-<p>FontTables checks the fields used by export: head, hhea, maxp, horizontal metrics,
+<p><a class="reference internal" href="text-font-reference.html#c.FontTables" title="FontTables"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontTables()</span></code></a> checks the fields used by export: head, hhea, maxp, horizontal metrics,
 OS/2 permissions and the cmap record directory. It rejects the supported set of
 recognized color-font tables and permission bits prohibiting outline embedding.
 A usable PostScript name is restricted to safe ASCII name bytes; otherwise a
@@ -248,7 +248,7 @@ all possible OpenType extensions.</p>
 </section>
 <section id="unicode-and-legacy-symbol-lookup">
 <h2>Unicode and legacy Symbol lookup<a class="headerlink" href="#unicode-and-legacy-symbol-lookup" title="Link to this heading">¶</a></h2>
-<p>FontGlyph performs four passes, returning the first usable nonzero glyph:</p>
+<p><a class="reference internal" href="text-font-reference.html#c.FontGlyph" title="FontGlyph"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontGlyph()</span></code></a> performs four passes, returning the first usable nonzero glyph:</p>
 <ol class="arabic simple">
 <li><p>Unicode format 12, covering BMP and supplementary-plane characters.</p></li>
 <li><p>Unicode format 4, covering the BMP.</p></li>
@@ -270,13 +270,13 @@ native glyph; text extraction must not infer Unicode from glyph numbers alone.</
 </section>
 <section id="name-keyed-cff-metadata">
 <h2>Name-keyed CFF metadata<a class="headerlink" href="#name-keyed-cff-metadata" title="Link to this heading">¶</a></h2>
-<p>CffIndex checks its count, offset width, initial one-based offset, monotonic
+<p><a class="reference internal" href="text-font-reference.html#c.CffIndex" title="CffIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffIndex()</span></code></a> checks its count, offset width, initial one-based offset, monotonic
 following offsets and final data extent. Success advances the caller’s cursor
 and returns a borrowed complete INDEX; failure does not advance the cursor, but
-its output slice may already be partially written. CffItem is deliberately
+its output slice may already be partially written. <a class="reference internal" href="text-font-reference.html#c.CffItem" title="CffItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffItem()</span></code></a> is deliberately
 lighter: it requires an already validated INDEX and returns a borrowed item,
 which can be empty. It performs no repeated directory validation.</p>
-<p>FontCffInit supports CFF version 1 with one name and one Top DICT. It reads the
+<p><a class="reference internal" href="text-font-reference.html#c.FontCffInit" title="FontCffInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontCffInit()</span></code></a> supports CFF version 1 with one name and one Top DICT. It reads the
 charset and CharStrings offsets needed by export, checks the CharStrings count
 against the sfnt glyph count, then constructs a glyph-to-SID array. ISOAdobe,
 Expert and ExpertSubset predefined charsets and explicit formats 0/1/2 are
@@ -290,14 +290,14 @@ attached to the font for normal failure cleanup.</p>
 </section>
 <section id="svg-cmap-reconstruction">
 <h2>SVG cmap reconstruction<a class="headerlink" href="#svg-cmap-reconstruction" title="Link to this heading">¶</a></h2>
-<p>Rbc_FontUnicodeProgram sorts temporary Unicode/glyph pairs from the collected
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_FontUnicodeProgram" title="Rbc_FontUnicodeProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontUnicodeProgram()</span></code></a> sorts temporary Unicode/glyph pairs from the collected
 characters. It generates format 12 entries for the complete used set and format 4
 entries for up to 8,188 BMP characters below U+FFFF, plus the mandatory sentinel.
 This limit keeps format 4 within its 16-bit length field; format 12 still represents
 characters omitted from that compact table. Each pair maps the original Unicode
 scalar to the resolved glyph, including Symbol fallback results.</p>
 <p>The routine copies the font, redirects its cmap directory entry to the new data,
-then passes that temporary source through FontProgram again to restore directory
+then passes that temporary source through <a class="reference internal" href="text-font-reference.html#c.FontProgram" title="FontProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontProgram()</span></code></a> again to restore directory
 layout and checksums. It appends the rebuilt bytes to the caller’s DString only
 on success. Temporary arrays and programs are released in both cases, and the
 cached font remains unchanged. Retaining every outline is deliberate full
@@ -334,7 +334,7 @@ embedding, not glyph subsetting.</p>
 </tbody>
 </table>
 <p>Character lookup reserves placeholders before final dictionaries are known.
-Rbc_PdfFontsFinish replaces them after all text has been collected and before
+<a class="reference internal" href="text-font-reference.html#c.Rbc_PdfFontsFinish" title="Rbc_PdfFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFontsFinish()</span></code></a> replaces them after all text has been collected and before
 final PDF serialization. CFF blocks split every 255 distinct characters; they
 share the program rather than duplicate it. The shared cache limits a font to
 65,535 distinct characters. Callers must finalize once and stop collecting text
@@ -350,6 +350,69 @@ names are directly usable PDF names.</p>
 restores the previous pointer on return. Font records and table views stay owned
 by the export context; PDF resource copies have their own document lifetime.
 A failed export is not a checkpoint from which serialization can resume.</p>
+</section>
+<section id="parameter-units-and-identifier-domains">
+<h2>Parameter units and identifier domains<a class="headerlink" href="#parameter-units-and-identifier-domains" title="Link to this heading">¶</a></h2>
+<p>The character and font-resource APIs deliberately use different integer domains.
+A plain C <code class="docutils literal notranslate"><span class="pre">int</span></code> does not make the following values interchangeable:</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Font identifiers and units</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Producer or consumer</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Unicode scalar</p></td>
+<td><p>Original text character; not an outline index.</p></td>
+<td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_ExportFontCharacter" title="Rbc_ExportFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFontCharacter()</span></code></a>, <a class="reference internal" href="text-font-reference.html#c.FontGlyph" title="FontGlyph"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontGlyph()</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Native glyph index</p></td>
+<td><p>Zero-based index into one program’s glyph metadata; zero denotes missing
+in the lookup path.</p></td>
+<td><p><a class="reference internal" href="text-font-reference.html#c.FontGlyph" title="FontGlyph"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontGlyph()</span></code></a>, <a class="reference internal" href="text-font-reference.html#c.Rbc_FontGlyphName" title="Rbc_FontGlyphName"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGlyphName()</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p>Shared character ID</p></td>
+<td><p>One-based index into one cached font’s collected characters.</p></td>
+<td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_ExportFontCharacter" title="Rbc_ExportFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFontCharacter()</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>PDF resource ID</p></td>
+<td><p>Object number identifying a font dictionary in this document.</p></td>
+<td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_PdfFontCharacter" title="Rbc_PdfFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFontCharacter()</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p>PDF character code</p></td>
+<td><p>WinAnsi byte, TrueType CID or CFF block-local code for the selected resource.</p></td>
+<td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_PdfFontCharacter" title="Rbc_PdfFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFontCharacter()</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Size and advance</p></td>
+<td><p>Display pixels; PDF widths later use 1,000-unit font space.</p></td>
+<td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_ExportFontCharacter" title="Rbc_ExportFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFontCharacter()</span></code></a>, <a class="reference internal" href="text-font-reference.html#c.FontCffResources" title="FontCffResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontCffResources()</span></code></a></p></td>
+</tr>
+</tbody>
+</table>
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_PdfFontCharacter" title="Rbc_PdfFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFontCharacter()</span></code></a> returns the hexadecimal width separately from the
+code: two digits for standard fonts and CFF, four for TrueType. In nonembedded
+mode it sets the advance to zero and the width to two before checking whether
+the character is supported. Outputs are therefore usable only on <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>;
+error return does not promise untouched output pointers. The shared native
+resolver writes its result pointers only after successful resolution.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.FontActual" title="FontActual"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontActual()</span></code></a> returns a retained Tcl object, which its caller releases.
+<a class="reference internal" href="text-font-reference.html#c.FontAttribute" title="FontAttribute"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontAttribute()</span></code></a> instead returns a borrowed value inside that object.
+Keeping the attribute pointer does not retain the dictionary. Likewise,
+<a class="reference internal" href="text-font-reference.html#c.Rbc_FontGetTable" title="Rbc_FontGetTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGetTable()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.CffItem" title="CffItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffItem()</span></code></a> return borrowed byte slices;
+<a class="reference internal" href="text-font-reference.html#c.Rbc_FontGlyphName" title="Rbc_FontGlyphName"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGlyphName()</span></code></a> may return static standard-name bytes or a slice of
+font-owned custom-name storage. None should be freed by the caller.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.FontSourceOpen" title="FontSourceOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontSourceOpen()</span></code></a> leaves partial acquisition resources with its caller
+on failure. Pair it with <a class="reference internal" href="text-font-reference.html#c.FontSourceFree" title="FontSourceFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontSourceFree()</span></code></a> on either outcome. The rebuilt
+program has a separate owner: <a class="reference internal" href="text-font-reference.html#c.FontProgram" title="FontProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontProgram()</span></code></a> can attach its destination
+allocation before a later validation error, and <a class="reference internal" href="text-font-reference.html#c.FontFree" title="FontFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontFree()</span></code></a> releases that
+font record. The source and rebuilt program must not be treated as aliases.</p>
 </section>
 </section>
 
@@ -376,6 +439,7 @@ A failed export is not a checkpoint from which serialization can resume.</p>
 <li><a class="reference internal" href="#name-keyed-cff-metadata">Name-keyed CFF metadata</a></li>
 <li><a class="reference internal" href="#svg-cmap-reconstruction">SVG cmap reconstruction</a></li>
 <li><a class="reference internal" href="#pdf-character-codes-and-finalization">PDF character codes and finalization</a></li>
+<li><a class="reference internal" href="#parameter-units-and-identifier-domains">Parameter units and identifier domains</a></li>
 </ul>
 </li>
 </ul>

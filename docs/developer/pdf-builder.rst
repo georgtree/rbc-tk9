@@ -13,7 +13,7 @@ See :doc:`exports` and :doc:`pdf-builder-reference`.
 One export, one builder
 -----------------------
 
-After ``Rbc_ExportInit``, ``Rbc_PdfBegin`` attaches a new ``PdfDocument`` to
+After :c:func:`Rbc_ExportInit`, :c:func:`Rbc_PdfBegin` attaches a new ``PdfDocument`` to
 ``backendData``. It stores scale/height and appends ``q`` plus the initial matrix
 to the current content buffer. This maps downward-increasing screen Y to PDF's
 page coordinates while converting pixels to physical points. The graph command
@@ -24,7 +24,7 @@ once on a fresh export context. Geometry emitters append content and register
 resources during the synchronous graph traversal. All renderer contexts must
 finish before finalization and cleanup.
 
-``Rbc_PdfDocument`` finalizes document fonts, appends the matching ``Q`` and
+:c:func:`Rbc_PdfDocument` finalizes document fonts, appends the matching ``Q`` and
 serializes the page. The result is a new Tcl byte-array object, not Unicode
 text. The caller manages its references and either returns it or writes it with
 binary channel settings. The builder opens no files and performs no channel
@@ -59,7 +59,7 @@ objects:
    * - 6 onward
      - Registered resource bodies in insertion order
 
-``Rbc_PdfResource`` interns the pair of category and exact body bytes. It copies
+:c:func:`Rbc_PdfResource` interns the pair of category and exact body bytes. It copies
 a new body's bytes into a resource-owned ``Tcl_DString``; an identical entry
 reuses its number. The search is linear and storage capacity grows in blocks
 of 32 pointers. IDs remain stable as the pointer array grows. Neither source
@@ -82,14 +82,14 @@ Reserved resources and streams
 ------------------------------
 
 Font drawing reserves object IDs before all character codes are known. At
-finalization, ``Rbc_PdfFontsFinish`` can append auxiliary objects and replace the
-reserved bodies through ``Rbc_PdfSetResource``. Replacement preserves the ID and
+finalization, :c:func:`Rbc_PdfFontsFinish` can append auxiliary objects and replace the
+reserved bodies through :c:func:`Rbc_PdfSetResource`. Replacement preserves the ID and
 category and does not re-intern the new body. Every reference to an interned ID
 sees the replacement; placeholders that must remain independent therefore need
 distinct initial bodies. ``SetResource`` assumes a valid existing ID and copies
 from nonaliased source storage.
 
-``Rbc_PdfStream`` assembles dictionary entries, an explicit byte Length, the
+:c:func:`Rbc_PdfStream` assembles dictionary entries, an explicit byte Length, the
 stream marker, payload and end marker in a temporary DString. It temporarily
 redirects ``token->buffer``, restores the previous pointer, then interns the
 complete body and frees temporary storage. Embedded NULs are copied with their
@@ -130,10 +130,10 @@ whose upstream font discovery, callbacks or drawing inputs differ.
 Cleanup boundaries
 ------------------
 
-``Rbc_PdfFree`` releases each resource body, each resource record, the pointer
+:c:func:`Rbc_PdfFree` releases each resource body, each resource record, the pointer
 array and the builder, then clears ``backendData``. Calling it with no builder
 is harmless. It does not release document-local font state or content storage;
-``Rbc_ExportFree`` handles those separately. Neither function destroys the
+:c:func:`Rbc_ExportFree` handles those separately. Neither function destroys the
 caller's graph or a successfully returned byte-array object.
 
 Future writer changes should preserve binary lengths, stable reserved IDs,
@@ -142,3 +142,13 @@ include repeated resource reuse, font placeholder replacement, image payloads
 containing NUL bytes, empty drawing content and independent repeated exports.
 These are builder concerns; geometry restoration and file-delivery behavior
 belong to the shared export orchestration.
+
+Stored geometry queries
+------------------------
+
+:c:func:`Rbc_PdfScale` returns the pixel-to-point conversion supplied at builder
+creation. :c:func:`Rbc_PdfHeight` returns the saved page height in display pixels.
+Neither queries the current graph or Tk window, and neither accepts an absent
+builder. These are document metrics, not live widget measurements: resizing or
+restoring the graph does not update them. Both require the PDF backend lifetime
+to continue until the query returns.

@@ -53,7 +53,7 @@ the builder, while the shared export command owns layout, delivery and cleanup.
 See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> and <a class="reference internal" href="pdf-builder-reference.html"><span class="doc">PDF builder C reference</span></a>.</p>
 <section id="one-export-one-builder">
 <h2>One export, one builder<a class="headerlink" href="#one-export-one-builder" title="Link to this heading">¶</a></h2>
-<p>After <code class="docutils literal notranslate"><span class="pre">Rbc_ExportInit</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_PdfBegin</span></code> attaches a new <code class="docutils literal notranslate"><span class="pre">PdfDocument</span></code> to
+<p>After <a class="reference internal" href="export-reference.html#c.Rbc_ExportInit" title="Rbc_ExportInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportInit()</span></code></a>, <a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfBegin" title="Rbc_PdfBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfBegin()</span></code></a> attaches a new <code class="docutils literal notranslate"><span class="pre">PdfDocument</span></code> to
 <code class="docutils literal notranslate"><span class="pre">backendData</span></code>. It stores scale/height and appends <code class="docutils literal notranslate"><span class="pre">q</span></code> plus the initial matrix
 to the current content buffer. This maps downward-increasing screen Y to PDF’s
 page coordinates while converting pixels to physical points. The graph command
@@ -62,7 +62,7 @@ calculates scale from Tk’s screen dimensions and physical screen width.</p>
 once on a fresh export context. Geometry emitters append content and register
 resources during the synchronous graph traversal. All renderer contexts must
 finish before finalization and cleanup.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_PdfDocument</span></code> finalizes document fonts, appends the matching <code class="docutils literal notranslate"><span class="pre">Q</span></code> and
+<p><a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfDocument" title="Rbc_PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfDocument()</span></code></a> finalizes document fonts, appends the matching <code class="docutils literal notranslate"><span class="pre">Q</span></code> and
 serializes the page. The result is a new Tcl byte-array object, not Unicode
 text. The caller manages its references and either returns it or writes it with
 binary channel settings. The builder opens no files and performs no channel
@@ -103,7 +103,7 @@ objects:</p>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_PdfResource</span></code> interns the pair of category and exact body bytes. It copies
+<p><a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfResource" title="Rbc_PdfResource"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfResource()</span></code></a> interns the pair of category and exact body bytes. It copies
 a new body’s bytes into a resource-owned <code class="docutils literal notranslate"><span class="pre">Tcl_DString</span></code>; an identical entry
 reuses its number. The search is linear and storage capacity grows in blocks
 of 32 pointers. IDs remain stable as the pointer array grows. Neither source
@@ -123,13 +123,13 @@ failure handling or general ID validation.</p>
 <section id="reserved-resources-and-streams">
 <h2>Reserved resources and streams<a class="headerlink" href="#reserved-resources-and-streams" title="Link to this heading">¶</a></h2>
 <p>Font drawing reserves object IDs before all character codes are known. At
-finalization, <code class="docutils literal notranslate"><span class="pre">Rbc_PdfFontsFinish</span></code> can append auxiliary objects and replace the
-reserved bodies through <code class="docutils literal notranslate"><span class="pre">Rbc_PdfSetResource</span></code>. Replacement preserves the ID and
+finalization, <a class="reference internal" href="text-font-reference.html#c.Rbc_PdfFontsFinish" title="Rbc_PdfFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFontsFinish()</span></code></a> can append auxiliary objects and replace the
+reserved bodies through <a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfSetResource" title="Rbc_PdfSetResource"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfSetResource()</span></code></a>. Replacement preserves the ID and
 category and does not re-intern the new body. Every reference to an interned ID
 sees the replacement; placeholders that must remain independent therefore need
 distinct initial bodies. <code class="docutils literal notranslate"><span class="pre">SetResource</span></code> assumes a valid existing ID and copies
 from nonaliased source storage.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_PdfStream</span></code> assembles dictionary entries, an explicit byte Length, the
+<p><a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfStream" title="Rbc_PdfStream"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfStream()</span></code></a> assembles dictionary entries, an explicit byte Length, the
 stream marker, payload and end marker in a temporary DString. It temporarily
 redirects <code class="docutils literal notranslate"><span class="pre">token-&gt;buffer</span></code>, restores the previous pointer, then interns the
 complete body and frees temporary storage. Embedded NULs are copied with their
@@ -164,10 +164,10 @@ whose upstream font discovery, callbacks or drawing inputs differ.</p>
 </section>
 <section id="cleanup-boundaries">
 <h2>Cleanup boundaries<a class="headerlink" href="#cleanup-boundaries" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_PdfFree</span></code> releases each resource body, each resource record, the pointer
+<p><a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfFree" title="Rbc_PdfFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFree()</span></code></a> releases each resource body, each resource record, the pointer
 array and the builder, then clears <code class="docutils literal notranslate"><span class="pre">backendData</span></code>. Calling it with no builder
 is harmless. It does not release document-local font state or content storage;
-<code class="docutils literal notranslate"><span class="pre">Rbc_ExportFree</span></code> handles those separately. Neither function destroys the
+<a class="reference internal" href="export-reference.html#c.Rbc_ExportFree" title="Rbc_ExportFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFree()</span></code></a> handles those separately. Neither function destroys the
 caller’s graph or a successfully returned byte-array object.</p>
 <p>Future writer changes should preserve binary lengths, stable reserved IDs,
 font-finalization order and buffer restoration on every exit. Useful checks
@@ -175,6 +175,15 @@ include repeated resource reuse, font placeholder replacement, image payloads
 containing NUL bytes, empty drawing content and independent repeated exports.
 These are builder concerns; geometry restoration and file-delivery behavior
 belong to the shared export orchestration.</p>
+</section>
+<section id="stored-geometry-queries">
+<h2>Stored geometry queries<a class="headerlink" href="#stored-geometry-queries" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfScale" title="Rbc_PdfScale"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfScale()</span></code></a> returns the pixel-to-point conversion supplied at builder
+creation. <a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfHeight" title="Rbc_PdfHeight"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfHeight()</span></code></a> returns the saved page height in display pixels.
+Neither queries the current graph or Tk window, and neither accepts an absent
+builder. These are document metrics, not live widget measurements: resizing or
+restoring the graph does not update them. Both require the PDF backend lifetime
+to continue until the query returns.</p>
 </section>
 </section>
 
@@ -194,6 +203,7 @@ belong to the shared export orchestration.</p>
 <li><a class="reference internal" href="#reserved-resources-and-streams">Reserved resources and streams</a></li>
 <li><a class="reference internal" href="#serialization-and-errors">Serialization and errors</a></li>
 <li><a class="reference internal" href="#cleanup-boundaries">Cleanup boundaries</a></li>
+<li><a class="reference internal" href="#stored-geometry-queries">Stored geometry queries</a></li>
 </ul>
 </li>
 </ul>

@@ -7,6 +7,10 @@ numbering conventions. They are independent of Cairo.
 
 .. doxygenfunction:: Rbc_PdfBegin
 
+.. doxygenfunction:: Rbc_PdfScale
+
+.. doxygenfunction:: Rbc_PdfHeight
+
 .. doxygenfunction:: Rbc_PdfResource
 
 .. doxygenfunction:: Rbc_PdfSetResource

@@ -17,6 +17,13 @@
  * Helvetica style from Tk PostScript naming, reserves a deduplicated Type1
  * resource and returns pixel size/code/id. Borrows the Tk font; no native font
  * program is acquired. Outputs are only usable on TCL_OK.
+ *
+ * @param[inout] token Live PDF export context with initialized builder and a valid current buffer.
+ * @param[in] font Borrowed Tk font supplying standard-family/style selection and point size.
+ * @param[in] ch Unicode scalar to resolve, not a native glyph index or PDF character code.
+ * @param[out] idPtr Receives the document font resource object number on success.
+ * @param[out] codePtr Receives the one-byte WinAnsi character code on success.
+ * @param[out] sizePtr Receives font size converted to display pixels on success.
  */
 static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar ch, int *idPtr, int *codePtr,
                                 double *sizePtr) {
@@ -73,6 +80,17 @@ static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniC
  * replaced by Rbc_PdfFontsFinish. Requires initialized PDF export state; caller
  * must not serialize the document before successful finalization. Returns
  * TCL_ERROR for existing or newly recorded export errors.
+ *
+ * @param[inout] token Live PDF export context with initialized builder and a valid current buffer.
+ * @param[in] tkfont Borrowed Tk font used for standard-font mapping or shared native resolution.
+ * @param[in] ch Unicode scalar to resolve, not a native glyph index or PDF character code.
+ * @param[out] idPtr PDF font resource object number; consume only on TCL_OK.
+ * @param[out] cidPtr Code for that resource: WinAnsi byte, TrueType CID or CFF block-local code; consume only
+ *    on TCL_OK.
+ * @param[out] sizePtr Resolved font size in display pixels; consume only on TCL_OK.
+ * @param[out] digitsPtr Hexadecimal code width (two or four digits); may be written before a later failure.
+ * @param[out] advancePtr Native horizontal advance in pixels, or zero in nonembedded mode; may be written
+ *    before a later failure.
  */
 int Rbc_PdfFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniChar ch, int *idPtr, int *cidPtr,
                          double *sizePtr, int *digitsPtr, double *advancePtr) {
@@ -112,6 +130,10 @@ int Rbc_PdfFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniChar c
  * and ToUnicode maps, sharing the embedded CFF program through the descriptor.
  * Temporarily redirects token->buffer and restores it before releasing local
  * DString storage. Does not release the font or serialize the final PDF file.
+ *
+ * @param[inout] token Live PDF export context with initialized builder and a valid current buffer.
+ * @param[in] font Collected name-keyed CFF font with reserved fontIds for every used 255-character block.
+ * @param[in] descriptor Existing PDF font-descriptor object number in the same document; shared by all blocks.
  */
 static void FontCffResources(Rbc_ExportContext *token, Rbc_ExportFont *font, int descriptor) {
     Tcl_DString body;
@@ -189,6 +211,8 @@ static void FontCffResources(Rbc_ExportContext *token, Rbc_ExportFont *font, int
  * restores token->buffer after temporary serialization. Returns TCL_ERROR for
  * a pre-existing export error. Finalize once before document serialization;
  * this operation does not freeze the cache or enforce one-shot use.
+ *
+ * @param[inout] token Live PDF export context with initialized builder and a valid current buffer.
  */
 int Rbc_PdfFontsFinish(Rbc_ExportContext *token) {
     Rbc_ExportFont *font;

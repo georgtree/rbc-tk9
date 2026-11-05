@@ -65,6 +65,38 @@ Allocates backendData and appends a graphics-state save and transform to the cur
 </dd></dl>
 
 <dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfScale">
+<span class="target" id="rbc_export_8h_1a0ab14b76e0067f5d8ad1db054b78c67a"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfScale</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfScale" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read a stored PDF page metric without changing builder state. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[in]</strong> Live export context with an initialized PDF builder; backendData must not be NULL. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pixel-to-point scale recorded by Rbc_PdfBegin. Does not query Tk, infer current graph dimensions or validate the stored metric. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfHeight">
+<span class="target" id="rbc_export_8h_1a4a2cf63f0c0da64eee7c120721126f08"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfHeight</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read a stored PDF page metric without changing builder state. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[in]</strong> Live export context with an initialized PDF builder; backendData must not be NULL. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Page height in display pixels recorded by Rbc_PdfBegin. Does not query Tk, infer current graph dimensions or validate the stored metric. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfResource">
 <span class="target" id="rbc_export_8h_1a740cc43bc1bfb6d5e8cb9a699ea6523f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfResource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">body</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfResource" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intern a copied PDF object body within the current document. </p>
@@ -174,6 +206,8 @@ Frees copied resource bodies, the resource array and builder. Does not free font
     <ul>
 <li><a class="reference internal" href="#">PDF builder C reference</a><ul>
 <li><a class="reference internal" href="#c.Rbc_PdfBegin"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfBegin()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfScale"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfScale()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfHeight"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfHeight()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PdfResource"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfResource()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PdfSetResource"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfSetResource()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PdfStream"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfStream()</span></code></a></li>

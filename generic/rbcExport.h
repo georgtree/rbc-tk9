@@ -109,6 +109,18 @@ int Rbc_PdfFontCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar ch,
                          int *idPtr, int *cidPtr, double *sizePtr, int *digitsPtr, double *advancePtr);
 int Rbc_PdfFontsFinish(Rbc_ExportContext *token);
 int Rbc_SvgFontsFinish(Rbc_ExportContext *token);
+/**
+ * @brief Read a stored PDF page metric without changing builder state.
+ * @param[in] token Live export context with an initialized PDF builder; backendData must not be NULL.
+ * @return Pixel-to-point scale recorded by Rbc_PdfBegin.
+ * Does not query Tk, infer current graph dimensions or validate the stored metric.
+ */
 double Rbc_PdfScale(Rbc_ExportContext *token);
+/**
+ * @brief Read a stored PDF page metric without changing builder state.
+ * @param[in] token Live export context with an initialized PDF builder; backendData must not be NULL.
+ * @return Page height in display pixels recorded by Rbc_PdfBegin.
+ * Does not query Tk, infer current graph dimensions or validate the stored metric.
+ */
 int Rbc_PdfHeight(Rbc_ExportContext *token);
 #endif

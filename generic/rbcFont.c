@@ -48,6 +48,8 @@ typedef struct {
  * @ingroup export_font_internals
  * @brief Read an unsigned big-endian 16-bit field.
  * Requires two readable bytes; performs no bounds check or allocation.
+ *
+ * @param[in] p Start of at least two readable bytes; no alignment requirement.
  */
 unsigned int Rbc_FontU16(const unsigned char *p) { return ((unsigned int)p[0] << 8) | p[1]; }
 
@@ -55,6 +57,8 @@ unsigned int Rbc_FontU16(const unsigned char *p) { return ((unsigned int)p[0] <<
  * @ingroup export_font_internals
  * @brief Read an unsigned big-endian 32-bit field.
  * Requires four readable bytes; performs no alignment-dependent loads or bounds check.
+ *
+ * @param[in] p Start of at least four readable bytes; no alignment requirement.
  */
 uint32_t Rbc_FontU32(const unsigned char *p) {
     return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | p[3];
@@ -64,6 +68,8 @@ uint32_t Rbc_FontU32(const unsigned char *p) {
  * @ingroup export_font_internals
  * @brief Read a signed big-endian 16-bit field.
  * Requires two readable bytes; explicitly sign-extends the unsigned value.
+ *
+ * @param[in] p Start of at least two readable bytes; no alignment requirement.
  */
 int Rbc_FontS16(const unsigned char *p) {
     unsigned int n = Rbc_FontU16(p);
@@ -74,6 +80,9 @@ int Rbc_FontS16(const unsigned char *p) {
  * @ingroup export_font_internals
  * @brief Write the low 16 bits in big-endian order.
  * Requires two writable bytes. Values outside the field width are truncated, not rejected.
+ *
+ * @param[out] p Start of at least two writable bytes.
+ * @param[in] n Value whose low 16 bits are stored; higher bits are discarded.
  */
 void Rbc_FontPut16(unsigned char *p, unsigned int n) {
     p[0] = (unsigned char)(n >> 8);
@@ -85,6 +94,9 @@ void Rbc_FontPut16(unsigned char *p, unsigned int n) {
  * @ingroup export_font_internals
  * @brief Write a big-endian 32-bit field.
  * Requires four writable bytes. Used for rebuilt directories, checksums and cmap fields.
+ *
+ * @param[out] p Start of at least four writable bytes.
+ * @param[in] n 32-bit value written most significant byte first.
  */
 static void FontPut32(unsigned char *p, uint32_t n) {
     p[0] = (unsigned char)(n >> 24);
@@ -99,6 +111,9 @@ static void FontPut32(unsigned char *p, uint32_t n) {
  * Requires a zero-initialized source before acquisition. Frees byte storage and,
  * on Windows, restores the selected font before releasing the DC and created
  * font. Does not free the source record or clear fields; do not call twice.
+ *
+ * @param[inout] source Zero-initialized or partially acquired source whose owned resources are released once;
+ *    fields are not cleared.
  */
 static void FontSourceFree(FontSource *source) {
     if (source->bytes != NULL) {
@@ -129,6 +144,16 @@ static void FontSourceFree(FontSource *source) {
  * selects a collection face. Returns TCL_ERROR with an export diagnostic on
  * failure; partial source ownership remains with the caller. Does not build
  * the independent export program or validate all its tables.
+ *
+ * @param[inout] token Live export context receiving the first error diagnostic and any document-local cache
+ *    changes.
+ * @param[in] family Borrowed NUL-terminated UTF-8 family selected by Tk.
+ * @param[in] bold Nonzero requests bold physical style.
+ * @param[in] italic Nonzero requests italic physical style.
+ * @param[in] size Validated positive pixel size, representable as the rounded GDI height; ignored on X11.
+ * @param[in] ch Character coverage required by Fontconfig; Windows relies on the already selected family.
+ * @param[inout] source Caller-owned zeroed source; caller releases partial resources on both success and
+ *    failure.
  */
 static int FontSourceOpen(Rbc_ExportContext *token, const char *family, int bold, int italic, double size,
                           Tcl_UniChar ch, FontSource *source) {
@@ -281,6 +306,12 @@ static int FontSourceOpen(Rbc_ExportContext *token, const char *family, int bold
  * validation finishes, so the caller must free the partial font on TCL_ERROR.
  * Recomputes table checksums and head adjustment, but does not validate every
  * outline instruction, table relationship or semantic field.
+ *
+ * @param[inout] token Live export context receiving the first error diagnostic and any document-local cache
+ *    changes.
+ * @param[in] source Acquired source directory and platform resources; remains caller-owned.
+ * @param[inout] font Fresh destination receiving owned bytes and length, possibly before a later validation
+ *    failure.
  */
 static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportFont *font) {
     const unsigned char *directory;
@@ -383,6 +414,9 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
  * Requires a FontProgram-validated directory and a readable four-byte tag.
  * Returns {NULL,0} when absent. Does not revalidate bounds or retain the owning
  * font; the returned view expires when its program storage is released.
+ *
+ * @param[in] font Font whose directory and table extents were validated by FontProgram.
+ * @param[in] tag Four readable tag bytes; a terminating NUL is not required.
  */
 Rbc_FontTable Rbc_FontGetTable(Rbc_ExportFont *font, const char *tag) {
     Rbc_FontTable table = {NULL, 0};
@@ -815,6 +849,9 @@ static const unsigned short cffExpertSubset[] = {
  * @brief Decode a big-endian variable-width CFF offset.
  * Caller validates width (one through four) and the corresponding readable
  * bytes. Returns the unsigned offset without adjusting its one-based origin.
+ *
+ * @param[in] p At least width readable bytes.
+ * @param[in] width Validated offset width from one through four bytes.
  */
 static uint32_t CffOffset(const unsigned char *p, unsigned int width) {
     uint32_t n = 0;
@@ -833,6 +870,11 @@ static uint32_t CffOffset(const unsigned char *p, unsigned int width) {
  * one and a borrowed complete INDEX slice, advancing position past it. On
  * failure returns zero without advancing position; the output slice may be
  * partially written and must not be used. Does not validate item contents.
+ *
+ * @param[in] table Borrowed readable CFF table slice with its byte length.
+ * @param[inout] position Zero-based byte cursor, advanced only on success.
+ * @param[out] index Borrowed complete INDEX slice on success; may be partially written on failure and must
+ *    then be ignored.
  */
 static int CffIndex(Rbc_FontTable table, size_t *position, Rbc_FontTable *index) {
     const unsigned char *p;
@@ -883,6 +925,9 @@ static int CffIndex(Rbc_FontTable table, size_t *position, Rbc_FontTable *index)
  * Requires the complete slice returned by successful CffIndex, even for an
  * empty INDEX. Out-of-range item indices return {NULL,0}; an in-range item may
  * have zero length. No allocation, ownership transfer or repeated validation.
+ *
+ * @param[in] index Complete INDEX slice already validated by CffIndex.
+ * @param[in] item Zero-based item number; an out-of-range number returns an empty NULL slice.
  */
 static Rbc_FontTable CffItem(Rbc_FontTable index, unsigned int item) {
     Rbc_FontTable result = {NULL, 0};
@@ -906,6 +951,9 @@ static Rbc_FontTable CffItem(Rbc_FontTable index, unsigned int item) {
  * static names; custom SIDs borrow the validated String INDEX. The returned
  * slice is not necessarily NUL-terminated. FontCffInit validates name lengths
  * before consumers serialize them; this helper does not validate glyph bounds.
+ *
+ * @param[in] font Name-keyed CFF font with validated SIDs and String INDEX.
+ * @param[in] glyph Valid zero-based native glyph index into the SID array; not a document character ID.
  */
 Rbc_FontTable Rbc_FontGlyphName(Rbc_ExportFont *font, int glyph) {
     unsigned int sid = font->sids[glyph];
@@ -930,6 +978,11 @@ Rbc_FontTable Rbc_FontGlyphName(Rbc_ExportFont *font, int glyph) {
  * metadata. Allocates font->sids, retained for FontFree even on later failure.
  * Only the metadata required by export is interpreted; charstring programs and
  * unused DICT operands are not a complete CFF validation target.
+ *
+ * @param[inout] token Live export context receiving the first error diagnostic and any document-local cache
+ *    changes.
+ * @param[inout] font Rebuilt font with validated CFF table and positive glyph count; owns any allocated SID
+ *    array even on failure.
  */
 static int FontCffInit(Rbc_ExportContext *token, Rbc_ExportFont *font) {
     Rbc_FontTable names, topIndex, top, strings, charstrings;
@@ -1088,6 +1141,11 @@ invalid:
  * bytes; no table is copied. Returns TCL_ERROR through the export context;
  * partial metadata remains attached for cleanup. CFF charset initialization
  * and per-character cmap lookup are separate stages.
+ *
+ * @param[inout] token Live export context receiving the first error diagnostic and any document-local cache
+ *    changes.
+ * @param[inout] font Rebuilt sfnt receiving borrowed table views, metrics and a safe export name; partial
+ *    metadata remains on failure.
  */
 static int FontTables(Rbc_ExportContext *token, Rbc_ExportFont *font) {
     Rbc_FontTable os2 = Rbc_FontGetTable(font, "OS/2"), glyf = Rbc_FontGetTable(font, "glyf");
@@ -1158,6 +1216,9 @@ static int FontTables(Rbc_ExportContext *token, Rbc_ExportFont *font) {
  * resulting glyph indices are checked; malformed/unsupported candidates are
  * skipped. Returns zero for no usable nonzero glyph. Format-12 binary search
  * assumes sorted groups; this is not a complete cmap conformance validator.
+ *
+ * @param[in] font Borrowed font record with validated program bytes and table metadata.
+ * @param[in] ch Unicode scalar to resolve, not a native glyph index or PDF character code.
  */
 static int FontGlyph(Rbc_ExportFont *font, Tcl_UniChar ch) {
     const unsigned char *cmap = font->cmap.bytes;
@@ -1280,6 +1341,9 @@ static int FontGlyph(Rbc_ExportFont *font, Tcl_UniChar ch) {
  * Releases program bytes, key, glyph/character/SID arrays and optional Tcl
  * encoding, then the record. Does not unlink it or free following list nodes.
  * All borrowed table/name views become invalid; Tk_Font handles are not owned.
+ *
+ * @param[in] font Owned non-NULL record with initialized codes hash; caller unlinks it before release if
+ *    necessary.
  */
 static void FontFree(Rbc_ExportFont *font) {
     Tcl_DeleteHashTable(&font->codes);
@@ -1314,6 +1378,11 @@ static void FontFree(Rbc_ExportFont *font) {
  * interpreter state on both paths and records an export error on failure.
  * Requires live Tk font/window/interpreter. This Tcl boundary does not itself
  * preserve graph resources or guard reentrant replacement of the font command.
+ *
+ * @param[inout] token Export context with a live interpreter/window; interpreter state is restored after the
+ *    Tcl query.
+ * @param[in] font Borrowed Tk font whose actual per-character attributes are queried.
+ * @param[in] ch Unicode scalar to resolve, not a native glyph index or PDF character code.
  */
 static Tcl_Obj *FontActual(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar ch) {
     Tcl_Obj *args[7], *result = NULL;
@@ -1348,6 +1417,9 @@ static Tcl_Obj *FontActual(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar c
  * Creates and releases a temporary key. Returns NULL for a missing key or
  * failed dictionary lookup; returned values remain owned by attributes.
  * No interpreter diagnostic is produced.
+ *
+ * @param[in] attributes Borrowed Tcl dictionary-like result, kept alive while the returned value is used.
+ * @param[in] name Borrowed NUL-terminated attribute key, such as -family.
  */
 static Tcl_Obj *FontAttribute(Tcl_Obj *attributes, const char *name) {
     Tcl_Obj *key = Tcl_NewStringObj(name, -1), *value = NULL;
@@ -1536,6 +1608,9 @@ typedef struct {
  * @brief Order temporary Unicode-to-glyph pairs by scalar value.
  * qsort comparator for FontUnicodePair records; ignores glyph values and uses
  * relational comparisons rather than subtraction that could overflow.
+ *
+ * @param[in] a Borrowed first FontUnicodePair supplied by qsort.
+ * @param[in] b Borrowed second FontUnicodePair supplied by qsort.
  */
 static int FontUnicodeCompare(const void *a, const void *b) {
     const FontUnicodePair *left = a, *right = b;

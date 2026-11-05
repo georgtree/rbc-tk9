@@ -127,7 +127,7 @@ The cache has two levels:
   the candidate program contains the requested glyph. Different sizes can share
   one program. Each record owns bytes, character/glyph arrays and lookup state.
 
-``Rbc_ExportFontCharacter`` first rejects invalid scalars and pre-existing export
+:c:func:`Rbc_ExportFontCharacter` first rejects invalid scalars and pre-existing export
 errors. On a cache miss it invokes Tk 9's global ``font actual`` command with
 ``-displayof`` and the character, so fallback selection is character-specific.
 The query saves/restores interpreter state and retains its result only while
@@ -166,7 +166,7 @@ Backend integration and cleanup
 -------------------------------
 
 SVG's embedded-font path retains Unicode text and uses
-``Rbc_FontUnicodeProgram`` to rebuild a cmap for the used characters, including
+:c:func:`Rbc_FontUnicodeProgram` to rebuild a cmap for the used characters, including
 legacy Symbol mappings. It appends to a caller-initialized DString without
 changing the cached font. Finalization generates font definitions and
 content-derived family names to avoid collisions when separate SVG documents
@@ -181,12 +181,12 @@ are identical. Font embedding policy and final document serialization remain
 backend responsibilities. PostScript retains its separate font mapping/token
 path and does not use this cache for embedded outlines.
 
-``Rbc_FirstExportFont`` returns a borrowed list head. ``Rbc_ExportFontsFree``
+:c:func:`Rbc_FirstExportFont` returns a borrowed list head. :c:func:`Rbc_ExportFontsFree`
 releases cache entries, programs, character arrays and optional Symbol encodings,
 then clears ``fontData``. An empty cache is safe to free. Every returned font
 pointer and table view becomes invalid, but borrowed Tk fonts are not released.
 Partial cache state after an error is retained for this cleanup; do not resume
-serialization after a failed character lookup. Shared ``Rbc_ExportFree`` calls
+serialization after a failed character lookup. Shared :c:func:`Rbc_ExportFree` calls
 this cleanup as part of ending the document.
 
 See :doc:`text-font-reference` for maintained contracts for the text services,
@@ -196,12 +196,12 @@ Reader trust boundaries
 -----------------------
 
 The small big-endian readers and writers do not check buffer lengths. Their
-callers establish readable/writable spans first. Rbc_FontGetTable similarly
-assumes a directory rebuilt by FontProgram; it is not an entry point for arbitrary
+callers establish readable/writable spans first. :c:func:`Rbc_FontGetTable` similarly
+assumes a directory rebuilt by :c:func:`FontProgram`; it is not an entry point for arbitrary
 unvalidated file bytes. A missing table returns a NULL/zero slice. Present slices
 borrow the owning program and cannot outlive it.
 
-FontProgram accepts TrueType, the legacy true signature and OpenType OTTO. It
+:c:func:`FontProgram` accepts TrueType, the legacy true signature and OpenType OTTO. It
 checks the directory count and table spans, omits DSIG signatures, rejects fvar
 variable-font tables and limits rebuilt storage to 64 MiB. Table data is padded
 to four-byte boundaries, checksums are recalculated and head.checkSumAdjustment
@@ -210,11 +210,11 @@ sfnt for a selected collection face, without removing unused outlines.
 
 The destination owns its allocation as soon as rebuilding starts. An error in a
 later table or a missing head table therefore requires ordinary font cleanup,
-not merely source cleanup. FontSourceFree releases the temporary input resources;
-FontFree releases the rebuilt program. Neither routine can safely be called twice
+not merely source cleanup. :c:func:`FontSourceFree` releases the temporary input resources;
+:c:func:`FontFree` releases the rebuilt program. Neither routine can safely be called twice
 on the same unchanged record.
 
-FontTables checks the fields used by export: head, hhea, maxp, horizontal metrics,
+:c:func:`FontTables` checks the fields used by export: head, hhea, maxp, horizontal metrics,
 OS/2 permissions and the cmap record directory. It rejects the supported set of
 recognized color-font tables and permission bits prohibiting outline embedding.
 A usable PostScript name is restricted to safe ASCII name bytes; otherwise a
@@ -225,7 +225,7 @@ all possible OpenType extensions.
 Unicode and legacy Symbol lookup
 --------------------------------
 
-FontGlyph performs four passes, returning the first usable nonzero glyph:
+:c:func:`FontGlyph` performs four passes, returning the first usable nonzero glyph:
 
 #. Unicode format 12, covering BMP and supplementary-plane characters.
 #. Unicode format 4, covering the BMP.
@@ -249,14 +249,14 @@ native glyph; text extraction must not infer Unicode from glyph numbers alone.
 Name-keyed CFF metadata
 -----------------------
 
-CffIndex checks its count, offset width, initial one-based offset, monotonic
+:c:func:`CffIndex` checks its count, offset width, initial one-based offset, monotonic
 following offsets and final data extent. Success advances the caller's cursor
 and returns a borrowed complete INDEX; failure does not advance the cursor, but
-its output slice may already be partially written. CffItem is deliberately
+its output slice may already be partially written. :c:func:`CffItem` is deliberately
 lighter: it requires an already validated INDEX and returns a borrowed item,
 which can be empty. It performs no repeated directory validation.
 
-FontCffInit supports CFF version 1 with one name and one Top DICT. It reads the
+:c:func:`FontCffInit` supports CFF version 1 with one name and one Top DICT. It reads the
 charset and CharStrings offsets needed by export, checks the CharStrings count
 against the sfnt glyph count, then constructs a glyph-to-SID array. ISOAdobe,
 Expert and ExpertSubset predefined charsets and explicit formats 0/1/2 are
@@ -272,7 +272,7 @@ attached to the font for normal failure cleanup.
 SVG cmap reconstruction
 -----------------------
 
-Rbc_FontUnicodeProgram sorts temporary Unicode/glyph pairs from the collected
+:c:func:`Rbc_FontUnicodeProgram` sorts temporary Unicode/glyph pairs from the collected
 characters. It generates format 12 entries for the complete used set and format 4
 entries for up to 8,188 BMP characters below U+FFFF, plus the mandatory sentinel.
 This limit keeps format 4 within its 16-bit length field; format 12 still represents
@@ -280,7 +280,7 @@ characters omitted from that compact table. Each pair maps the original Unicode
 scalar to the resolved glyph, including Symbol fallback results.
 
 The routine copies the font, redirects its cmap directory entry to the new data,
-then passes that temporary source through FontProgram again to restore directory
+then passes that temporary source through :c:func:`FontProgram` again to restore directory
 layout and checksums. It appends the rebuilt bytes to the caller's DString only
 on success. Temporary arrays and programs are released in both cases, and the
 cached font remains unchanged. Retaining every outline is deliberate full
@@ -307,7 +307,7 @@ PDF character codes and finalization
      - Shared CFF program/descriptor; separate Type1 encoding, widths and ToUnicode per block.
 
 Character lookup reserves placeholders before final dictionaries are known.
-Rbc_PdfFontsFinish replaces them after all text has been collected and before
+:c:func:`Rbc_PdfFontsFinish` replaces them after all text has been collected and before
 final PDF serialization. CFF blocks split every 255 distinct characters; they
 share the program rather than duplicate it. The shared cache limits a font to
 65,535 distinct characters. Callers must finalize once and stop collecting text
@@ -325,3 +325,56 @@ Resource serialization temporarily redirects token->buffer to local DStrings and
 restores the previous pointer on return. Font records and table views stay owned
 by the export context; PDF resource copies have their own document lifetime.
 A failed export is not a checkpoint from which serialization can resume.
+
+Parameter units and identifier domains
+---------------------------------------
+
+The character and font-resource APIs deliberately use different integer domains.
+A plain C ``int`` does not make the following values interchangeable:
+
+.. list-table:: Font identifiers and units
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Value
+     - Meaning
+     - Producer or consumer
+   * - Unicode scalar
+     - Original text character; not an outline index.
+     - :c:func:`Rbc_ExportFontCharacter`, :c:func:`FontGlyph`
+   * - Native glyph index
+     - Zero-based index into one program's glyph metadata; zero denotes missing
+       in the lookup path.
+     - :c:func:`FontGlyph`, :c:func:`Rbc_FontGlyphName`
+   * - Shared character ID
+     - One-based index into one cached font's collected characters.
+     - :c:func:`Rbc_ExportFontCharacter`
+   * - PDF resource ID
+     - Object number identifying a font dictionary in this document.
+     - :c:func:`Rbc_PdfFontCharacter`
+   * - PDF character code
+     - WinAnsi byte, TrueType CID or CFF block-local code for the selected resource.
+     - :c:func:`Rbc_PdfFontCharacter`
+   * - Size and advance
+     - Display pixels; PDF widths later use 1,000-unit font space.
+     - :c:func:`Rbc_ExportFontCharacter`, :c:func:`FontCffResources`
+
+:c:func:`Rbc_PdfFontCharacter` returns the hexadecimal width separately from the
+code: two digits for standard fonts and CFF, four for TrueType. In nonembedded
+mode it sets the advance to zero and the width to two before checking whether
+the character is supported. Outputs are therefore usable only on ``TCL_OK``;
+error return does not promise untouched output pointers. The shared native
+resolver writes its result pointers only after successful resolution.
+
+:c:func:`FontActual` returns a retained Tcl object, which its caller releases.
+:c:func:`FontAttribute` instead returns a borrowed value inside that object.
+Keeping the attribute pointer does not retain the dictionary. Likewise,
+:c:func:`Rbc_FontGetTable` and :c:func:`CffItem` return borrowed byte slices;
+:c:func:`Rbc_FontGlyphName` may return static standard-name bytes or a slice of
+font-owned custom-name storage. None should be freed by the caller.
+
+:c:func:`FontSourceOpen` leaves partial acquisition resources with its caller
+on failure. Pair it with :c:func:`FontSourceFree` on either outcome. The rebuilt
+program has a separate owner: :c:func:`FontProgram` can attach its destination
+allocation before a later validation error, and :c:func:`FontFree` releases that
+font record. The source and rebuilt program must not be treated as aliases.
