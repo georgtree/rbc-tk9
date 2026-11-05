@@ -11,7 +11,7 @@ renderer backends. See :doc:`images-tiles` for storage ownership and
 Color-image rotation
 --------------------
 
-``Rbc_RotateColorImage`` borrows the source and always returns independent
+:c:func:`Rbc_RotateColorImage` borrows the source and always returns independent
 storage. A zero-degree operation still copies the image. Empty input is copied
 before quadrant handling, retaining its dimensions. Angles must be finite and
 are normalized modulo 360 degrees; positive rotation is counterclockwise in
@@ -23,7 +23,7 @@ without interpolation; 90 and 270 degrees exchange width and height. For
 example, the 90-degree path maps source pixel ``(x, y)`` to
 ``(y, sourceWidth - x - 1)``.
 
-A nonzero residual goes through ``Rotate45``. Despite that helper's name,
+A nonzero residual goes through :c:func:`rbcImageRotation.Rotate45`. Despite that helper's name,
 its argument is radians, not degrees. It performs a row shear, a column shear,
 and a final row shear, using tangent of the half-angle and sine of the angle.
 Two intermediate images are released internally. The public function also
@@ -74,7 +74,7 @@ while 135 degrees uses a 90-degree copy followed by a positive 45-degree
 residual. Changing which exact rotation precedes a shear can change intermediate
 rounding even when the final mathematical angle is equivalent.
 
-For source width W and height H *after* any quadrant copy, Rotate45 uses
+For source width W and height H *after* any quadrant copy, :c:func:`rbcImageRotation.Rotate45` uses
 s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:
 
 .. list-table::
@@ -94,8 +94,8 @@ s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:
      - truncate(H*abs(s) + W*c + 1)
      - Second-stage height
 
-GetRotationDimension checks finiteness and the nonnegative int range before
-truncation. It does not ceil the result. GetShearOffset floors the displacement,
+:c:func:`rbcImageRotation.GetRotationDimension` checks finiteness and the nonnegative int range before
+truncation. It does not ceil the result. :c:func:`rbcImageRotation.GetShearOffset` floors the displacement,
 including negative values, and checks the int range. The fractional argument
 is the original displacement minus that integer offset, so it lies in [0, 1)
 for valid geometry. The caller's residual-angle restriction keeps the
@@ -104,8 +104,8 @@ construction within the intended two-neighbor filtering regime.
 Shear traversal and boundary pixels
 -----------------------------------
 
-The historical helper names describe the fixed coordinate: ShearY processes
-a row at fixed y and moves pixels horizontally; ShearX processes a column at
+The historical helper names describe the fixed coordinate: :c:func:`rbcImageRotation.ShearY` processes
+a row at fixed y and moves pixels horizontally; :c:func:`rbcImageRotation.ShearX` processes a column at
 fixed x and moves pixels vertically. Each initializes its complete destination
 row or column to the background before sampling. The source and destination
 must be distinct, since that initialization would overwrite an aliased source.
@@ -143,7 +143,7 @@ Bitmap transforms borrow a valid Tk window and a source pixmap whose actual
 size matches the supplied dimensions. Successful results are newly owned
 pixmaps, released using ``Tk_FreePixmap`` on the corresponding display. They
 are not ``Rbc_ColorImage`` objects and must not be freed with ``ckfree`` or
-``Rbc_FreeColorImage``.
+:c:func:`Rbc_FreeColorImage`.
 
 Rotation computes a containing bounding box and uses special cases for exact
 right angles. General angles map destination pixels back to source coordinates;
@@ -174,7 +174,7 @@ to its mask when needed.
 The region must lie within the virtual destination, and coordinate additions
 must remain representable. The right-angle paths read source samples directly;
 they do not implement general out-of-range padding or edge clamping. This is
-unlike ``Rbc_ResizeColorSubimage``, which explicitly clamps virtual coordinates
+unlike :c:func:`Rbc_ResizeColorSubimage`, which explicitly clamps virtual coordinates
 to source edges. Keep these contracts distinct when sharing callers.
 
 Failure and platform differences

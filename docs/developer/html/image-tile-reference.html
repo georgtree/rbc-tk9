@@ -138,33 +138,77 @@
 <dt class="sig sig-object c" id="c.Rbc_CreateColorImage">
 <span class="target" id="rbc_image_8h_1a515532abcb5883cb9ff5b9e9bfa8913a"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateColorImage</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an owned row-major RGBA pixel buffer and image record. </p>
-<p>Dimensions must be nonnegative; invalid or overflowing sizes panic. Pixels start zeroed, including alpha. Release with Rbc_FreeColorImage. The returned image has no Tk image identity, reference count or change notification. </p>
+<p>Dimensions must be nonnegative; invalid or overflowing sizes panic. Pixels start zeroed, including alpha. Release with Rbc_FreeColorImage. The returned image has no Tk image identity, reference count or change notification.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative horizontal pixel count; source or destination role is specified above. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative vertical pixel count; source or destination role is specified above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreeColorImage">
-<span class="target" id="rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeColorImage" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span class="target" id="group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeColorImage</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">ColorImage</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imagePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release both the pixel array and its owning image record. </p>
+<p>Requires a valid non-NULL owned image. All borrowed pixel pointers become invalid. This does not delete or modify any Tk photo used to create it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imagePtr</strong> – <strong>[in]</strong> Owned non-NULL image consumed here, including its pixel allocation. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PhotoToColorImage">
 <span class="target" id="rbc_image_8h_1a1b04bab05231671e1f4ef3202f3f3870"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoToColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PhotoToColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a valid Tk photo into a newly owned RBC color image. </p>
-<p>Copies pixels using the photo block’s pitch and channel offsets. The result is independent of later photo changes; release it with Rbc_FreeColorImage. </p>
+<p>Copies pixels using the photo block’s pitch and channel offsets. The result is independent of later photo changes; release it with Rbc_FreeColorImage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>photo</strong> – <strong>[in]</strong> Borrowed live Tk photo handle. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PhotoRegionToColorImage">
 <span class="target" id="rbc_image_8h_1a78d03aec4ed3b08f5106af271da1006e"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoRegionToColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PhotoRegionToColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a clamped photo origin and limited spans into an owned image. </p>
-<p>Requires a valid photo handle. An empty effective region returns an empty image, not NULL. Negative origins clamp without reducing positive spans. Non-RGB/RGBA layouts replicate offset[0] into RGB and supply opaque alpha, matching whole-photo conversion. The result owns its pixels and must be freed with Rbc_FreeColorImage. </p>
+<p>Requires a valid photo handle. An empty effective region returns an empty image, not NULL. Negative origins clamp without reducing positive spans. Non-RGB/RGBA layouts replicate offset[0] into RGB and supply opaque alpha, matching whole-photo conversion. The result owns its pixels and must be freed with Rbc_FreeColorImage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>photo</strong> – <strong>[in]</strong> Borrowed live Tk photo handle. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Requested source horizontal span; negative or excessive spans extend to the edge. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Requested source vertical span; negative or excessive spans extend to the edge. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ColorImageToPhoto">
 <span class="target" id="rbc_image_8h_1acc947ce3e5cba689362c5f22b5151389"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToPhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ColorImageToPhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace a borrowed Tk photo’s size and pixels from an RBC image. </p>
-<p>Source ownership stays with the caller; Tk copies the block synchronously. Uses TK_PHOTO_COMPOSITE_SET, including alpha. This legacy void helper ignores return codes from Tk_PhotoSetSize and Tk_PhotoPutBlock; it does not provide a reliable success/failure status to its caller. </p>
+<p>Source ownership stays with the caller; Tk copies the block synchronously. Uses TK_PHOTO_COMPOSITE_SET, including alpha. This legacy void helper ignores return codes from Tk_PhotoSetSize and Tk_PhotoPutBlock; it does not provide a reliable success/failure status to its caller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter receiving Tcl diagnostics; no ownership is transferred. </p></li>
+<li><p><strong>src</strong> – <strong>[in]</strong> Borrowed valid source image; ownership remains with the caller. </p></li>
+<li><p><strong>photo</strong> – <strong>[in]</strong> Borrowed live Tk photo handle. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="tile-queries-and-origins">
@@ -510,42 +554,98 @@ the default Doxygen preprocessing selects the non-Windows implementation.</p>
 <dt class="sig sig-object c" id="c.rbcImageStorage.GetColorImagePixelCount">
 <span class="target" id="group__image__storage__internals_1ga07b184d9f0ba7b895dc4cdfdc4ffb3af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetColorImagePixelCount</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.GetColorImagePixelCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate dimensions and calculate their size_t pixel product. </p>
-<p>Requires nonnegative dimensions; zero is valid. Panics for negative input or multiplication overflow. Returns a pixel count, not a byte count. Does not allocate storage; the allocator separately checks element size. </p>
+<p>Requires nonnegative dimensions; zero is valid. Panics for negative input or multiplication overflow. Returns a pixel count, not a byte count. Does not allocate storage; the allocator separately checks element size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative horizontal pixel count; source or destination role is specified above. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative vertical pixel count; source or destination role is specified above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageStorage.GetPhotoByteOffset">
 <span class="target" id="group__image__storage__internals_1gadd3861853c7ec7003352ac5b24c90412"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ptrdiff_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPhotoByteOffset</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">blockPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.GetPhotoByteOffset" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Calculate a photo-block byte displacement with wide arithmetic. </p>
-<p>Borrows a valid Tk block. Computes y*pitch + x*pixelSize in Tcl_WideInt and checks the ptrdiff_t range before conversion. Does not validate x/y against image bounds, channel offsets, or accessible storage; callers establish those conditions before adding the result to pixelPtr. </p>
+<p>Borrows a valid Tk block. Computes y*pitch + x*pixelSize in Tcl_WideInt and checks the ptrdiff_t range before conversion. Does not validate x/y against image bounds, channel offsets, or accessible storage; callers establish those conditions before adding the result to pixelPtr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>blockPtr</strong> – <strong>[in]</strong> Borrowed valid photo block; pitch and pixelSize determine byte displacement. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> In-bounds column index; not validated here. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> In-bounds row index; not validated here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageStorage.ClipImageRegion">
 <span class="target" id="group__image__storage__internals_1ga324a66b94bfa48aef044db3d4bbb1e00"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipImageRegion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">imageHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">xPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">yPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">heightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.ClipImageRegion" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clamp a source origin and limit its spans to the remaining image. </p>
-<p>Reads and rewrites all four coordinate outputs. Negative image dimensions panic. Origins clamp to inclusive bounds [0,imageSize]; negative or excessive spans become the remaining distance to the edge. A negative origin does not subtract from a positive span: this is not geometric rectangle intersection. Returns true only when both resulting spans are positive. Performs no allocation or image access. </p>
+<p>Reads and rewrites all four coordinate outputs. Negative image dimensions panic. Origins clamp to inclusive bounds [0,imageSize]; negative or excessive spans become the remaining distance to the edge. A negative origin does not subtract from a positive span: this is not geometric rectangle intersection. Returns true only when both resulting spans are positive. Performs no allocation or image access.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imageWidth</strong> – <strong>[in]</strong> Nonnegative source width in pixels. </p></li>
+<li><p><strong>imageHeight</strong> – <strong>[in]</strong> Nonnegative source height in pixels. </p></li>
+<li><p><strong>xPtr</strong> – <strong>[inout]</strong> Required input/output for horizontal origin; rewritten to the effective region. </p></li>
+<li><p><strong>yPtr</strong> – <strong>[inout]</strong> Required input/output for vertical origin; rewritten to the effective region. </p></li>
+<li><p><strong>widthPtr</strong> – <strong>[inout]</strong> Required input/output for horizontal span; rewritten to the effective region. </p></li>
+<li><p><strong>heightPtr</strong> – <strong>[inout]</strong> Required input/output for vertical span; rewritten to the effective region. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageStorage.MapNearestCoordinate">
 <span class="target" id="group__image__storage__internals_1ga3003c2438ee67fee0b1663d0053401de"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapNearestCoordinate</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">origin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">span</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">position</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destSpan</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.MapNearestCoordinate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map an in-range destination position into a source interval. </p>
-<p>Requires positive span/destSpan and position in [0,destSpan). Computes position*span/destSpan in double, truncates, caps at span-1 and adds origin. Caller ensures that sum lies within the source and int range. Has no half-pixel offset, interpolation or allocation. </p>
+<p>Requires positive span/destSpan and position in [0,destSpan). Computes position*span/destSpan in double, truncates, caps at span-1 and adds origin. Caller ensures that sum lies within the source and int range. Has no half-pixel offset, interpolation or allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origin</strong> – <strong>[in]</strong> Source interval origin; origin plus span must be representable. </p></li>
+<li><p><strong>span</strong> – <strong>[in]</strong> Positive source interval length. </p></li>
+<li><p><strong>position</strong> – <strong>[in]</strong> Destination index in [0,destSpan). </p></li>
+<li><p><strong>destSpan</strong> – <strong>[in]</strong> Positive destination interval length. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageStorage.MapVirtualCoordinate">
 <span class="target" id="group__image__storage__internals_1gaed34d1396c3c254319625bacaf54f7c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapVirtualCoordinate</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcSize</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">virtualPosition</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">virtualSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.MapVirtualCoordinate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a virtual destination position to a clamped source index. </p>
-<p>Requires positive source and virtual sizes and a finite virtualPosition. Scales in double, clamps at either source edge, and truncates interior values. Allows positions outside the virtual image; those repeat edge pixels rather than producing transparent padding. Does not allocate. </p>
+<p>Requires positive source and virtual sizes and a finite virtualPosition. Scales in double, clamps at either source edge, and truncates interior values. Allows positions outside the virtual image; those repeat edge pixels rather than producing transparent padding. Does not allocate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>srcSize</strong> – <strong>[in]</strong> Positive source dimension. </p></li>
+<li><p><strong>virtualPosition</strong> – <strong>[in]</strong> Finite coordinate in the virtual destination; outlying values repeat edge samples. </p></li>
+<li><p><strong>virtualSize</strong> – <strong>[in]</strong> Positive virtual destination dimension. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageStorage.Rbc_GammaCorrectColorImage">
 <span class="target" id="group__image__storage__internals_1ga17fcf55826e1df078dff077f8ca507dc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GammaCorrectColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">newGamma</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.Rbc_GammaCorrectColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply a gamma lookup table to RGB bytes in place, preserving alpha. </p>
-<p>Borrows a writable valid image. newGamma must be finite and positive; invalid gamma panics. Builds a stack table with 255*pow(i/255,1/gamma), clamping and truncating each entry to a byte. Replaces RGB independently for every pixel without changing alpha, dimensions or ownership. No Tk change notification is issued for this CPU-side mutation. </p>
+<p>Borrows a writable valid image. newGamma must be finite and positive; invalid gamma panics. Builds a stack table with 255*pow(i/255,1/gamma), clamping and truncating each entry to a byte. Replaces RGB independently for every pixel without changing alpha, dimensions or ownership. No Tk change notification is issued for this CPU-side mutation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – <strong>[inout]</strong> Borrowed writable image modified in place. </p></li>
+<li><p><strong>newGamma</strong> – <strong>[in]</strong> Finite positive gamma used as the reciprocal exponent. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -558,7 +658,24 @@ the default Doxygen preprocessing selects the non-Windows implementation.</p>
 <dt class="sig sig-object c" id="c.Rbc_SnapPhoto">
 <span class="target" id="rbc_image_8h_1af44d063144975008e73e234cceb61624"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SnapPhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">photoName</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">inputGamma</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SnapPhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Capture a drawable and optionally box-resample it into an existing photo. </p>
-<p>Borrows window, drawable, interpreter and photo name. Requires positive capture dimensions, nonnegative destination dimensions and finite positive gamma; reports TCL_ERROR for invalid arguments, missing photo or failed native capture. Owns and releases captured/resampled RBC images. If sizes differ, uses the box filter on both axes. Zero destination sizes are not a request to retain the source size. Replaces the photo through the legacy void writer, whose Tk errors are not propagated; TCL_OK therefore covers capture/processing, not a checked photo-write result. Native capture and Tk photo operations must run with valid objects on their owning thread. </p>
+<p>Borrows window, drawable, interpreter and photo name. Requires positive capture dimensions, nonnegative destination dimensions and finite positive gamma; reports TCL_ERROR for invalid arguments, missing photo or failed native capture. Owns and releases captured/resampled RBC images. If sizes differ, uses the box filter on both axes. Zero destination sizes are not a request to retain the source size. Replaces the photo through the legacy void writer, whose Tk errors are not propagated; TCL_OK therefore covers capture/processing, not a checked photo-write result. Native capture and Tk photo operations must run with valid objects on their owning thread.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter receiving Tcl diagnostics; no ownership is transferred. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying the native display context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible drawable to capture. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Capture left coordinate in drawable pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Capture top coordinate in drawable pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive capture width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive capture height in pixels. </p></li>
+<li><p><strong>destWidth</strong> – <strong>[in]</strong> Nonnegative destination width in pixels. </p></li>
+<li><p><strong>destHeight</strong> – <strong>[in]</strong> Nonnegative destination height in pixels. </p></li>
+<li><p><strong>photoName</strong> – <strong>[in]</strong> Borrowed name of an existing destination photo. </p></li>
+<li><p><strong>inputGamma</strong> – <strong>[in]</strong> Finite positive gamma for native capture. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

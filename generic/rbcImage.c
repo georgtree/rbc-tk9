@@ -106,6 +106,9 @@ ResampleFilter *rbcBoxFilterPtr; /**
  * Requires nonnegative dimensions; zero is valid. Panics for negative input
  * or multiplication overflow. Returns a pixel count, not a byte count.
  * Does not allocate storage; the allocator separately checks element size.
+ *
+ * @param[in] width Nonnegative horizontal pixel count; source or destination role is specified above.
+ * @param[in] height Nonnegative vertical pixel count; source or destination role is specified above.
  */
 static size_t GetColorImagePixelCount(int width, int height) {
     if ((width < 0) || (height < 0)) {
@@ -125,6 +128,10 @@ static size_t GetColorImagePixelCount(int width, int height) {
  * and checks the ptrdiff_t range before conversion. Does not validate x/y
  * against image bounds, channel offsets, or accessible storage; callers
  * establish those conditions before adding the result to pixelPtr.
+ *
+ * @param[in] blockPtr Borrowed valid photo block; pitch and pixelSize determine byte displacement.
+ * @param[in] x In-bounds column index; not validated here.
+ * @param[in] y In-bounds row index; not validated here.
  */
 static ptrdiff_t GetPhotoByteOffset(const Tk_PhotoImageBlock *blockPtr, int x, int y) {
     Tcl_WideInt offset;
@@ -146,6 +153,13 @@ static ptrdiff_t GetPhotoByteOffset(const Tk_PhotoImageBlock *blockPtr, int x, i
  * origin does not subtract from a positive span: this is not geometric
  * rectangle intersection. Returns true only when both resulting spans are
  * positive. Performs no allocation or image access.
+ *
+ * @param[in] imageWidth Nonnegative source width in pixels.
+ * @param[in] imageHeight Nonnegative source height in pixels.
+ * @param[in,out] xPtr Required input/output for horizontal origin; rewritten to the effective region.
+ * @param[in,out] yPtr Required input/output for vertical origin; rewritten to the effective region.
+ * @param[in,out] widthPtr Required input/output for horizontal span; rewritten to the effective region.
+ * @param[in,out] heightPtr Required input/output for vertical span; rewritten to the effective region.
  */
 static int ClipImageRegion(int imageWidth, int imageHeight, int *xPtr, int *yPtr, int *widthPtr, int *heightPtr) {
     int x, y;
@@ -189,6 +203,11 @@ static int ClipImageRegion(int imageWidth, int imageHeight, int *xPtr, int *yPtr
  * position*span/destSpan in double, truncates, caps at span-1 and adds
  * origin. Caller ensures that sum lies within the source and int range.
  * Has no half-pixel offset, interpolation or allocation.
+ *
+ * @param[in] origin Source interval origin; origin plus span must be representable.
+ * @param[in] span Positive source interval length.
+ * @param[in] position Destination index in [0,destSpan).
+ * @param[in] destSpan Positive destination interval length.
  */
 static int MapNearestCoordinate(int origin, int span, int position, int destSpan) {
     int offset;
@@ -214,6 +233,10 @@ static int MapNearestCoordinate(int origin, int span, int position, int destSpan
  * Scales in double, clamps at either source edge, and truncates interior
  * values. Allows positions outside the virtual image; those repeat edge
  * pixels rather than producing transparent padding. Does not allocate.
+ *
+ * @param[in] srcSize Positive source dimension.
+ * @param[in] virtualPosition Finite coordinate in the virtual destination; outlying values repeat edge samples.
+ * @param[in] virtualSize Positive virtual destination dimension.
  */
 static int MapVirtualCoordinate(int srcSize, double virtualPosition, int virtualSize) {
     double value;
@@ -235,6 +258,9 @@ static int MapVirtualCoordinate(int srcSize, double virtualPosition, int virtual
  * Dimensions must be nonnegative; invalid or overflowing sizes panic. Pixels
  * start zeroed, including alpha. Release with Rbc_FreeColorImage. The returned
  * image has no Tk image identity, reference count or change notification.
+ *
+ * @param[in] width Nonnegative horizontal pixel count; source or destination role is specified above.
+ * @param[in] height Nonnegative vertical pixel count; source or destination role is specified above.
  */
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
     struct ColorImage *imagePtr;
@@ -249,14 +275,22 @@ Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
 }
 
 /**
+ * @defgroup image_storage_release Image storage release
+ * @{
+ */
+/**
+ * @ingroup image_storage_release
  * @brief Release both the pixel array and its owning image record.
  * Requires a valid non-NULL owned image. All borrowed pixel pointers become
  * invalid. This does not delete or modify any Tk photo used to create it.
+ *
+ * @param[in] imagePtr Owned non-NULL image consumed here, including its pixel allocation.
  */
 void Rbc_FreeColorImage(struct ColorImage *imagePtr) {
     ckfree((char *)imagePtr->bits);
     ckfree((char *)imagePtr);
 }
+/** @} */
 
 /**
  * @brief Apply a gamma lookup table to RGB bytes in place, preserving alpha.
@@ -267,6 +301,9 @@ void Rbc_FreeColorImage(struct ColorImage *imagePtr) {
  * clamping and truncating each entry to a byte. Replaces RGB independently
  * for every pixel without changing alpha, dimensions or ownership. No Tk
  * change notification is issued for this CPU-side mutation.
+ *
+ * @param[in,out] src Borrowed writable image modified in place.
+ * @param[in] newGamma Finite positive gamma used as the reciprocal exponent.
  */
 void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
     size_t nPixels;
@@ -299,6 +336,8 @@ void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
  * Borrow image and retain its dimensions, storage and alpha values. Apply
  * coefficients 0.212671, 0.715160 and 0.072169 to stored RGB bytes, clamp and
  * truncate to a byte. No gamma conversion or temporary image is involved.
+ *
+ * @param[in,out] image Borrowed writable image; RGB is replaced and alpha retained.
  */
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image) {
     Pix32 *srcPtr;
@@ -321,6 +360,10 @@ void Rbc_ColorImageToGreyscale(Rbc_ColorImage image) {
  * Uses TK_PHOTO_COMPOSITE_SET, including alpha. This legacy void helper ignores
  * return codes from Tk_PhotoSetSize and Tk_PhotoPutBlock; it does not provide a
  * reliable success/failure status to its caller.
+ *
+ * @param[in,out] interp Interpreter receiving Tcl diagnostics; no ownership is transferred.
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in] photo Borrowed live Tk photo handle.
  */
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandle photo) {
     Tk_PhotoImageBlock dest;
@@ -353,6 +396,12 @@ void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandl
  * Non-RGB/RGBA layouts replicate offset[0] into RGB and supply opaque alpha,
  * matching whole-photo conversion.
  * The result owns its pixels and must be freed with Rbc_FreeColorImage.
+ *
+ * @param[in] photo Borrowed live Tk photo handle.
+ * @param[in] x Horizontal source origin in pixels; clamped as described above.
+ * @param[in] y Vertical source origin in pixels; clamped as described above.
+ * @param[in] width Requested source horizontal span; negative or excessive spans extend to the edge.
+ * @param[in] height Requested source vertical span; negative or excessive spans extend to the edge.
  */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height) {
     Tk_PhotoImageBlock src;
@@ -420,6 +469,8 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
  * @brief Copy a valid Tk photo into a newly owned RBC color image.
  * Copies pixels using the photo block's pitch and channel offsets. The result
  * is independent of later photo changes; release it with Rbc_FreeColorImage.
+ *
+ * @param[in] photo Borrowed live Tk photo handle.
  */
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
     Rbc_ColorImage image;
@@ -504,6 +555,8 @@ static Tk_ImageChangedProc TempImageChangedProc;
  *
  * For t = abs(x) below one returns (2t - 3)t squared + 1, otherwise zero.
  * Uses no mutable state or allocation. The table support is one pixel.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double DefaultFilter(double x) {
     if (x < 0.0) {
@@ -523,6 +576,8 @@ static double DefaultFilter(double x) {
  * Has no intrinsic cutoff, normalization or image access. Its table support
  * is 0.5; contribution construction supplies the sampling interval. This
  * test kernel is not an identity or nearest-neighbour operation.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double DummyFilter(double x) { return FABS(x); }
 
@@ -543,6 +598,8 @@ static double DummyFilter(double x) { return FABS(x); }
  *
  * Returns zero outside the interval, including neither endpoint in that
  * rejection. Stateless; the table support is 0.5 pixels.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double BoxFilter(double x) {
     if ((x < -0.5) || (x > 0.5)) {
@@ -557,6 +614,8 @@ static double BoxFilter(double x) {
  *
  * Returns 1 - abs(x) for abs(x) below one, otherwise zero. Stateless with
  * table support one pixel; performs no contribution normalization itself.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double TriangleFilter(double x) {
     if (x < 0.0) {
@@ -574,6 +633,8 @@ static double TriangleFilter(double x) {
  *
  * For t = abs(x), returns 0.75 - t squared below 0.5 and half of
  * (t - 1.5) squared below 1.5; otherwise zero. Stateless; support is 1.5.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double BellFilter(double x) {
     if (x < 0.0) {
@@ -596,6 +657,8 @@ static double BellFilter(double x) {
  * Uses even cubic pieces on abs(x) below one and below two, and returns
  * zero outside. Stateless; table support is two pixels. The kernel value
  * at zero is 2/3, so this is not an interpolating cardinal kernel.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double BSplineFilter(double x) {
     double x2;
@@ -629,6 +692,8 @@ static double BSplineFilter(double x) {
  *
  * Returns one at zero. No intrinsic cutoff; the table limits sampling to
  * support four. Stateless; signed lobes are preserved for normalization.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double SincFilter(double x) {
     x *= M_PI;
@@ -646,6 +711,8 @@ static double SincFilter(double x) {
  * 3.2383; there is no cutoff in this function. The legacy Borland branch
  * returns zero for all inputs. Requires the platform j1 implementation
  * on other builds. Owns no state and performs no normalization.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double BesselFilter(double x) {
 #ifdef NEED_DECL_J1
@@ -671,6 +738,8 @@ static double BesselFilter(double x) {
  *
  * Stateless with no intrinsic cutoff. The gaussian and gauss8 table entries
  * share this procedure but use support radii 1.25 and 8 respectively.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double GaussianFilter(double x) { return exp(-2.0 * x * x) * SQRT_2PI; }
 
@@ -680,6 +749,8 @@ static double GaussianFilter(double x) { return exp(-2.0 * x * x) * SQRT_2PI; }
  *
  * For abs(x) below three returns SincFilter(x) times SincFilter(x/3),
  * otherwise zero. Stateless; the table support is three pixels.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double Lanczos3Filter(double x) {
     if (x < 0) {
@@ -701,6 +772,8 @@ static double Lanczos3Filter(double x) {
  * Uses even polynomial pieces below absolute distances one and two, then
  * returns zero. Stateless; support is two. Negative lobes are retained
  * here and may produce values later clamped by the image passes.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double MitchellFilter(double x) {
     double x2;
@@ -727,6 +800,8 @@ static double MitchellFilter(double x) {
  * Uses four polynomial intervals spanning [-2, 2] and is zero outside.
  * Returns one at zero. Stateless; signed lobes are not clipped here and
  * the table support is two pixels.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double CatRomFilter(double x) {
     if (x < -2.) {
@@ -754,6 +829,8 @@ static double CatRomFilter(double x) {
  * Returns one below -1.5 and zero above 1.5, with three polynomial pieces
  * between. This is an asymmetric cumulative function, not the even
  * Gaussian kernel. The table support is 1.25. Owns no mutable state.
+ *
+ * @param[in] x Signed distance from the reconstruction center in sample units.
  */
 static double GiFilter(double x) {
     if (x > 1.5) {
@@ -804,6 +881,10 @@ ResampleFilter *rbcBoxFilterPtr = &(filterTable[2]);
  * lookup failure return TCL_ERROR without assigning the output pointer.
  * Do not free or modify a returned filter. NULL selects policy in callers;
  * it is not a valid filter argument to Rbc_ResampleColorImage().
+ *
+ * @param[in,out] interp Interpreter receiving Tcl diagnostics; no ownership is transferred.
+ * @param[in] filterObj Borrowed Tcl object naming a filter or unambiguous abbreviation.
+ * @param[out] filterPtrPtr Required output; receives borrowed static filter or NULL for none only on success.
  */
 int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, ResampleFilter **filterPtrPtr) {
     int index;
@@ -851,6 +932,8 @@ typedef struct {
  * Sample and checks extra storage against SIZE_MAX before multiplying.
  * Returns a byte stride; invalid count or representational overflow panics.
  * Does not allocate or initialize a record.
+ *
+ * @param[in] nWeights Positive capacity of one contribution record, including its inline first weight.
  */
 static size_t GetSampleRecordSize(int nWeights) {
     size_t size;
@@ -875,6 +958,9 @@ static size_t GetSampleRecordSize(int nWeights) {
  * panics. Computes 2*radius + 2, caps at srcWidth before integer conversion
  * (also for an overflowed sum), and returns at least one. This capacity
  * bounds the clipped interval, not the count of nonzero weights.
+ *
+ * @param[in] srcWidth Positive number of source samples along the filtered axis.
+ * @param[in] radius Finite nonnegative support radius in source-sample units.
  */
 static int GetFilterSize(int srcWidth, double radius) {
     double value;
@@ -909,6 +995,12 @@ static int GetFilterSize(int srcWidth, double radius) {
  * using +0.5 then positive integer truncation, with clipping before casts.
  * Writes ordered bounds in [0, srcWidth-1]; outlying centers clamp to an
  * edge sample rather than yielding an empty interval.
+ *
+ * @param[in] srcWidth Positive number of source samples along the filtered axis.
+ * @param[in] center Finite center coordinate of the source contribution interval.
+ * @param[in] radius Finite nonnegative support radius in source-sample units.
+ * @param[out] leftPtr Required output for inclusive first source sample.
+ * @param[out] rightPtr Required output for inclusive last source sample.
  */
 static void GetFilterBounds(int srcWidth, double center, double radius, int *leftPtr, int *rightPtr) {
     double value;
@@ -955,6 +1047,11 @@ static void GetFilterBounds(int srcWidth, double center, double radius, int *lef
  * in the union by fixed-point ints using a scale of 16384 and +0.5 before
  * truncation. Custom kernels must yield finite, representable normalized
  * weights; there is no general validation of callback results.
+ *
+ * @param[in] srcWidth Positive number of source samples along the filtered axis.
+ * @param[in] destWidth Positive number of destination samples.
+ * @param[in] filterPtr Borrowed filter descriptor with a valid procedure and support.
+ * @param[out] samplePtrPtr Required output receiving owned contribution storage; release with ckfree.
  */
 static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filterPtr, Sample **samplePtrPtr) {
     Sample *samples;
@@ -1068,6 +1165,10 @@ static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filter
  * independently and clamps to bytes. Frees weights before returning.
  * Does not allocate image storage or perform gamma conversion; in-place
  * filtering is unsupported.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in,out] dest Borrowed writable destination image with the required matching dimensions.
+ * @param[in] filterPtr Borrowed filter descriptor with a valid procedure and support.
  */
 static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr) {
     Sample *samples, *s, *endPtr;
@@ -1125,6 +1226,10 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
  * accumulates straight RGBA independently and clamps each channel to a
  * byte. Releases weights before returning. Does not resize either image
  * or perform gamma conversion; in-place filtering is unsupported.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in,out] dest Borrowed writable destination image with the required matching dimensions.
+ * @param[in] filterPtr Borrowed filter descriptor with a valid procedure and support.
  */
 static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr) {
     Sample *samples, *s, *endPtr;
@@ -1180,6 +1285,12 @@ static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, Resam
  * or missing filters panic. Zero dimensions are allowed; empty input leaves
  * zero-initialized output. Each pass filters straight RGBA channels separately,
  * with fixed-point weights and clamping, without gamma conversion.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in] width Nonnegative horizontal pixel count; source or destination role is specified above.
+ * @param[in] height Nonnegative vertical pixel count; source or destination role is specified above.
+ * @param[in] horzFilterPtr Borrowed non-NULL horizontal reconstruction filter.
+ * @param[in] vertFilterPtr Borrowed non-NULL vertical reconstruction filter.
  */
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage src, int width, int height, ResampleFilter *horzFilterPtr,
                                       ResampleFilter *vertFilterPtr) {
@@ -1210,6 +1321,16 @@ Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage src, int width, int height,
  * Borrow both handles and valid non-NULL filters. Temporary RBC images are
  * released internally. The void photo-write wrapper does not propagate Tk's
  * write status; callers must not interpret return as a success code.
+ *
+ * @param[in,out] interp Interpreter receiving Tcl diagnostics; no ownership is transferred.
+ * @param[in] srcPhoto Borrowed live source photo, snapshotted before destination writes.
+ * @param[in] x Horizontal source origin in pixels; clamped as described above.
+ * @param[in] y Vertical source origin in pixels; clamped as described above.
+ * @param[in] width Requested source horizontal span; negative or excessive spans extend to the edge.
+ * @param[in] height Requested source vertical span; negative or excessive spans extend to the edge.
+ * @param[in,out] destPhoto Borrowed live destination photo whose existing dimensions determine output size.
+ * @param[in] horzFilterPtr Borrowed non-NULL horizontal reconstruction filter.
+ * @param[in] vertFilterPtr Borrowed non-NULL vertical reconstruction filter.
  */
 void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                        Tk_PhotoHandle destPhoto, ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr) {
@@ -1230,6 +1351,14 @@ void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y
  * Borrow both handles. Snapshot before writing so source and destination may
  * be the same photo. Release temporary RBC images internally. As with
  * Rbc_ResamplePhoto(), this void wrapper does not return the Tk write status.
+ *
+ * @param[in,out] interp Interpreter receiving Tcl diagnostics; no ownership is transferred.
+ * @param[in] srcPhoto Borrowed live source photo, snapshotted before destination writes.
+ * @param[in] x Horizontal source origin in pixels; clamped as described above.
+ * @param[in] y Vertical source origin in pixels; clamped as described above.
+ * @param[in] width Requested source horizontal span; negative or excessive spans extend to the edge.
+ * @param[in] height Requested source vertical span; negative or excessive spans extend to the edge.
+ * @param[in,out] destPhoto Borrowed live destination photo whose existing dimensions determine output size.
  */
 void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                      Tk_PhotoHandle destPhoto) {
@@ -1253,6 +1382,14 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, 
  * destHeight. Empty regions leave zero-initialized output. Negative destination
  * dimensions panic; zero dimensions are allowed. Free the independent result
  * with Rbc_FreeColorImage(). All four channels are copied unchanged.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in] x Horizontal source origin in pixels; clamped as described above.
+ * @param[in] y Vertical source origin in pixels; clamped as described above.
+ * @param[in] width Requested source horizontal span; negative or excessive spans extend to the edge.
+ * @param[in] height Requested source vertical span; negative or excessive spans extend to the edge.
+ * @param[in] destWidth Nonnegative destination width in pixels.
+ * @param[in] destHeight Nonnegative destination height in pixels.
  */
 Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                     int destHeight) {
@@ -1311,6 +1448,14 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width,
  * Negative region dimensions panic; empty regions return immediately. A
  * nonempty region requires positive virtual dimensions. Empty source images
  * leave zero-initialized output.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in] regionX Horizontal origin in the virtual destination, not the source.
+ * @param[in] regionY Vertical origin in the virtual destination, not the source.
+ * @param[in] regionWidth Nonnegative width of the returned region.
+ * @param[in] regionHeight Nonnegative height of the returned region.
+ * @param[in] destWidth Virtual full-image width; positive for a nonempty region.
+ * @param[in] destHeight Virtual full-image height; positive for a nonempty region.
  */
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regionY, int regionWidth, int regionHeight,
                                        int destWidth, int destHeight) {
@@ -1370,6 +1515,9 @@ Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regi
  * beyond the image repeat its edge pixels. The kernel is traversed as stored,
  * without reversal. Release the result with Rbc_FreeColorImage(). Invalid
  * filter metadata panics; kernel length and coefficients are not validated.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in] filterPtr Borrowed square kernel descriptor; finite coefficients and nonzero sum are required.
  */
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
     Rbc_ColorImage dest;
@@ -1456,6 +1604,18 @@ Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
  * void writer, whose Tk errors are not propagated; TCL_OK therefore covers
  * capture/processing, not a checked photo-write result. Native capture and
  * Tk photo operations must run with valid objects on their owning thread.
+ *
+ * @param[in,out] interp Interpreter receiving Tcl diagnostics; no ownership is transferred.
+ * @param[in] tkwin Borrowed live window supplying the native display context.
+ * @param[in] drawable Borrowed compatible drawable to capture.
+ * @param[in] x Capture left coordinate in drawable pixels.
+ * @param[in] y Capture top coordinate in drawable pixels.
+ * @param[in] width Positive capture width in pixels.
+ * @param[in] height Positive capture height in pixels.
+ * @param[in] destWidth Nonnegative destination width in pixels.
+ * @param[in] destHeight Nonnegative destination height in pixels.
+ * @param[in] photoName Borrowed name of an existing destination photo.
+ * @param[in] inputGamma Finite positive gamma for native capture.
  */
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                   int destWidth, int destHeight, const char *photoName, double inputGamma) {
@@ -1545,6 +1705,13 @@ int Rbc_JPEGToPhoto(Tcl_Interp *interp, const char *fileName, Tk_PhotoHandle pho
  * Uses 14-bit fixed-point straight RGBA arithmetic with byte clamping.
  * Caller ensures offset plus source width remains representable as int.
  * Does not allocate, resize, or validate the row index or fraction.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in,out] dest Borrowed writable destination image with the required matching dimensions.
+ * @param[in] y Row index valid in both images.
+ * @param[in] offset Integer horizontal displacement; offset plus source width must fit int.
+ * @param[in] frac Fractional horizontal displacement in [0,1).
+ * @param[in] bgColor RGBA padding color copied by value.
  */
 static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, double frac, Pix32 bgColor) {
     Pix32 *srcPtr;
@@ -1632,6 +1799,13 @@ static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, d
  * residual pixel if visible. Filters straight RGBA with 14-bit fixed-point
  * weights and clamps channels. Requires representable offset plus source
  * height. Does not allocate or validate the column index or fraction.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in,out] dest Borrowed writable destination image with the required matching dimensions.
+ * @param[in] x Column index valid in both images.
+ * @param[in] offset Integer vertical displacement; offset plus source height must fit int.
+ * @param[in] frac Fractional vertical displacement in [0,1).
+ * @param[in] bgColor RGBA padding color copied by value.
  */
 static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, double frac, Pix32 bgColor) {
     Pix32 *srcPtr;
@@ -1708,6 +1882,8 @@ static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, d
  * Returns int truncation of a finite value in [0, INT_MAX]. Invalid or
  * unrepresentable values panic. Does not round upward or add padding;
  * callers include any extra space in their dimension formula.
+ *
+ * @param[in] value Finite nonnegative extent no greater than INT_MAX.
  */
 static int GetRotationDimension(double value) {
     if ((!FINITE(value)) || (value < 0.0) || (value > (double)INT_MAX)) {
@@ -1723,6 +1899,8 @@ static int GetRotationDimension(double value) {
  * Returns floor(value) as an int, including for negative displacements.
  * Non-finite or out-of-range results panic. The caller derives the
  * fractional remainder by subtracting this result from the original value.
+ *
+ * @param[in] value Finite displacement whose floor must fit int.
  */
 static int GetShearOffset(double value) {
     double result;
@@ -1748,6 +1926,10 @@ static int GetShearOffset(double value) {
  * The construction follows Alan W. Paeth, A Fast Algorithm for General
  * Raster Rotation, Graphics Gems, pp. 179-195. It is not a single-pass
  * inverse-mapped rotation; intermediate clamping affects pixel results.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in] theta Residual angle in radians within [-pi/4,pi/4].
+ * @param[in] bgColor RGBA padding color copied by value.
  */
 static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) {
     int tmpWidth, tmpHeight;
@@ -1819,6 +2001,8 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
  * image and copies complete Pix32 values including alpha. Empty dimensions
  * are retained. Returns ownership to the caller, which frees the result
  * with Rbc_FreeColorImage. Does not modify or share source pixel storage.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
  */
 static Rbc_ColorImage CopyColorImage(Rbc_ColorImage src) {
     int width, height;
@@ -1845,6 +2029,8 @@ static Rbc_ColorImage CopyColorImage(Rbc_ColorImage src) {
  * and height. Maps (x,y) to (y,sourceWidth-x-1), copying all RGBA bytes
  * exactly. No interpolation or background blending occurs. Caller owns
  * the result and releases it with Rbc_FreeColorImage.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
  */
 static Rbc_ColorImage Rotate90(Rbc_ColorImage src) {
     Rbc_ColorImage dest;
@@ -1870,6 +2056,8 @@ static Rbc_ColorImage Rotate90(Rbc_ColorImage src) {
  * Borrows source storage and maps (x,y) to (width-x-1,height-y-1) in a
  * newly allocated image. Copies complete RGBA values with no interpolation.
  * Caller owns the independent result and frees it with Rbc_FreeColorImage.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
  */
 static Rbc_ColorImage Rotate180(Rbc_ColorImage src) {
     Rbc_ColorImage dest;
@@ -1896,6 +2084,8 @@ static Rbc_ColorImage Rotate180(Rbc_ColorImage src) {
  * and height. Maps (x,y) to (sourceHeight-y-1,x), copying complete pixels.
  * No interpolation occurs. Caller owns the independent result and frees
  * it with Rbc_FreeColorImage.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
  */
 static Rbc_ColorImage Rotate270(Rbc_ColorImage src) {
     Rbc_ColorImage dest;
@@ -1922,6 +2112,9 @@ static Rbc_ColorImage Rotate270(Rbc_ColorImage src) {
  * Right angles copy pixels exactly; other angles use three filtered shears
  * after a quadrant rotation, with transparent white background. The result
  * never aliases image, even at zero degrees; free with Rbc_FreeColorImage().
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in] angle Finite counterclockwise angle in degrees; normalized modulo 360.
  */
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
     Rbc_ColorImage dest, tmp;
@@ -2006,6 +2199,8 @@ Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
  * eight-bit channel values and their squared sum. Index-zero planes stay
  * zero for cumulative queries. Alpha does not affect inclusion or weight.
  * Returns an allocation freed with ckfree; does not modify the source.
+ *
+ * @param[in] image Borrowed valid RGBA image; mutation policy is specified above.
  */
 static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
     register int r, g, b;
@@ -2060,6 +2255,8 @@ static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
  * Uses stack row/area accumulators, with no new owned allocation. This is
  * a one-time transformation, not an idempotent query. Subsequent box helpers
  * require the cumulative representation, not raw bins.
+ *
+ * @param[in,out] s Writable raw histogram, converted once into cumulative moments.
  */
 static void M3d(ColorImageStatistics *s) {
     register unsigned char i, r, g, b, r0;
@@ -2103,6 +2300,9 @@ static void M3d(ColorImageStatistics *s) {
  * upper-inclusive, within 0..32. Returns the eight-corner inclusion-exclusion
  * sum without modifying either argument. Requires valid ordered bounds;
  * performs no bounds checks or allocation.
+ *
+ * @param[in] cubePtr Borrowed box with valid lower-exclusive and upper-inclusive RGB bounds.
+ * @param[in] m Borrowed 33 by 33 by 33 cumulative moment array.
  */
 static INLINE Moment Volume(Cube *cubePtr, Moment m[33][33][33]) {
     return (m[R1][G1][B1] - m[R1][G1][B0] - m[R1][G0][B1] + m[R1][G0][B0] - m[R0][G1][B1] + m[R0][G1][B0] +
@@ -2129,6 +2329,10 @@ static INLINE Moment Volume(Cube *cubePtr, Moment m[33][33][33]) {
  * coordinate whose upper bound will be replaced. Add Top at a candidate
  * position to obtain the lower subbox volume. Unknown directions return
  * zero; callers must still supply valid bounds and a supported direction.
+ *
+ * @param[in] cubePtr Borrowed box with valid lower-exclusive and upper-inclusive RGB bounds.
+ * @param[in] dir Color axis selector: RED, GREEN or BLUE.
+ * @param[in] m Borrowed 33 by 33 by 33 cumulative moment array.
  */
 static Moment Bottom(Cube *cubePtr, unsigned char dir, Moment m[33][33][33]) {
     switch (dir) {
@@ -2150,6 +2354,11 @@ static Moment Bottom(Cube *cubePtr, unsigned char dir, Moment m[33][33][33]) {
  * with pos; Bottom plus this result is the proposed lower subbox volume.
  * Requires pos in the valid grid range and a RED, GREEN or BLUE direction.
  * Unknown directions return zero; no bounds checking or mutation occurs.
+ *
+ * @param[in] cubePtr Borrowed box with valid lower-exclusive and upper-inclusive RGB bounds.
+ * @param[in] dir Color axis selector: RED, GREEN or BLUE.
+ * @param[in] pos Candidate upper bound along dir, within the valid moment grid.
+ * @param[in] m Borrowed 33 by 33 by 33 cumulative moment array.
  */
 static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33]) {
     switch (dir) {
@@ -2172,6 +2381,9 @@ static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33
  * the sum of squared channel totals divided by population. Converts totals
  * to double before squaring. This is variance times population, not mean
  * variance; floating-point cancellation is not explicitly clamped.
+ *
+ * @param[in] cubePtr Borrowed box with valid lower-exclusive and upper-inclusive RGB bounds.
+ * @param[in] s Borrowed cumulative color statistics; not a raw histogram.
  */
 static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
     Moment weight;
@@ -2200,6 +2412,17 @@ static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
  * on a strictly greater score; ties retain the earliest winning position.
  * Returns the best score, or zero if none exceeds zero. Does not mutate
  * boxes or statistics. Inputs must describe the same valid whole box.
+ *
+ * @param[in] cubePtr Borrowed box with valid lower-exclusive and upper-inclusive RGB bounds.
+ * @param[in] dir Color axis selector: RED, GREEN or BLUE.
+ * @param[in] first Inclusive first candidate cut position.
+ * @param[in] last Exclusive final candidate cut position.
+ * @param[out] cut Required output initialized to -1, then set to the best winning cut.
+ * @param[in] rWhole Red-channel sum for the whole box.
+ * @param[in] gWhole Green-channel sum for the whole box.
+ * @param[in] bWhole Blue-channel sum for the whole box.
+ * @param[in] wWhole Population of the whole box.
+ * @param[in] s Borrowed cumulative color statistics; not a raw histogram.
  */
 static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole, Moment gWhole,
                        Moment bWhole, Moment wWhole, ColorImageStatistics *s) {
@@ -2256,6 +2479,10 @@ static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, in
  * is available in the winning red case. On success, narrows set1 to the
  * lower box, writes set2 as the upper box, recomputes geometric volumes
  * and returns one. Does not allocate or update the statistical arrays.
+ *
+ * @param[in,out] set1 Writable original box, narrowed to the lower partition on success.
+ * @param[out] set2 Distinct writable output box receiving the upper partition on success.
+ * @param[in] s Borrowed cumulative color statistics; not a raw histogram.
  */
 static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s) {
     unsigned char dir;
@@ -2314,6 +2541,10 @@ static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s) {
  * One-cell boxes are assigned zero variance; selection ties favor the first
  * box. Returns the number of initialized boxes, possibly below nColors.
  * Owns and frees a temporary variance array. Emits no early-stop message.
+ *
+ * @param[in] s Borrowed cumulative color statistics; not a raw histogram.
+ * @param[out] cubes Writable array with capacity for nColors boxes.
+ * @param[in] nColors Positive number of partition boxes requested or supplied, as described above.
  */
 static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
     double *vv, temp;
@@ -2365,6 +2596,10 @@ static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
  * lower-exclusive, upper-inclusive cells on each axis; boundary index zero
  * is untouched for ordinary boxes. Does not allocate or inspect image data.
  * The integer label carries a packed pixel value supplied by the caller.
+ *
+ * @param[in] cubePtr Borrowed box with valid lower-exclusive and upper-inclusive RGB bounds.
+ * @param[in] label Packed representative pixel value to store in the selected cells.
+ * @param[in,out] tag Writable 33 by 33 by 33 lookup table.
  */
 static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]) {
     int r, g, b;
@@ -2388,6 +2623,10 @@ static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]) {
  * cube with an opaque Pix32 value. Empty boxes print a stderr diagnostic
  * and use black; ordinary nonempty splits avoid that path. The mapping
  * pass restores source alpha separately. Does not change source statistics.
+ *
+ * @param[in] s Borrowed cumulative color statistics; not a raw histogram.
+ * @param[in] cubes Borrowed array of nColors initialized partition boxes.
+ * @param[in] nColors Positive number of partition boxes requested or supplied, as described above.
  */
 static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes, int nColors) {
     unsigned int *lut;
@@ -2426,6 +2665,10 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
  * Saves each alpha byte before writing, so exact source/destination aliasing
  * is supported. Uses (channel >> 3) + 1 for every table coordinate. Does
  * not allocate, dither or search for the nearest representative color.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in,out] dest Borrowed writable destination image with the required matching dimensions.
+ * @param[in] lut Borrowed 33 by 33 by 33 packed-pixel lookup table.
  */
 static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[33][33][33]) {
     /* Apply the color lookup table against the original image */
@@ -2483,6 +2726,10 @@ static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[
  *
  * Mapping uses the same one-based channel bins as histogram construction and
  * lookup-table population. Some split diagnostics use stderr.
+ *
+ * @param[in] src Borrowed valid source image; ownership remains with the caller.
+ * @param[in,out] dest Borrowed writable destination image with the required matching dimensions.
+ * @param[in] reduceColors Requested palette size in [1,256].
  */
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceColors) {
     Cube *cubes;

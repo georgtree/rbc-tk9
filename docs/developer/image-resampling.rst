@@ -9,7 +9,7 @@ snapshot pixels into this representation before processing. See
 Three coordinate contracts
 --------------------------
 
-``Rbc_ResizeColorImage`` scales a source region to a requested output size.
+:c:func:`Rbc_ResizeColorImage` scales a source region to a requested output size.
 Its origin is clamped into the source, then negative or excessive width/height
 values extend to the remaining edge. This is an origin-and-span policy, not
 geometric rectangle intersection: a negative origin becomes zero without
@@ -20,24 +20,24 @@ ratio of destination position to destination size, multiplied by the effective
 source span, then adds the source origin. It copies the entire pixel, including
 alpha. No averaging or antialiasing is performed.
 
-``Rbc_ResizeColorSubimage`` instead takes a region in a *virtual destination*.
+:c:func:`Rbc_ResizeColorSubimage` instead takes a region in a *virtual destination*.
 The full source is imagined at ``destWidth`` by ``destHeight``, while only the
 requested region is allocated. Its origin and each output position map back
 through that virtual scale. Positions beyond either edge clamp to the first
 or last source pixel; they do not create transparent padding. This avoids
 allocating a potentially much larger scaled image merely to display a crop.
 
-``Rbc_ResampleColorImage`` filters the complete source to a new size. Source
+:c:func:`Rbc_ResampleColorImage` filters the complete source to a new size. Source
 region extraction, when needed, happens before this call. It allocates an
 intermediate image of destination width by source height, filters horizontally,
 then filters vertically into the final image and releases the intermediate.
 All three functions leave the borrowed source intact and return independent
-storage released with ``Rbc_FreeColorImage``.
+storage released with :c:func:`Rbc_FreeColorImage`.
 
 Filters and sampling weights
 ----------------------------
 
-``Rbc_GetResampleFilterFromObj`` resolves names and unambiguous abbreviations
+:c:func:`Rbc_GetResampleFilterFromObj` resolves names and unambiguous abbreviations
 against the static filter table. Returned records are borrowed and must not
 be modified or freed. ``none`` resolves successfully to NULL; it directs
 command-level policy rather than representing an identity filter that may be
@@ -47,7 +47,7 @@ The table includes box, triangle, bell, B-spline, Catmull-Rom, Mitchell,
 Lanczos, sinc, Gaussian and other historical filters with individual support
 radii. Horizontal and vertical passes can use different non-NULL filters.
 
-``ComputeWeights`` builds one contribution record per destination coordinate,
+:c:func:`rbcImageResampling.ComputeWeights` builds one contribution record per destination coordinate,
 reused across all rows or columns in that pass. Downsampling broadens the
 support radius by the inverse scale; upsampling uses native filter support.
 Source support bounds are clipped to the image. Contributions are normalized
@@ -129,11 +129,11 @@ Contribution layout and rounding
 --------------------------------
 
 Each Sample stores a source start index, count and variable-length Weight
-array. ComputeWeights returns the byte stride, which must be used to advance
+array. :c:func:`rbcImageResampling.ComputeWeights` returns the byte stride, which must be used to advance
 between records; ordinary Sample pointer arithmetic would be incorrect.
-GetSampleRecordSize accounts for the first inline weight and checks extra
-storage before multiplication. GetFilterSize caps capacity by source length
-before narrowing to int, and GetFilterBounds clips each inclusive interval
+:c:func:`rbcImageResampling.GetSampleRecordSize` accounts for the first inline weight and checks extra
+storage before multiplication. :c:func:`rbcImageResampling.GetFilterSize` caps capacity by source length
+before narrowing to int, and :c:func:`rbcImageResampling.GetFilterBounds` clips each inclusive interval
 before converting its endpoints.
 
 For scale = destination/source and destination coordinate x, center = x/scale.
@@ -153,7 +153,7 @@ uses a normalization factor of one rather than selecting a fallback pixel.
 
 The horizontal pass requires source and destination heights to match; the
 vertical pass requires widths to match. They do not validate these internal
-shape invariants or support aliased storage. Rbc_ResampleColorImage constructs
+shape invariants or support aliased storage. :c:func:`Rbc_ResampleColorImage` constructs
 the intermediate and final images to satisfy them. Custom C filters must
 return finite weights whose normalized fixed-point values are representable;
 the kernel does not validate arbitrary callback results. Changing phase,
@@ -186,7 +186,7 @@ function pointer. Tcl commands must validate user input before entering them.
 Photo wrappers and command policy
 ---------------------------------
 
-``Rbc_ResizePhoto`` and ``Rbc_ResamplePhoto`` use the destination photo's current
+:c:func:`Rbc_ResizePhoto` and :c:func:`Rbc_ResamplePhoto` use the destination photo's current
 dimensions as the target size. Both copy the source region first, so identical
 source and destination handles are permitted. Temporary RBC images are released
 after the final write. The underlying void photo-write wrapper does not expose
@@ -201,17 +201,17 @@ interfaces, which can process single-pixel dimensions.
 Nearest-neighbour implementation
 ---------------------------------
 
-Rbc_ResizeColorImage allocates its requested result before checking whether the
+:c:func:`Rbc_ResizeColorImage` allocates its requested result before checking whether the
 effective source region is empty. A nonempty resize precomputes separate int
 maps for output columns and rows, copies full Pix32 values, then frees both
-maps. MapNearestCoordinate truncates position*span/destinationSpan and adds the
+maps. :c:func:`rbcImageStorage.MapNearestCoordinate` truncates position*span/destinationSpan and adds the
 clamped source origin, with a final upper-edge cap. Source-region clipping uses
 subtraction from a clamped origin rather than potentially overflowing endpoint
 addition.
 
-Rbc_ResizeColorSubimage allocates only the requested region. Its maps add the
+:c:func:`Rbc_ResizeColorSubimage` allocates only the requested region. Its maps add the
 region origin and output position in double before virtual scaling, avoiding
-signed-int coordinate addition. MapVirtualCoordinate clamps values beyond the
+signed-int coordinate addition. :c:func:`rbcImageStorage.MapVirtualCoordinate` clamps values beyond the
 virtual extent to source edges before integer conversion. Empty output returns
 before virtual-size validation; nonempty output requires positive virtual sizes.
 An empty source leaves the allocated result transparent and zeroed.

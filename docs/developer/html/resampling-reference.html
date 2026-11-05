@@ -50,42 +50,116 @@
 <dt class="sig sig-object c" id="c.Rbc_GetResampleFilterFromObj">
 <span class="target" id="rbc_image_8h_1a28c2b5b3a2d168917f8af540d6627a73"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetResampleFilterFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterObj</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetResampleFilterFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a filter name or unambiguous abbreviation to borrowed static state. </p>
-<p>Return TCL_OK and a filter-table pointer, or NULL for the name none. On lookup failure return TCL_ERROR without assigning the output pointer. Do not free or modify a returned filter. NULL selects policy in callers; it is not a valid filter argument to Rbc_ResampleColorImage(). </p>
+<p>Return TCL_OK and a filter-table pointer, or NULL for the name none. On lookup failure return TCL_ERROR without assigning the output pointer. Do not free or modify a returned filter. NULL selects policy in callers; it is not a valid filter argument to Rbc_ResampleColorImage().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter receiving Tcl diagnostics; no ownership is transferred. </p></li>
+<li><p><strong>filterObj</strong> – <strong>[in]</strong> Borrowed Tcl object naming a filter or unambiguous abbreviation. </p></li>
+<li><p><strong>filterPtrPtr</strong> – <strong>[out]</strong> Required output; receives borrowed static filter or NULL for none only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ResampleColorImage">
 <span class="target" id="rbc_image_8h_1aca50351b42f20700152302dd6c06e330"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResampleColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">horzFilterPtr</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vertFilterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResampleColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a newly owned image filtered horizontally and then vertically. </p>
-<p>Borrow the source and two valid, non-NULL filters; leave the source intact. Release the result with Rbc_FreeColorImage(). Negative destination dimensions or missing filters panic. Zero dimensions are allowed; empty input leaves zero-initialized output. Each pass filters straight RGBA channels separately, with fixed-point weights and clamping, without gamma conversion. </p>
+<p>Borrow the source and two valid, non-NULL filters; leave the source intact. Release the result with <a class="reference internal" href="image-tile-reference.html#group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. Negative destination dimensions or missing filters panic. Zero dimensions are allowed; empty input leaves zero-initialized output. Each pass filters straight RGBA channels separately, with fixed-point weights and clamping, without gamma conversion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – <strong>[in]</strong> Borrowed valid source image; ownership remains with the caller. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative horizontal pixel count; source or destination role is specified above. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative vertical pixel count; source or destination role is specified above. </p></li>
+<li><p><strong>horzFilterPtr</strong> – <strong>[in]</strong> Borrowed non-NULL horizontal reconstruction filter. </p></li>
+<li><p><strong>vertFilterPtr</strong> – <strong>[in]</strong> Borrowed non-NULL vertical reconstruction filter. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ResizeColorImage">
 <span class="target" id="rbc_image_8h_1a95df7476612f4f5b88ac37179b5077c4"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResizeColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResizeColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a source region into a newly owned image using nearest-neighbour mapping. </p>
-<p>Borrow src. Clamp the origin to source bounds; negative or excessive spans extend to the remaining edge. Scale that effective region to destWidth by destHeight. Empty regions leave zero-initialized output. Negative destination dimensions panic; zero dimensions are allowed. Free the independent result with Rbc_FreeColorImage(). All four channels are copied unchanged. </p>
+<p>Borrow src. Clamp the origin to source bounds; negative or excessive spans extend to the remaining edge. Scale that effective region to destWidth by destHeight. Empty regions leave zero-initialized output. Negative destination dimensions panic; zero dimensions are allowed. Free the independent result with <a class="reference internal" href="image-tile-reference.html#group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. All four channels are copied unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – <strong>[in]</strong> Borrowed valid source image; ownership remains with the caller. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Requested source horizontal span; negative or excessive spans extend to the edge. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Requested source vertical span; negative or excessive spans extend to the edge. </p></li>
+<li><p><strong>destWidth</strong> – <strong>[in]</strong> Nonnegative destination width in pixels. </p></li>
+<li><p><strong>destHeight</strong> – <strong>[in]</strong> Nonnegative destination height in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ResizeColorSubimage">
 <span class="target" id="rbc_image_8h_1a5db6d9d8a2de205e6a571d01fa97f863"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResizeColorSubimage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResizeColorSubimage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sample a region of a virtually resized source without allocating the full resize. </p>
-<p>Here x and y are virtual destination coordinates, width and height are the returned region size, and destWidth/destHeight are the virtual full size. Nearest-neighbour coordinates clamp to source edges, including regions beyond the virtual image. Borrow src and free the result with Rbc_FreeColorImage(). Negative region dimensions panic; empty regions return immediately. A nonempty region requires positive virtual dimensions. Empty source images leave zero-initialized output. </p>
+<p>Here x and y are virtual destination coordinates, width and height are the returned region size, and destWidth/destHeight are the virtual full size. Nearest-neighbour coordinates clamp to source edges, including regions beyond the virtual image. Borrow src and free the result with <a class="reference internal" href="image-tile-reference.html#group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. Negative region dimensions panic; empty regions return immediately. A nonempty region requires positive virtual dimensions. Empty source images leave zero-initialized output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – <strong>[in]</strong> Borrowed valid source image; ownership remains with the caller. </p></li>
+<li><p><strong>regionX</strong> – <strong>[in]</strong> Horizontal origin in the virtual destination, not the source. </p></li>
+<li><p><strong>regionY</strong> – <strong>[in]</strong> Vertical origin in the virtual destination, not the source. </p></li>
+<li><p><strong>regionWidth</strong> – <strong>[in]</strong> Nonnegative width of the returned region. </p></li>
+<li><p><strong>regionHeight</strong> – <strong>[in]</strong> Nonnegative height of the returned region. </p></li>
+<li><p><strong>destWidth</strong> – <strong>[in]</strong> Virtual full-image width; positive for a nonempty region. </p></li>
+<li><p><strong>destHeight</strong> – <strong>[in]</strong> Virtual full-image height; positive for a nonempty region. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ResamplePhoto">
 <span class="target" id="rbc_image_8h_1a42eaaf8adb5f8100f61fe948f31cecee"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResamplePhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">srcPhoto</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">destPhoto</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">horzFilterPtr</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vertFilterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResamplePhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Filter a source photo region into the destination photo’s existing dimensions. </p>
-<p>Snapshot the source region before writing, allowing identical photo handles. Borrow both handles and valid non-NULL filters. Temporary RBC images are released internally. The void photo-write wrapper does not propagate Tk’s write status; callers must not interpret return as a success code. </p>
+<p>Snapshot the source region before writing, allowing identical photo handles. Borrow both handles and valid non-NULL filters. Temporary RBC images are released internally. The void photo-write wrapper does not propagate Tk’s write status; callers must not interpret return as a success code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter receiving Tcl diagnostics; no ownership is transferred. </p></li>
+<li><p><strong>srcPhoto</strong> – <strong>[in]</strong> Borrowed live source photo, snapshotted before destination writes. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Requested source horizontal span; negative or excessive spans extend to the edge. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Requested source vertical span; negative or excessive spans extend to the edge. </p></li>
+<li><p><strong>destPhoto</strong> – <strong>[inout]</strong> Borrowed live destination photo whose existing dimensions determine output size. </p></li>
+<li><p><strong>horzFilterPtr</strong> – <strong>[in]</strong> Borrowed non-NULL horizontal reconstruction filter. </p></li>
+<li><p><strong>vertFilterPtr</strong> – <strong>[in]</strong> Borrowed non-NULL vertical reconstruction filter. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ResizePhoto">
 <span class="target" id="rbc_image_8h_1a1834800d847236274d3d650f7f6df809"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResizePhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">srcPhoto</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">destPhoto</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResizePhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resize a source photo region to the destination’s existing size without filtering. </p>
-<p>Borrow both handles. Snapshot before writing so source and destination may be the same photo. Release temporary RBC images internally. As with Rbc_ResamplePhoto(), this void wrapper does not return the Tk write status. </p>
+<p>Borrow both handles. Snapshot before writing so source and destination may be the same photo. Release temporary RBC images internally. As with Rbc_ResamplePhoto(), this void wrapper does not return the Tk write status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Interpreter receiving Tcl diagnostics; no ownership is transferred. </p></li>
+<li><p><strong>srcPhoto</strong> – <strong>[in]</strong> Borrowed live source photo, snapshotted before destination writes. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical source origin in pixels; clamped as described above. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Requested source horizontal span; negative or excessive spans extend to the edge. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Requested source vertical span; negative or excessive spans extend to the edge. </p></li>
+<li><p><strong>destPhoto</strong> – <strong>[inout]</strong> Borrowed live destination photo whose existing dimensions determine output size. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="filter-kernels-and-contribution-records">
@@ -102,133 +176,278 @@ fixed-point arithmetic.</p>
 <dt class="sig sig-object c" id="c.rbcImageResampling.DefaultFilter">
 <span class="target" id="group__image__resample__internals_1ga87979a04b778a0ae7f53721d8a88daad"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DefaultFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.DefaultFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the compact cubic default kernel. </p>
-<p>For t = abs(x) below one returns (2t - 3)t squared + 1, otherwise zero. Uses no mutable state or allocation. The table support is one pixel. </p>
+<p>For t = abs(x) below one returns (2t - 3)t squared + 1, otherwise zero. Uses no mutable state or allocation. The table support is one pixel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.DummyFilter">
 <span class="target" id="group__image__resample__internals_1ga9669e9645b17589dade306f9488d567c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DummyFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.DummyFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the historical diagnostic kernel abs(x). </p>
-<p>Has no intrinsic cutoff, normalization or image access. Its table support is 0.5; contribution construction supplies the sampling interval. This test kernel is not an identity or nearest-neighbour operation. </p>
+<p>Has no intrinsic cutoff, normalization or image access. Its table support is 0.5; contribution construction supplies the sampling interval. This test kernel is not an identity or nearest-neighbour operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.BoxFilter">
 <span class="target" id="group__image__resample__internals_1ga400ad890c092a449a34d126379b62451"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BoxFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.BoxFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return unit weight inside the closed interval [-0.5, 0.5]. </p>
-<p>Returns zero outside the interval, including neither endpoint in that rejection. Stateless; the table support is 0.5 pixels. </p>
+<p>Returns zero outside the interval, including neither endpoint in that rejection. Stateless; the table support is 0.5 pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.TriangleFilter">
 <span class="target" id="group__image__resample__internals_1ga199aa6283138e2ecc1793699c2d2590a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TriangleFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.TriangleFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the linear tent kernel. </p>
-<p>Returns 1 - abs(x) for abs(x) below one, otherwise zero. Stateless with table support one pixel; performs no contribution normalization itself. </p>
+<p>Returns 1 - abs(x) for abs(x) below one, otherwise zero. Stateless with table support one pixel; performs no contribution normalization itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.BellFilter">
 <span class="target" id="group__image__resample__internals_1gabf62e92d9bf15bf4652e7637fbfb5053"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BellFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.BellFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the piecewise quadratic bell kernel. </p>
-<p>For t = abs(x), returns 0.75 - t squared below 0.5 and half of (t - 1.5) squared below 1.5; otherwise zero. Stateless; support is 1.5. </p>
+<p>For t = abs(x), returns 0.75 - t squared below 0.5 and half of (t - 1.5) squared below 1.5; otherwise zero. Stateless; support is 1.5.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.BSplineFilter">
 <span class="target" id="group__image__resample__internals_1ga094c71597b81c5d9a2255dc9530477e5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BSplineFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.BSplineFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the compact cubic B-spline kernel. </p>
-<p>Uses even cubic pieces on abs(x) below one and below two, and returns zero outside. Stateless; table support is two pixels. The kernel value at zero is 2/3, so this is not an interpolating cardinal kernel. </p>
+<p>Uses even cubic pieces on abs(x) below one and below two, and returns zero outside. Stateless; table support is two pixels. The kernel value at zero is 2/3, so this is not an interpolating cardinal kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.SincFilter">
 <span class="target" id="group__image__resample__internals_1ga39e18c7f3b687faa81b5c888395e8588"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SincFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.SincFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate sin(pi*x)/(pi*x), with its removable singularity filled. </p>
-<p>Returns one at zero. No intrinsic cutoff; the table limits sampling to support four. Stateless; signed lobes are preserved for normalization. </p>
+<p>Returns one at zero. No intrinsic cutoff; the table limits sampling to support four. Stateless; signed lobes are preserved for normalization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.BesselFilter">
 <span class="target" id="group__image__resample__internals_1ga703bc68f26e60c2cceb8e2d2b490d2c0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BesselFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.BesselFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the legacy Bessel reconstruction kernel. </p>
-<p>Returns pi/4 at zero and j1(pi*x)/(2*x) otherwise. The table support is 3.2383; there is no cutoff in this function. The legacy Borland branch returns zero for all inputs. Requires the platform j1 implementation on other builds. Owns no state and performs no normalization. </p>
+<p>Returns pi/4 at zero and j1(pi*x)/(2*x) otherwise. The table support is 3.2383; there is no cutoff in this function. The legacy Borland branch returns zero for all inputs. Requires the platform j1 implementation on other builds. Owns no state and performs no normalization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.GaussianFilter">
 <span class="target" id="group__image__resample__internals_1gac80d8378976bad0fdd6d9ff72aec62c3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GaussianFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.GaussianFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate exp(-2*x*x) times sqrt(2/pi). </p>
-<p>Stateless with no intrinsic cutoff. The gaussian and gauss8 table entries share this procedure but use support radii 1.25 and 8 respectively. </p>
+<p>Stateless with no intrinsic cutoff. The gaussian and gauss8 table entries share this procedure but use support radii 1.25 and 8 respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.Lanczos3Filter">
 <span class="target" id="group__image__resample__internals_1ga07bcacf1d413b340ea3201bf196bce04"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Lanczos3Filter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.Lanczos3Filter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate a sinc kernel with a three-lobe sinc window. </p>
-<p>For abs(x) below three returns SincFilter(x) times SincFilter(x/3), otherwise zero. Stateless; the table support is three pixels. </p>
+<p>For abs(x) below three returns SincFilter(x) times SincFilter(x/3), otherwise zero. Stateless; the table support is three pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.MitchellFilter">
 <span class="target" id="group__image__resample__internals_1ga7c2fd23ac44d8126555ecbbcf1436fec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MitchellFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.MitchellFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the compact Mitchell cubic with B = C = 1/3. </p>
-<p>Uses even polynomial pieces below absolute distances one and two, then returns zero. Stateless; support is two. Negative lobes are retained here and may produce values later clamped by the image passes. </p>
+<p>Uses even polynomial pieces below absolute distances one and two, then returns zero. Stateless; support is two. Negative lobes are retained here and may produce values later clamped by the image passes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.CatRomFilter">
 <span class="target" id="group__image__resample__internals_1gacdd2a6a189b4b0e9ba92703d47c622f3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CatRomFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.CatRomFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the piecewise Catmull-Rom cubic kernel. </p>
-<p>Uses four polynomial intervals spanning [-2, 2] and is zero outside. Returns one at zero. Stateless; signed lobes are not clipped here and the table support is two pixels. </p>
+<p>Uses four polynomial intervals spanning [-2, 2] and is zero outside. Returns one at zero. Stateless; signed lobes are not clipped here and the table support is two pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.GiFilter">
 <span class="target" id="group__image__resample__internals_1ga80676d9a8838d34b6eb9d9a74794d72a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GiFilter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.GiFilter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the historical Gaussian-tail integral approximation. </p>
-<p>Returns one below -1.5 and zero above 1.5, with three polynomial pieces between. This is an asymmetric cumulative function, not the even Gaussian kernel. The table support is 1.25. Owns no mutable state. </p>
+<p>Returns one below -1.5 and zero above 1.5, with three polynomial pieces between. This is an asymmetric cumulative function, not the even Gaussian kernel. The table support is 1.25. Owns no mutable state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Signed distance from the reconstruction center in sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.GetSampleRecordSize">
 <span class="target" id="group__image__resample__internals_1ga201fa28b9928606299046bc2a01f98b0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSampleRecordSize</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nWeights</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.GetSampleRecordSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute storage for one variable-sized contribution record. </p>
-<p>Requires a positive weight count. Includes the first Weight already in Sample and checks extra storage against SIZE_MAX before multiplying. Returns a byte stride; invalid count or representational overflow panics. Does not allocate or initialize a record. </p>
+<p>Requires a positive weight count. Includes the first Weight already in Sample and checks extra storage against SIZE_MAX before multiplying. Returns a byte stride; invalid count or representational overflow panics. Does not allocate or initialize a record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nWeights</strong> – <strong>[in]</strong> Positive capacity of one contribution record, including its inline first weight. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.GetFilterSize">
 <span class="target" id="group__image__resample__internals_1gabd609f7cab655b333ecab7f639609f10"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetFilterSize</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.GetFilterSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Bound contribution capacity by the source pixel count. </p>
-<p>Requires positive srcWidth and finite nonnegative radius; invalid input panics. Computes 2*radius + 2, caps at srcWidth before integer conversion (also for an overflowed sum), and returns at least one. This capacity bounds the clipped interval, not the count of nonzero weights. </p>
+<p>Requires positive srcWidth and finite nonnegative radius; invalid input panics. Computes 2*radius + 2, caps at srcWidth before integer conversion (also for an overflowed sum), and returns at least one. This capacity bounds the clipped interval, not the count of nonzero weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>srcWidth</strong> – <strong>[in]</strong> Positive number of source samples along the filtered axis. </p></li>
+<li><p><strong>radius</strong> – <strong>[in]</strong> Finite nonnegative support radius in source-sample units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.GetFilterBounds">
 <span class="target" id="group__image__resample__internals_1gae6dcae3ed164b52292b8fd0fdf1bf3c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetFilterBounds</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">center</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">leftPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.GetFilterBounds" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round and clip an inclusive source contribution interval. </p>
-<p>Borrows output pointers. Requires positive srcWidth, finite center/radius and nonnegative radius; invalid geometry panics. Rounds center +/- radius using +0.5 then positive integer truncation, with clipping before casts. Writes ordered bounds in [0, srcWidth-1]; outlying centers clamp to an edge sample rather than yielding an empty interval. </p>
+<p>Borrows output pointers. Requires positive srcWidth, finite center/radius and nonnegative radius; invalid geometry panics. Rounds center +/- radius using +0.5 then positive integer truncation, with clipping before casts. Writes ordered bounds in [0, srcWidth-1]; outlying centers clamp to an edge sample rather than yielding an empty interval.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>srcWidth</strong> – <strong>[in]</strong> Positive number of source samples along the filtered axis. </p></li>
+<li><p><strong>center</strong> – <strong>[in]</strong> Finite center coordinate of the source contribution interval. </p></li>
+<li><p><strong>radius</strong> – <strong>[in]</strong> Finite nonnegative support radius in source-sample units. </p></li>
+<li><p><strong>leftPtr</strong> – <strong>[out]</strong> Required output for inclusive first source sample. </p></li>
+<li><p><strong>rightPtr</strong> – <strong>[out]</strong> Required output for inclusive last source sample. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.ComputeWeights">
 <span class="target" id="group__image__resample__internals_1gab674c3680a4de6a71f8589228ebdc8a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeWeights</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtr</span></span>, <span class="n"><span class="pre">Sample</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.ComputeWeights" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate normalized fixed-point contributions for one output axis. </p>
-<p>Requires positive dimensions and a non-NULL filter with a valid procedure and finite nonnegative support. Invalid geometry panics. Returns the byte stride between records and writes an owned zero-allocated array to samplePtrPtr; caller frees it with ckfree. One record per destination coordinate stores the clipped source start/count. Downsampling expands support by inverse scale; weights use a half-pixel offset. Float weights are summed in double, normalized unless the sum is zero, then overwritten in the union by fixed-point ints using a scale of 16384 and +0.5 before truncation. Custom kernels must yield finite, representable normalized weights; there is no general validation of callback results. </p>
+<p>Requires positive dimensions and a non-NULL filter with a valid procedure and finite nonnegative support. Invalid geometry panics. Returns the byte stride between records and writes an owned zero-allocated array to samplePtrPtr; caller frees it with ckfree. One record per destination coordinate stores the clipped source start/count. Downsampling expands support by inverse scale; weights use a half-pixel offset. Float weights are summed in double, normalized unless the sum is zero, then overwritten in the union by fixed-point ints using a scale of 16384 and +0.5 before truncation. Custom kernels must yield finite, representable normalized weights; there is no general validation of callback results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>srcWidth</strong> – <strong>[in]</strong> Positive number of source samples along the filtered axis. </p></li>
+<li><p><strong>destWidth</strong> – <strong>[in]</strong> Positive number of destination samples. </p></li>
+<li><p><strong>filterPtr</strong> – <strong>[in]</strong> Borrowed filter descriptor with a valid procedure and support. </p></li>
+<li><p><strong>samplePtrPtr</strong> – <strong>[out]</strong> Required output receiving owned contribution storage; release with ckfree. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.ZoomImageVertically">
 <span class="target" id="group__image__resample__internals_1gabb302deda0430906b4e328540debd04d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ZoomImageVertically</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.ZoomImageVertically" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Filter source columns into an equally wide destination image. </p>
-<p>Borrows distinct source/destination images and a valid non-NULL filter. Requires equal widths; empty dimensions return without writing. Computes one owned contribution array for all columns, accumulates straight RGBA independently and clamps to bytes. Frees weights before returning. Does not allocate image storage or perform gamma conversion; in-place filtering is unsupported. </p>
+<p>Borrows distinct source/destination images and a valid non-NULL filter. Requires equal widths; empty dimensions return without writing. Computes one owned contribution array for all columns, accumulates straight RGBA independently and clamps to bytes. Frees weights before returning. Does not allocate image storage or perform gamma conversion; in-place filtering is unsupported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – <strong>[in]</strong> Borrowed valid source image; ownership remains with the caller. </p></li>
+<li><p><strong>dest</strong> – <strong>[inout]</strong> Borrowed writable destination image with the required matching dimensions. </p></li>
+<li><p><strong>filterPtr</strong> – <strong>[in]</strong> Borrowed filter descriptor with a valid procedure and support. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageResampling.ZoomImageHorizontally">
 <span class="target" id="group__image__resample__internals_1ga43444413be97847571915e40ee2f2ede"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ZoomImageHorizontally</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageResampling.ZoomImageHorizontally" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Filter source rows into an equally tall destination image. </p>
-<p>Borrows distinct source/destination images and a valid non-NULL filter. Requires equal heights; returns without writing if either image has an empty dimension. Computes one owned contribution array for all rows, accumulates straight RGBA independently and clamps each channel to a byte. Releases weights before returning. Does not resize either image or perform gamma conversion; in-place filtering is unsupported. </p>
+<p>Borrows distinct source/destination images and a valid non-NULL filter. Requires equal heights; returns without writing if either image has an empty dimension. Computes one owned contribution array for all rows, accumulates straight RGBA independently and clamps each channel to a byte. Releases weights before returning. Does not resize either image or perform gamma conversion; in-place filtering is unsupported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – <strong>[in]</strong> Borrowed valid source image; ownership remains with the caller. </p></li>
+<li><p><strong>dest</strong> – <strong>[inout]</strong> Borrowed writable destination image with the required matching dimensions. </p></li>
+<li><p><strong>filterPtr</strong> – <strong>[in]</strong> Borrowed filter descriptor with a valid procedure and support. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

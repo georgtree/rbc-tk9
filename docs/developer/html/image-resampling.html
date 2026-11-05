@@ -49,7 +49,7 @@ snapshot pixels into this representation before processing. See
 <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for allocation, channel offsets and photo-write ownership.</p>
 <section id="three-coordinate-contracts">
 <h2>Three coordinate contracts<a class="headerlink" href="#three-coordinate-contracts" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage</span></code> scales a source region to a requested output size.
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> scales a source region to a requested output size.
 Its origin is clamped into the source, then negative or excessive width/height
 values extend to the remaining edge. This is an origin-and-span policy, not
 geometric rectangle intersection: a negative origin becomes zero without
@@ -58,22 +58,22 @@ subtracting its displacement from a positive span.</p>
 ratio of destination position to destination size, multiplied by the effective
 source span, then adds the source origin. It copies the entire pixel, including
 alpha. No averaging or antialiasing is performed.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage</span></code> instead takes a region in a <em>virtual destination</em>.
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> instead takes a region in a <em>virtual destination</em>.
 The full source is imagined at <code class="docutils literal notranslate"><span class="pre">destWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">destHeight</span></code>, while only the
 requested region is allocated. Its origin and each output position map back
 through that virtual scale. Positions beyond either edge clamp to the first
 or last source pixel; they do not create transparent padding. This avoids
 allocating a potentially much larger scaled image merely to display a crop.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage</span></code> filters the complete source to a new size. Source
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResampleColorImage" title="Rbc_ResampleColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage()</span></code></a> filters the complete source to a new size. Source
 region extraction, when needed, happens before this call. It allocates an
 intermediate image of destination width by source height, filters horizontally,
 then filters vertically into the final image and releases the intermediate.
 All three functions leave the borrowed source intact and return independent
-storage released with <code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorImage</span></code>.</p>
+storage released with <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
 </section>
 <section id="filters-and-sampling-weights">
 <h2>Filters and sampling weights<a class="headerlink" href="#filters-and-sampling-weights" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetResampleFilterFromObj</span></code> resolves names and unambiguous abbreviations
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_GetResampleFilterFromObj" title="Rbc_GetResampleFilterFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetResampleFilterFromObj()</span></code></a> resolves names and unambiguous abbreviations
 against the static filter table. Returned records are borrowed and must not
 be modified or freed. <code class="docutils literal notranslate"><span class="pre">none</span></code> resolves successfully to NULL; it directs
 command-level policy rather than representing an identity filter that may be
@@ -81,7 +81,7 @@ passed to the filtering kernel.</p>
 <p>The table includes box, triangle, bell, B-spline, Catmull-Rom, Mitchell,
 Lanczos, sinc, Gaussian and other historical filters with individual support
 radii. Horizontal and vertical passes can use different non-NULL filters.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ComputeWeights</span></code> builds one contribution record per destination coordinate,
+<p><a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> builds one contribution record per destination coordinate,
 reused across all rows or columns in that pass. Downsampling broadens the
 support radius by the inverse scale; upsampling uses native filter support.
 Source support bounds are clipped to the image. Contributions are normalized
@@ -181,11 +181,11 @@ nor a lookup result transfers ownership of the static record.</p>
 <section id="contribution-layout-and-rounding">
 <h2>Contribution layout and rounding<a class="headerlink" href="#contribution-layout-and-rounding" title="Link to this heading">¶</a></h2>
 <p>Each Sample stores a source start index, count and variable-length Weight
-array. ComputeWeights returns the byte stride, which must be used to advance
+array. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> returns the byte stride, which must be used to advance
 between records; ordinary Sample pointer arithmetic would be incorrect.
-GetSampleRecordSize accounts for the first inline weight and checks extra
-storage before multiplication. GetFilterSize caps capacity by source length
-before narrowing to int, and GetFilterBounds clips each inclusive interval
+<a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetSampleRecordSize" title="rbcImageResampling.GetSampleRecordSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetSampleRecordSize()</span></code></a> accounts for the first inline weight and checks extra
+storage before multiplication. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterSize" title="rbcImageResampling.GetFilterSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterSize()</span></code></a> caps capacity by source length
+before narrowing to int, and <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterBounds" title="rbcImageResampling.GetFilterBounds"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterBounds()</span></code></a> clips each inclusive interval
 before converting its endpoints.</p>
 <p>For scale = destination/source and destination coordinate x, center = x/scale.
 The kernel argument is i + 0.5 - center for enlargement, and that expression
@@ -202,7 +202,7 @@ adjusted again to make their integer sum exactly 16384. A zero floating sum
 uses a normalization factor of one rather than selecting a fallback pixel.</p>
 <p>The horizontal pass requires source and destination heights to match; the
 vertical pass requires widths to match. They do not validate these internal
-shape invariants or support aliased storage. Rbc_ResampleColorImage constructs
+shape invariants or support aliased storage. <a class="reference internal" href="resampling-reference.html#c.Rbc_ResampleColorImage" title="Rbc_ResampleColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage()</span></code></a> constructs
 the intermediate and final images to satisfy them. Custom C filters must
 return finite weights whose normalized fixed-point values are representable;
 the kernel does not validate arbitrary callback results. Changing phase,
@@ -231,7 +231,7 @@ function pointer. Tcl commands must validate user input before entering them.</p
 </section>
 <section id="photo-wrappers-and-command-policy">
 <h2>Photo wrappers and command policy<a class="headerlink" href="#photo-wrappers-and-command-policy" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResizePhoto</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_ResamplePhoto</span></code> use the destination photo’s current
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizePhoto" title="Rbc_ResizePhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizePhoto()</span></code></a> and <a class="reference internal" href="resampling-reference.html#c.Rbc_ResamplePhoto" title="Rbc_ResamplePhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResamplePhoto()</span></code></a> use the destination photo’s current
 dimensions as the target size. Both copy the source region first, so identical
 source and destination handles are permitted. Temporary RBC images are released
 after the final write. The underlying void photo-write wrapper does not expose
@@ -244,16 +244,16 @@ interfaces, which can process single-pixel dimensions.</p>
 </section>
 <section id="nearest-neighbour-implementation">
 <h2>Nearest-neighbour implementation<a class="headerlink" href="#nearest-neighbour-implementation" title="Link to this heading">¶</a></h2>
-<p>Rbc_ResizeColorImage allocates its requested result before checking whether the
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> allocates its requested result before checking whether the
 effective source region is empty. A nonempty resize precomputes separate int
 maps for output columns and rows, copies full Pix32 values, then frees both
-maps. MapNearestCoordinate truncates position*span/destinationSpan and adds the
+maps. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapNearestCoordinate" title="rbcImageStorage.MapNearestCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapNearestCoordinate()</span></code></a> truncates position*span/destinationSpan and adds the
 clamped source origin, with a final upper-edge cap. Source-region clipping uses
 subtraction from a clamped origin rather than potentially overflowing endpoint
 addition.</p>
-<p>Rbc_ResizeColorSubimage allocates only the requested region. Its maps add the
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> allocates only the requested region. Its maps add the
 region origin and output position in double before virtual scaling, avoiding
-signed-int coordinate addition. MapVirtualCoordinate clamps values beyond the
+signed-int coordinate addition. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapVirtualCoordinate" title="rbcImageStorage.MapVirtualCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapVirtualCoordinate()</span></code></a> clamps values beyond the
 virtual extent to source edges before integer conversion. Empty output returns
 before virtual-size validation; nonempty output requires positive virtual sizes.
 An empty source leaves the allocated result transparent and zeroed.</p>

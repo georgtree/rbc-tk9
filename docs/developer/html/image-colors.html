@@ -81,7 +81,7 @@ policies differ; they are not interchangeable image transformations.</p>
 </tbody>
 </table>
 <p>Caller-owned source images are never released by these routines. Convolution
-returns storage released with <code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorImage</span></code>. Quantization allocates
+returns storage released with <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>. Quantization allocates
 only temporary working storage and does not resize its destination.
 See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for the underlying storage contract.</p>
 </section>
@@ -90,14 +90,14 @@ See <a class="reference internal" href="images-tiles.html"><span class="doc">Ima
 <p>Greyscale uses <code class="docutils literal notranslate"><span class="pre">0.212671</span> <span class="pre">*</span> <span class="pre">R</span> <span class="pre">+</span> <span class="pre">0.715160</span> <span class="pre">*</span> <span class="pre">G</span> <span class="pre">+</span> <span class="pre">0.072169</span> <span class="pre">*</span> <span class="pre">B</span></code>, clamps to byte
 range and truncates, then writes the same byte to all three color channels.
 It operates directly on stored channel values without first linearizing them.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GammaCorrectColorImage</span></code> builds a 256-entry lookup table using
+<p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.Rbc_GammaCorrectColorImage" title="rbcImageStorage.Rbc_GammaCorrectColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.Rbc_GammaCorrectColorImage()</span></code></a> builds a 256-entry lookup table using
 <code class="docutils literal notranslate"><span class="pre">255</span> <span class="pre">*</span> <span class="pre">pow(value</span> <span class="pre">/</span> <span class="pre">255,</span> <span class="pre">1</span> <span class="pre">/</span> <span class="pre">gamma)</span></code>. It clamps and truncates each entry before
 applying the table independently to RGB. Gamma must be finite and positive;
 invalid values panic. Neither operation changes alpha or dimensions.</p>
 </section>
 <section id="square-kernel-filtering">
 <h2>Square-kernel filtering<a class="headerlink" href="#square-kernel-filtering" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ConvolveColorImage</span></code> interprets <code class="docutils literal notranslate"><span class="pre">Filter2D.support</span></code> as a truncated integer
+<p><a class="reference internal" href="image-color-reference.html#c.Rbc_ConvolveColorImage" title="Rbc_ConvolveColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConvolveColorImage()</span></code></a> interprets <code class="docutils literal notranslate"><span class="pre">Filter2D.support</span></code> as a truncated integer
 radius with a minimum of one. Even support zero therefore requires a 3-by-3
 kernel. The caller provides a complete row-major square kernel; the structure
 contains no length with which the function could verify that allocation.</p>
@@ -118,7 +118,7 @@ these are private C preconditions, not Tcl error handling.</p>
 </section>
 <section id="palette-reduction">
 <h2>Palette reduction<a class="headerlink" href="#palette-reduction" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_QuantizeColorImage</span></code> accepts a requested color count from 1 through 256
+<p><a class="reference internal" href="image-color-reference.html#c.Rbc_QuantizeColorImage" title="Rbc_QuantizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_QuantizeColorImage()</span></code></a> accepts a requested color count from 1 through 256
 and an existing destination with exactly matching dimensions. It returns
 <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> for invalid count or mismatched dimensions without changing pixels
 or producing an interpreter diagnostic. Empty images return <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>.</p>
@@ -151,38 +151,38 @@ a Tcl interpreter diagnostic.</p>
 <p>The implementation follows the Wu-style greedy orthogonal partitioner credited
 in the source. Its statistics record has five signed 64-bit arrays: population,
 three channel sums and squared-color sums. The squared sums use original
-8-bit RGB values even though bin addresses use five bits. GetColorImageStatistics
-owns the initial allocation; M3d transforms it in place into prefix sums once.
-Reapplying M3d would accumulate already cumulative data and corrupt queries.</p>
+8-bit RGB values even though bin addresses use five bits. <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.GetColorImageStatistics" title="rbcImageQuantization.GetColorImageStatistics"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.GetColorImageStatistics()</span></code></a>
+owns the initial allocation; <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.M3d" title="rbcImageQuantization.M3d"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.M3d()</span></code></a> transforms it in place into prefix sums once.
+Reapplying <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.M3d" title="rbcImageQuantization.M3d"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.M3d()</span></code></a> would accumulate already cumulative data and corrupt queries.</p>
 <p>Each Cube describes a lower-exclusive, upper-inclusive interval on each axis.
 The initial cube is (0, 32] on all three axes. Its geometric volume counts
-histogram cells, not pixels. Volume uses eight-corner inclusion-exclusion to
-query any one cumulative array. Bottom and Top split that expression into a
+histogram cells, not pixels. <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.Volume" title="rbcImageQuantization.Volume"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.Volume()</span></code></a> uses eight-corner inclusion-exclusion to
+query any one cumulative array. <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.Bottom" title="rbcImageQuantization.Bottom"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.Bottom()</span></code></a> and <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.Top" title="rbcImageQuantization.Top"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.Top()</span></code></a> split that expression into a
 cut-independent term and a term containing the proposed upper boundary.</p>
-<p>Variance is the squared-color sum minus the sum of squared channel totals
+<p><a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.Variance" title="rbcImageQuantization.Variance"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.Variance()</span></code></a> is the squared-color sum minus the sum of squared channel totals
 divided by population. It represents total squared error, or variance times
-population. Maximize omits the squared-color term because it is constant across
+population. <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.Maximize" title="rbcImageQuantization.Maximize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.Maximize()</span></code></a> omits the squared-color term because it is constant across
 a partition, and maximizes the combined mean-color scores of the two halves.
 Candidate cuts with an empty half are skipped. Strict score comparison keeps
-the earliest winning cut; Cut resolves equal axis scores in red, green, blue
+the earliest winning cut; <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.Cut" title="rbcImageQuantization.Cut"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.Cut()</span></code></a> resolves equal axis scores in red, green, blue
 order. These rules can affect reproducibility even when several partitions
 have the same mathematical quality.</p>
-<p>SplitColorSpace owns a temporary variance array and writes into the caller’s
+<p><a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.SplitColorSpace" title="rbcImageQuantization.SplitColorSpace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.SplitColorSpace()</span></code></a> owns a temporary variance array and writes into the caller’s
 cube array. It splits the selected box, updates the two variances and chooses
 the first box with the largest positive variance. A failed cut disables that
 box and retries the unused output slot. Geometric one-cell boxes are not split
 again. Their pixels can still differ within the same five-bit bin, so asking
 for more colors does not guarantee recovery of all distinct 8-bit RGB values.
 The requested color count is a cap, not an exact palette-size promise.</p>
-<p>CreateColorLookupTable computes each populated box’s channel means using
+<p><a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.CreateColorLookupTable" title="rbcImageQuantization.CreateColorLookupTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.CreateColorLookupTable()</span></code></a> computes each populated box’s channel means using
 integer division. The legacy multiply-by-257 and right-shift-by-eight sequence
-preserves those byte means; it does not introduce fractional rounding. Mark
+preserves those byte means; it does not introduce fractional rounding. <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.Mark" title="rbcImageQuantization.Mark"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.Mark()</span></code></a>
 fills every cell in the box with the packed representative pixel. Mapping uses
 the partition cell directly rather than choosing the nearest palette color.
 This table is private native Pix32 storage, not a portable serialized palette.</p>
 <p>All histogram and palette construction finishes before destination pixels are
-written. Statistics and cubes are freed before MapColors, and the lookup table
-is freed afterward. MapColors saves source alpha before overwriting a pixel,
+written. Statistics and cubes are freed before <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.MapColors" title="rbcImageQuantization.MapColors"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.MapColors()</span></code></a>, and the lookup table
+is freed afterward. <a class="reference internal" href="image-color-reference.html#c.rbcImageQuantization.MapColors" title="rbcImageQuantization.MapColors"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageQuantization.MapColors()</span></code></a> saves source alpha before overwriting a pixel,
 which permits exact in-place operation. It relies on the entry point’s equal-size
 validation; it is not independently safe for arbitrary destination dimensions
 or partially overlapping storage.</p>

@@ -30,7 +30,7 @@ Mutation and alpha
      - Copied from the source pixel
 
 Caller-owned source images are never released by these routines. Convolution
-returns storage released with ``Rbc_FreeColorImage``. Quantization allocates
+returns storage released with :c:func:`Rbc_FreeColorImage`. Quantization allocates
 only temporary working storage and does not resize its destination.
 See :doc:`images-tiles` for the underlying storage contract.
 
@@ -41,7 +41,7 @@ Greyscale uses ``0.212671 * R + 0.715160 * G + 0.072169 * B``, clamps to byte
 range and truncates, then writes the same byte to all three color channels.
 It operates directly on stored channel values without first linearizing them.
 
-``Rbc_GammaCorrectColorImage`` builds a 256-entry lookup table using
+:c:func:`rbcImageStorage.Rbc_GammaCorrectColorImage` builds a 256-entry lookup table using
 ``255 * pow(value / 255, 1 / gamma)``. It clamps and truncates each entry before
 applying the table independently to RGB. Gamma must be finite and positive;
 invalid values panic. Neither operation changes alpha or dimensions.
@@ -49,7 +49,7 @@ invalid values panic. Neither operation changes alpha or dimensions.
 Square-kernel filtering
 -----------------------
 
-``Rbc_ConvolveColorImage`` interprets ``Filter2D.support`` as a truncated integer
+:c:func:`Rbc_ConvolveColorImage` interprets ``Filter2D.support`` as a truncated integer
 radius with a minimum of one. Even support zero therefore requires a 3-by-3
 kernel. The caller provides a complete row-major square kernel; the structure
 contains no length with which the function could verify that allocation.
@@ -74,7 +74,7 @@ these are private C preconditions, not Tcl error handling.
 Palette reduction
 -----------------
 
-``Rbc_QuantizeColorImage`` accepts a requested color count from 1 through 256
+:c:func:`Rbc_QuantizeColorImage` accepts a requested color count from 1 through 256
 and an existing destination with exactly matching dimensions. It returns
 ``TCL_ERROR`` for invalid count or mismatched dimensions without changing pixels
 or producing an interpreter diagnostic. Empty images return ``TCL_OK``.
@@ -112,26 +112,26 @@ Quantizer stage contracts
 The implementation follows the Wu-style greedy orthogonal partitioner credited
 in the source. Its statistics record has five signed 64-bit arrays: population,
 three channel sums and squared-color sums. The squared sums use original
-8-bit RGB values even though bin addresses use five bits. GetColorImageStatistics
-owns the initial allocation; M3d transforms it in place into prefix sums once.
-Reapplying M3d would accumulate already cumulative data and corrupt queries.
+8-bit RGB values even though bin addresses use five bits. :c:func:`rbcImageQuantization.GetColorImageStatistics`
+owns the initial allocation; :c:func:`rbcImageQuantization.M3d` transforms it in place into prefix sums once.
+Reapplying :c:func:`rbcImageQuantization.M3d` would accumulate already cumulative data and corrupt queries.
 
 Each Cube describes a lower-exclusive, upper-inclusive interval on each axis.
 The initial cube is (0, 32] on all three axes. Its geometric volume counts
-histogram cells, not pixels. Volume uses eight-corner inclusion-exclusion to
-query any one cumulative array. Bottom and Top split that expression into a
+histogram cells, not pixels. :c:func:`rbcImageQuantization.Volume` uses eight-corner inclusion-exclusion to
+query any one cumulative array. :c:func:`rbcImageQuantization.Bottom` and :c:func:`rbcImageQuantization.Top` split that expression into a
 cut-independent term and a term containing the proposed upper boundary.
 
-Variance is the squared-color sum minus the sum of squared channel totals
+:c:func:`rbcImageQuantization.Variance` is the squared-color sum minus the sum of squared channel totals
 divided by population. It represents total squared error, or variance times
-population. Maximize omits the squared-color term because it is constant across
+population. :c:func:`rbcImageQuantization.Maximize` omits the squared-color term because it is constant across
 a partition, and maximizes the combined mean-color scores of the two halves.
 Candidate cuts with an empty half are skipped. Strict score comparison keeps
-the earliest winning cut; Cut resolves equal axis scores in red, green, blue
+the earliest winning cut; :c:func:`rbcImageQuantization.Cut` resolves equal axis scores in red, green, blue
 order. These rules can affect reproducibility even when several partitions
 have the same mathematical quality.
 
-SplitColorSpace owns a temporary variance array and writes into the caller's
+:c:func:`rbcImageQuantization.SplitColorSpace` owns a temporary variance array and writes into the caller's
 cube array. It splits the selected box, updates the two variances and chooses
 the first box with the largest positive variance. A failed cut disables that
 box and retries the unused output slot. Geometric one-cell boxes are not split
@@ -139,16 +139,16 @@ again. Their pixels can still differ within the same five-bit bin, so asking
 for more colors does not guarantee recovery of all distinct 8-bit RGB values.
 The requested color count is a cap, not an exact palette-size promise.
 
-CreateColorLookupTable computes each populated box's channel means using
+:c:func:`rbcImageQuantization.CreateColorLookupTable` computes each populated box's channel means using
 integer division. The legacy multiply-by-257 and right-shift-by-eight sequence
-preserves those byte means; it does not introduce fractional rounding. Mark
+preserves those byte means; it does not introduce fractional rounding. :c:func:`rbcImageQuantization.Mark`
 fills every cell in the box with the packed representative pixel. Mapping uses
 the partition cell directly rather than choosing the nearest palette color.
 This table is private native Pix32 storage, not a portable serialized palette.
 
 All histogram and palette construction finishes before destination pixels are
-written. Statistics and cubes are freed before MapColors, and the lookup table
-is freed afterward. MapColors saves source alpha before overwriting a pixel,
+written. Statistics and cubes are freed before :c:func:`rbcImageQuantization.MapColors`, and the lookup table
+is freed afterward. :c:func:`rbcImageQuantization.MapColors` saves source alpha before overwriting a pixel,
 which permits exact in-place operation. It relies on the entry point's equal-size
 validation; it is not independently safe for arbitrary destination dimensions
 or partially overlapping storage.

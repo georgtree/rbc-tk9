@@ -23,7 +23,7 @@ Pixel storage and Tk images
        Copying the descriptor does not copy pixels or retain the image.
    * - ``Rbc_ColorImage``
      - An owned record plus a separate contiguous ``Pix32`` array, released with
-       ``Rbc_FreeColorImage``. It has no Tk name or notification mechanism.
+       :c:func:`Rbc_FreeColorImage`. It has no Tk name or notification mechanism.
    * - Tile pixmap
      - A server-owned native cache. Clients borrow it only until update/release.
 
@@ -36,14 +36,14 @@ unrepresentable sizes panic rather than return a Tcl error. Even an empty image
 has an owning record. The free helper requires a valid non-NULL image.
 
 Photo conversion copies rows using Tk's pitch, pixel size and channel offsets.
-``Rbc_PhotoToColorImage`` returns an independent snapshot.
-``Rbc_PhotoRegionToColorImage`` clamps the requested origin and limits spans
+:c:func:`Rbc_PhotoToColorImage` returns an independent snapshot.
+:c:func:`Rbc_PhotoRegionToColorImage` clamps the requested origin and limits spans
 to the remaining photo area. It returns an empty image when that effective
 region is empty. This is not rectangle intersection: a negative origin becomes
 zero without reducing a positive span. Later photo changes do not update either
 snapshot.
 
-``Rbc_ColorImageToPhoto`` resizes the destination and writes using
+:c:func:`Rbc_ColorImageToPhoto` resizes the destination and writes using
 ``TK_PHOTO_COMPOSITE_SET``. Tk copies the supplied block; the caller keeps and
 can subsequently free the RBC image. This legacy void wrapper ignores the
 return statuses of the Tk resize/write operations. Callers requiring reliable
@@ -52,10 +52,10 @@ error propagation must not treat its return as evidence of success.
 Allocation and photo-block conversion
 --------------------------------------
 
-GetColorImagePixelCount checks nonnegative dimensions and the size_t pixel
-product. Rbc_CreateColorImage then allocates the record and the zeroed pixel
+:c:func:`rbcImageStorage.GetColorImagePixelCount` checks nonnegative dimensions and the size_t pixel
+product. :c:func:`Rbc_CreateColorImage` then allocates the record and the zeroed pixel
 array separately through the checked allocator. An empty result still requires
-Rbc_FreeColorImage; it is not represented by NULL. Raw image mutations do not
+:c:func:`Rbc_FreeColorImage`; it is not represented by NULL. Raw image mutations do not
 notify any Tk image or attached graph. Publishing pixels into a photo is a
 separate operation with Tk's own change-notification behavior.
 
@@ -72,7 +72,7 @@ conversion replicate offset[0] into RGB and supply alpha 255. This preserves
 the existing whole-photo fallback policy: even a two-byte grayscale/alpha
 layout produces opaque pixels; its alpha channel is not used as grayscale.
 
-Rbc_ColorImageToPhoto constructs a block over the borrowed RBC pixels, with
+:c:func:`Rbc_ColorImageToPhoto` constructs a block over the borrowed RBC pixels, with
 channel offsets derived from Pix32 members. It checks that width times pixel
 size fits Tk's int pitch before resizing and writing. No source ownership is
 transferred. Both Tk return statuses are ignored by the existing void API;
@@ -83,7 +83,7 @@ change across callers.
 Snapshot pipeline
 -----------------
 
-Rbc_SnapPhoto first validates dimensions and gamma and resolves an existing
+:c:func:`Rbc_SnapPhoto` first validates dimensions and gamma and resolves an existing
 photo name. It then delegates native acquisition and gamma handling to
 Rbc_DrawableToColorImage. A missing photo or failed capture returns TCL_ERROR
 with an interpreter diagnostic. If requested destination dimensions differ,

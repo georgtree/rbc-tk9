@@ -51,7 +51,7 @@ renderer backends. See <a class="reference internal" href="images-tiles.html"><s
 <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for ordinary resizing.</p>
 <section id="color-image-rotation">
 <h2>Color-image rotation<a class="headerlink" href="#color-image-rotation" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_RotateColorImage</span></code> borrows the source and always returns independent
+<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_RotateColorImage" title="Rbc_RotateColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RotateColorImage()</span></code></a> borrows the source and always returns independent
 storage. A zero-degree operation still copies the image. Empty input is copied
 before quadrant handling, retaining its dimensions. Angles must be finite and
 are normalized modulo 360 degrees; positive rotation is counterclockwise in
@@ -61,7 +61,7 @@ in the range -45 to 45 degrees. Exact quadrant rotations copy complete pixels
 without interpolation; 90 and 270 degrees exchange width and height. For
 example, the 90-degree path maps source pixel <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> to
 <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">sourceWidth</span> <span class="pre">-</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p>
-<p>A nonzero residual goes through <code class="docutils literal notranslate"><span class="pre">Rotate45</span></code>. Despite that helper’s name,
+<p>A nonzero residual goes through <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.Rotate45" title="rbcImageRotation.Rotate45"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.Rotate45()</span></code></a>. Despite that helper’s name,
 its argument is radians, not degrees. It performs a row shear, a column shear,
 and a final row shear, using tangent of the half-angle and sine of the angle.
 Two intermediate images are released internally. The public function also
@@ -119,7 +119,7 @@ validation remains the caller’s responsibility.</p>
 while 135 degrees uses a 90-degree copy followed by a positive 45-degree
 residual. Changing which exact rotation precedes a shear can change intermediate
 rounding even when the final mathematical angle is equivalent.</p>
-<p>For source width W and height H <em>after</em> any quadrant copy, Rotate45 uses
+<p>For source width W and height H <em>after</em> any quadrant copy, <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.Rotate45" title="rbcImageRotation.Rotate45"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.Rotate45()</span></code></a> uses
 s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -148,8 +148,8 @@ s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:</p>
 </tr>
 </tbody>
 </table>
-<p>GetRotationDimension checks finiteness and the nonnegative int range before
-truncation. It does not ceil the result. GetShearOffset floors the displacement,
+<p><a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.GetRotationDimension" title="rbcImageRotation.GetRotationDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.GetRotationDimension()</span></code></a> checks finiteness and the nonnegative int range before
+truncation. It does not ceil the result. <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.GetShearOffset" title="rbcImageRotation.GetShearOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.GetShearOffset()</span></code></a> floors the displacement,
 including negative values, and checks the int range. The fractional argument
 is the original displacement minus that integer offset, so it lies in [0, 1)
 for valid geometry. The caller’s residual-angle restriction keeps the
@@ -157,8 +157,8 @@ construction within the intended two-neighbor filtering regime.</p>
 </section>
 <section id="shear-traversal-and-boundary-pixels">
 <h2>Shear traversal and boundary pixels<a class="headerlink" href="#shear-traversal-and-boundary-pixels" title="Link to this heading">¶</a></h2>
-<p>The historical helper names describe the fixed coordinate: ShearY processes
-a row at fixed y and moves pixels horizontally; ShearX processes a column at
+<p>The historical helper names describe the fixed coordinate: <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.ShearY" title="rbcImageRotation.ShearY"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.ShearY()</span></code></a> processes
+a row at fixed y and moves pixels horizontally; <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.ShearX" title="rbcImageRotation.ShearX"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.ShearX()</span></code></a> processes a column at
 fixed x and moves pixels vertically. Each initializes its complete destination
 row or column to the background before sampling. The source and destination
 must be distinct, since that initialization would overwrite an aliased source.</p>
@@ -192,7 +192,7 @@ them.</p>
 size matches the supplied dimensions. Successful results are newly owned
 pixmaps, released using <code class="docutils literal notranslate"><span class="pre">Tk_FreePixmap</span></code> on the corresponding display. They
 are not <code class="docutils literal notranslate"><span class="pre">Rbc_ColorImage</span></code> objects and must not be freed with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code> or
-<code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorImage</span></code>.</p>
+<a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
 <p>Rotation computes a containing bounding box and uses special cases for exact
 right angles. General angles map destination pixels back to source coordinates;
 samples outside the source are left clear. Unlike color rotation, this is
@@ -218,7 +218,7 @@ to its mask when needed.</p>
 <p>The region must lie within the virtual destination, and coordinate additions
 must remain representable. The right-angle paths read source samples directly;
 they do not implement general out-of-range padding or edge clamping. This is
-unlike <code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage</span></code>, which explicitly clamps virtual coordinates
+unlike <a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a>, which explicitly clamps virtual coordinates
 to source edges. Keep these contracts distinct when sharing callers.</p>
 </section>
 <section id="failure-and-platform-differences">

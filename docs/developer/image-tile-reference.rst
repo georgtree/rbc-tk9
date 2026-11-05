@@ -17,7 +17,9 @@ These interfaces are private. See :doc:`images-tiles` for resource lifetimes.
 
 .. doxygenfunction:: Rbc_CreateColorImage
 
-.. doxygenfunction:: Rbc_FreeColorImage
+.. doxygengroup:: image_storage_release
+   :members:
+   :content-only:
 
 .. doxygenfunction:: Rbc_PhotoToColorImage
 
