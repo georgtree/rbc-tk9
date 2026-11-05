@@ -96,3 +96,17 @@ Both extraction passes run on either build host; neither compiles code or
 requires Windows SDK headers. Separate projects prevent identical X11/Windows
 function names and private structure layouts from being merged. Strict mode
 checks both warning logs and restores both XML environment variables on exit.
+
+Doxygen callback declaration compatibility
+------------------------------------------
+
+Some Doxygen versions place a function-pointer member's closing parenthesis in
+its XML type instead of its argument string. Breathe then emits invalid C such
+as ``void(*) text (...)``. The Tcl build driver normalizes that generated XML
+before Sphinx runs, producing ``void (*text)(...)`` while retaining member
+contracts and link targets. Source declarations and already-compatible XML are
+unchanged; no warning suppression or dependency upgrade is required.
+
+The helper's regression checks run without Tk, RBC or documentation tools::
+
+    tclsh tests/build/RBC.build.doxygenCompat.A.test

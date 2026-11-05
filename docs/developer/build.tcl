@@ -39,6 +39,8 @@ proc ::rbcDocBuild::executable {path} {
     return $path
 }
 
+source [file join $::rbcDocBuild::source doxygenCompat.tcl]
+
 proc ::rbcDocBuild::main {arguments} {
     variable source
     set output _build/developer
@@ -212,6 +214,17 @@ proc ::rbcDocBuild::main {arguments} {
         }
         if {![file isfile [file join $winXml index.xml]]} {
             error "Windows Doxygen project did not produce XML"
+        }
+        # Keep declaration layout compatible across Doxygen versions. Only
+        # generated compound XML is rewritten; source comments stay untouched.
+        foreach xmlDirectory [list $xml $winXml] {
+            foreach path [glob -nocomplain -directory $xmlDirectory *.xml] {
+                set original [readFile $path]
+                set normalized [normalizeCallbackXml $original]
+                if {$normalized ne $original} {
+                    writeFile $path $normalized
+                }
+            }
         }
         set ::env(RBC_DOXYGEN_WIN_XML) $winXml
         set ::env(RBC_DOXYGEN_XML) $xml

@@ -1,0 +1,49 @@
+# Standalone Tcl-only documentation utility tests; neither RBC nor Tk is required.
+# See license.terms for copyright and redistribution terms.
+
+###Package Definition
+package provide build.doxygenCompat
+package require tcltest
+namespace import tcltest::*
+
+namespace eval build.doxygenCompat {
+    source [file join [file dirname [info script]] ../../docs/developer/doxygenCompat.tcl]
+
+    proc Member {type args {kind variable}} {
+        return "<memberdef kind=\"$kind\"><type>$type</type><name>text</name><argsstring>$args</argsstring><briefdescription>Borrowed text.</briefdescription></memberdef>"
+    }
+
+    test RBC.build.doxygenCompat.A.1.1 {closed pointer type is split around the member name} -body {
+        ::rbcDocBuild::normalizeCallbackXml [Member {void(*)} {(int)}]
+    } -result [Member {void(*} {)(int)}]
+
+    test RBC.build.doxygenCompat.A.1.2 {canonical callback XML is unchanged} -body {
+        set xml [Member {void(*} {)(int)}]
+        expr {[::rbcDocBuild::normalizeCallbackXml $xml] eq $xml}
+    } -result 1
+
+    test RBC.build.doxygenCompat.A.1.3 {ordinary pointers and arrays are unchanged} -body {
+        set xml "[Member {const Rbc_RenderOutputOps *} {}][Member int {[4]}]"
+        expr {[::rbcDocBuild::normalizeCallbackXml $xml] eq $xml}
+    } -result 1
+
+    test RBC.build.doxygenCompat.A.1.4 {normalization is member-local and idempotent} -body {
+        set old [Member {void(*)} {(int)}]
+        set good [Member {void(*} {)(int)}]
+        set plain [Member {const char *} {}]
+        set normalized [::rbcDocBuild::normalizeCallbackXml "<root>$old$plain$old</root>"]
+        list [expr {$normalized eq "<root>$good$plain$good</root>"}] \
+            [expr {[::rbcDocBuild::normalizeCallbackXml $normalized] eq $normalized}]
+    } -result {1 1}
+
+    test RBC.build.doxygenCompat.A.1.5 {function records and incomplete declarations are unchanged} -body {
+        set xml "[Member {void(*)} {(int)} function][Member {void(*)} {}]"
+        expr {[::rbcDocBuild::normalizeCallbackXml $xml] eq $xml}
+    } -result 1
+
+    test RBC.build.doxygenCompat.A.1.6 {multiline XML and pointer whitespace are accepted} -body {
+        set xml "<memberdef kind=\"variable\" static=\"no\">\n<type>void ( * )</type>\n<name>run</name>\n<argsstring> (void *)</argsstring>\n</memberdef>"
+        ::rbcDocBuild::normalizeCallbackXml $xml
+    } -result "<memberdef kind=\"variable\" static=\"no\">\n<type>void ( *</type>\n<name>run</name>\n<argsstring>)(void *)</argsstring>\n</memberdef>"
+}
+cleanupTests

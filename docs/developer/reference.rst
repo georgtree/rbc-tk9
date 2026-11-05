@@ -67,17 +67,21 @@ Backend dispatch
    :members:
 
 .. doxygenstruct:: Rbc_RenderOutputOps
+   :members:
 
 .. doxygenstruct:: Rbc_RenderOps
+   :members:
 
-The callback declarations below are included directly from the header. This
-preserves their exact C syntax across Doxygen/Breathe versions that otherwise
-place function-pointer member names after the pointer declarator.
+Each operation-table member has a separate contract and link target. The first callback
+argument is the live context selected by its constructor; a non-NULL operation
+table alone does not establish that every callback is supported. In particular,
+:c:member:`Rbc_RenderOps.output` is an optional table, and its individual entries
+can also be NULL. See :doc:`rendering` for the constructor capability matrix.
 
-.. literalinclude:: ../../generic/rbcRenderInt.h
-   :language: c
-   :start-at: typedef struct {
-   :end-at: } Rbc_RenderOps;
+:c:member:`Rbc_RenderOps.end` consumes owned heap contexts after common clip
+unwinding. Stack-based one-shot screen adapters must not use it. Rectangular
+clip callbacks implement backend state only; the common dispatcher owns the
+nesting counter.
 
 Common screen adapters
 -----------------------
