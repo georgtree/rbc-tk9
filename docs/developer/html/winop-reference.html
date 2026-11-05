@@ -55,161 +55,386 @@ These are private implementation interfaces.</p>
 <dt class="sig sig-object c" id="c.GetRealizedWindow">
 <span class="target" id="group__winop__commands_1ga59f73cec03c75b34e422f87006e4244d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRealizedWindow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tkwinPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetRealizedWindow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a Tk path and ensure its native window exists. </p>
-<p>Borrow the interpreter and return a borrowed Tk_Window through tkwinPtr on success. Realization does not map the window. Return TCL_ERROR from path lookup without assigning the output. </p>
+<p>Borrow the interpreter and return a borrowed Tk_Window through tkwinPtr on success. Realization does not map the window. Return TCL_ERROR from path lookup without assigning the output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated Tk window pathname. </p></li>
+<li><p><strong>tkwinPtr</strong> – <strong>[out]</strong> Required output receiving a borrowed realized Tk window only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.StringToWindow">
 <span class="target" id="group__winop__commands_1ga92e954cb0a0c2f37d8e80d9c4553466d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StringToWindow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StringToWindow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a Tk path or legacy integer native-window identifier. </p>
-<p>Tk toplevel paths select their wrapper through Rbc_GetRealWindowId(). Numeric input uses Tcl_GetInt, not a pointer-width parser; Windows wraps that value with Rbc_WinWindowFromHWND(). Return None on lookup or conversion failure. The result does not transfer ownership of the window. </p>
+<p>Tk toplevel paths select their wrapper through Rbc_GetRealWindowId(). Numeric input uses Tcl_GetInt, not a pointer-width parser; Windows wraps that value with Rbc_WinWindowFromHWND(). Return None on lookup or conversion failure. The result does not transfer ownership of the window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated Tk path or native ID text, as described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.XGeometryErrorProc">
 <span class="target" id="group__winop__commands_1ga35a3ba9f8209b92607277958cc313021"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">XGeometryErrorProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">XErrorEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">errEventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.XGeometryErrorProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Record an XGetGeometry protocol error. </p>
-<p>clientData points to the caller-owned integer flag while the temporary Tk error handler is installed. Set it to TCL_ERROR and return zero to consume the error. Do not retain the flag or event pointer. </p>
+<p>clientData points to the caller-owned integer flag while the temporary Tk error handler is installed. Set it to TCL_ERROR and return zero to consume the error. Do not retain the flag or event pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed pointer to the stack-backed integer error flag, set to TCL_ERROR. </p></li>
+<li><p><strong>errEventPtr</strong> – <strong>[in]</strong> Borrowed X protocol-error event; not retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetWindowSize">
 <span class="target" id="group__winop__commands_1gaea54c7a05169180d74897bd3c45b0086"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetWindowSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="n"><span class="pre">window</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">heightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetWindowSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query X11 drawable dimensions with a scoped protocol-error handler. </p>
-<p>Borrow the interpreter and its main-window display. Synchronize the X connection before removing the temporary X_GetGeometry error handler, so its stack-backed error flag remains valid. Return TCL_ERROR on query or protocol failure, or dimensions exceeding INT_MAX; only the overflow case sets a diagnostic here. Publish both output dimensions only on success. </p>
+<p>Borrow the interpreter and its main-window display. Synchronize the X connection before removing the temporary X_GetGeometry error handler, so its stack-backed error flag remains valid. Return TCL_ERROR on query or protocol failure, or dimensions exceeding INT_MAX; only the overflow case sets a diagnostic here. Publish both output dimensions only on success.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>window</strong> – <strong>[in]</strong> Borrowed Tk-compatible native window identifier. </p></li>
+<li><p><strong>widthPtr</strong> – <strong>[out]</strong> Required output receiving native window width only on success. </p></li>
+<li><p><strong>heightPtr</strong> – <strong>[out]</strong> Required output receiving native window height only on success. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ColormapOp">
 <span class="target" id="group__winop__commands_1gaf3badb8b61f5c881d95577bc04d3d1d4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ColormapOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ColormapOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Inspect allocated cells in the legacy X11 colormap range. </p>
-<p>Resolve and realize the Tk path in objv[2]. Probe up to 256 writable cells, release the allocated cells, then query pixel IDs 0 through 255. Return alternating RGB strings and pixel IDs for cells not obtained by the probe. This legacy algorithm assumes an indexed colormap with allocated pixel IDs below 256; it is not a general visual enumerator. </p>
+<p>Resolve and realize the Tk path in objv[2]. Probe up to 256 writable cells, release the allocated cells, then query pixel IDs 0 through 255. Return alternating RGB strings and pixel IDs for cells not obtained by the probe. This legacy algorithm assumes an indexed colormap with allocated pixel IDs below 256; it is not a general visual enumerator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.LowerOp">
 <span class="target" id="group__winop__commands_1gaaee1581c1dd8e98668d2d0e5c57d934d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LowerOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.LowerOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Lower each named Tk window in argument order. </p>
-<p>Resolve objv[2..objc-1] relative to the interpreter main window and request Below stacking with no sibling. Return TCL_ERROR on a failed lookup, retaining any earlier restacking. The Tk_RestackWindow return status is not propagated. An empty window list succeeds. </p>
+<p>Resolve objv[2..objc-1] relative to the interpreter main window and request Below stacking with no sibling. Return TCL_ERROR on a failed lookup, retaining any earlier restacking. The Tk_RestackWindow return status is not propagated. An empty window list succeeds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.RaiseOp">
 <span class="target" id="group__winop__commands_1gac9f47fc6cbfd6ee22df455f93941ba01"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RaiseOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RaiseOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Raise each named Tk window in argument order. </p>
-<p>Resolve objv[2..objc-1] relative to the interpreter main window and request Above stacking with no sibling. Return TCL_ERROR on a failed lookup, retaining any earlier restacking. The Tk_RestackWindow return status is not propagated. An empty window list succeeds. </p>
+<p>Resolve objv[2..objc-1] relative to the interpreter main window and request Above stacking with no sibling. Return TCL_ERROR on a failed lookup, retaining any earlier restacking. The Tk_RestackWindow return status is not propagated. An empty window list succeeds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.MapOp">
 <span class="target" id="group__winop__commands_1ga9ecd92e1fb3c739b6039acdccbe9aaaa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Request native mapping for each path or legacy integer ID. </p>
-<p>For Tk paths, realize the window, set TK_MAPPED through Tk_FakeWin, and use its client window ID. Numeric arguments are parsed with Tcl_GetInt and cast directly to Window, without StringToWindow. Issue XMapWindow requests in argument order; later conversion errors do not undo earlier requests. This path does not call Tk_MapWindow. </p>
+<p>For Tk paths, realize the window, set TK_MAPPED through Tk_FakeWin, and use its client window ID. Numeric arguments are parsed with Tcl_GetInt and cast directly to Window, without StringToWindow. Issue XMapWindow requests in argument order; later conversion errors do not undo earlier requests. This path does not call Tk_MapWindow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.MoveOp">
 <span class="target" id="group__winop__commands_1ga8c2a62ba7adeb308a2a271648e694318"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MoveOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MoveOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Move a named Tk window using screen-distance arguments. </p>
-<p>Borrow the window resolved from objv[2]. Convert objv[3] and objv[4] with Tk_GetPixelsFromObj before moving; append an axis-specific diagnostic on conversion failure. Tk_MoveWindow uses parent-relative pixel coordinates, not graph coordinates or an explicit toplevel wrapper. </p>
+<p>Borrow the window resolved from objv[2]. Convert objv[3] and objv[4] with Tk_GetPixelsFromObj before moving; append an axis-specific diagnostic on conversion failure. Tk_MoveWindow uses parent-relative pixel coordinates, not graph coordinates or an explicit toplevel wrapper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.UnmapOp">
 <span class="target" id="group__winop__commands_1ga429d78e29ea813bb9d3736581f4c7018"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UnmapOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.UnmapOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Request native unmapping for each path or legacy integer ID. </p>
-<p>For Tk paths, realize the window, clear TK_MAPPED through Tk_FakeWin, and use its client window ID. Numeric arguments are parsed with Tcl_GetInt and cast directly to Window, without StringToWindow. Issue XUnmapWindow requests in argument order; later conversion errors do not undo earlier requests. This path does not call Tk_UnmapWindow. </p>
+<p>For Tk paths, realize the window, clear TK_MAPPED through Tk_FakeWin, and use its client window ID. Numeric arguments are parsed with Tcl_GetInt and cast directly to Window, without StringToWindow. Issue XUnmapWindow requests in argument order; later conversion errors do not undo earlier requests. This path does not call Tk_UnmapWindow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ChangesOp">
 <span class="target" id="group__winop__commands_1ga975263d3cb3b7376f0a56de67a1a3cc6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChangesOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ChangesOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Request backing-store and save-under attributes for a toplevel. </p>
-<p>Resolve and realize objv[2]. For a toplevel, obtain its real native window ID and issue XChangeWindowAttributes with WhenMapped backing store and save_under enabled. A child window is a successful no-op. TCL_OK reports request submission, not server acceptance of the hints. </p>
+<p>Resolve and realize objv[2]. For a toplevel, obtain its real native window ID and issue XChangeWindowAttributes with WhenMapped backing store and save_under enabled. A child window is a successful no-op. TCL_OK reports request submission, not server acceptance of the hints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.QueryOp">
 <span class="target" id="group__winop__commands_1ga0a76a1b39bf554770e93c75433ad03a6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QueryOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QueryOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the pointer position in root coordinates when available. </p>
-<p>clientData is the borrowed Tk main window. Query its display and window ID; on success set the Tcl result to &#64;x,y using root coordinates. A false XQueryPointer result leaves the interpreter result unchanged and still returns TCL_OK. objc and objv are unused. </p>
+<p>clientData is the borrowed Tk main window. Query its display and window ID; on success set the Tcl result to &#64;x,y using root coordinates. A false XQueryPointer result leaves the interpreter result unchanged and still returns TCL_OK. objc and objv are unused.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed Tk main window supplied by dispatch. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Unused query argument; direct internal calls may supply zero/NULL. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Unused query argument; direct internal calls may supply zero/NULL. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.WarpToOp">
 <span class="target" id="group__winop__commands_1ga372823e9d6f488d87b09ed6ec80a618c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WarpToOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.WarpToOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Optionally warp the pointer, then query its root position. </p>
-<p>With no target, delegate directly to QueryOp. An &#64;x,y target is parsed by Rbc_GetXY and uses the main window screen root; otherwise resolve and realize a Tk path, reject an unmapped window, and target its integer center. Native warping can generate pointer events; no Tcl event loop is run here. Return parsing/lookup errors or the subsequent query status. </p>
+<p>With no target, delegate directly to QueryOp. An &#64;x,y target is parsed by Rbc_GetXY and uses the main window screen root; otherwise resolve and realize a Tk path, reject an unmapped window, and target its integer center. Native warping can generate pointer events; no Tcl event loop is run here. Return parsing/lookup errors or the subsequent query status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed Tk main window supplied by dispatch. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ConvolveOp">
 <span class="target" id="group__winop__commands_1gab8890aa998c4841fede9a1a68beb4783"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConvolveOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConvolveOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convolve an existing photo into an existing destination photo. </p>
-<p>Require a nonempty square list of finite kernel values with a finite sum. Own and free the kernel and copied color buffers locally; photo handles are borrowed. The source is copied before destination publication. Parse failures return TCL_ERROR. Photo publication uses the void color-image helper and is not an atomic transaction with rollback. </p>
+<p>Require a nonempty square list of finite kernel values with a finite sum. Own and free the kernel and copied color buffers locally; photo handles are borrowed. The source is copied before destination publication. Parse failures return TCL_ERROR. Photo publication uses the void color-image helper and is not an atomic transaction with rollback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.QuantizeOp">
 <span class="target" id="group__winop__commands_1ga87dba462822e79a448a9adb33de0bd9e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuantizeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuantizeOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Quantize a copied photo with a palette of one to 256 colors. </p>
-<p>Borrow both photo handles and free both color buffers after the quantizer returns. Resize the destination to the source dimensions before parsing the optional color count; an error therefore need not leave it unchanged. Source dimensions of one pixel or less are rejected. </p>
+<p>Borrow both photo handles and free both color buffers after the quantizer returns. Resize the destination to the source dimensions before parsing the optional color count; an error therefore need not leave it unchanged. Source dimensions of one pixel or less are rejected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ReadJPEGOp">
 <span class="target" id="group__winop__commands_1gab35d9b3801f7e4c99ce5c0c38400f966"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadJPEGOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReadJPEGOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decode a JPEG file into an existing photo when enabled. </p>
-<p>The direct and normalized nested dispatch forms place the file name in objv[2] and destination photo name in objv[3]. Borrow the photo handle and return Rbc_JPEGToPhoto status. Without HAVE_JPEGLIB_H, return TCL_ERROR with the unsupported diagnostic without looking up the photo. </p>
+<p>The direct and normalized nested dispatch forms place the file name in objv[2] and destination photo name in objv[3]. Borrow the photo handle and return Rbc_JPEGToPhoto status. Without HAVE_JPEGLIB_H, return TCL_ERROR with the unsupported diagnostic without looking up the photo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GradientOp">
 <span class="target" id="group__winop__commands_1gadc4c0d0e4ab0d0bd2a990c452a203966"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GradientOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GradientOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill an existing photo with a legacy procedural gradient. </p>
-<p>Borrow the destination photo and use its current dimensions. Acquire both Tk colors, create temporary color pixels, and select the type from objv[5]. Release both color references and pixel storage on completion or an invalid type. Linear, radial and rectangular modes consume random values; blank writes opaque white but still validates both colors. Publication uses the void Rbc_ColorImageToPhoto helper, so TCL_OK does not propagate lower-level photo-write status. </p>
+<p>Borrow the destination photo and use its current dimensions. Acquire both Tk colors, create temporary color pixels, and select the type from objv[5]. Release both color references and pixel storage on completion or an invalid type. Linear, radial and rectangular modes consume random values; blank writes opaque white but still validates both colors. Publication uses the void Rbc_ColorImageToPhoto helper, so TCL_OK does not propagate lower-level photo-write status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ResampleOp">
 <span class="target" id="group__winop__commands_1gad809c1553db248824873268969b44a4d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResampleOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ResampleOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resize a photo according to the destination photo dimensions. </p>
-<p>Borrow existing photos and filter descriptors. A destination dimension of one pixel or less causes a source-size copy; equal dimensions also copy. The default filter is none. A vertical filter is parsed only when the first filter resolves to a non-NULL descriptor. Lower photo-write return values are not uniformly propagated by this legacy command. </p>
+<p>Borrow existing photos and filter descriptors. A destination dimension of one pixel or less causes a source-size copy; equal dimensions also copy. The default filter is none. A vertical filter is parsed only when the first filter resolves to a non-NULL descriptor. Lower photo-write return values are not uniformly propagated by this legacy command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.RotateOp">
 <span class="target" id="group__winop__commands_1ga3853694dec606b341b16391b2c3095af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RotateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RotateOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rotate a copied photo by a finite Tcl expression angle in degrees. </p>
-<p>Validate names, preserve the interpreter across angle evaluation, then reacquire both photo handles before accessing pixels. Reject deleted photos or destroyed Tk state; same-name replacements are used. Allocate and release source/rotated buffers locally. Photo publication is not a rollback transaction. </p>
+<p>Validate names, preserve the interpreter across angle evaluation, then reacquire both photo handles before accessing pixels. Reject deleted photos or destroyed Tk state; same-name replacements are used. Allocate and release source/rotated buffers locally. Photo publication is not a rollback transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.SnapOp">
 <span class="target" id="group__winop__commands_1ga08f47ee5e7921449be29ac07a2ced19f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SnapOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SnapOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Capture a native window into a named photo, optionally resizing it. </p>
-<p>For a Tk path, capture the client drawable and its Tk dimensions rather than the window-manager wrapper. Numeric input uses <a class="reference internal" href="#group__winop__commands_1ga92e954cb0a0c2f37d8e80d9c4553466d"><span class="std std-ref">StringToWindow()</span></a> and native geometry. Borrow all windows and delegate capture and destination lookup to <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1af44d063144975008e73e234cceb61624"><span class="std std-ref">Rbc_SnapPhoto()</span></a>; return its Tcl status. This is screen capture, not graph remapping or vector-document export. </p>
+<p>For a Tk path, capture the client drawable and its Tk dimensions rather than the window-manager wrapper. Numeric input uses <a class="reference internal" href="#group__winop__commands_1ga92e954cb0a0c2f37d8e80d9c4553466d"><span class="std std-ref">StringToWindow()</span></a> and native geometry. Borrow all windows and delegate capture and destination lookup to <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1af44d063144975008e73e234cceb61624"><span class="std std-ref">Rbc_SnapPhoto()</span></a>; return its Tcl status. This is screen capture, not graph remapping or vector-document export.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.SubsampleOp">
 <span class="target" id="group__winop__commands_1ga25b92e4b63cb8d4cd9598fc665631197"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SubsampleOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SubsampleOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resize a validated source-photo rectangle into a destination photo. </p>
-<p>Require nonnegative origin, positive extent and a rectangle inside the source. An effectively empty destination takes the region dimensions. Default to the box filter; none selects the unfiltered resize path. Photos and filters are borrowed, and the command neither creates nor deletes the destination photo. </p>
+<p>Require nonnegative origin, positive extent and a rectangle inside the source. An effectively empty destination takes the region dimensions. Default to the box filter; none selects the unfiltered resize path. Photos and filters are borrowed, and the command neither creates nor deletes the destination photo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed Tk main window supplied by dispatch. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ImageOp">
 <span class="target" id="group__winop__commands_1ga9d5292a3c240df111438d1f79662e7bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ImageOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ImageOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch nested winop image operations using direct-operation indices. </p>
-<p>Validate against imageOps, then pass objc - 1 and objv + 1 so shared handlers see source and destination at their original argument positions. Tables for direct and nested operations are intentionally not identical. </p>
+<p>Validate against imageOps, then pass objc - 1 and objv + 1 so shared handlers see source and destination at their original argument positions. Tables for direct and nested operations are intentionally not identical.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Unused dispatch data; nested dispatch obtains the current main window. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.WinopCmd">
 <span class="target" id="group__winop__commands_1ga08eae380e5fe7795e36d2b9758261019"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WinopCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.WinopCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a stateless winop request with the current Tk main window. </p>
-<p>Validate operation and arity through winOps before calling its handler. No per-command heap object or command deletion callback is maintained. </p>
+<p>Validate operation and arity through winOps before calling its handler. No per-command heap object or command deletion callback is maintained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Dispatch client data; unused by this handler. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter receiving command results and error diagnostics. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of borrowed command arguments, including command and operation names. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed Tcl argument array; operation-specific positions are described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

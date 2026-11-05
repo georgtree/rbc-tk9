@@ -77,6 +77,8 @@ static const int rbcWinRopModes[] = {
  * Returns None for NULL DC; otherwise allocates a TkWinDC wrapper. Caller
  * releases only this wrapper with Rbc_WinFreeDrawableFromDC. Underlying DC
  * ownership and restoration stay with the caller.
+ *
+ * @param[in] dc Borrowed valid device context; state changes and restoration are described above.
  */
 Drawable Rbc_WinCreateDrawableFromDC(HDC dc) {
     TkWinDC *dcPtr;
@@ -96,6 +98,8 @@ Drawable Rbc_WinCreateDrawableFromDC(HDC dc) {
  *
  * Accepts None. The argument must come from Rbc_WinCreateDrawableFromDC;
  * this does not release or destroy the underlying HDC.
+ *
+ * @param[in] drawable Owned wrapper from Rbc_WinCreateDrawableFromDC, consumed here; None is harmless.
  */
 void Rbc_WinFreeDrawableFromDC(Drawable drawable) {
     if (drawable != None) {
@@ -110,6 +114,8 @@ void Rbc_WinFreeDrawableFromDC(Drawable drawable) {
  * Returns a borrowed Window valid only until the next call. Does not create
  * a Tk window, own the HWND or allocate a persistent wrapper. The static
  * record is overwritten on each call and is not independent per thread.
+ *
+ * @param[in] hWnd Borrowed native HWND wrapped without acquiring ownership.
  */
 Window Rbc_WinWindowFromHWND(HWND hWnd) {
     static TkWinWindow window;
@@ -128,6 +134,10 @@ Window Rbc_WinWindowFromHWND(HWND hWnd) {
  * statePtrPtr, including when the returned DC is NULL. Release that record
  * with Rbc_WinReleaseDrawableDC. The record contains private Tk DC state;
  * callers separately restore GDI objects/state they explicitly change.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[out] statePtrPtr Required output receiving an owned release record even when DC acquisition fails.
  */
 HDC Rbc_WinAcquireDrawableDC(Display *display, Drawable drawable, Rbc_WinDrawableDC **statePtrPtr) {
     Rbc_WinDrawableDC *statePtr;
@@ -146,6 +156,8 @@ HDC Rbc_WinAcquireDrawableDC(Display *display, Drawable drawable, Rbc_WinDrawabl
  * Accepts NULL. Calls TkWinReleaseDrawableDC only for a non-NULL acquired DC,
  * then frees the record even after failed acquisition. Must be called once
  * for each acquisition record; does not destroy the drawable.
+ *
+ * @param[in] statePtr Owned acquisition record consumed here, or NULL.
  */
 void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
     if (statePtr == NULL) {
@@ -164,6 +176,9 @@ void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
  * Requires an X graphics-function index in the table range. Changes the
  * borrowed DC without saving its prior ROP2 value; no range check or GDI
  * error result is provided.
+ *
+ * @param[in] dc Borrowed valid device context; state changes and restoration are described above.
+ * @param[in] function X graphics-function index within the compatibility table range.
  */
 void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, rbcWinRopModes[function]); }
 
@@ -175,6 +190,10 @@ void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, rbcWinRopModes[function]
  * with the supplied depth and colormap. The result participates in normal
  * Tk pixmap destruction, including bitmap deletion. Do not independently
  * delete the bitmap while the wrapper remains live.
+ *
+ * @param[in] hBitmap Native bitmap transferred to the Tk pixmap wrapper on success; NULL returns None.
+ * @param[in] depth Pixel depth recorded in the new Tk pixmap wrapper.
+ * @param[in] colormap Colormap recorded in the wrapper; no independent reference is acquired.
  */
 Pixmap Rbc_WinCreatePixmapFromBitmap(HBITMAP hBitmap, int depth, Colormap colormap) {
     TkWinBitmap *bitmapPtr;
@@ -196,6 +215,8 @@ Pixmap Rbc_WinCreatePixmapFromBitmap(HBITMAP hBitmap, int depth, Colormap colorm
  *
  * Returns NULL for None or a non-bitmap drawable. The returned handle remains
  * owned by the pixmap; no reference or copy is acquired.
+ *
+ * @param[in] pixmap Borrowed Tk pixmap to inspect, or None.
  */
 HBITMAP Rbc_WinGetPixmapHandle(Pixmap pixmap) {
     TkWinDrawable *twdPtr;
@@ -259,6 +280,12 @@ HPALETTE Rbc_GetSystemPalette(void) {
  * zero. Releases temporary global memory and each DC acquisition. Returns
  * NULL on failure, or ckalloc storage to free with ckfree and the row pitch.
  * A nonzero GetDIBits result is accepted; exact scanline count is not checked.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] bitmap Borrowed source monochrome Tk pixmap.
+ * @param[in] width Rectangle or bitmap width in pixels; validity requirements are described above.
+ * @param[in] height Rectangle or bitmap height in pixels; validity requirements are described above.
+ * @param[out] pitchPtr Required output, initialized to zero, then set to the returned row stride in bytes.
  */
 unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int height, int *pitchPtr) {
     Rbc_WinDrawableDC *dcStatePtr;
@@ -370,6 +397,10 @@ unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int
  *
  * Borrows window and border; fills flat, light, dark, light2 and dark2 through
  * TkWinGetBorderPixels. Does not allocate or transfer color resources.
+ *
+ * @param[in] tkwin Borrowed live Tk window supplying the display context.
+ * @param[in] border Borrowed Tk border whose native bevel colors are queried.
+ * @param[out] colorsPtr Required caller-owned output record for the five bevel colors.
  */
 void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBorderColors *colorsPtr) {
     colorsPtr->flat = TkWinGetBorderPixels(tkwin, border, TK_3D_FLAT_GC);
@@ -385,6 +416,13 @@ void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBord
  *
  * Borrows DC and ignores nonpositive dimensions. Uses TkWinFillRect so bevel
  * strips match Tk geometry. Does not acquire a DC or report drawing failure.
+ *
+ * @param[in] dc Borrowed valid device context; state changes and restoration are described above.
+ * @param[in] x Horizontal drawable coordinate in pixels.
+ * @param[in] y Vertical drawable coordinate in pixels.
+ * @param[in] width Rectangle or bitmap width in pixels; validity requirements are described above.
+ * @param[in] height Rectangle or bitmap height in pixels; validity requirements are described above.
+ * @param[in] color Fill color passed by value as a Windows COLORREF.
  */
 void Rbc_WinFillRect(HDC dc, int x, int y, int width, int height, COLORREF color) {
     if ((width <= 0) || (height <= 0)) {
@@ -408,6 +446,12 @@ void Rbc_WinFillRect(HDC dc, int x, int y, int width, int height, COLORREF color
  * fallback and can follow partial output; copy semantics permit replay.
  * Failed DC acquisition releases its allocated record and the pattern brush
  * before returning FALSE.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] rectangles Borrowed array of nRectangles native-coordinate rectangles.
+ * @param[in] nRectangles Number of rectangles supplied in the array.
  */
 int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC gc, const XRectangle *rectangles,
                                         int nRectangles) {
@@ -509,6 +553,15 @@ int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC 
  * opaque expansion colors and uses SRCCOPY. Restores destination state and
  * releases both DC acquisitions. FALSE can follow partial output; shared
  * caller may replay only because this path has copy semantics.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] bitmap Borrowed source monochrome Tk pixmap.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] width Rectangle or bitmap width in pixels; validity requirements are described above.
+ * @param[in] height Rectangle or bitmap height in pixels; validity requirements are described above.
+ * @param[in] positions Borrowed nPositions by 2 array of integer destination x/y pairs.
+ * @param[in] nPositions Number of accessible destination pairs.
  */
 int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
                                  const int (*positions)[2], Tcl_Size nPositions) {
@@ -569,6 +622,8 @@ int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bit
  *
  * Returns SHRT_MAX divided by four, independent of display. This is a
  * compatibility sizing value, not a query of a live GDI device limit.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
  */
 long Rbc_EmulateXMaxRequestSize(Display *display) { return (SHRT_MAX / 4); }
 
@@ -579,6 +634,9 @@ long Rbc_EmulateXMaxRequestSize(Display *display) { return (SHRT_MAX / 4); }
  * Borrows the Tk-compatible Window, obtains its HWND and calls SetWindowPos
  * without moving or resizing. Does not report failure or increment an X
  * request counter; the flags do not explicitly suppress activation.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] window Borrowed Tk-compatible native window identifier.
  */
 void Rbc_EmulateXLowerWindow(Display *display, Window window) {
     HWND hWnd;
@@ -597,6 +655,9 @@ void Rbc_EmulateXLowerWindow(Display *display, Window window) {
  * Borrows the GC and writes at most RBC_MAX_DASH_VALUES DWORDs into caller
  * storage. Reads unsigned bytes starting at gc->dashes using the established
  * Windows GC dash layout. Returns the number copied, without allocation.
+ *
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[out] dashArr Required output array with capacity for RBC_MAX_DASH_VALUES DWORD entries.
  */
 static int GetGCDashValues(GC gc, DWORD *dashArr) {
     const unsigned char *srcPtr;
@@ -619,6 +680,9 @@ static int GetGCDashValues(GC gc, DWORD *dashArr) {
  * TRANSPARENT without restoring it. Uses a geometric pen for width above one
  * and a cosmetic pen otherwise; asserts creation success. Caller selects and
  * later deletes the pen after restoring its previous selection.
+ *
+ * @param[in] dc Borrowed valid device context; state changes and restoration are described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
  */
 HPEN Rbc_GCToPen(HDC dc, GC gc) {
     DWORD lineAttrs;
@@ -697,6 +761,12 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
  * in input order. Adds one to each far edge for the Windows pixel convention.
  * Restores selections, deletes the displaced objects and releases DC state.
  * Requires valid GC and usable DC; GDI results are not propagated.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] rectArr Borrowed array of nRects native-coordinate rectangles.
+ * @param[in] nRects Number of accessible rectangles; nonpositive counts draw nothing.
  */
 void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRectangle *rectArr, int nRects) {
     HPEN pen, oldPen;
@@ -737,6 +807,12 @@ void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRec
  * a nonzero brush selects Chord or Pie from arcMode. Pen/brush selection is
  * the caller's responsibility; the pen argument is not otherwise used.
  * Does not explicitly reject zero sweep or change the DC arc direction.
+ *
+ * @param[in] dc Borrowed valid device context; state changes and restoration are described above.
+ * @param[in] arcMode X arc closure selector used when brush is nonzero.
+ * @param[in] arcPtr Borrowed native arc record; angles are in 1/64 degree units.
+ * @param[in] pen Caller-selected pen; this argument is otherwise unused.
+ * @param[in] brush Zero selects an open arc; nonzero selects closure without selecting the brush here.
  */
 static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
     int start, extent, clockwise;
@@ -810,6 +886,12 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
  * sets the GC raster operation and selects a GC-derived pen and stock null
  * brush. Calls DrawArc for each item in order, then restores selections,
  * deletes displaced objects and releases state. GC and array remain borrowed.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] arcArr Borrowed array of nArcs native arc records.
+ * @param[in] nArcs Number of accessible arc entries; nonpositive counts draw nothing.
  */
 void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs) {
     HPEN pen, oldPen;
@@ -846,6 +928,12 @@ void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
  * retains a drawing pen rather than selecting a null pen for fill-only output.
  * Ignores empty input; restores selections, deletes owned objects and releases
  * DC state. Does not report individual GDI failures.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] arcArr Borrowed array of nArcs native arc records.
+ * @param[in] nArcs Number of accessible arc entries; nonpositive counts draw nothing.
  */
 void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs) {
     HBRUSH brush, oldBrush;
@@ -884,6 +972,11 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
  * composition triggers one SRCINVERT copy to the destination. Restores selected
  * objects and frees temporary resources on handled failure paths. FALSE asks
  * the caller to retry directly; no destination rollback is implemented.
+ *
+ * @param[in] dc Borrowed valid device context; state changes and restoration are described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] segments Borrowed nonempty array of independent segments.
+ * @param[in] count Positive number of accessible segments.
  */
 static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
     RECT clip;
@@ -965,6 +1058,12 @@ static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
  * and overlap cancellation. Other operations use PolyPolyline, with per-segment
  * MoveToEx/LineTo fallback on failure. Frees arrays and restores/releases pen
  * and DC state. Void return does not report partial output or GDI failures.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] segArr Borrowed array of nSegments independent native-coordinate segments.
+ * @param[in] nSegments Number of accessible segments; nonpositive counts draw nothing.
  */
 void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments) {
     enum {
@@ -1094,6 +1193,13 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
  * point. CoordModeOrigin uses absolute positions; any other mode accumulates
  * LONG offsets from the first point. Releases DC state. No explicit pixel
  * read/modify/write composition or overflow check is performed here.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] pointArr Borrowed array of nPoints native-coordinate points.
+ * @param[in] nPoints Number of accessible point entries; nonpositive counts draw nothing.
+ * @param[in] mode CoordModeOrigin for absolute points; other values accumulate relative offsets.
  */
 void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode) {
     HDC dc;
@@ -1131,6 +1237,14 @@ void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *
  * Ignores None target, NULL string and nonpositive byte length. Delegates to
  * Tk_DrawChars with gc->font cast to Tk_Font and baseline coordinates. Borrows
  * all arguments and does not create a DC, font or converted string itself.
+ *
+ * @param[in] display Borrowed display associated with the native drawable.
+ * @param[in] drawable Borrowed compatible destination drawable; None handling is described above.
+ * @param[in] gc Borrowed graphics context supplying native drawing attributes.
+ * @param[in] x Horizontal drawable coordinate in pixels.
+ * @param[in] y Vertical drawable coordinate in pixels.
+ * @param[in] string Borrowed counted string; NULL draws nothing.
+ * @param[in] length String byte count; nonpositive values draw nothing.
  */
 void Rbc_EmulateXDrawString(Display *display, Drawable drawable, GC gc, int x, int y, _Xconst char *string,
                             int length) {

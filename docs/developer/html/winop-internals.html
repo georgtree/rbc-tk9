@@ -44,21 +44,21 @@
   <section id="window-and-photo-command-implementation">
 <h1>Window and photo command implementation<a class="headerlink" href="#window-and-photo-command-implementation" title="Link to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">rbcWinop.c</span></code> implements the standalone <code class="docutils literal notranslate"><span class="pre">rbc::winop</span></code> command when NO_WINOP
-is not defined. It owns no per-handle object: WinopCmd selects an operation
+is not defined. It owns no per-handle object: <a class="reference internal" href="winop-reference.html#c.WinopCmd" title="WinopCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">WinopCmd()</span></code></a> selects an operation
 and passes the current Tk main window as client data. See the Tcl manual for
 command syntax; this chapter describes dispatch, resources and limitations.</p>
 <section id="dispatch-and-platform-boundaries">
 <h2>Dispatch and platform boundaries<a class="headerlink" href="#dispatch-and-platform-boundaries" title="Link to this heading">¶</a></h2>
-<p>The direct winOps table and nested imageOps table are separate. ImageOp validates
+<p>The direct winOps table and nested imageOps table are separate. <a class="reference internal" href="winop-reference.html#c.ImageOp" title="ImageOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ImageOp()</span></code></a> validates
 its own operation/arity, then removes the <code class="docutils literal notranslate"><span class="pre">image</span></code> word by passing <code class="docutils literal notranslate"><span class="pre">objc</span> <span class="pre">-</span> <span class="pre">1</span></code>
 and <code class="docutils literal notranslate"><span class="pre">objv</span> <span class="pre">+</span> <span class="pre">1</span></code>. Shared handlers consequently keep the same source/destination
 argument indices. Do not add a handler to one table assuming the other is an
 automatic alias: quantize is direct-only, while gradient and rotate are nested.</p>
-<p>GetRealizedWindow resolves a Tk path and creates its native window if necessary;
-it does not map it. StringToWindow accepts paths or legacy Tcl integer IDs.
+<p><a class="reference internal" href="winop-reference.html#c.GetRealizedWindow" title="GetRealizedWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetRealizedWindow()</span></code></a> resolves a Tk path and creates its native window if necessary;
+it does not map it. <a class="reference internal" href="winop-reference.html#c.StringToWindow" title="StringToWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToWindow()</span></code></a> accepts paths or legacy Tcl integer IDs.
 Toplevel paths select wrappers. Numeric parsing uses Tcl_GetInt, so this path
 must not be described as accepting arbitrary pointer-width native handles.
-Windows numeric IDs pass through Rbc_WinWindowFromHWND. See
+Windows numeric IDs pass through <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsResources.Rbc_WinWindowFromHWND" title="rbcWindowsResources.Rbc_WinWindowFromHWND"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinWindowFromHWND()</span></code></a>. See
 <a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for raw-handle versus drawable distinctions.</p>
 <p>Window operations issue native map, unmap, stack and movement requests. Pointer
 query/warp uses screen or window coordinates, not graph data coordinates.
@@ -69,7 +69,7 @@ participate in graph mapping nor acquire renderer contexts.</p>
 <h2>Native command contracts<a class="headerlink" href="#native-command-contracts" title="Link to this heading">¶</a></h2>
 <p>Lower and raise accept Tk paths only. They resolve and restack each window in
 order, stop on a lookup error, and do not propagate Tk_RestackWindow status.
-Map and unmap also accept legacy integer IDs, but do not use StringToWindow:
+Map and unmap also accept legacy integer IDs, but do not use <a class="reference internal" href="winop-reference.html#c.StringToWindow" title="StringToWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToWindow()</span></code></a>:
 numeric values are cast directly to Window. Their Tk-path branch realizes the
 client window, edits TK_MAPPED through Tk_FakeWin, and sends the native request.
 It does not select the toplevel wrapper or call Tk_MapWindow/Tk_UnmapWindow.
@@ -85,7 +85,7 @@ returns TCL_OK without setting a new result. Warpto without an argument is a
 query; an <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> argument selects the screen root, while a Tk path selects
 the center of a mapped window. These are native pointer operations and can
 generate events, but the handlers do not run a Tcl event loop themselves.</p>
-<p>For numeric snapshot targets, GetWindowSize has platform-specific geometry:
+<p>For numeric snapshot targets, <a class="reference internal" href="winop-reference.html#c.GetWindowSize" title="GetWindowSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetWindowSize()</span></code></a> has platform-specific geometry:
 Windows reads the outer GetWindowRect, while X11 uses XGetGeometry dimensions.
 The X11 implementation synchronizes before removing its scoped error handler,
 whose client data points to a stack-local flag. Failed queries leave output

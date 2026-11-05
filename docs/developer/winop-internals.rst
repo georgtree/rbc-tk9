@@ -2,24 +2,24 @@ Window and photo command implementation
 =======================================
 
 ``rbcWinop.c`` implements the standalone ``rbc::winop`` command when NO_WINOP
-is not defined. It owns no per-handle object: WinopCmd selects an operation
+is not defined. It owns no per-handle object: :c:func:`WinopCmd` selects an operation
 and passes the current Tk main window as client data. See the Tcl manual for
 command syntax; this chapter describes dispatch, resources and limitations.
 
 Dispatch and platform boundaries
 --------------------------------
 
-The direct winOps table and nested imageOps table are separate. ImageOp validates
+The direct winOps table and nested imageOps table are separate. :c:func:`ImageOp` validates
 its own operation/arity, then removes the ``image`` word by passing ``objc - 1``
 and ``objv + 1``. Shared handlers consequently keep the same source/destination
 argument indices. Do not add a handler to one table assuming the other is an
 automatic alias: quantize is direct-only, while gradient and rotate are nested.
 
-GetRealizedWindow resolves a Tk path and creates its native window if necessary;
-it does not map it. StringToWindow accepts paths or legacy Tcl integer IDs.
+:c:func:`GetRealizedWindow` resolves a Tk path and creates its native window if necessary;
+it does not map it. :c:func:`StringToWindow` accepts paths or legacy Tcl integer IDs.
 Toplevel paths select wrappers. Numeric parsing uses Tcl_GetInt, so this path
 must not be described as accepting arbitrary pointer-width native handles.
-Windows numeric IDs pass through Rbc_WinWindowFromHWND. See
+Windows numeric IDs pass through :c:func:`rbcWindowsResources.Rbc_WinWindowFromHWND`. See
 :doc:`window-services` for raw-handle versus drawable distinctions.
 
 Window operations issue native map, unmap, stack and movement requests. Pointer
@@ -32,7 +32,7 @@ Native command contracts
 
 Lower and raise accept Tk paths only. They resolve and restack each window in
 order, stop on a lookup error, and do not propagate Tk_RestackWindow status.
-Map and unmap also accept legacy integer IDs, but do not use StringToWindow:
+Map and unmap also accept legacy integer IDs, but do not use :c:func:`StringToWindow`:
 numeric values are cast directly to Window. Their Tk-path branch realizes the
 client window, edits TK_MAPPED through Tk_FakeWin, and sends the native request.
 It does not select the toplevel wrapper or call Tk_MapWindow/Tk_UnmapWindow.
@@ -51,7 +51,7 @@ query; an ``@x,y`` argument selects the screen root, while a Tk path selects
 the center of a mapped window. These are native pointer operations and can
 generate events, but the handlers do not run a Tcl event loop themselves.
 
-For numeric snapshot targets, GetWindowSize has platform-specific geometry:
+For numeric snapshot targets, :c:func:`GetWindowSize` has platform-specific geometry:
 Windows reads the outer GetWindowRect, while X11 uses XGetGeometry dimensions.
 The X11 implementation synchronizes before removing its scoped error handler,
 whose client data points to a stack-local flag. Failed queries leave output

@@ -91,3 +91,19 @@ Native window handle lookup
    :members:
 
 .. c:namespace-pop::
+
+DC and handle ownership
+-----------------------
+
+:c:func:`rbcWindowsResources.Rbc_WinAcquireDrawableDC` returns a release record even
+when acquisition fails. Pass that record to
+:c:func:`rbcWindowsResources.Rbc_WinReleaseDrawableDC`; restoring explicitly selected
+GDI objects remains the caller's responsibility. In contrast,
+:c:func:`rbcWindowsResources.Rbc_WinCreateDrawableFromDC` wraps an already borrowed DC:
+:c:func:`rbcWindowsResources.Rbc_WinFreeDrawableFromDC` releases only the wrapper.
+
+:c:func:`rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap` transfers a native bitmap
+into Tk pixmap ownership. A handle returned by
+:c:func:`rbcWindowsResources.Rbc_WinGetPixmapHandle` is borrowed and must not be
+independently deleted. These ownership rules differ from the transient static
+window wrapper returned by :c:func:`rbcWindowsResources.Rbc_WinWindowFromHWND`.

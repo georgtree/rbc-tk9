@@ -70,6 +70,10 @@ static RbcWinOp ImageOp;
  * Borrow the interpreter and return a borrowed Tk_Window through tkwinPtr on
  * success. Realization does not map the window. Return TCL_ERROR from path
  * lookup without assigning the output.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] string Borrowed NUL-terminated Tk window pathname.
+ * @param[out] tkwinPtr Required output receiving a borrowed realized Tk window only on success.
  */
 static int GetRealizedWindow(Tcl_Interp *interp, const char *string, Tk_Window *tkwinPtr) {
     Tk_Window tkwin;
@@ -93,6 +97,9 @@ static int GetRealizedWindow(Tcl_Interp *interp, const char *string, Tk_Window *
  * input uses Tcl_GetInt, not a pointer-width parser; Windows wraps that value
  * with Rbc_WinWindowFromHWND(). Return None on lookup or conversion failure.
  * The result does not transfer ownership of the window.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] string Borrowed NUL-terminated Tk path or native ID text, as described above.
  */
 static Window StringToWindow(Tcl_Interp *interp, const char *string) {
     int xid;
@@ -128,6 +135,11 @@ static Window StringToWindow(Tcl_Interp *interp, const char *string) {
  * only after GetWindowRect succeeds. Return TCL_ERROR without adding a
  * diagnostic for an invalid handle or failed query; interp is unused. This
  * measures the native outer rectangle, not the Tk client dimensions.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] window Borrowed Tk-compatible native window identifier.
+ * @param[out] widthPtr Required output receiving native window width only on success.
+ * @param[out] heightPtr Required output receiving native window height only on success.
  */
 static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *heightPtr) {
     HWND hWnd;
@@ -155,6 +167,9 @@ static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *
  * clientData points to the caller-owned integer flag while the temporary
  * Tk error handler is installed. Set it to TCL_ERROR and return zero to
  * consume the error. Do not retain the flag or event pointer.
+ *
+ * @param[in,out] clientData Borrowed pointer to the stack-backed integer error flag, set to TCL_ERROR.
+ * @param[in] errEventPtr Borrowed X protocol-error event; not retained.
  */
 static int XGeometryErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     int *errorPtr = clientData;
@@ -172,6 +187,11 @@ static int XGeometryErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
  * its stack-backed error flag remains valid. Return TCL_ERROR on query or
  * protocol failure, or dimensions exceeding INT_MAX; only the overflow case
  * sets a diagnostic here. Publish both output dimensions only on success.
+ *
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] window Borrowed Tk-compatible native window identifier.
+ * @param[out] widthPtr Required output receiving native window width only on success.
+ * @param[out] heightPtr Required output receiving native window height only on success.
  */
 static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *heightPtr) {
     Tk_Window tkwin;
@@ -220,6 +240,11 @@ static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *
  * Return alternating RGB strings and pixel IDs for cells not obtained by
  * the probe. This legacy algorithm assumes an indexed colormap with
  * allocated pixel IDs below 256; it is not a general visual enumerator.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int ColormapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register int i;
@@ -278,6 +303,11 @@ static int ColormapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
  * request Below stacking with no sibling. Return TCL_ERROR on a failed
  * lookup, retaining any earlier restacking. The Tk_RestackWindow return
  * status is not propagated. An empty window list succeeds.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int LowerOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -301,6 +331,11 @@ static int LowerOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * request Above stacking with no sibling. Return TCL_ERROR on a failed
  * lookup, retaining any earlier restacking. The Tk_RestackWindow return
  * status is not propagated. An empty window list succeeds.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int RaiseOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -325,6 +360,11 @@ static int RaiseOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * Tcl_GetInt and cast directly to Window, without StringToWindow. Issue
  * XMapWindow requests in argument order; later conversion errors do not
  * undo earlier requests. This path does not call Tk_MapWindow.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int MapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -366,6 +406,11 @@ static int MapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * with Tk_GetPixelsFromObj before moving; append an axis-specific diagnostic
  * on conversion failure. Tk_MoveWindow uses parent-relative pixel
  * coordinates, not graph coordinates or an explicit toplevel wrapper.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int MoveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int x, y;
@@ -401,6 +446,11 @@ static int MoveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
  * Tcl_GetInt and cast directly to Window, without StringToWindow. Issue
  * XUnmapWindow requests in argument order; later conversion errors do not
  * undo earlier requests. This path does not call Tk_UnmapWindow.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int UnmapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
@@ -443,6 +493,11 @@ static int UnmapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * window ID and issue XChangeWindowAttributes with WhenMapped backing
  * store and save_under enabled. A child window is a successful no-op.
  * TCL_OK reports request submission, not server acceptance of the hints.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int ChangesOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
@@ -472,6 +527,11 @@ static int ChangesOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, T
  * ID; on success set the Tcl result to \@x,y using root coordinates. A false
  * XQueryPointer result leaves the interpreter result unchanged and still
  * returns TCL_OK. objc and objv are unused.
+ *
+ * @param[in] clientData Borrowed Tk main window supplied by dispatch.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Unused query argument; direct internal calls may supply zero/NULL.
+ * @param[in] objv Unused query argument; direct internal calls may supply zero/NULL.
  */
 static int QueryOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int rootX, rootY, childX, childY;
@@ -495,6 +555,11 @@ static int QueryOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * realize a Tk path, reject an unmapped window, and target its integer
  * center. Native warping can generate pointer events; no Tcl event loop
  * is run here. Return parsing/lookup errors or the subsequent query status.
+ *
+ * @param[in] clientData Borrowed Tk main window supplied by dispatch.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int WarpToOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin, mainWindow;
@@ -540,6 +605,11 @@ static int WarpToOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
  * borrowed. The source is copied before destination publication. Parse failures
  * return TCL_ERROR. Photo publication uses the void color-image helper and is
  * not an atomic transaction with rollback.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
@@ -626,6 +696,11 @@ error:
  * returns. Resize the destination to the source dimensions before parsing the
  * optional color count; an error therefore need not leave it unchanged.
  * Source dimensions of one pixel or less are rejected.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
@@ -688,6 +763,11 @@ static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
  * in objv[2] and destination photo name in objv[3]. Borrow the photo handle
  * and return Rbc_JPEGToPhoto status. Without HAVE_JPEGLIB_H, return TCL_ERROR
  * with the unsupported diagnostic without looking up the photo.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
 #if HAVE_JPEGLIB_H
@@ -717,6 +797,11 @@ static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
  * values; blank writes opaque white but still validates both colors.
  * Publication uses the void Rbc_ColorImageToPhoto helper, so TCL_OK does
  * not propagate lower-level photo-write status.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle photo;
@@ -871,6 +956,11 @@ done:
  * The default filter is none. A vertical filter is parsed only when the first
  * filter resolves to a non-NULL descriptor. Lower photo-write return values
  * are not uniformly propagated by this legacy command.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int ResampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
@@ -946,6 +1036,11 @@ static int ResampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
  * reacquire both photo handles before accessing pixels. Reject deleted photos
  * or destroyed Tk state; same-name replacements are used. Allocate and release
  * source/rotated buffers locally. Photo publication is not a rollback transaction.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
@@ -1013,6 +1108,11 @@ static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
  * geometry. Borrow all windows and delegate capture and destination lookup to
  * Rbc_SnapPhoto(); return its Tcl status. This is screen capture, not graph
  * remapping or vector-document export.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
@@ -1062,6 +1162,11 @@ static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
  * An effectively empty destination takes the region dimensions. Default to the
  * box filter; none selects the unfiltered resize path. Photos and filters are
  * borrowed, and the command neither creates nor deletes the destination photo.
+ *
+ * @param[in] clientData Borrowed Tk main window supplied by dispatch.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
@@ -1157,6 +1262,11 @@ static const WinopOpSpec imageOps[] = {{{"convolve", 6, 6, "srcPhoto destPhoto f
  * Validate against imageOps, then pass objc - 1 and objv + 1 so shared handlers
  * see source and destination at their original argument positions. Tables for
  * direct and nested operations are intentionally not identical.
+ *
+ * @param[in] clientData Unused dispatch data; nested dispatch obtains the current main window.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int ImageOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -1201,6 +1311,11 @@ static const WinopOpSpec winOps[] = {{{"changes", 3, 3, "window"}, ChangesOp},
  *
  * Validate operation and arity through winOps before calling its handler.
  * No per-command heap object or command deletion callback is maintained.
+ *
+ * @param[in] clientData Dispatch client data; unused by this handler.
+ * @param[in,out] interp Borrowed interpreter receiving command results and error diagnostics.
+ * @param[in] objc Number of borrowed command arguments, including command and operation names.
+ * @param[in] objv Borrowed Tcl argument array; operation-specific positions are described above.
  */
 static int WinopCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
