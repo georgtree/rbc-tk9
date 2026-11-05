@@ -805,56 +805,123 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.ComputeArrowHead">
 <span class="target" id="group__marker__line__geometry_1ga4478280c665c9e57cfdc116fc8baabed"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">tip</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">adjacent</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">arrow</span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">PTS_IN_ARROW</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shaftPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.ComputeArrowHead" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Construct a closed arrowhead and shortened shaft endpoint. </p>
-<p>Borrows the three shape distances and writes six vertices, including the repeated tip, plus shaftPtr. Uses mapped display coordinates, effective line width and Tk-style neck interpolation. Returns FALSE for an adjacent point within DBL_EPSILON of the tip; outputs must not be used on that path. Allocates nothing and does not clip the resulting head. </p>
+<p>Borrows the three shape distances and writes six vertices, including the repeated tip, plus shaftPtr. Uses mapped display coordinates, effective line width and Tk-style neck interpolation. Returns FALSE for an adjacent point within DBL_EPSILON of the tip; outputs must not be used on that path. Allocates nothing and does not clip the resulting head.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tip</strong> – <strong>[in]</strong> Arrow tip in display coordinates, after marker pixel offsets. </p></li>
+<li><p><strong>adjacent</strong> – <strong>[in]</strong> Adjacent mapped vertex defining the direction toward the tip. </p></li>
+<li><p><strong>lineWidth</strong> – <strong>[in]</strong> Effective shaft width in pixels; callers substitute one for a zero-width hairline. </p></li>
+<li><p><strong>shape</strong> – <strong>[in]</strong> Borrowed three-element array of arrow distances A, B and C in pixels. </p></li>
+<li><p><strong>arrow</strong> – <strong>[out]</strong> Required PTS_IN_ARROW-element output array, including the repeated closing tip; valid only on TRUE. </p></li>
+<li><p><strong>shaftPtr</strong> – <strong>[out]</strong> Required shortened shaft endpoint, valid only when TRUE is returned. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.PointInsideExtents">
 <span class="target" id="group__marker__line__geometry_1gaf49ff2e5c391181b44223af9df71096c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInsideExtents</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.PointInsideExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test inclusive containment of a display point. </p>
-<p>Borrows both inputs; returns TRUE on the rectangle boundary as well as inside it. No coordinate mapping, tolerance expansion or mutation. </p>
+<p>Borrows both inputs; returns TRUE on the rectangle boundary as well as inside it. No coordinate mapping, tolerance expansion or mutation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pointPtr</strong> – <strong>[in]</strong> Borrowed point in display coordinates. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered query rectangle in display coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.MapLineMarker">
 <span class="target" id="group__marker__line__geometry_1ga0d139658d0fad33e0dcf336c90eb8094"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.MapLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace clipped shaft segments and endpoint arrow geometry. </p>
-<p>Clears prior segments and arrow flags, then maps at least two world points with pixel offsets. Heads are constructed only when their original tips lie inside plot extents; shaft endpoints are shortened before edge clipping. Owns the replacement segment allocation. Size/allocation failure leaves an empty clipped marker without a Tcl error. A visible head alone makes the marker non-clipped even when no shaft segment survives. </p>
+<p>Clears prior segments and arrow flags, then maps at least two world points with pixel offsets. Heads are constructed only when their original tips lie inside plot extents; shaft endpoints are shortened before edge clipping. Owns the replacement segment allocation. Size/allocation failure leaves an empty clipped marker without a Tcl error. A visible head alone makes the marker non-clipped even when no shaft segment survives.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed line marker whose owned mapping caches are replaced in the current axis/track viewport. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.PointInLineMarker">
 <span class="target" id="group__marker__line__geometry_1ga75500c373dde1c7738702fa718d9590d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.PointInLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Pick mapped arrow polygons or clipped shaft segments. </p>
-<p>Borrows mapped caches. Tests five unique vertices per enabled head, then segment distance using the graph halo. Does not expand that halo by shaft width or refresh layout. </p>
+<p>Borrows mapped caches. Tests five unique vertices per enabled head, then segment distance using the graph halo. Does not expand that halo by shaft width or refresh layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed line marker with current mapped caches; no ownership is transferred. </p></li>
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed query point in display coordinates; mapping is not refreshed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.RegionInLineMarker">
 <span class="target" id="group__marker__line__geometry_1gaa79ed2623d244245eb89c2d9dc7c3105"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.RegionInLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test original mapped line edges and cached arrowheads against a region. </p>
-<p>Requires two world points. Enclosure requires every original mapped point (including pixel offsets) and every enabled head inside the rectangle. Overlap accepts any original edge or cached head intersection. Unlike point picking, shaft tests do not use the plot-clipped segment cache or graph halo. </p>
+<p>Requires two world points. Enclosure requires every original mapped point (including pixel offsets) and every enabled head inside the rectangle. Overlap accepts any original edge or cached head intersection. Unlike point picking, shaft tests do not use the plot-clipped segment cache or graph halo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed line marker with current mapped caches; no ownership is transferred. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered query rectangle in display coordinates. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero requests complete enclosure; zero requests overlap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.ParseArrowShape">
 <span class="target" id="group__marker__line__geometry_1ga96bc090cb4934f513b0a328e2f8f1733"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseArrowShape</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrMarkerLine.LineMarker" title="LineMarker"><span class="n"><span class="pre">LineMarker</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.ParseArrowShape" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse three screen distances into caller-owned shape storage. </p>
-<p>Borrows arrowShapeObjPtr and the graph window. Returns TCL_ERROR with a diagnostic for a malformed list, wrong count or invalid screen distance. Earlier output entries may be written before failure. No additional positivity or relative-size check is performed here. </p>
+<p>Borrows arrowShapeObjPtr and the graph window. Returns TCL_ERROR with a diagnostic for a malformed list, wrong count or invalid screen distance. Earlier output entries may be written before failure. No additional positivity or relative-size check is performed here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmPtr</strong> – <strong>[in]</strong> Borrowed line marker supplying the arrow-shape Tcl object, interpreter and window. </p></li>
+<li><p><strong>shape</strong> – <strong>[out]</strong> Required three-double output array; earlier entries may be assigned before TCL_ERROR. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.ConfigureLineMarker">
 <span class="target" id="group__marker__line__geometry_1ga50e2afc5f231c4c985692311a8bd4485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.ConfigureLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare and commit line style, common options and a private GC. </p>
-<p>Parses common options, arrow shape, caps, joins, dashes and nonnegative width/offset before committing derived state. Error paths release staged resources; the outer option transaction restores Tk-managed values. Erases the recorded old XOR shaft and heads before replacing geometry/GC, then maps/draws graph-wide XOR immediately or schedules redraw (including track transitions). Erasure uses old caches and GC regardless of new options. Under-layer scheduled drawing invalidates the backing store. </p>
+<p>Parses common options, arrow shape, caps, joins, dashes and nonnegative width/offset before committing derived state. Error paths release staged resources; the outer option transaction restores Tk-managed values. Erases the recorded old XOR shaft and heads before replacing geometry/GC, then maps/draws graph-wide XOR immediately or schedules redraw (including track transitions). Erasure uses old caches and GC regardless of new options. Under-layer scheduled drawing invalidates the backing store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed line marker with candidate Tk option fields installed by the outer saved-options transaction. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerLine.FreeLineMarker">
 <span class="target" id="group__marker__line__geometry_1gaa0f8d38b5e52143a933427cd3f47e071"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.FreeLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release line-owned segment storage and private graphics context. </p>
-<p>Borrows graph and marker; does not free the record or common options. Erases recorded immediate XOR shaft and heads while a drawable and GC remain, including head-only geometry. Clears released pointers and segment count. Common lifecycle code owns subsequent record destruction. </p>
+<p>Borrows graph and marker; does not free the record or common options. Erases recorded immediate XOR shaft and heads while a drawable and GC remain, including head-only geometry. Clears released pointers and segment count. Common lifecycle code owns subsequent record destruction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed line marker whose class-owned resources are released; the common record is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -890,56 +957,119 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.MapPolygonMarker">
 <span class="target" id="group__marker__polygon__geometry_1ga4058aa03e237220bc2b49348f1b8a03d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.MapPolygonMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace full mapped vertices and independently clipped fill/outline caches. </p>
-<p>Frees old geometry first and requires at least three world vertices. Applies axes and pixel offsets to screenPts. Fill clipping is attempted only with a fill foreground; outlines require foreground and positive width, and include the closing edge. Each allocation is size-checked and fallible without a Tcl error. A partial cache may survive another cache allocation failure; clipped becomes FALSE when drawable geometry remains. </p>
+<p>Frees old geometry first and requires at least three world vertices. Applies axes and pixel offsets to screenPts. Fill clipping is attempted only with a fill foreground; outlines require foreground and positive width, and include the closing edge. Each allocation is size-checked and fallible without a Tcl error. A partial cache may survive another cache allocation failure; clipped becomes FALSE when drawable geometry remains.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed polygon marker whose owned mapping caches are replaced in the current axis/track viewport. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.PointInPolygonMarker">
 <span class="target" id="group__marker__polygon__geometry_1ga98a3edd7da1244f523c972e7a2cac870"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.PointInPolygonMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Pick the interior of the full mapped polygon. </p>
-<p>Requires screenPts and at least three world vertices. Borrows that cache and tests polygon interior irrespective of fill visibility or line width. Does not use clipped fill geometry, graph halo or refresh mapping. </p>
+<p>Requires screenPts and at least three world vertices. Borrows that cache and tests polygon interior irrespective of fill visibility or line width. Does not use clipped fill geometry, graph halo or refresh mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed polygon marker with current mapped caches; no ownership is transferred. </p></li>
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed query point in display coordinates; mapping is not refreshed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.RegionInPolygonMarker">
 <span class="target" id="group__marker__polygon__geometry_1gaa11f2e6678d989e17f9efd4aed08ae60"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.RegionInPolygonMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test the full mapped polygon for enclosure or overlap. </p>
-<p>Requires screenPts and at least three world vertices, then delegates to the region/polygon helper. Uses original mapped vertices rather than clipped fill/outline caches and ignores stroke thickness. </p>
+<p>Requires screenPts and at least three world vertices, then delegates to the region/polygon helper. Uses original mapped vertices rather than clipped fill/outline caches and ignores stroke thickness.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed polygon marker with current mapped caches; no ownership is transferred. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered query rectangle in display coordinates. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero requests complete enclosure; zero requests overlap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.ConfigurePolygonMarker">
 <span class="target" id="group__marker__polygon__geometry_1gaca8f39a532d46e5b07f2c673671e8fec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.ConfigurePolygonMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare and commit shared polygon/arc appearance and common options. </p>
-<p>Arc angles must be finite. Stages common resources, styles and owned color pairs, builds a private outline GC and shared fill GC, then erases a recorded immediate outline before commit. Errors release staged resources; the outer Tk option transaction restores option fields. Immediate XOR is restricted to graph-wide outline-only cases without pending axis reset; open arcs qualify as outline-only. Otherwise marks for mapping and redraw, invalidating under-layer backing storage. Fill GC construction does not apply the outline GC XOR function. </p>
+<p>Arc angles must be finite. Stages common resources, styles and owned color pairs, builds a private outline GC and shared fill GC, then erases a recorded immediate outline before commit. Errors release staged resources; the outer Tk option transaction restores option fields. Immediate XOR is restricted to graph-wide outline-only cases without pending axis reset; open arcs qualify as outline-only. Otherwise marks for mapping and redraw, invalidating under-layer backing storage. Fill GC construction does not apply the outline GC XOR function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed polygon or arc marker with candidate Tk option fields installed by the outer saved-options transaction. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.FreePolygonMarker">
 <span class="target" id="group__marker__polygon__geometry_1gad7d9b637eeaa0e45157abba1198646d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreePolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.FreePolygonMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release polygon/arc caches, color pairs and graphics contexts. </p>
-<p>Erases a recorded immediate outline when its drawable/resources remain. Releases the private outline GC, shared fill GC and three owned geometry arrays, clearing pointers/counts as implemented. Frees manually owned color pairs; common option/record cleanup retains responsibility for the stipple, world points, tags and the record itself. </p>
+<p>Erases a recorded immediate outline when its drawable/resources remain. Releases the private outline GC, shared fill GC and three owned geometry arrays, clearing pointers/counts as implemented. Frees manually owned color pairs; common option/record cleanup retains responsibility for the stipple, world points, tags and the record itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed polygon or arc marker whose class-owned resources are released; the common record is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.MapArcMarker">
 <span class="target" id="group__marker__polygon__geometry_1gaa73e9c313a462364bce58ce04ba06deb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.MapArcMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map an ellipse box and build bounded flattened geometry caches. </p>
-<p>Clears old caches, requires two corners and nonzero extent, and rejects nonfinite/zero mapped radii. Normalizes start modulo 360 and clamps signed extent to one turn. Stores the exact ellipse separately; flattened points target 0.15-pixel chord error with at most 8192 steps. Closure follows open, chord or pieslice style. Visibility is conservative from the ellipse box plus outline margin, independent of successful cache allocation. Fallible allocations do not set Tcl errors; picking caches can be absent even when the exact curve remains eligible for renderer drawing. </p>
+<p>Clears old caches, requires two corners and nonzero extent, and rejects nonfinite/zero mapped radii. Normalizes start modulo 360 and clamps signed extent to one turn. Stores the exact ellipse separately; flattened points target 0.15-pixel chord error with at most 8192 steps. Closure follows open, chord or pieslice style. Visibility is conservative from the ellipse box plus outline margin, independent of successful cache allocation. Fallible allocations do not set Tcl errors; picking caches can be absent even when the exact curve remains eligible for renderer drawing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed arc marker whose owned mapping caches are replaced in the current axis/track viewport. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.PointInArcMarker">
 <span class="target" id="group__marker__polygon__geometry_1ga365d84cc03b8c398168558f7363b174c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.PointInArcMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Pick clipped arc fill or outline caches. </p>
-<p>Requires a two-corner world box. Tests the clipped fill polygon first, then outline segments with tolerance max(graph halo, half line width). Borrows caches; does not analytically test the ellipse or rebuild missing geometry. </p>
+<p>Requires a two-corner world box. Tests the clipped fill polygon first, then outline segments with tolerance max(graph halo, half line width). Borrows caches; does not analytically test the ellipse or rebuild missing geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed arc marker with current mapped caches; no ownership is transferred. </p></li>
+<li><p><strong>samplePtr</strong> – <strong>[in]</strong> Borrowed query point in display coordinates; mapping is not refreshed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.RegionInArcMarker">
 <span class="target" id="group__marker__polygon__geometry_1ga028c968e90bb9852d34167496d38f27e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.RegionInArcMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test flattened arc geometry for enclosure or overlap. </p>
-<p>Requires mapped vertices and at least one nonempty fill/outline cache. Enclosure tests every untrimmed flattened vertex; overlap tests clipped fill and outline segments. Neither branch expands the rectangle by stroke width or provides an exact analytic curve test. </p>
+<p>Requires mapped vertices and at least one nonempty fill/outline cache. Enclosure tests every untrimmed flattened vertex; overlap tests clipped fill and outline segments. Neither branch expands the rectangle by stroke width or provides an exact analytic curve test.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed arc marker with current mapped caches; no ownership is transferred. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed ordered query rectangle in display coordinates. </p></li>
+<li><p><strong>enclosed</strong> – <strong>[in]</strong> Nonzero requests complete enclosure; zero requests overlap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -982,91 +1112,208 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawRenderedMarkerSegments">
 <span class="target" id="group__marker__shape__output_1ga191cda01e5ce480e382bb9419b437403"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedMarkerSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gapColor</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">cap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">join</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xorMode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawRenderedMarkerSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit independent clipped segments to the selected renderer. </p>
-<p>Borrows geometry/style. XOR requests or a missing render context return FALSE so the caller can use its native GC path. Otherwise sets caps/joins, submits all segments, ends the context and returns TRUE. Width is at least one pixel; TRUE denotes dispatch, not a pixel-visibility assertion. </p>
+<p>Borrows geometry/style. XOR requests or a missing render context return FALSE so the caller can use its native GC path. Otherwise sets caps/joins, submits all segments, ends the context and returns TRUE. Width is at least one pixel; TRUE denotes dispatch, not a pixel-visibility assertion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed array of mapped, independently clipped segments; retained only for this call. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of readable segment entries. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed foreground color passed to renderer selection. </p></li>
+<li><p><strong>gapColor</strong> – <strong>[in]</strong> Borrowed dash-gap background color, or NULL for transparent gaps. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Requested stroke width in pixels, clamped to at least one. </p></li>
+<li><p><strong>dashes</strong> – <strong>[in]</strong> Borrowed dash description, including its offset. </p></li>
+<li><p><strong>cap</strong> – <strong>[in]</strong> Native cap-style selector for the stroke context. </p></li>
+<li><p><strong>join</strong> – <strong>[in]</strong> Native join-style selector for the stroke context. </p></li>
+<li><p><strong>xorMode</strong> – <strong>[in]</strong> Nonzero forces FALSE without drawing so the caller can use its XOR GC. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawNativeLineSegments">
 <span class="target" id="group__marker__shape__output_1ga2838d1f8eb0f5b4895e1550b0f1239d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawNativeLineSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawNativeLineSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw shaft segments with legacy native endpoint conversion. </p>
-<p>Borrows the line GC/cache. Without heads, delegates directly to the screen segment renderer. With heads, rounds endpoints in bounded 128-segment stack batches before dispatch. Never modifies mapped doubles used by picking/export and never draws the heads themselves. </p>
+<p>Borrows the line GC/cache. Without heads, delegates directly to the screen segment renderer. With heads, rounds endpoints in bounded 128-segment stack batches before dispatch. Never modifies mapped doubles used by picking/export and never draws the heads themselves.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmPtr</strong> – <strong>[in]</strong> Borrowed line marker with current mapped geometry and valid graphics context. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.EraseLineMarkerXor">
 <span class="target" id="group__marker__shape__output_1ga4b337402e37cc97ed9a12cf6b3fa44e3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EraseLineMarkerXor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.EraseLineMarkerXor" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Erase all recorded immediate line geometry with its original native GC. </p>
-<p>Borrows the old shaft/head caches and GC, independent of newly installed Tk options such as xor, arrow and outline. Redraws shaft and enabled heads when a drawable and GC remain, including head-only markers, then clears xorState. Does not map geometry, select a renderer or schedule graph redraw. </p>
+<p>Borrows the old shaft/head caches and GC, independent of newly installed Tk options such as xor, arrow and outline. Redraws shaft and enabled heads when a drawable and GC remain, including head-only markers, then clears xorState. Does not map geometry, select a renderer or schedule graph redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmPtr</strong> – <strong>[inout]</strong> Borrowed line marker retaining old XOR geometry/GC; xorState is cleared even if erasure cannot draw. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Original screen destination, or None to clear bookkeeping without drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawRenderedArrowHead">
 <span class="target" id="group__marker__shape__output_1ga9591965ff762c628a83729e744c4a210"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arrow</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawRenderedArrowHead" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit temporary half-pixel-shifted arrow fill vertices. </p>
-<p>Copies the five unique vertices and shifts both coordinates by 0.5 to align area boundaries with the rendered shaft. Returns the area helper status for fallback selection. Original geometry remains unchanged for native drawing, picking and document export. </p>
+<p>Copies the five unique vertices and shifts both coordinates by 0.5 to align area boundaries with the rendered shaft. Returns the area helper status for fallback selection. Original geometry remains unchanged for native drawing, picking and document export.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>arrow</strong> – <strong>[in]</strong> Borrowed mapped arrow vertices; only the five unique vertices are read. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed foreground color passed to renderer selection. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawLineMarker">
 <span class="target" id="group__marker__shape__output_1gab19678055fe7a57e29be589fd20d6f3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw mapped shafts followed by first and last arrowheads. </p>
-<p>Uses renderer strokes/fills where possible, otherwise native GC services; XOR always uses native paths. An absent non-XOR outline may be recovered from the GC foreground for screen drawing. Toggles xorState after any drawing only for graph-wide XOR markers, not track-owned markers. </p>
+<p>Uses renderer strokes/fills where possible, otherwise native GC services; XOR always uses native paths. An absent non-XOR outline may be recovered from the GC foreground for screen drawing. Toggles xorState after any drawing only for graph-wide XOR markers, not track-owned markers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[inout]</strong> Borrowed marker of the concrete class described above; common record ownership stays with the caller. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.ArrowHeadExport">
 <span class="target" id="group__marker__shape__output_1ga301e28c7dfb1cf9237447ce3c3398564"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ArrowHeadExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arrow</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.ArrowHeadExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export the five unique arrow vertices using the explicit outline color. </p>
-<p>Borrows the mapped arrow and export context. An empty outline suppresses head output rather than recovering the screen GC color. Creates and ends a fill-render context; does not shorten or remap the shaft. </p>
+<p>Borrows the mapped arrow and export context. An empty outline suppresses head output rather than recovering the screen GC color. Creates and ends a fill-render context; does not shorten or remap the shaft.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmPtr</strong> – <strong>[in]</strong> Borrowed line marker with current mapped geometry and valid graphics context. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export layout. </p></li>
+<li><p><strong>arrow</strong> – <strong>[in]</strong> Borrowed mapped arrow vertices; only the five unique vertices are read. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.LineMarkerExport">
 <span class="target" id="group__marker__shape__output_1gad843cf2e5787e30f9b48dd56653e8bec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.LineMarkerExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export clipped shaft segments and mapped arrowheads. </p>
-<p>Borrows caches at the current export layout. Sets cap/join/dash state and dash-gap color for the shaft, then exports enabled heads. Uses the original double geometry without native rounding or screen half-pixel shifts. Export does not toggle XOR state. </p>
+<p>Borrows caches at the current export layout. Sets cap/join/dash state and dash-gap color for the shaft, then exports enabled heads. Uses the original double geometry without native rounding or screen half-pixel shifts. Export does not toggle XOR state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed marker of the concrete class described above; common record ownership stays with the caller. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export layout. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawPolygonMarker">
 <span class="target" id="group__marker__shape__output_1ga88a8b5951031cb95094523278b30e42a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawPolygonMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw clipped polygon fill followed by clipped outline segments. </p>
-<p>Borrows fill/outline caches and colors. Tries selected-renderer area and stroke operations, with native GC fallback (forced for XOR). Fill needs at least three points; outline needs positive width and a foreground. Does not update immediate-XOR bookkeeping. </p>
+<p>Borrows fill/outline caches and colors. Tries selected-renderer area and stroke operations, with native GC fallback (forced for XOR). Fill needs at least three points; outline needs positive width and a foreground. Does not update immediate-XOR bookkeeping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed marker of the concrete class described above; common record ownership stays with the caller. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.PolygonMarkerExport">
 <span class="target" id="group__marker__shape__output_1ga9f9e93592914aa2a0536f2d8e12b274a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolygonMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.PolygonMarkerExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export polygon fill and outline from clipped caches. </p>
-<p>Borrows the export context and current mapped caches. Fill preserves foreground/background/stipple; outline preserves width, cap/join and dash gap color. Creates and ends each renderer context independently, without remapping or altering XOR state. </p>
+<p>Borrows the export context and current mapped caches. Fill preserves foreground/background/stipple; outline preserves width, cap/join and dash gap color. Creates and ends each renderer context independently, without remapping or altering XOR state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed marker of the concrete class described above; common record ownership stays with the caller. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export layout. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.StrokeArcMarker">
 <span class="target" id="group__marker__shape__output_1ga630c8254e4edb8e4b0183b30f4b16860"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StrokeArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.StrokeArcMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke the mapped ellipse through curved or native renderer services. </p>
-<p>Skips zero extent, empty outline or nonpositive width. An export context selects document output; otherwise uses the screen renderer unless XOR is requested. Native fallback receives clipped flattened segments as well as the exact ellipse. Renderer arc handling owns continuous-path dash/join behavior; this helper does not join vertices itself. </p>
+<p>Skips zero extent, empty outline or nonpositive width. An export context selects document output; otherwise uses the screen renderer unless XOR is requested. Native fallback receives clipped flattened segments as well as the exact ellipse. Renderer arc handling owns continuous-path dash/join behavior; this helper does not join vertices itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pmPtr</strong> – <strong>[in]</strong> Borrowed polygon/arc record with current mapped geometry and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Screen destination for native fallback; normal export callers pass None. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed export context, or NULL to select screen output. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline">
 <span class="target" id="group__marker__shape__output_1gae298ed0c814266ae188f6f58ca87b34c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawImmediatePolygonOutline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw or erase a polygon/arc outline using existing native state. </p>
-<p>Borrows the old outline GC and geometry. Polygon outlines submit cached segments. Arcs temporarily force the XOR flag while calling StrokeArcMarker to bypass Cairo, then restore it. The caller owns xorState bookkeeping and must retain valid old resources until the call completes. </p>
+<p>Borrows the old outline GC and geometry. Polygon outlines submit cached segments. Arcs temporarily force the XOR flag while calling StrokeArcMarker to bypass Cairo, then restore it. The caller owns xorState bookkeeping and must retain valid old resources until the call completes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pmPtr</strong> – <strong>[inout]</strong> Borrowed polygon/arc retaining the old outline GC and geometry; arc xor is temporarily set and restored. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawArcMarker">
 <span class="target" id="group__marker__shape__output_1ga578759b318f5b4628d73fdfe3bb3ebb5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawArcMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a closed mapped arc and then stroke its outline. </p>
-<p>Skips zero extent. Open arcs never fill. Selected-renderer fill contexts consume the exact ellipse; native fallback also receives the clipped fill polygon. Stroke dispatch is shared with export/immediate outline paths. Does not change immediate-XOR bookkeeping. </p>
+<p>Skips zero extent. Open arcs never fill. Selected-renderer fill contexts consume the exact ellipse; native fallback also receives the clipped fill polygon. Stroke dispatch is shared with export/immediate outline paths. Does not change immediate-XOR bookkeeping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed marker of the concrete class described above; common record ownership stays with the caller. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.ArcMarkerExport">
 <span class="target" id="group__marker__shape__output_1gae6f22152ce7abad4c9ed08348f44c4b9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ArcMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.ArcMarkerExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export the exact mapped ellipse with its closure and appearance. </p>
-<p>Skips zero extent and omits fill for open arcs. Borrows geometry/export context, emits a fill if requested and calls the shared arc stroke path. Does not export the flattened picking polygon as the primary curve or modify screen XOR state. </p>
+<p>Skips zero extent and omits fill for open arcs. Borrows geometry/export context, emits a fill if requested and calls the shared arc stroke path. Does not export the flattened picking polygon as the primary curve or modify screen XOR state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed marker of the concrete class described above; common record ownership stays with the caller. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export layout. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1777,140 +2024,314 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.DrawTextMarkerRun">
 <span class="target" id="group__marker__batches_1gaa3d8e86f59ee67c96ff6107695188cd8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTextMarkerRun</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.DrawTextMarkerRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw an eligible Windows text run synchronously in array order. </p>
-<p>Borrows the marker-pointer array for count entries and delegates each to DrawTextMarker. Renderer services own the shared native target. Retains no pointers and neither filters eligibility nor merges text layouts. </p>
+<p>Borrows the marker-pointer array for count entries and delegates each to DrawTextMarker. Renderer services own the shared native target. Retains no pointers and neither filters eligibility nor merges text layouts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed array of count eligible <a class="reference internal" href="#struct_text_marker"><span class="std std-ref">TextMarker</span></a> pointers; records and layouts remain live through the callback. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of eligible text-marker pointers in clientData. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinTextMarker">
 <span class="target" id="group__marker__batches_1ga0ea8ca6903158ac91aa6ac37bc23ded4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinTextMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test eligibility for shared-target Windows text drawing. </p>
-<p>Requires a string, foreground and layout, with no background GC, disabled/ emphasis/active text-style state or visible shadow. Does not require equal fonts/colors across the run and does not reject Cairo: glyph drawing stays native. Outer traversal owns layer and visibility filtering. </p>
+<p>Requires a string, foreground and layout, with no background GC, disabled/ emphasis/active text-style state or visible shadow. Does not require equal fonts/colors across the run and does not reject Cairo: glyph drawing stays native. Outer traversal owns layer and visibility filtering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tmPtr</strong> – <strong>[in]</strong> Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or mutation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinLineMarker">
 <span class="target" id="group__marker__batches_1ga70f9272f063642954ff71e71d9350c7a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinLineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test eligibility for the narrow Windows native line batch. </p>
-<p>Requires nonempty segments/GC and explicit outline, native rendering, no XOR or arrows, solid dashes, exactly one-pixel width, butt caps and miter joins. Dash-gap fill is irrelevant for these solid strokes. Does not test layer, hidden state or associated-element visibility. </p>
+<p>Requires nonempty segments/GC and explicit outline, native rendering, no XOR or arrows, solid dashes, exactly one-pixel width, butt caps and miter joins. Dash-gap fill is irrelevant for these solid strokes. Does not test layer, hidden state or associated-element visibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmPtr</strong> – <strong>[in]</strong> Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or mutation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinPolygonOutlineMarker">
 <span class="target" id="group__marker__batches_1gacd15fd0201b738ffca4cf66e55de5803"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinPolygonOutlineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinPolygonOutlineMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test native outline-only polygon batch eligibility. </p>
-<p>Requires mapped segments/GC, explicit foreground, one-pixel solid butt/ miter stroke, non-Cairo and non-XOR. Rejects a drawable fill to preserve fill-before-outline ordering. Outer traversal filters marker visibility. </p>
+<p>Requires mapped segments/GC, explicit foreground, one-pixel solid butt/ miter stroke, non-Cairo and non-XOR. Rejects a drawable fill to preserve fill-before-outline ordering. Outer traversal filters marker visibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pmPtr</strong> – <strong>[in]</strong> Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or mutation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinPolygonFillMarker">
 <span class="target" id="group__marker__batches_1gadb78f34e562be374e6efd8acf9c43ee2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinPolygonFillMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinPolygonFillMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test native solid fill-only polygon batch eligibility. </p>
-<p>Requires GC, foreground and 3..INT_MAX fill points; rejects Cairo, XOR, stipple, background color and any drawable outline. This narrow predicate makes the subsequent style comparison valid; it does not filter layers. </p>
+<p>Requires GC, foreground and 3..INT_MAX fill points; rejects Cairo, XOR, stipple, background color and any drawable outline. This narrow predicate makes the subsequent style comparison valid; it does not filter layers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pmPtr</strong> – <strong>[in]</strong> Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or mutation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinBitmapMarker">
 <span class="target" id="group__marker__batches_1ga1bb886ac6552e00a520f50de44fd608f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinBitmapMarker" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test opaque unmasked native bitmap batch eligibility. </p>
-<p>Requires destination bitmap, dimensions, GC and both colors; rejects Cairo and destination masks. Accepts right-angle rotations within DBL_EPSILON after modulo reduction. Arbitrary rotations retain the individual background-polygon/mask path. </p>
+<p>Requires destination bitmap, dimensions, GC and both colors; rejects Cairo and destination masks. Accepts right-angle rotations within DBL_EPSILON after modulo reduction. Arbitrary rotations retain the individual background-polygon/mask path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bmPtr</strong> – <strong>[in]</strong> Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or mutation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinLineMarkerStyle">
 <span class="target" id="group__marker__batches_1gaf2e1a41734bc5c5c23d04171801a8d05"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinLineMarkerStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinLineMarkerStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare foreground pixels of already eligible native line markers. </p>
-<p>Returns FALSE for NULL records. Eligibility must have established valid colors and identical width/cap/join/dash/XOR characteristics. Borrows inputs and does not compare geometry or GC identity. </p>
+<p>Returns FALSE for NULL records. Eligibility must have established valid colors and identical width/cap/join/dash/XOR characteristics. Borrows inputs and does not compare geometry or GC identity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>aPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+<li><p><strong>bPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinPolygonOutlineStyle">
 <span class="target" id="group__marker__batches_1gafd9da6702bd2d684a55f016e47a94754"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinPolygonOutlineStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinPolygonOutlineStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare foreground pixels of eligible polygon outlines. </p>
-<p>Returns FALSE for NULL records. Caller must first establish outline-only batch eligibility, including non-NULL foreground and fixed stroke style. </p>
+<p>Returns FALSE for NULL records. Caller must first establish outline-only batch eligibility, including non-NULL foreground and fixed stroke style.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>aPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+<li><p><strong>bPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinPolygonFillStyle">
 <span class="target" id="group__marker__batches_1gaaf4a0a31c70e39c6529635dbcc24e352"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinPolygonFillStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinPolygonFillStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare foreground pixels of eligible solid polygon fills. </p>
-<p>Returns FALSE for NULL records. Requires prior fill-only eligibility; stipple, background, outline and XOR differences have already been excluded. </p>
+<p>Returns FALSE for NULL records. Requires prior fill-only eligibility; stipple, background, outline and XOR differences have already been excluded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>aPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+<li><p><strong>bPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinBitmapStyle">
 <span class="target" id="group__marker__batches_1gae6d5ebe051af2e3c67f225163196171b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinBitmapStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinBitmapStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare the shared source and GC colors of eligible bitmap markers. </p>
-<p>Returns FALSE for NULL records. Otherwise compares destination bitmap identity, dimensions and native GC foreground/background pixels. Placement is deliberately excluded and collected separately. Eligibility guarantees the borrowed GC and bitmap state are valid. </p>
+<p>Returns FALSE for NULL records. Otherwise compares destination bitmap identity, dimensions and native GC foreground/background pixels. Placement is deliberately excluded and collected separately. Eligibility guarantees the borrowed GC and bitmap state are valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>aPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+<li><p><strong>bPtr</strong> – <strong>[in]</strong> Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before comparison. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinLineMarkerBatch">
 <span class="target" id="group__marker__batches_1gada71e04c0d153c2f02a6de92f0cfdcfc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinLineMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nSegmentsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinLineMarkerBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw pending native line segments and reset batch bookkeeping. </p>
-<p>Borrows the array, representative marker and its GC. Emits only for a non-NULL style and positive count, then clears style/count even when empty. Does not free the pass-owned array or marker resources. </p>
+<p>Borrows the array, representative marker and its GC. Emits only for a non-NULL style and positive count, then clears style/count even when empty. Does not free the pass-owned array or marker resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>stylePtrPtr</strong> – <strong>[inout]</strong> Required batch representative slot, possibly containing NULL; reset to NULL after submission. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed array of mapped, independently clipped segments; retained only for this call. </p></li>
+<li><p><strong>nSegmentsPtr</strong> – <strong>[inout]</strong> Required pending segment count matching the array; reset to zero, without freeing storage. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinPolygonMarkerBatch">
 <span class="target" id="group__marker__batches_1gae905fa1381cdedeef36468e9a9d5f3be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinPolygonMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nSegmentsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinPolygonMarkerBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw pending polygon-outline segments and reset the batch. </p>
-<p>Borrows representative outline GC and segment storage. Opens/ends a native segment context only for a nonempty styled batch. Clears style/count; allocation ownership remains with the outer drawing pass. </p>
+<p>Borrows representative outline GC and segment storage. Opens/ends a native segment context only for a nonempty styled batch. Clears style/count; allocation ownership remains with the outer drawing pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>stylePtrPtr</strong> – <strong>[inout]</strong> Required batch representative slot, possibly containing NULL; reset to NULL after submission. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed array of mapped, independently clipped segments; retained only for this call. </p></li>
+<li><p><strong>nSegmentsPtr</strong> – <strong>[inout]</strong> Required pending segment count matching the array; reset to zero, without freeing storage. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.DrawWinPolygonFillMarkers">
 <span class="target" id="group__marker__batches_1gacacef9a75f7885dc2a5e79b71ccbf947"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWinPolygonFillMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nMarkers</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.DrawWinPolygonFillMarkers" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a compatible fill run with one native polygon batch context. </p>
-<p>Borrows markers/style and returns for missing/empty input. Computes maximum point count for renderer scratch capacity, then submits each polygon in array order. Does not merge polygon geometry or assume equal vertex counts. </p>
+<p>Borrows markers/style and returns for missing/empty input. Computes maximum point count for renderer scratch capacity, then submits each polygon in array order. Does not merge polygon geometry or assume equal vertex counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>stylePtr</strong> – <strong>[in]</strong> Borrowed eligible representative supplying the shared fill GC, or NULL for no output. </p></li>
+<li><p><strong>markers</strong> – <strong>[in]</strong> Borrowed array of live, eligible marker pointers in painter order; records are not released. </p></li>
+<li><p><strong>nMarkers</strong> – <strong>[in]</strong> Number of readable marker pointers; nonpositive values produce no output. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinPolygonFillBatch">
 <span class="target" id="group__marker__batches_1ga365a366607d8a1b5021cb31c1fb04a30"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinPolygonFillBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nMarkersPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinPolygonFillBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit pending polygon fills and clear style/count. </p>
-<p>Delegates nonempty styled runs to DrawWinPolygonFillMarkers. Borrows the marker-pointer array; neither destroys markers nor frees batch storage. </p>
+<p>Delegates nonempty styled runs to DrawWinPolygonFillMarkers. Borrows the marker-pointer array; neither destroys markers nor frees batch storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>stylePtrPtr</strong> – <strong>[inout]</strong> Required batch representative slot, possibly containing NULL; reset to NULL after submission. </p></li>
+<li><p><strong>markers</strong> – <strong>[in]</strong> Borrowed array of live, eligible marker pointers in painter order; records are not released. </p></li>
+<li><p><strong>nMarkersPtr</strong> – <strong>[inout]</strong> Required nonnegative pending marker count matching the array; reset to zero after synchronous drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinTextMarkerBatch">
 <span class="target" id="group__marker__batches_1gac9c211428e603d54d202ee6ddf876c07"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinTextMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">TextMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nMarkersPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinTextMarkerBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit a synchronous shared-target text run and clear its count. </p>
-<p>Borrows the marker-pointer array and dispatches through Rbc_RenderScreenRun and DrawTextMarkerRun. Empty batches do nothing. Array ownership remains with Rbc_DrawMarkers; this helper does not free it. </p>
+<p>Borrows the marker-pointer array and dispatches through Rbc_RenderScreenRun and DrawTextMarkerRun. Empty batches do nothing. Array ownership remains with Rbc_DrawMarkers; this helper does not free it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>markers</strong> – <strong>[in]</strong> Borrowed array of live, eligible marker pointers in painter order; records are not released. </p></li>
+<li><p><strong>nMarkersPtr</strong> – <strong>[inout]</strong> Required nonnegative pending marker count matching the array; reset to zero after synchronous drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinBitmapMarkerBatch">
 <span class="target" id="group__marker__batches_1gaac94523ab6ee4589886324a5fc9c19f0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinBitmapMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nPositionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinBitmapMarkerBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw compatible bitmap placements and reset batch bookkeeping. </p>
-<p>Borrows the representative bitmap/GC/dimensions and position array. Sends a nonempty run to renderer bitmap services, then clears style/count. Does not acquire or release source bitmap ownership. </p>
+<p>Borrows the representative bitmap/GC/dimensions and position array. Sends a nonempty run to renderer bitmap services, then clears style/count. Does not acquire or release source bitmap ownership.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>stylePtrPtr</strong> – <strong>[inout]</strong> Required batch representative slot, possibly containing NULL; reset to NULL after submission. </p></li>
+<li><p><strong>positions</strong> – <strong>[in]</strong> Borrowed array of integer destination positions, matching the pending count. </p></li>
+<li><p><strong>nPositionsPtr</strong> – <strong>[inout]</strong> Required nonnegative pending position count; reset to zero without freeing the array. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.GetMarkerStroke">
 <span class="target" id="group__marker__batches_1ga0fe24727b08a28c80ca6b105eb3d33c9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerStroke</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <a class="reference internal" href="#c.rbcGrMarkerBatches.MarkerStroke" title="MarkerStroke"><span class="n"><span class="pre">MarkerStroke</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stroke</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.GetMarkerStroke" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Describe a Cairo-compatible line or polygon-outline stroke. </p>
-<p>Writes a borrowed segment/color view for non-XOR solid lines without arrows, or polygons without drawable fills. Requires the appropriate GC and returns TRUE only for nonempty geometry and explicit color. Width is normalized to at least one. Output may be partially written on FALSE and must not be used then. Arcs and non-Cairo graphs are excluded. </p>
+<p>Writes a borrowed segment/color view for non-XOR solid lines without arrows, or polygons without drawable fills. Requires the appropriate GC and returns TRUE only for nonempty geometry and explicit color. Width is normalized to at least one. Output may be partially written on FALSE and must not be used then. Arcs and non-Cairo graphs are excluded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markerPtr</strong> – <strong>[in]</strong> Borrowed marker to inspect; only eligible line and polygon classes produce a descriptor. </p></li>
+<li><p><strong>stroke</strong> – <strong>[out]</strong> Required descriptor receiving borrowed geometry/colors on TRUE; contents are unusable on FALSE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameMarkerStroke">
 <span class="target" id="group__marker__batches_1ga4621b43130a58590920b82f50abba4c4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameMarkerStroke</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcGrMarkerBatches.MarkerStroke" title="MarkerStroke"><span class="n"><span class="pre">MarkerStroke</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">a</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcGrMarkerBatches.MarkerStroke" title="MarkerStroke"><span class="n"><span class="pre">MarkerStroke</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameMarkerStroke" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare renderer stroke state independently of marker identity. </p>
-<p>Requires two successful stroke descriptors. Compares width, cap, join and RGB channels, not color-pointer identity or segment storage. A match allows context reuse, not path merging or a single combined alpha operation. </p>
+<p>Requires two successful stroke descriptors. Compares width, cap, join and RGB channels, not color-pointer identity or segment storage. A match allows context reuse, not path merging or a single combined alpha operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – <strong>[in]</strong> Borrowed successful GetMarkerStroke descriptor; its color must remain live. </p></li>
+<li><p><strong>b</strong> – <strong>[in]</strong> Borrowed second successful GetMarkerStroke descriptor; its color must remain live. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.MarkersNeedRenderTarget">
 <span class="target" id="group__marker__batches_1gaf39b06d80f4d5fb255a52412bf145588"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MarkersNeedRenderTarget</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.MarkersNeedRenderTarget" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Conservatively decide whether a Windows Cairo pass needs a target. </p>
-<p>Returns FALSE for non-Cairo graphs. Scans the requested layer, skipping hidden/clipped/coordinate-free markers, windows, background-free text and XOR line/polygon markers. Does not repeat associated-element hidden checks, so TRUE can overestimate actual drawing. Owns no render target itself. </p>
+<p>Returns FALSE for non-Cairo graphs. Scans the requested layer, skipping hidden/clipped/coordinate-free markers, windows, background-free text and XOR line/polygon markers. Does not repeat associated-element hidden checks, so TRUE can overestimate actual drawing. Owns no render target itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>under</strong> – <strong>[in]</strong> Exact drawUnder selector: one for the under layer, zero for overlays. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrMarkerBatches.DrawTrackMarkers">
 <span class="target" id="group__marker__batches_1gaa251901f6662afbb13b08b3d8a838284"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTrackMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.DrawTrackMarkers" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw one trackgraph marker layer in painter order with per-track clipping. </p>
-<p>Skips windows and ineligible visibility/layer/element associations. Graph-wide markers draw directly. Track-owned markers use a lazily created reusable screen clip context with bounded rectangles and paired viewport entry/exit around class drawing. An unavailable clip drawable skips that marker. Ends each clip scope and the reusable context; no ordinary-graph batch arrays or cross-marker stroke context are used. </p>
+<p>Skips windows and ineligible visibility/layer/element associations. Graph-wide markers draw directly. Track-owned markers use a lazily created reusable screen clip context with bounded rectangles and paired viewport entry/exit around class drawing. An unavailable clip drawable skips that marker. Ends each clip scope and the reusable context; no ordinary-graph batch arrays or cross-marker stroke context are used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed owning graph with live drawing resources and the required current viewport. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible screen destination; no ownership is transferred. </p></li>
+<li><p><strong>under</strong> – <strong>[in]</strong> Exact drawUnder selector: one for the under layer, zero for overlays. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

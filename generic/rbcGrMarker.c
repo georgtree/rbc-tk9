@@ -3796,6 +3796,14 @@ static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
  * width and Tk-style neck interpolation. Returns FALSE for an adjacent point
  * within DBL_EPSILON of the tip; outputs must not be used on that path.
  * Allocates nothing and does not clip the resulting head.
+ *
+ * @param[in] tip Arrow tip in display coordinates, after marker pixel offsets.
+ * @param[in] adjacent Adjacent mapped vertex defining the direction toward the tip.
+ * @param[in] lineWidth Effective shaft width in pixels; callers substitute one for a zero-width hairline.
+ * @param[in] shape Borrowed three-element array of arrow distances A, B and C in pixels.
+ * @param[out] arrow Required PTS_IN_ARROW-element output array, including the repeated closing tip; valid only
+ *   on TRUE.
+ * @param[out] shaftPtr Required shortened shaft endpoint, valid only when TRUE is returned.
  */
 static int ComputeArrowHead(Point2D tip, Point2D adjacent, double lineWidth, const double shape[3],
                             Point2D arrow[PTS_IN_ARROW], Point2D *shaftPtr) {
@@ -3850,6 +3858,9 @@ static int ComputeArrowHead(Point2D tip, Point2D adjacent, double lineWidth, con
  *
  * Borrows both inputs; returns TRUE on the rectangle boundary as well as
  * inside it. No coordinate mapping, tolerance expansion or mutation.
+ *
+ * @param[in] pointPtr Borrowed point in display coordinates.
+ * @param[in] extsPtr Borrowed ordered query rectangle in display coordinates.
  */
 static int PointInsideExtents(const Point2D *pointPtr, const Extents2D *extsPtr) {
     return ((pointPtr->x >= extsPtr->left) && (pointPtr->x <= extsPtr->right) && (pointPtr->y >= extsPtr->top) &&
@@ -3866,6 +3877,9 @@ static int PointInsideExtents(const Point2D *pointPtr, const Extents2D *extsPtr)
  * Owns the replacement segment allocation. Size/allocation failure leaves an
  * empty clipped marker without a Tcl error. A visible head alone makes the
  * marker non-clipped even when no shaft segment survives.
+ *
+ * @param[in,out] markerPtr Borrowed line marker whose owned mapping caches are replaced in the current
+ *   axis/track viewport.
  */
 static void MapLineMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -3982,6 +3996,9 @@ static void MapLineMarker(Marker *markerPtr) {
  * Borrows mapped caches. Tests five unique vertices per enabled head, then
  * segment distance using the graph halo. Does not expand that halo by shaft
  * width or refresh layout.
+ *
+ * @param[in] markerPtr Borrowed line marker with current mapped caches; no ownership is transferred.
+ * @param[in] samplePtr Borrowed query point in display coordinates; mapping is not refreshed here.
  */
 static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
@@ -4011,6 +4028,10 @@ static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
  * (including pixel offsets) and every enabled head inside the rectangle.
  * Overlap accepts any original edge or cached head intersection. Unlike point
  * picking, shaft tests do not use the plot-clipped segment cache or graph halo.
+ *
+ * @param[in] markerPtr Borrowed line marker with current mapped caches; no ownership is transferred.
+ * @param[in] extsPtr Borrowed ordered query rectangle in display coordinates.
+ * @param[in] enclosed Nonzero requests complete enclosure; zero requests overlap.
  */
 static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     LineMarker *lmPtr;
@@ -4096,6 +4117,18 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
  * FALSE so the caller can use its native GC path. Otherwise sets caps/joins,
  * submits all segments, ends the context and returns TRUE. Width is at least
  * one pixel; TRUE denotes dispatch, not a pixel-visibility assertion.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in] segments Borrowed array of mapped, independently clipped segments; retained only for this call.
+ * @param[in] count Nonnegative number of readable segment entries.
+ * @param[in] color Borrowed foreground color passed to renderer selection.
+ * @param[in] gapColor Borrowed dash-gap background color, or NULL for transparent gaps.
+ * @param[in] width Requested stroke width in pixels, clamped to at least one.
+ * @param[in] dashes Borrowed dash description, including its offset.
+ * @param[in] cap Native cap-style selector for the stroke context.
+ * @param[in] join Native join-style selector for the stroke context.
+ * @param[in] xorMode Nonzero forces FALSE without drawing so the caller can use its XOR GC.
  */
 static int DrawRenderedMarkerSegments(Graph *graphPtr, Drawable drawable, const Segment2D *segments, Tcl_Size count,
                                       const XColor *color, const XColor *gapColor, int width, const Rbc_Dashes *dashes,
@@ -4123,6 +4156,9 @@ static int DrawRenderedMarkerSegments(Graph *graphPtr, Drawable drawable, const 
  * segment renderer. With heads, rounds endpoints in bounded 128-segment
  * stack batches before dispatch. Never modifies mapped doubles used by
  * picking/export and never draws the heads themselves.
+ *
+ * @param[in] lmPtr Borrowed line marker with current mapped geometry and valid graphics context.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
  */
 static void DrawNativeLineSegments(LineMarker *lmPtr, Drawable drawable) {
     Graph *graphPtr = lmPtr->core.graphPtr;
@@ -4153,6 +4189,10 @@ static void DrawNativeLineSegments(LineMarker *lmPtr, Drawable drawable) {
  * options such as xor, arrow and outline. Redraws shaft and enabled heads when
  * a drawable and GC remain, including head-only markers, then clears xorState.
  * Does not map geometry, select a renderer or schedule graph redraw.
+ *
+ * @param[in,out] lmPtr Borrowed line marker retaining old XOR geometry/GC; xorState is cleared even if erasure
+ *   cannot draw.
+ * @param[in] drawable Original screen destination, or None to clear bookkeeping without drawing.
  */
 static void EraseLineMarkerXor(LineMarker *lmPtr, Drawable drawable) {
     Graph *graphPtr = lmPtr->core.graphPtr;
@@ -4182,6 +4222,11 @@ static void EraseLineMarkerXor(LineMarker *lmPtr, Drawable drawable) {
  * align area boundaries with the rendered shaft. Returns the area helper
  * status for fallback selection. Original geometry remains unchanged for
  * native drawing, picking and document export.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in] arrow Borrowed mapped arrow vertices; only the five unique vertices are read.
+ * @param[in] color Borrowed foreground color passed to renderer selection.
  */
 static int DrawRenderedArrowHead(Graph *graphPtr, Drawable drawable, const Point2D *arrow, XColor *color) {
     Point2D points[PTS_IN_ARROW - 1];
@@ -4203,6 +4248,10 @@ static int DrawRenderedArrowHead(Graph *graphPtr, Drawable drawable, const Point
  * XOR always uses native paths. An absent non-XOR outline may be recovered
  * from the GC foreground for screen drawing. Toggles xorState after any
  * drawing only for graph-wide XOR markers, not track-owned markers.
+ *
+ * @param[in,out] markerPtr Borrowed marker of the concrete class described above; common record ownership stays
+ *   with the caller.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
  */
 static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
@@ -4248,6 +4297,9 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
  * diagnostic for a malformed list, wrong count or invalid screen distance.
  * Earlier output entries may be written before failure. No additional
  * positivity or relative-size check is performed here.
+ *
+ * @param[in] lmPtr Borrowed line marker supplying the arrow-shape Tcl object, interpreter and window.
+ * @param[out] shape Required three-double output array; earlier entries may be assigned before TCL_ERROR.
  */
 static int ParseArrowShape(LineMarker *lmPtr, double shape[3]) {
     Graph *graphPtr = lmPtr->core.graphPtr;
@@ -4283,6 +4335,9 @@ static int ParseArrowShape(LineMarker *lmPtr, double shape[3]) {
  * then maps/draws graph-wide XOR immediately or schedules redraw (including
  * track transitions). Erasure uses old caches and GC regardless of new options.
  * Under-layer scheduled drawing invalidates the backing store.
+ *
+ * @param[in,out] markerPtr Borrowed line marker with candidate Tk option fields installed by the outer
+ *   saved-options transaction.
  */
 static int ConfigureLineMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -4448,6 +4503,10 @@ error:
  * Borrows the mapped arrow and export context. An empty outline suppresses
  * head output rather than recovering the screen GC color. Creates and ends
  * a fill-render context; does not shorten or remap the shaft.
+ *
+ * @param[in] lmPtr Borrowed line marker with current mapped geometry and valid graphics context.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export layout.
+ * @param[in] arrow Borrowed mapped arrow vertices; only the five unique vertices are read.
  */
 static void ArrowHeadExport(LineMarker *lmPtr, Rbc_ExportContext *exportPtr, Point2D *arrow) {
     if (lmPtr->outlineColor == NULL) {
@@ -4468,6 +4527,10 @@ static void ArrowHeadExport(LineMarker *lmPtr, Rbc_ExportContext *exportPtr, Poi
  * dash-gap color for the shaft, then exports enabled heads. Uses the original
  * double geometry without native rounding or screen half-pixel shifts.
  * Export does not toggle XOR state.
+ *
+ * @param[in] markerPtr Borrowed marker of the concrete class described above; common record ownership stays
+ *   with the caller.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export layout.
  */
 static void LineMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
@@ -4503,6 +4566,10 @@ static void LineMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
  * Erases recorded immediate XOR shaft and heads while a drawable and GC
  * remain, including head-only geometry. Clears released pointers and
  * segment count. Common lifecycle code owns subsequent record destruction.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in,out] markerPtr Borrowed line marker whose class-owned resources are released; the common record is
+ *   retained.
  */
 static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
     LineMarker *lmPtr;
@@ -4556,6 +4623,9 @@ static Marker *CreateLineMarker() {
  * width, and include the closing edge. Each allocation is size-checked and
  * fallible without a Tcl error. A partial cache may survive another cache
  * allocation failure; clipped becomes FALSE when drawable geometry remains.
+ *
+ * @param[in,out] markerPtr Borrowed polygon marker whose owned mapping caches are replaced in the current
+ *   axis/track viewport.
  */
 static void MapPolygonMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -4662,6 +4732,9 @@ static void MapPolygonMarker(Marker *markerPtr) {
  * Requires screenPts and at least three world vertices. Borrows that cache
  * and tests polygon interior irrespective of fill visibility or line width.
  * Does not use clipped fill geometry, graph halo or refresh mapping.
+ *
+ * @param[in] markerPtr Borrowed polygon marker with current mapped caches; no ownership is transferred.
+ * @param[in] samplePtr Borrowed query point in display coordinates; mapping is not refreshed here.
  */
 static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
     PolygonMarker *pmPtr;
@@ -4680,6 +4753,10 @@ static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
  * Requires screenPts and at least three world vertices, then delegates to
  * the region/polygon helper. Uses original mapped vertices rather than
  * clipped fill/outline caches and ignores stroke thickness.
+ *
+ * @param[in] markerPtr Borrowed polygon marker with current mapped caches; no ownership is transferred.
+ * @param[in] extsPtr Borrowed ordered query rectangle in display coordinates.
+ * @param[in] enclosed Nonzero requests complete enclosure; zero requests overlap.
  */
 static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     PolygonMarker *pmPtr;
@@ -4699,6 +4776,10 @@ static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int encl
  * stroke operations, with native GC fallback (forced for XOR). Fill needs
  * at least three points; outline needs positive width and a foreground.
  * Does not update immediate-XOR bookkeeping.
+ *
+ * @param[in] markerPtr Borrowed marker of the concrete class described above; common record ownership stays
+ *   with the caller.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
  */
 static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
     Graph *graphPtr;
@@ -4742,6 +4823,10 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
  * foreground/background/stipple; outline preserves width, cap/join and dash
  * gap color. Creates and ends each renderer context independently, without
  * remapping or altering XOR state.
+ *
+ * @param[in] markerPtr Borrowed marker of the concrete class described above; common record ownership stays
+ *   with the caller.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export layout.
  */
 static void PolygonMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
@@ -4775,6 +4860,9 @@ static void PolygonMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr)
  * open arcs qualify as outline-only. Otherwise marks for mapping and redraw,
  * invalidating under-layer backing storage. Fill GC construction does not
  * apply the outline GC XOR function.
+ *
+ * @param[in,out] markerPtr Borrowed polygon or arc marker with candidate Tk option fields installed by the
+ *   outer saved-options transaction.
  */
 static int ConfigurePolygonMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -4988,6 +5076,10 @@ error:
  * arrays, clearing pointers/counts as implemented. Frees manually owned color
  * pairs; common option/record cleanup retains responsibility for the stipple,
  * world points, tags and the record itself.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in,out] markerPtr Borrowed polygon or arc marker whose class-owned resources are released; the common
+ *   record is retained.
  */
 static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
     PolygonMarker *pmPtr;
@@ -5063,6 +5155,9 @@ static Marker *CreatePolygonMarker(void) {
  * plus outline margin, independent of successful cache allocation. Fallible
  * allocations do not set Tcl errors; picking caches can be absent even when
  * the exact curve remains eligible for renderer drawing.
+ *
+ * @param[in,out] markerPtr Borrowed arc marker whose owned mapping caches are replaced in the current
+ *   axis/track viewport.
  */
 static void MapArcMarker(Marker *markerPtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
@@ -5195,6 +5290,9 @@ static void MapArcMarker(Marker *markerPtr) {
  * Requires a two-corner world box. Tests the clipped fill polygon first, then
  * outline segments with tolerance max(graph halo, half line width). Borrows
  * caches; does not analytically test the ellipse or rebuild missing geometry.
+ *
+ * @param[in] markerPtr Borrowed arc marker with current mapped caches; no ownership is transferred.
+ * @param[in] samplePtr Borrowed query point in display coordinates; mapping is not refreshed here.
  */
 static int PointInArcMarker(Marker *markerPtr, Point2D *samplePtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
@@ -5212,6 +5310,10 @@ static int PointInArcMarker(Marker *markerPtr, Point2D *samplePtr) {
  * Enclosure tests every untrimmed flattened vertex; overlap tests clipped
  * fill and outline segments. Neither branch expands the rectangle by stroke
  * width or provides an exact analytic curve test.
+ *
+ * @param[in] markerPtr Borrowed arc marker with current mapped caches; no ownership is transferred.
+ * @param[in] extsPtr Borrowed ordered query rectangle in display coordinates.
+ * @param[in] enclosed Nonzero requests complete enclosure; zero requests overlap.
  */
 static int RegionInArcMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
@@ -5241,6 +5343,10 @@ static int RegionInArcMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed
  * requested. Native fallback receives clipped flattened segments as well as
  * the exact ellipse. Renderer arc handling owns continuous-path dash/join
  * behavior; this helper does not join vertices itself.
+ *
+ * @param[in] pmPtr Borrowed polygon/arc record with current mapped geometry and drawing resources.
+ * @param[in] drawable Screen destination for native fallback; normal export callers pass None.
+ * @param[in,out] exportPtr Borrowed export context, or NULL to select screen output.
  */
 static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
     Graph *graphPtr = pmPtr->core.graphPtr;
@@ -5271,6 +5377,10 @@ static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportC
  * segments. Arcs temporarily force the XOR flag while calling StrokeArcMarker
  * to bypass Cairo, then restore it. The caller owns xorState bookkeeping
  * and must retain valid old resources until the call completes.
+ *
+ * @param[in,out] pmPtr Borrowed polygon/arc retaining the old outline GC and geometry; arc xor is temporarily
+ *   set and restored.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
  */
 static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable) {
     if (pmPtr->core.classUid == rbcArcMarkerUid) {
@@ -5293,6 +5403,10 @@ static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable)
  * consume the exact ellipse; native fallback also receives the clipped fill
  * polygon. Stroke dispatch is shared with export/immediate outline paths.
  * Does not change immediate-XOR bookkeeping.
+ *
+ * @param[in] markerPtr Borrowed marker of the concrete class described above; common record ownership stays
+ *   with the caller.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
  */
 static void DrawArcMarker(Marker *markerPtr, Drawable drawable) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
@@ -5321,6 +5435,10 @@ static void DrawArcMarker(Marker *markerPtr, Drawable drawable) {
  * context, emits a fill if requested and calls the shared arc stroke path.
  * Does not export the flattened picking polygon as the primary curve or
  * modify screen XOR state.
+ *
+ * @param[in] markerPtr Borrowed marker of the concrete class described above; common record ownership stays
+ *   with the caller.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export layout.
  */
 static void ArcMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
@@ -6097,6 +6215,11 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
  * Borrows the marker-pointer array for count entries and delegates each to
  * DrawTextMarker. Renderer services own the shared native target. Retains no
  * pointers and neither filters eligibility nor merges text layouts.
+ *
+ * @param[in] clientData Borrowed array of count eligible TextMarker pointers; records and layouts remain live
+ *   through the callback.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in] count Nonnegative number of eligible text-marker pointers in clientData.
  */
 static void DrawTextMarkerRun(void *clientData, Drawable drawable, Tcl_Size count) {
     TextMarker **markers = clientData;
@@ -6114,6 +6237,9 @@ static void DrawTextMarkerRun(void *clientData, Drawable drawable, Tcl_Size coun
  * emphasis/active text-style state or visible shadow. Does not require equal
  * fonts/colors across the run and does not reject Cairo: glyph drawing stays
  * native. Outer traversal owns layer and visibility filtering.
+ *
+ * @param[in] tmPtr Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or
+ *   mutation.
  */
 static int CanBatchWinTextMarker(TextMarker *tmPtr) {
     if ((tmPtr == NULL) || (tmPtr->string == NULL) || (tmPtr->style.color == NULL) || (tmPtr->textPtr == NULL)) {
@@ -6147,6 +6273,9 @@ static int CanBatchWinTextMarker(TextMarker *tmPtr) {
  * XOR or arrows, solid dashes, exactly one-pixel width, butt caps and miter
  * joins. Dash-gap fill is irrelevant for these solid strokes. Does not test
  * layer, hidden state or associated-element visibility.
+ *
+ * @param[in] lmPtr Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or
+ *   mutation.
  */
 static int CanBatchWinLineMarker(LineMarker *lmPtr) {
     if ((lmPtr == NULL) || (lmPtr->gc == NULL) || (lmPtr->segments == NULL) || (lmPtr->nSegments <= 0)) {
@@ -6193,6 +6322,9 @@ static int CanBatchWinLineMarker(LineMarker *lmPtr) {
  * Requires mapped segments/GC, explicit foreground, one-pixel solid butt/
  * miter stroke, non-Cairo and non-XOR. Rejects a drawable fill to preserve
  * fill-before-outline ordering. Outer traversal filters marker visibility.
+ *
+ * @param[in] pmPtr Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or
+ *   mutation.
  */
 static int CanBatchWinPolygonOutlineMarker(PolygonMarker *pmPtr) {
     if ((pmPtr == NULL) || (pmPtr->outlineGC == NULL) || (pmPtr->outlinePts == NULL) || (pmPtr->nOutlinePts <= 0)) {
@@ -6236,6 +6368,9 @@ static int CanBatchWinPolygonOutlineMarker(PolygonMarker *pmPtr) {
  * Requires GC, foreground and 3..INT_MAX fill points; rejects Cairo, XOR,
  * stipple, background color and any drawable outline. This narrow predicate
  * makes the subsequent style comparison valid; it does not filter layers.
+ *
+ * @param[in] pmPtr Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or
+ *   mutation.
  */
 static int CanBatchWinPolygonFillMarker(PolygonMarker *pmPtr) {
     if ((pmPtr == NULL) || (pmPtr->fillGC == NULL) || (pmPtr->fillPts == NULL) || (pmPtr->nFillPts < 3) ||
@@ -6279,6 +6414,9 @@ static int CanBatchWinPolygonFillMarker(PolygonMarker *pmPtr) {
  * and destination masks. Accepts right-angle rotations within DBL_EPSILON
  * after modulo reduction. Arbitrary rotations retain the individual
  * background-polygon/mask path.
+ *
+ * @param[in] bmPtr Borrowed concrete marker to inspect, or NULL (returns FALSE); no visibility filtering or
+ *   mutation.
  */
 static int CanBatchWinBitmapMarker(BitmapMarker *bmPtr) {
     double theta;
@@ -6322,6 +6460,11 @@ static int CanBatchWinBitmapMarker(BitmapMarker *bmPtr) {
  * Returns FALSE for NULL records. Eligibility must have established valid
  * colors and identical width/cap/join/dash/XOR characteristics. Borrows inputs
  * and does not compare geometry or GC identity.
+ *
+ * @param[in] aPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
+ * @param[in] bPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
  */
 static int SameWinLineMarkerStyle(LineMarker *aPtr, LineMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
@@ -6340,6 +6483,11 @@ static int SameWinLineMarkerStyle(LineMarker *aPtr, LineMarker *bPtr) {
  *
  * Returns FALSE for NULL records. Caller must first establish outline-only
  * batch eligibility, including non-NULL foreground and fixed stroke style.
+ *
+ * @param[in] aPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
+ * @param[in] bPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
  */
 static int SameWinPolygonOutlineStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
@@ -6354,6 +6502,11 @@ static int SameWinPolygonOutlineStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) 
  *
  * Returns FALSE for NULL records. Requires prior fill-only eligibility;
  * stipple, background, outline and XOR differences have already been excluded.
+ *
+ * @param[in] aPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
+ * @param[in] bPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
  */
 static int SameWinPolygonFillStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
@@ -6370,6 +6523,11 @@ static int SameWinPolygonFillStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
  * identity, dimensions and native GC foreground/background pixels. Placement
  * is deliberately excluded and collected separately. Eligibility guarantees
  * the borrowed GC and bitmap state are valid.
+ *
+ * @param[in] aPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
+ * @param[in] bPtr Borrowed already-eligible marker, or NULL (returns FALSE); eligibility must be checked before
+ *   comparison.
  */
 static int SameWinBitmapStyle(BitmapMarker *aPtr, BitmapMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
@@ -6387,6 +6545,14 @@ static int SameWinBitmapStyle(BitmapMarker *aPtr, BitmapMarker *bPtr) {
  * Borrows the array, representative marker and its GC. Emits only for a
  * non-NULL style and positive count, then clears style/count even when empty.
  * Does not free the pass-owned array or marker resources.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in,out] stylePtrPtr Required batch representative slot, possibly containing NULL; reset to NULL after
+ *   submission.
+ * @param[in] segments Borrowed array of mapped, independently clipped segments; retained only for this call.
+ * @param[in,out] nSegmentsPtr Required pending segment count matching the array; reset to zero, without freeing
+ *   storage.
  */
 static void FlushWinLineMarkerBatch(Graph *graphPtr, Drawable drawable, LineMarker **stylePtrPtr, Segment2D *segments,
                                     Tcl_Size *nSegmentsPtr) {
@@ -6404,6 +6570,14 @@ static void FlushWinLineMarkerBatch(Graph *graphPtr, Drawable drawable, LineMark
  * Borrows representative outline GC and segment storage. Opens/ends a native
  * segment context only for a nonempty styled batch. Clears style/count;
  * allocation ownership remains with the outer drawing pass.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in,out] stylePtrPtr Required batch representative slot, possibly containing NULL; reset to NULL after
+ *   submission.
+ * @param[in] segments Borrowed array of mapped, independently clipped segments; retained only for this call.
+ * @param[in,out] nSegmentsPtr Required pending segment count matching the array; reset to zero, without freeing
+ *   storage.
  */
 static void FlushWinPolygonMarkerBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,
                                        Segment2D *segments, Tcl_Size *nSegmentsPtr) {
@@ -6423,6 +6597,13 @@ static void FlushWinPolygonMarkerBatch(Graph *graphPtr, Drawable drawable, Polyg
  * Borrows markers/style and returns for missing/empty input. Computes maximum
  * point count for renderer scratch capacity, then submits each polygon in
  * array order. Does not merge polygon geometry or assume equal vertex counts.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in] stylePtr Borrowed eligible representative supplying the shared fill GC, or NULL for no output.
+ * @param[in] markers Borrowed array of live, eligible marker pointers in painter order; records are not
+ *   released.
+ * @param[in] nMarkers Number of readable marker pointers; nonpositive values produce no output.
  */
 static void DrawWinPolygonFillMarkers(Graph *graphPtr, Drawable drawable, PolygonMarker *stylePtr,
                                       PolygonMarker **markers, Tcl_Size nMarkers) {
@@ -6445,6 +6626,15 @@ static void DrawWinPolygonFillMarkers(Graph *graphPtr, Drawable drawable, Polygo
  *
  * Delegates nonempty styled runs to DrawWinPolygonFillMarkers. Borrows the
  * marker-pointer array; neither destroys markers nor frees batch storage.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in,out] stylePtrPtr Required batch representative slot, possibly containing NULL; reset to NULL after
+ *   submission.
+ * @param[in] markers Borrowed array of live, eligible marker pointers in painter order; records are not
+ *   released.
+ * @param[in,out] nMarkersPtr Required nonnegative pending marker count matching the array; reset to zero after
+ *   synchronous drawing.
  */
 static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,
                                      PolygonMarker **markers, Tcl_Size *nMarkersPtr) {
@@ -6462,6 +6652,13 @@ static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, Polygon
  * Borrows the marker-pointer array and dispatches through Rbc_RenderScreenRun
  * and DrawTextMarkerRun. Empty batches do nothing. Array ownership remains
  * with Rbc_DrawMarkers; this helper does not free it.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in] markers Borrowed array of live, eligible marker pointers in painter order; records are not
+ *   released.
+ * @param[in,out] nMarkersPtr Required nonnegative pending marker count matching the array; reset to zero after
+ *   synchronous drawing.
  */
 static void FlushWinTextMarkerBatch(Graph *graphPtr, Drawable drawable, TextMarker **markers, Tcl_Size *nMarkersPtr) {
     if (*nMarkersPtr > 0) {
@@ -6477,6 +6674,14 @@ static void FlushWinTextMarkerBatch(Graph *graphPtr, Drawable drawable, TextMark
  * Borrows the representative bitmap/GC/dimensions and position array. Sends
  * a nonempty run to renderer bitmap services, then clears style/count.
  * Does not acquire or release source bitmap ownership.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in,out] stylePtrPtr Required batch representative slot, possibly containing NULL; reset to NULL after
+ *   submission.
+ * @param[in] positions Borrowed array of integer destination positions, matching the pending count.
+ * @param[in,out] nPositionsPtr Required nonnegative pending position count; reset to zero without freeing the
+ *   array.
  */
 static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, BitmapMarker **stylePtrPtr,
                                       Rbc_RenderPosition *positions, Tcl_Size *nPositionsPtr) {
@@ -6514,6 +6719,10 @@ typedef struct {
  * and returns TRUE only for nonempty geometry and explicit color. Width is
  * normalized to at least one. Output may be partially written on FALSE and
  * must not be used then. Arcs and non-Cairo graphs are excluded.
+ *
+ * @param[in] markerPtr Borrowed marker to inspect; only eligible line and polygon classes produce a descriptor.
+ * @param[out] stroke Required descriptor receiving borrowed geometry/colors on TRUE; contents are unusable on
+ *   FALSE.
  */
 static int GetMarkerStroke(Marker *markerPtr, MarkerStroke *stroke) {
     if (markerPtr->graphPtr->renderer != RBC_RENDERER_CAIRO) {
@@ -6555,6 +6764,9 @@ static int GetMarkerStroke(Marker *markerPtr, MarkerStroke *stroke) {
  * Requires two successful stroke descriptors. Compares width, cap, join and
  * RGB channels, not color-pointer identity or segment storage. A match allows
  * context reuse, not path merging or a single combined alpha operation.
+ *
+ * @param[in] a Borrowed successful GetMarkerStroke descriptor; its color must remain live.
+ * @param[in] b Borrowed second successful GetMarkerStroke descriptor; its color must remain live.
  */
 static int SameMarkerStroke(const MarkerStroke *a, const MarkerStroke *b) {
     return (a->width == b->width) && (a->cap == b->cap) && (a->join == b->join) && (a->color->red == b->color->red) &&
@@ -6570,6 +6782,9 @@ static int SameMarkerStroke(const MarkerStroke *a, const MarkerStroke *b) {
  * hidden/clipped/coordinate-free markers, windows, background-free text and
  * XOR line/polygon markers. Does not repeat associated-element hidden checks,
  * so TRUE can overestimate actual drawing. Owns no render target itself.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] under Exact drawUnder selector: one for the under layer, zero for overlays.
  */
 static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
     Rbc_ChainLink *link;
@@ -6609,6 +6824,10 @@ static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
  * entry/exit around class drawing. An unavailable clip drawable skips that
  * marker. Ends each clip scope and the reusable context; no ordinary-graph
  * batch arrays or cross-marker stroke context are used.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph with live drawing resources and the required current viewport.
+ * @param[in] drawable Borrowed compatible screen destination; no ownership is transferred.
+ * @param[in] under Exact drawUnder selector: one for the under layer, zero for overlays.
  */
 static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *link;

@@ -367,7 +367,7 @@ geometry and picking contracts. <code class="docutils literal notranslate"><span
 private GC, with fixed-size arrowhead arrays inside the record.
 <code class="docutils literal notranslate"><span class="pre">PolygonMarker</span></code> is also the storage type for arcs: <code class="docutils literal notranslate"><span class="pre">CreateArcMarker</span></code> changes
 the class callback table, while configuration and resource release continue to
-use <code class="docutils literal notranslate"><span class="pre">ConfigurePolygonMarker</span></code> and <code class="docutils literal notranslate"><span class="pre">FreePolygonMarker</span></code>.</p>
+use <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.ConfigurePolygonMarker" title="rbcGrMarkerPolygon.ConfigurePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.ConfigurePolygonMarker()</span></code></a> and <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.FreePolygonMarker" title="rbcGrMarkerPolygon.FreePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.FreePolygonMarker()</span></code></a>.</p>
 <table class="docutils align-default" id="id4">
 <caption><span class="caption-text">Geometry ownership and consumers</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
 <colgroup>
@@ -420,16 +420,16 @@ assume that a non-clipped arc necessarily has points available for picking.
 These are void mapping callbacks, not transactional configuration operations.</p>
 <section id="line-shafts-and-arrowheads">
 <h3>Line shafts and arrowheads<a class="headerlink" href="#line-shafts-and-arrowheads" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">MapLineMarker</span></code> first obtains plot extents, maps the original endpoint and its
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLine.MapLineMarker" title="rbcGrMarkerLine.MapLineMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLine.MapLineMarker()</span></code></a> first obtains plot extents, maps the original endpoint and its
 immediate neighbor, and applies pixel offsets. It creates a requested head only
 if the tip is inside those extents. Coincident endpoint/neighbor pairs suppress
 that head; mapping does not search farther along the polyline for a direction.
 The resulting shaft endpoint is backed up to the neck before the shaft edges
 are individually clipped. A surviving arrowhead can keep the marker drawable
 even when no shaft segment survives.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ComputeArrowHead</span></code> follows Tk-style arrow construction. Shape distances are
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLine.ComputeArrowHead" title="rbcGrMarkerLine.ComputeArrowHead"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLine.ComputeArrowHead()</span></code></a> follows Tk-style arrow construction. Shape distances are
 adjusted by a small epsilon, lateral width includes half the effective shaft
-width, and neck interpolation determines the shaft backup. <code class="docutils literal notranslate"><span class="pre">ParseArrowShape</span></code>
+width, and neck interpolation determines the shaft backup. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLine.ParseArrowShape" title="rbcGrMarkerLine.ParseArrowShape"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLine.ParseArrowShape()</span></code></a>
 requires exactly three valid screen distances; it adds no separate positivity
 or ordering validation. The effective width used for head geometry is at least
 one pixel.</p>
@@ -440,13 +440,13 @@ boundaries with the rendered shaft. Neither conversion changes the cached
 doubles used for picking and document output.</p>
 <p>The line’s <code class="docutils literal notranslate"><span class="pre">-fill</span></code> color is the dash-gap/background color, not a separate
 arrow fill: heads use the outline. Screen drawing may recover an absent outline
-from the GC foreground. <code class="docutils literal notranslate"><span class="pre">ArrowHeadExport</span></code> instead omits heads when the explicit
+from the GC foreground. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerShapeOutput.ArrowHeadExport" title="rbcGrMarkerShapeOutput.ArrowHeadExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerShapeOutput.ArrowHeadExport()</span></code></a> instead omits heads when the explicit
 outline is empty. Export sends mapped doubles through renderer contexts and
 does not replay the screen XOR operation or pixel-alignment adjustments.</p>
 </section>
 <section id="polygon-fill-versus-outline">
 <h3>Polygon fill versus outline<a class="headerlink" href="#polygon-fill-versus-outline" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">MapPolygonMarker</span></code> maps all world vertices and offsets once. It clips fill
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.MapPolygonMarker" title="rbcGrMarkerPolygon.MapPolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.MapPolygonMarker()</span></code></a> maps all world vertices and offsets once. It clips fill
 only when a fill foreground exists. Outline generation requires a foreground
 and positive width and clips every original edge, including last-to-first.
 This separation matters: polygon clipping can add viewport-boundary edges to a
@@ -476,7 +476,7 @@ that error target from being met. Conservative visibility therefore uses the
 full ellipse bounds plus outline margin, not only the flattened path. Curved
 renderers consume the exact ellipse and their context applies clipping. Native
 fallback additionally receives flattened, clipped fill/outline geometry.
-<code class="docutils literal notranslate"><span class="pre">StrokeArcMarker</span></code> delegates continuous-path dash and join handling to the
+<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerShapeOutput.StrokeArcMarker" title="rbcGrMarkerShapeOutput.StrokeArcMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerShapeOutput.StrokeArcMarker()</span></code></a> delegates continuous-path dash and join handling to the
 renderer instead of restarting strokes at each flattened vertex.</p>
 </section>
 <section id="picking-differences">
@@ -529,12 +529,12 @@ immediate drawing additionally requires an outline-only case and no pending
 axis reset. Open arcs count as outline-only even if fill options were supplied.
 The private outline GC gets the XOR function; the shared fill GC does not get
 that same function merely because the marker has <code class="docutils literal notranslate"><span class="pre">-xor</span></code> enabled.</p>
-<p><code class="docutils literal notranslate"><span class="pre">DrawImmediatePolygonOutline</span></code> preserves native erase behavior for arcs by
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline" title="rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline()</span></code></a> preserves native erase behavior for arcs by
 temporarily forcing the XOR dispatch flag and then restoring it. Cleanup must
 retain the old GC and mapped geometry until erasure is complete; it then frees
 class-owned caches/GCs and, for polygon/arc, color pairs. Common cleanup owns
 Tk options, world coordinates, tags, axis references and the record itself.</p>
-<p>Line configuration and cleanup share <code class="docutils literal notranslate"><span class="pre">EraseLineMarkerXor</span></code>. It redraws the
+<p>Line configuration and cleanup share <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerShapeOutput.EraseLineMarkerXor" title="rbcGrMarkerShapeOutput.EraseLineMarkerXor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerShapeOutput.EraseLineMarkerXor()</span></code></a>. It redraws the
 recorded shaft and each enabled head with the original native GC before those
 resources are replaced or freed, then clears <code class="docutils literal notranslate"><span class="pre">xorState</span></code>. Head-only geometry
 is erased even when no shaft segment survives clipping. Newly installed options
@@ -736,7 +736,7 @@ does not map hidden children to manufacture an export image.</p>
 <section id="pass-dispatch-and-batching">
 <h2>Pass dispatch and batching<a class="headerlink" href="#pass-dispatch-and-batching" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_DrawMarkers</span></code> first synchronizes real window children regardless of the
-requested under/over pass. Trackgraphs then use <code class="docutils literal notranslate"><span class="pre">DrawTrackMarkers</span></code> and return;
+requested under/over pass. Trackgraphs then use <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.DrawTrackMarkers" title="rbcGrMarkerBatches.DrawTrackMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.DrawTrackMarkers()</span></code></a> and return;
 ordinary graphs continue through stroke reuse and, on Windows, native batches.
 All paths borrow marker records and their mapped resources. They assume the
 caller has prepared mapping and retained graph lifetime; the batch arrays are
@@ -807,14 +807,14 @@ marker resources.</p>
 <p>Line and outline runs copy segments into pass-owned arrays. Polygon fills retain
 marker pointers and submit polygons individually under one native batch context,
 whose scratch capacity is the maximum polygon point count in the run. Text runs
-invoke <code class="docutils literal notranslate"><span class="pre">DrawTextMarkerRun</span></code> synchronously through renderer target services;
+invoke <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.DrawTextMarkerRun" title="rbcGrMarkerBatches.DrawTextMarkerRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.DrawTextMarkerRun()</span></code></a> synchronously through renderer target services;
 the callback retains nothing. Bitmap runs store integer positions and reuse a
 representative bitmap/GC. These distinctions preserve original primitive and
 text semantics rather than forcing every class through one aggregate path.</p>
 </section>
 <section id="cairo-context-reuse-and-native-targets">
 <h3>Cairo context reuse and native targets<a class="headerlink" href="#cairo-context-reuse-and-native-targets" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">GetMarkerStroke</span></code> accepts solid, non-XOR line shafts without arrows and polygon
+<p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.GetMarkerStroke" title="rbcGrMarkerBatches.GetMarkerStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.GetMarkerStroke()</span></code></a> accepts solid, non-XOR line shafts without arrows and polygon
 outlines without drawable fills. It returns a borrowed <code class="docutils literal notranslate"><span class="pre">MarkerStroke</span></code> view;
 a FALSE result must not be used, even if some fields were written. Arcs retain
 their class-specific continuous-curve path. Style equality compares width, cap,
@@ -824,7 +824,7 @@ join and RGB values, not pointer identity.</p>
 change antialiased overlap coverage. Incompatible visible content closes the
 context before dispatch; failure to create one falls back to the class draw
 callback. Context reuse therefore changes setup cost, not painter order.</p>
-<p>On Windows, <code class="docutils literal notranslate"><span class="pre">MarkersNeedRenderTarget</span></code> avoids an extra Cairo target for passes
+<p>On Windows, <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.MarkersNeedRenderTarget" title="rbcGrMarkerBatches.MarkersNeedRenderTarget"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.MarkersNeedRenderTarget()</span></code></a> avoids an extra Cairo target for passes
 containing only native text without backgrounds, real windows, or XOR line/
 polygon content. Its scan is conservative: it does not repeat the associated-
 element hidden check, so it may request a target that turns out unnecessary.
@@ -855,6 +855,32 @@ After the final synchronous flush, <code class="docutils literal notranslate"><s
 array before ending the marker render target. NULL arrays from unused batches
 or allocation failures require no release. Freeing the text-marker pointer
 array does not free the markers, layouts or fonts it borrowed.</p>
+</section>
+<section id="geometry-and-batch-argument-contracts">
+<h3>Geometry and batch argument contracts<a class="headerlink" href="#geometry-and-batch-argument-contracts" title="Link to this heading">¶</a></h3>
+<p>The detailed parameter sections in <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a> distinguish borrowed
+inputs from replaced mapping caches and reset batch slots. Coordinates passed
+to picking and drawing helpers are display coordinates. World coordinates are
+mapped first, including marker offsets and the current track viewport.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLine.ComputeArrowHead" title="rbcGrMarkerLine.ComputeArrowHead"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLine.ComputeArrowHead()</span></code></a> writes a six-point closed head and a
+shortened shaft endpoint only on success. Its three shape distances are
+pixels, while <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLine.ParseArrowShape" title="rbcGrMarkerLine.ParseArrowShape"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLine.ParseArrowShape()</span></code></a> converts Tcl screen
+distances and may leave a partially written output array on error.</p></li>
+<li><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.MapArcMarker" title="rbcGrMarkerPolygon.MapArcMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.MapArcMarker()</span></code></a> keeps exact ellipse geometry separate
+from flattened picking caches. Drawing/export and picking must not treat
+these representations as interchangeable, especially after allocation failure.</p></li>
+<li><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerShapeOutput.EraseLineMarkerXor" title="rbcGrMarkerShapeOutput.EraseLineMarkerXor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerShapeOutput.EraseLineMarkerXor()</span></code></a> requires the old GC and
+geometry. A missing drawable clears bookkeeping without erasing pixels;
+replacing options is not a substitute for retaining the old drawing state.</p></li>
+<li><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.GetMarkerStroke" title="rbcGrMarkerBatches.GetMarkerStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.GetMarkerStroke()</span></code></a> returns a borrowed view, not a
+retained snapshot. Only a TRUE result can be compared or submitted, and the
+marker caches and colors must remain live throughout context reuse.</p></li>
+<li><p>Windows flush helpers consume pending counts and clear representative slots.
+They borrow arrays and markers throughout synchronous submission; the outer
+pass still owns scratch allocation and release. Eligibility predicates must
+precede style comparisons, which intentionally omit already-fixed properties.</p></li>
+</ul>
 </section>
 </section>
 </section>
@@ -901,6 +927,7 @@ array does not free the markers, layouts or fonts it borrowed.</p>
 <li><a class="reference internal" href="#cairo-context-reuse-and-native-targets">Cairo context reuse and native targets</a></li>
 <li><a class="reference internal" href="#track-and-export-paths">Track and export paths</a></li>
 <li><a class="reference internal" href="#windows-scratch-ownership">Windows scratch ownership</a></li>
+<li><a class="reference internal" href="#geometry-and-batch-argument-contracts">Geometry and batch argument contracts</a></li>
 </ul>
 </li>
 </ul>

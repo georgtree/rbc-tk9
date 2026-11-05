@@ -335,7 +335,7 @@ geometry and picking contracts. ``LineMarker`` owns its segment array and
 private GC, with fixed-size arrowhead arrays inside the record.
 ``PolygonMarker`` is also the storage type for arcs: ``CreateArcMarker`` changes
 the class callback table, while configuration and resource release continue to
-use ``ConfigurePolygonMarker`` and ``FreePolygonMarker``.
+use :c:func:`rbcGrMarkerPolygon.ConfigurePolygonMarker` and :c:func:`rbcGrMarkerPolygon.FreePolygonMarker`.
 
 .. list-table:: Geometry ownership and consumers
    :header-rows: 1
@@ -376,7 +376,7 @@ These are void mapping callbacks, not transactional configuration operations.
 Line shafts and arrowheads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``MapLineMarker`` first obtains plot extents, maps the original endpoint and its
+:c:func:`rbcGrMarkerLine.MapLineMarker` first obtains plot extents, maps the original endpoint and its
 immediate neighbor, and applies pixel offsets. It creates a requested head only
 if the tip is inside those extents. Coincident endpoint/neighbor pairs suppress
 that head; mapping does not search farther along the polyline for a direction.
@@ -384,9 +384,9 @@ The resulting shaft endpoint is backed up to the neck before the shaft edges
 are individually clipped. A surviving arrowhead can keep the marker drawable
 even when no shaft segment survives.
 
-``ComputeArrowHead`` follows Tk-style arrow construction. Shape distances are
+:c:func:`rbcGrMarkerLine.ComputeArrowHead` follows Tk-style arrow construction. Shape distances are
 adjusted by a small epsilon, lateral width includes half the effective shaft
-width, and neck interpolation determines the shaft backup. ``ParseArrowShape``
+width, and neck interpolation determines the shaft backup. :c:func:`rbcGrMarkerLine.ParseArrowShape`
 requires exactly three valid screen distances; it adds no separate positivity
 or ordering validation. The effective width used for head geometry is at least
 one pixel.
@@ -399,14 +399,14 @@ doubles used for picking and document output.
 
 The line's ``-fill`` color is the dash-gap/background color, not a separate
 arrow fill: heads use the outline. Screen drawing may recover an absent outline
-from the GC foreground. ``ArrowHeadExport`` instead omits heads when the explicit
+from the GC foreground. :c:func:`rbcGrMarkerShapeOutput.ArrowHeadExport` instead omits heads when the explicit
 outline is empty. Export sends mapped doubles through renderer contexts and
 does not replay the screen XOR operation or pixel-alignment adjustments.
 
 Polygon fill versus outline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``MapPolygonMarker`` maps all world vertices and offsets once. It clips fill
+:c:func:`rbcGrMarkerPolygon.MapPolygonMarker` maps all world vertices and offsets once. It clips fill
 only when a fill foreground exists. Outline generation requires a foreground
 and positive width and clips every original edge, including last-to-first.
 This separation matters: polygon clipping can add viewport-boundary edges to a
@@ -440,7 +440,7 @@ that error target from being met. Conservative visibility therefore uses the
 full ellipse bounds plus outline margin, not only the flattened path. Curved
 renderers consume the exact ellipse and their context applies clipping. Native
 fallback additionally receives flattened, clipped fill/outline geometry.
-``StrokeArcMarker`` delegates continuous-path dash and join handling to the
+:c:func:`rbcGrMarkerShapeOutput.StrokeArcMarker` delegates continuous-path dash and join handling to the
 renderer instead of restarting strokes at each flattened vertex.
 
 Picking differences
@@ -486,13 +486,13 @@ axis reset. Open arcs count as outline-only even if fill options were supplied.
 The private outline GC gets the XOR function; the shared fill GC does not get
 that same function merely because the marker has ``-xor`` enabled.
 
-``DrawImmediatePolygonOutline`` preserves native erase behavior for arcs by
+:c:func:`rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline` preserves native erase behavior for arcs by
 temporarily forcing the XOR dispatch flag and then restoring it. Cleanup must
 retain the old GC and mapped geometry until erasure is complete; it then frees
 class-owned caches/GCs and, for polygon/arc, color pairs. Common cleanup owns
 Tk options, world coordinates, tags, axis references and the record itself.
 
-Line configuration and cleanup share ``EraseLineMarkerXor``. It redraws the
+Line configuration and cleanup share :c:func:`rbcGrMarkerShapeOutput.EraseLineMarkerXor`. It redraws the
 recorded shaft and each enabled head with the original native GC before those
 resources are replaced or freed, then clears ``xorState``. Head-only geometry
 is erased even when no shaft segment survives clipping. Newly installed options
@@ -682,7 +682,7 @@ Pass dispatch and batching
 --------------------------
 
 ``Rbc_DrawMarkers`` first synchronizes real window children regardless of the
-requested under/over pass. Trackgraphs then use ``DrawTrackMarkers`` and return;
+requested under/over pass. Trackgraphs then use :c:func:`rbcGrMarkerBatches.DrawTrackMarkers` and return;
 ordinary graphs continue through stroke reuse and, on Windows, native batches.
 All paths borrow marker records and their mapped resources. They assume the
 caller has prepared mapping and retained graph lifetime; the batch arrays are
@@ -746,7 +746,7 @@ marker resources.
 Line and outline runs copy segments into pass-owned arrays. Polygon fills retain
 marker pointers and submit polygons individually under one native batch context,
 whose scratch capacity is the maximum polygon point count in the run. Text runs
-invoke ``DrawTextMarkerRun`` synchronously through renderer target services;
+invoke :c:func:`rbcGrMarkerBatches.DrawTextMarkerRun` synchronously through renderer target services;
 the callback retains nothing. Bitmap runs store integer positions and reuse a
 representative bitmap/GC. These distinctions preserve original primitive and
 text semantics rather than forcing every class through one aggregate path.
@@ -754,7 +754,7 @@ text semantics rather than forcing every class through one aggregate path.
 Cairo context reuse and native targets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``GetMarkerStroke`` accepts solid, non-XOR line shafts without arrows and polygon
+:c:func:`rbcGrMarkerBatches.GetMarkerStroke` accepts solid, non-XOR line shafts without arrows and polygon
 outlines without drawable fills. It returns a borrowed ``MarkerStroke`` view;
 a FALSE result must not be used, even if some fields were written. Arcs retain
 their class-specific continuous-curve path. Style equality compares width, cap,
@@ -766,7 +766,7 @@ change antialiased overlap coverage. Incompatible visible content closes the
 context before dispatch; failure to create one falls back to the class draw
 callback. Context reuse therefore changes setup cost, not painter order.
 
-On Windows, ``MarkersNeedRenderTarget`` avoids an extra Cairo target for passes
+On Windows, :c:func:`rbcGrMarkerBatches.MarkersNeedRenderTarget` avoids an extra Cairo target for passes
 containing only native text without backgrounds, real windows, or XOR line/
 polygon content. Its scan is conservative: it does not repeat the associated-
 element hidden check, so it may request a target that turns out unnecessary.
@@ -800,3 +800,29 @@ After the final synchronous flush, ``Rbc_DrawMarkers`` frees every allocated
 array before ending the marker render target. NULL arrays from unused batches
 or allocation failures require no release. Freeing the text-marker pointer
 array does not free the markers, layouts or fonts it borrowed.
+
+Geometry and batch argument contracts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The detailed parameter sections in :doc:`marker-reference` distinguish borrowed
+inputs from replaced mapping caches and reset batch slots. Coordinates passed
+to picking and drawing helpers are display coordinates. World coordinates are
+mapped first, including marker offsets and the current track viewport.
+
+* :c:func:`rbcGrMarkerLine.ComputeArrowHead` writes a six-point closed head and a
+  shortened shaft endpoint only on success. Its three shape distances are
+  pixels, while :c:func:`rbcGrMarkerLine.ParseArrowShape` converts Tcl screen
+  distances and may leave a partially written output array on error.
+* :c:func:`rbcGrMarkerPolygon.MapArcMarker` keeps exact ellipse geometry separate
+  from flattened picking caches. Drawing/export and picking must not treat
+  these representations as interchangeable, especially after allocation failure.
+* :c:func:`rbcGrMarkerShapeOutput.EraseLineMarkerXor` requires the old GC and
+  geometry. A missing drawable clears bookkeeping without erasing pixels;
+  replacing options is not a substitute for retaining the old drawing state.
+* :c:func:`rbcGrMarkerBatches.GetMarkerStroke` returns a borrowed view, not a
+  retained snapshot. Only a TRUE result can be compared or submitted, and the
+  marker caches and colors must remain live throughout context reuse.
+* Windows flush helpers consume pending counts and clear representative slots.
+  They borrow arrays and markers throughout synchronous submission; the outer
+  pass still owns scratch allocation and release. Eligibility predicates must
+  precede style comparisons, which intentionally omit already-fixed properties.
