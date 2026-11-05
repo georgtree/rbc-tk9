@@ -53,7 +53,7 @@ typedef struct {
     SMALL_RECT bbox; /* Bounding rectangle */
     WORD inch;       /* Units per inch. */
     DWORD reserved;  /* Unused. */
-    WORD checksum;   /* XOR of previous fields (10 32-bit words). */
+    WORD checksum;   /* XOR of the previous ten 16-bit words. */
 } APMHEADER;
 #pragma pack()
 

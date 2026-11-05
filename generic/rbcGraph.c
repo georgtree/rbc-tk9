@@ -374,7 +374,7 @@ static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
 #ifdef WIN32
-static int InitMetaFileHeader(Tk_Window tkwin, int width, int height, APMHEADER *mfhPtr);
+static int InitMetaFileHeader(Tcl_Interp *interp, Tk_Window tkwin, int width, int height, APMHEADER *mfhPtr);
 static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHEADER *mfhPtr, const char *fileName);
 #endif
 
@@ -2875,118 +2875,121 @@ static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 }
 
 #ifdef WIN32
-/*
- *----------------------------------------------------------------------
- *
- * InitMetaFileHeader --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      int width
- *      int height
- *      APMHEADER *mfhPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/** @defgroup graph_snapshot_windows Windows metafile snapshots
+ * Private placeable-WMF encoding and native snapshot file ownership.
  */
-static int InitMetaFileHeader(Tk_Window tkwin, int width, int height, APMHEADER *mfhPtr) {
-    unsigned int *p;
-    unsigned int sum;
-    Screen *screen;
-#define MM_INCH 25.4
-    double dpiX, dpiY;
+/**
+ * @ingroup graph_snapshot_windows
+ * @brief Initialize a packed 22-byte placeable-WMF header.
+ *
+ * Converts width and height independently from pixels to 1440 units per inch.
+ * Rejects invalid screen metrics and dimensions that cannot fit positive signed
+ * 16-bit bounds before writing the output. The checksum XORs ten little-endian
+ * 16-bit words, excluding the checksum itself; no unaligned integer reads occur.
+ * Returns TCL_OK or TCL_ERROR with an interpreter diagnostic.
+ *
+ * @param[in,out] interp Borrowed result interpreter; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed live window supplying screen pixel and millimeter dimensions.
+ * @param[in] width Positive snapshot width in pixels.
+ * @param[in] height Positive snapshot height in pixels.
+ * @param[out] mfhPtr Required packed header storage, assigned only on success.
+ */
+static int InitMetaFileHeader(Tcl_Interp *interp, Tk_Window tkwin, int width, int height, APMHEADER *mfhPtr) {
+    Screen *screen = Tk_Screen(tkwin);
+    double right, bottom;
+    const unsigned char *bytes;
+    unsigned int checksum = 0;
+    int i;
 
-    mfhPtr->key = 0x9ac6cdd7L;
-    mfhPtr->hmf = 0;
-    mfhPtr->inch = 1440;
-    screen = Tk_Screen(tkwin);
-    dpiX = (WidthOfScreen(screen) * MM_INCH) / WidthMMOfScreen(screen);
-    dpiY = (HeightOfScreen(screen) * MM_INCH) / HeightMMOfScreen(screen);
-    mfhPtr->bbox.Left = mfhPtr->bbox.Top = 0;
-    mfhPtr->bbox.Bottom = (SHORT)((width * 1440) / dpiX);
-    mfhPtr->bbox.Right = (SHORT)((height * 1440) / dpiY);
-    mfhPtr->reserved = 0;
-    sum = 0;
-    for (p = (unsigned int *)mfhPtr; p < (unsigned int *)&(mfhPtr->checksum); p++) {
-        sum ^= *p;
+    if (width <= 0 || height <= 0 || WidthOfScreen(screen) <= 0 || HeightOfScreen(screen) <= 0 ||
+        WidthMMOfScreen(screen) <= 0 || HeightMMOfScreen(screen) <= 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("invalid screen or snapshot dimensions for WMF", -1));
+        return TCL_ERROR;
     }
-    mfhPtr->checksum = sum;
+    right = ((double)width * 1440.0 * WidthMMOfScreen(screen)) / (25.4 * WidthOfScreen(screen));
+    bottom = ((double)height * 1440.0 * HeightMMOfScreen(screen)) / (25.4 * HeightOfScreen(screen));
+    if (!FINITE(right) || !FINITE(bottom) || right < 1.0 || bottom < 1.0 ||
+        right > SHRT_MAX || bottom > SHRT_MAX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("snapshot dimensions exceed placeable WMF bounds", -1));
+        return TCL_ERROR;
+    }
+    memset(mfhPtr, 0, sizeof(*mfhPtr));
+    mfhPtr->key = 0x9ac6cdd7L;
+    mfhPtr->inch = 1440;
+    mfhPtr->bbox.Right = (SHORT)right;
+    mfhPtr->bbox.Bottom = (SHORT)bottom;
+    bytes = (const unsigned char *)mfhPtr;
+    for (i = 0; i < 20; i += 2) {
+        checksum ^= (unsigned int)bytes[i] | ((unsigned int)bytes[i + 1] << 8);
+    }
+    mfhPtr->checksum = (WORD)checksum;
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_snapshot_windows
+ * @brief Convert a borrowed enhanced metafile and write a placeable WMF file.
  *
- * CreateAPMetaFile --
+ * Validates both native conversion calls and the global-memory lock before
+ * opening the destination. Owns and releases the temporary memory and file;
+ * does not consume the metafile or reference DC. Conversion failure leaves an
+ * existing destination untouched. Write failure may leave a partial file.
+ * Returns TCL_OK after both writes, or TCL_ERROR with a native diagnostic.
  *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      HANDLE hMetaFile
- *      HDC hDC
- *      APMHEADER *mfhPtr
- *      const char *fileName
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * @param[in,out] interp Borrowed result interpreter; see @ref rbc_interp_argument.
+ * @param[in] hMetaFile Borrowed non-NULL enhanced metafile to convert.
+ * @param[in] hDC Borrowed reference DC used for MM_ANISOTROPIC conversion.
+ * @param[in] mfhPtr Borrowed initialized packed placeable header.
+ * @param[in] fileName Borrowed NUL-terminated native ANSI pathname for CreateFileA.
  */
 static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHEADER *mfhPtr, const char *fileName) {
-    HANDLE hFile;
-    HANDLE hMem;
-    LPVOID buffer;
-    int result;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    HANDLE hMem = NULL;
+    LPVOID buffer = NULL;
+    int result = TCL_ERROR;
     DWORD count, nBytes;
 
-    result = TCL_ERROR;
-    hMem = NULL;
-    hFile = CreateFileA(fileName,                     /* File path */
-                        GENERIC_WRITE,                /* Access mode */
-                        0,                            /* No sharing. */
-                        NULL,                         /* Security attributes */
-                        CREATE_ALWAYS,                /* Overwrite any existing file */
-                        FILE_ATTRIBUTE_NORMAL, NULL); /* No template file */
-    if (hFile == INVALID_HANDLE_VALUE) {
-        Rbc_AppendResultStrings(interp, "can't create metafile \"", fileName, "\":", Rbc_LastError(), (char *)NULL);
-        return TCL_ERROR;
-    }
-    if ((!WriteFile(hFile, (LPVOID)mfhPtr, sizeof(APMHEADER), &count, NULL)) || (count != sizeof(APMHEADER))) {
-        Rbc_AppendResultStrings(interp, "can't create metafile header to \"", fileName, "\":", Rbc_LastError(),
-                                (char *)NULL);
+    nBytes = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hDC);
+    if (nBytes == 0) {
+        Rbc_AppendResultStrings(interp, "can't size metafile bits: ", Rbc_LastError(), (char *)NULL);
         goto error;
     }
-    nBytes = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hDC);
     hMem = GlobalAlloc(GHND, nBytes);
     if (hMem == NULL) {
-        Rbc_AppendResultStrings(interp, "can't create allocate global memory:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't allocate metafile memory: ", Rbc_LastError(), (char *)NULL);
         goto error;
     }
-    buffer = (LPVOID)GlobalLock(hMem);
-    if (!GetWinMetaFileBits(hMetaFile, nBytes, buffer, MM_ANISOTROPIC, hDC)) {
-        Rbc_AppendResultStrings(interp, "can't get metafile bits:", Rbc_LastError(), (char *)NULL);
+    buffer = GlobalLock(hMem);
+    if (buffer == NULL) {
+        Rbc_AppendResultStrings(interp, "can't lock metafile memory: ", Rbc_LastError(), (char *)NULL);
         goto error;
     }
-    if ((!WriteFile(hFile, buffer, nBytes, &count, NULL)) || (count != nBytes)) {
-        Rbc_AppendResultStrings(interp, "can't write metafile bits:", Rbc_LastError(), (char *)NULL);
+    if (GetWinMetaFileBits(hMetaFile, nBytes, buffer, MM_ANISOTROPIC, hDC) != nBytes) {
+        Rbc_AppendResultStrings(interp, "can't get complete metafile bits: ", Rbc_LastError(), (char *)NULL);
+        goto error;
+    }
+    hFile = CreateFileA(fileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        Rbc_AppendResultStrings(interp, "can't create metafile \"", fileName, "\": ", Rbc_LastError(), (char *)NULL);
+        goto error;
+    }
+    if (!WriteFile(hFile, (LPVOID)mfhPtr, sizeof(*mfhPtr), &count, NULL) || count != sizeof(*mfhPtr)) {
+        Rbc_AppendResultStrings(interp, "can't write metafile header: ", Rbc_LastError(), (char *)NULL);
+        goto error;
+    }
+    if (!WriteFile(hFile, buffer, nBytes, &count, NULL) || count != nBytes) {
+        Rbc_AppendResultStrings(interp, "can't write metafile bits: ", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     result = TCL_OK;
 error:
-    CloseHandle(hFile);
-    if (hMem != NULL) {
+    if (hFile != INVALID_HANDLE_VALUE) {
+        CloseHandle(hFile);
+    }
+    if (buffer != NULL) {
         GlobalUnlock(hMem);
+    }
+    if (hMem != NULL) {
         GlobalFree(hMem);
     }
     return result;
@@ -3113,12 +3116,16 @@ static int SnapGraph(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
 
         hWnd = Tk_GetHWND(drawable);
         hRefDC = GetDC(hWnd);
+        if (hRefDC == NULL) {
+            Rbc_AppendResultStrings(interp, "can't acquire metafile reference DC: ", Rbc_LastError(), (char *)NULL);
+            return TCL_ERROR;
+        }
         Tcl_DStringInit(&dString);
         Tcl_DStringAppend(&dString, "RBC Graph ", -1);
         Tcl_DStringAppend(&dString, RBC_VERSION, -1);
-        Tcl_DStringAppend(&dString, "\0", -1);
+        Tcl_DStringAppend(&dString, "\0", 1);
         Tcl_DStringAppend(&dString, Tk_PathName(graphPtr->tkwin), -1);
-        Tcl_DStringAppend(&dString, "\0", -1);
+        Tcl_DStringAppend(&dString, "\0", 1);
         title = Tcl_DStringValue(&dString);
         hDC = CreateEnhMetaFileA(hRefDC, NULL, NULL, title);
         Tcl_DStringFree(&dString);
@@ -3146,29 +3153,43 @@ static int SnapGraph(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
         }
         Rbc_WinFreeDrawableFromDC(metaDrawable);
         hMetaFile = CloseEnhMetaFile(hDC);
+        if (hMetaFile == NULL) {
+            ReleaseDC(hWnd, hRefDC);
+            Rbc_AppendResultStrings(interp, "can't finish metafile: ", Rbc_LastError(), (char *)NULL);
+            return TCL_ERROR;
+        }
+        result = TCL_ERROR;
         if (strcmp(data.name, "CLIPBOARD") == 0) {
-            OpenClipboard(hWnd);
-            EmptyClipboard();
-            SetClipboardData(CF_ENHMETAFILE, hMetaFile);
-            CloseClipboard();
-            result = TCL_OK;
-        } else {
-            result = TCL_ERROR;
-            if (data.format == FORMAT_WMF) {
-                APMHEADER mfh;
-
-                assert(sizeof(mfh) == 22);
-                InitMetaFileHeader(graphPtr->tkwin, data.width, data.height, &mfh);
-                result = CreateAPMetaFile(interp, hMetaFile, hRefDC, &mfh, data.name);
+            if (!OpenClipboard(hWnd)) {
+                Rbc_AppendResultStrings(interp, "can't open clipboard: ", Rbc_LastError(), (char *)NULL);
             } else {
-                HENHMETAFILE hMetaFile2;
-
-                hMetaFile2 = CopyEnhMetaFileA(hMetaFile, data.name);
-                if (hMetaFile2 != NULL) {
+                if (!EmptyClipboard() || SetClipboardData(CF_ENHMETAFILE, hMetaFile) == NULL) {
+                    Rbc_AppendResultStrings(interp, "can't set clipboard metafile: ", Rbc_LastError(), (char *)NULL);
+                } else {
+                    hMetaFile = NULL; /* The clipboard now owns the recording. */
                     result = TCL_OK;
-                    DeleteEnhMetaFile(hMetaFile2);
                 }
+                CloseClipboard();
             }
+        } else if (data.format == FORMAT_WMF) {
+            APMHEADER mfh;
+
+            assert(sizeof(mfh) == 22);
+            if (InitMetaFileHeader(interp, graphPtr->tkwin, data.width, data.height, &mfh) == TCL_OK) {
+                result = CreateAPMetaFile(interp, hMetaFile, hRefDC, &mfh, data.name);
+            }
+        } else {
+            HENHMETAFILE hMetaFile2;
+
+            hMetaFile2 = CopyEnhMetaFileA(hMetaFile, data.name);
+            if (hMetaFile2 != NULL) {
+                result = TCL_OK;
+                DeleteEnhMetaFile(hMetaFile2);
+            } else {
+                Rbc_AppendResultStrings(interp, "can't copy metafile: ", Rbc_LastError(), (char *)NULL);
+            }
+        }
+        if (hMetaFile != NULL) {
             DeleteEnhMetaFile(hMetaFile);
         }
         ReleaseDC(hWnd, hRefDC);

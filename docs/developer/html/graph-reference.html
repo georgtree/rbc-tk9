@@ -1302,6 +1302,56 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 </dd></dl>
 
 </section>
+<section id="windows-metafile-packaging">
+<h2>Windows metafile packaging<a class="headerlink" href="#windows-metafile-packaging" title="Link to this heading">¶</a></h2>
+<p>These private functions use the Windows extraction project. Their scope below
+is documentation-only and does not change the compiled symbols.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__graph__snapshot__windows"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">metafile</span> <span class="pre">snapshots</span></span></dt>
+<dd><p>Private placeable-WMF encoding and native snapshot file ownership. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsSnapshot.InitMetaFileHeader">
+<span class="target" id="group__graph__snapshot__windows_1gad5a4a3afa2ad1a59c30155aa3488863e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitMetaFileHeader</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">APMHEADER</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mfhPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsSnapshot.InitMetaFileHeader" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize a packed 22-byte placeable-WMF header. </p>
+<p>Converts width and height independently from pixels to 1440 units per inch. Rejects invalid screen metrics and dimensions that cannot fit positive signed 16-bit bounds before writing the output. The checksum XORs ten little-endian 16-bit words, excluding the checksum itself; no unaligned integer reads occur. Returns TCL_OK or TCL_ERROR with an interpreter diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed result interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window supplying screen pixel and millimeter dimensions. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive snapshot width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive snapshot height in pixels. </p></li>
+<li><p><strong>mfhPtr</strong> – <strong>[out]</strong> Required packed header storage, assigned only on success. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcWindowsSnapshot.CreateAPMetaFile">
+<span class="target" id="group__graph__snapshot__windows_1ga60e3ccd29540e16903aa740aecf98eac"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateAPMetaFile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">HANDLE</span></span><span class="w"> </span><span class="n"><span class="pre">hMetaFile</span></span>, <span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">hDC</span></span>, <span class="n"><span class="pre">APMHEADER</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mfhPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsSnapshot.CreateAPMetaFile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert a borrowed enhanced metafile and write a placeable WMF file. </p>
+<p>Validates both native conversion calls and the global-memory lock before opening the destination. Owns and releases the temporary memory and file; does not consume the metafile or reference DC. Conversion failure leaves an existing destination untouched. Write failure may leave a partial file. Returns TCL_OK after both writes, or TCL_ERROR with a native diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed result interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>hMetaFile</strong> – <strong>[in]</strong> Borrowed non-NULL enhanced metafile to convert. </p></li>
+<li><p><strong>hDC</strong> – <strong>[in]</strong> Borrowed reference DC used for MM_ANISOTROPIC conversion. </p></li>
+<li><p><strong>mfhPtr</strong> – <strong>[in]</strong> Borrowed initialized packed placeable header. </p></li>
+<li><p><strong>fileName</strong> – <strong>[in]</strong> Borrowed NUL-terminated native ANSI pathname for CreateFileA. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1408,6 +1458,11 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 <li><a class="reference internal" href="#c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData"><code class="docutils literal notranslate"><span class="pre">Rbc_GetGraphFromWindowData()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGraphLifecycle.GraphGeometrySample"><code class="docutils literal notranslate"><span class="pre">GraphGeometrySample</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGraphLifecycle.GraphRedrawSettle"><code class="docutils literal notranslate"><span class="pre">GraphRedrawSettle</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-metafile-packaging">Windows metafile packaging</a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsSnapshot.InitMetaFileHeader"><code class="docutils literal notranslate"><span class="pre">InitMetaFileHeader()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsSnapshot.CreateAPMetaFile"><code class="docutils literal notranslate"><span class="pre">CreateAPMetaFile()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -488,3 +488,7 @@
 /** @addtogroup shared_draw_helpers
  * @ingroup rbc_infrastructure
  */
+
+/** @addtogroup graph_snapshot_windows
+ * @ingroup rbc_graphs
+ */

@@ -59,3 +59,17 @@ Construction and redraw support
    :members:
 
 .. c:namespace:: NULL
+
+Windows metafile packaging
+--------------------------
+
+These private functions use the Windows extraction project. Their scope below
+is documentation-only and does not change the compiled symbols.
+
+.. c:namespace-push:: rbcWindowsSnapshot
+
+.. doxygengroup:: graph_snapshot_windows
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::

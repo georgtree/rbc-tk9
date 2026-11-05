@@ -3392,5 +3392,84 @@ namespace eval graph.configure {
     } -result {0 0}
     rename DeleteFromMargin {}
 
+    foreach {case width height} {1 400 220 2 220 400} {
+        test RBC.graph.configure.A.46.$case {Windows WMF snapshot bounds and 16-bit checksum} \
+            -constraints win -setup {
+                graph .graph1 -renderer native
+                pack .graph1
+                update
+                set target [file join $::tcltest::temporaryDirectory RBC-snapshot.wmf]
+                set before [.graph1 transform 0 0]
+            } -body {
+                .graph1 snap $target -format wmf -width $width -height $height
+                set channel [open $target rb]
+                set bytes [read $channel]
+                close $channel
+                binary scan [string range $bytes 0 21] su* words
+                set checksum 0
+                foreach word [lrange $words 0 9] {set checksum [expr {$checksum ^ $word}]}
+                set right [expr {int($width*1440.0*[winfo screenmmwidth .graph1]/
+                                     (25.4*[winfo screenwidth .graph1]))}]
+                # Tk's screen axes can have different physical pixel densities.
+                set bottom [expr {int($height*1440.0*[winfo screenmmheight .graph1]/
+                                      (25.4*[winfo screenheight .graph1]))}]
+                update
+                list [expr {[llength $words] == 11 && [string length $bytes] > 22}] \
+                    [expr {[lrange $words 0 4] eq {52695 39622 0 0 0}}] \
+                    [expr {abs([lindex $words 5]-$right) <= 1 && abs([lindex $words 6]-$bottom) <= 1}] \
+                    [expr {[lrange $words 7 9] eq {1440 0 0}}] \
+                    [expr {$checksum == [lindex $words 10]}] \
+                    [expr {$before eq [.graph1 transform 0 0]}]
+            } -cleanup {
+                catch {close $channel}
+                removeFile $target
+                destroy .graph1
+            } -result {1 1 1 1 1 1}
+    }
+
+    test RBC.graph.configure.A.47.1 {Windows EMF description contains application and picture names} \
+        -constraints win -setup {
+            graph .graph1 -renderer native
+            pack .graph1
+            update
+            set target [file join $::tcltest::temporaryDirectory RBC-snapshot.emf]
+        } -body {
+            .graph1 snap $target -format emf -width 400 -height 220
+            set channel [open $target rb]
+            set bytes [read $channel]
+            close $channel
+            binary scan $bytes @60iu2 description
+            lassign $description count offset
+            set text [encoding convertfrom unicode [string range $bytes $offset [expr {$offset+2*$count-1}]]]
+            set names [split $text "\0"]
+            list [expr {$count > 0 && $offset >= 88 && $offset+2*$count <= [string length $bytes]}] \
+                [string match {RBC Graph *} [lindex $names 0]] [lindex $names 1] \
+                [expr {[string range $text end-1 end] eq "\0\0"}]
+        } -cleanup {
+            catch {close $channel}
+            removeFile $target
+            destroy .graph1
+        } -result {1 1 .graph1 1}
+
+    foreach {case format} {1 wmf 2 emf} {
+        test RBC.graph.configure.A.48.$case {Windows metafile file failure reports a diagnostic and restores mapping} \
+            -constraints win -setup {
+                graph .graph1 -renderer native
+                pack .graph1
+                update
+                set directory [makeDirectory RBC-snapshot-error]
+                set target [file join $directory absent output.$format]
+                set before [.graph1 transform 0 0]
+            } -body {
+                set code [catch {.graph1 snap $target -format $format -width 400 -height 220} message]
+                update
+                list $code [string match {*metafile*} $message] [file exists $target] \
+                    [expr {$before eq [.graph1 transform 0 0]}]
+            } -cleanup {
+                removeDirectory $directory
+                destroy .graph1
+            } -result {1 1 0 1}
+    }
+
 	cleanupTests
 }

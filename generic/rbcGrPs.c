@@ -843,42 +843,6 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
 }
 
 #ifdef WIN32
-/*
- * TODO: Determine if neccessary
- *
- *static void
- *InitAPMHeader(tkwin, width, height, headerPtr)
- *    Tk_Window tkwin;
- *    int width, height;
- *    APMHEADER *headerPtr;
- *{
- *    unsigned int *p;
- *    unsigned int sum;
- *    Screen *screen;
- *#define MM_INCH        25.4
- *    double dpiX, dpiY;
- *
- *    headerPtr->key = 0x9ac6cdd7L;
- *    headerPtr->hmf = 0;
- *    headerPtr->inch = 1440;
- *
- *    screen = Tk_Screen(tkwin);
- *    dpiX = (WidthOfScreen(screen) * MM_INCH) / WidthMMOfScreen(screen);
- *    dpiY = (HeightOfScreen(screen) * MM_INCH) / HeightMMOfScreen(screen);
- *
- *    headerPtr->bbox.Left = headerPtr->bbox.Top = 0;
- *    headerPtr->bbox.Bottom = (SHORT)((width * 1440) / dpiX);
- *    headerPtr->bbox.Right = (SHORT)((height * 1440) / dpiY);
- *    headerPtr->reserved = 0;
- *    sum = 0;
- *    for (p = (unsigned int *)headerPtr;
- *            p < (unsigned int *)&(headerPtr->checksum); p++) {
- *        sum ^= *p;
- *    }
- *    headerPtr->checksum = sum;
- *}
- */
-
 /** @defgroup graph_postscript_windows Windows EPS preview packaging
  * Private native preview assembly for the graph PostScript command.
  */

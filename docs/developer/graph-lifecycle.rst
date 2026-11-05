@@ -382,3 +382,28 @@ window is destroyed directly while the original interpreter error is preserved.
 No deferred Graph destructor is needed on that path. After Graph allocation,
 instance data, command and event-handler setup establish the normal ownership
 path before fallible component initialization begins.
+
+Windows metafile layout and ownership
+-------------------------------------
+
+:c:func:`rbcWindowsSnapshot.InitMetaFileHeader` writes the packed placeable-WMF
+header with zero origin, horizontal width in Right and vertical height in Bottom.
+Both axes use their own screen pixel/millimeter ratio and 1440 units per inch.
+Bounds must fit positive signed 16-bit values; invalid dimensions fail before
+header output is committed. The checksum XORs the ten preceding little-endian
+16-bit words, as specified by Microsoft's
+`META_PLACEABLE record <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/828e1864-7fe7-42d8-ab0a-1de161b32f27>`_.
+
+:c:func:`rbcWindowsSnapshot.CreateAPMetaFile` completes native conversion before
+opening the destination. A zero size, allocation/lock failure or incomplete
+conversion returns an error without truncating an existing file. Both writes
+check their byte count. A write failure can leave a partial file; the helper
+releases its file and temporary memory but borrows the recording and reference DC.
+The file path still uses the native ANSI API, as does EMF copying.
+
+The snapshot command builds the EMF description as application-name/NUL,
+picture-name/NUL, followed by the DString terminator. Reference-DC acquisition,
+recording completion and EMF copy failures now produce diagnostics. Clipboard
+ownership transfers only when SetClipboardData succeeds; otherwise RBC deletes
+the recording. These checks preserve the existing snapshot wrapper's screen
+geometry restoration and do not alter the SVG/PDF/PostScript exporters.
