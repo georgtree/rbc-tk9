@@ -17,7 +17,7 @@ legend does not apply that track filter. Plot visibility and legend membership
 are separate concerns, so do not remove an entry merely because its trace is
 not currently painted.
 
-``Rbc_MapLegend`` resets its cached entry counts and dimensions before measuring
+:c:func:`rbcGrLegendLayout.Rbc_MapLegend` resets its cached entry counts and dimensions before measuring
 labels, symbols, borders and padding. Hidden legends or unusable available
 sizes yield no displayed layout. An external legend can use its actual window
 dimensions instead of the supplied plot dimensions.
@@ -28,7 +28,7 @@ placement can select a single row when its summed widths fit. Drawing and
 picking must agree on these widths; using a uniform column index for a compact
 single row would select the wrong element.
 
-Mapping computes dimensions, while ``SetLegendOrigin`` computes placement.
+Mapping computes dimensions, while :c:func:`rbcGrLegendLayout.SetLegendOrigin` computes placement.
 Local legends are mapped after track rectangles are available and do not add
 graph margins. Their available size comes from the full track world rectangle,
 so partial scrolling must not reflow the legend into only the visible remnant.
@@ -44,9 +44,9 @@ entry points; track export wraps the local legend in a visible-track clip.
 Track dispatch also selects the requested raised or non-raised layer and skips
 collapsed visible track regions.
 
-``LegendContains`` checks hidden state, mapped entries and legend bounds. For
+:c:func:`rbcGrLegendBindings.LegendContains` checks hidden state, mapped entries and legend bounds. For
 local legends it first restricts the point to the visible track rectangle.
-``LegendAtPoint`` searches raised legends before non-raised legends, checking
+:c:func:`rbcGrLegendBindings.LegendAtPoint` searches raised legends before non-raised legends, checking
 the global in-widget legend before local legends within each layer. An external
 legend is excluded from this in-widget overlap search.
 
@@ -65,8 +65,8 @@ External window and redraw
 --------------------------
 
 An external global legend has its own window, command and event handler.
-``Rbc_RedrawExternalLegend`` schedules its independent idle draw when it exists
-and its resources are still valid. ``EventuallyRedrawLegend`` coalesces requests
+:c:func:`rbcGrLegendLifetime.Rbc_RedrawExternalLegend` schedules its independent idle draw when it exists
+and its resources are still valid. :c:func:`rbcGrLegendLifetime.EventuallyRedrawLegend` coalesces requests
 using ``REDRAW_PENDING``; scheduling is not immediate painting.
 
 The idle callback clears the pending flag, checks window existence, and for an
@@ -85,7 +85,7 @@ external placement must account for all these associations, not just the
 Resource teardown
 -----------------
 
-``Rbc_ReleaseLegendTkResources`` visits local and global legends while the graph
+:c:func:`rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources` visits local and global legends while the graph
 window remains valid. It cancels pending idle callbacks, releases the text
 style's graphics context and the separately allocated shadow color, then frees
 Tk option resources and the option table. Release guards prevent duplicate
@@ -135,8 +135,8 @@ contexts, but only one element and one ``LABEL_ACTIVE`` flag.
      - Owned by the legend
      - Owned by the legend
 
-``Rbc_CreateLegend`` initializes the ``legend``/``Legend`` option-database
-component. ``Rbc_CreateTrackLegend`` initializes ``trackLegend``/``TrackLegend``
+:c:func:`rbcGrLegendConfiguration.Rbc_CreateLegend` initializes the ``legend``/``Legend`` option-database
+component. :c:func:`rbcGrLegendConfiguration.Rbc_CreateTrackLegend` initializes ``trackLegend``/``TrackLegend``
 and lazily creates the graph-owned local binding table. Both constructors
 install their owner pointer before initializing options, so failure cleanup
 must clear it. A local creation failure retains the shared table for the graph.
@@ -150,9 +150,9 @@ values: each legend has its own record and Tk option resources.
 Configuration transaction
 --------------------------
 
-``ConfigureOp`` handles both option queries and updates. Updates install
+:c:func:`rbcGrLegendCommands.ConfigureOp` handles both option queries and updates. Updates install
 candidate fields with ``Tk_SetOptions`` and retain ``Tk_SavedOptions``.
-``ConfigureLegend`` then validates and stages derived state:
+:c:func:`rbcGrLegendConfiguration.ConfigureLegend` then validates and stages derived state:
 
 1. Check nonnegative entry/outer border widths and requested row/column counts.
 2. Parse interior and exterior padding into temporary structures.
@@ -221,7 +221,7 @@ entry. A new layout path must preserve this order in all four consumers.
 
 Sizing checks use wide arithmetic and reject dimensions that cannot fit an
 ``int``. Oversized single-row sums saturate to a sentinel so a multi-row layout
-can still be considered. ``GetLegendPixelDimension`` checks the border/padding
+can still be considered. :c:func:`rbcGrLegendLayout.GetLegendPixelDimension` checks the border/padding
 base before multiplying cell count by cell size. Rejected layouts leave the
 reset counts and dimensions empty; they do not raise a Tcl error.
 
@@ -236,13 +236,13 @@ Picking, tags and activation
 ----------------------------
 
 There are two distinct questions: whether a legend rectangle covers a point,
-and whether that point selects an entry. ``LegendContains`` intentionally counts
-blank areas for occlusion, while ``PickLegendIn`` excludes outer border/padding
+and whether that point selects an entry. :c:func:`rbcGrLegendBindings.LegendContains` intentionally counts
+blank areas for occlusion, while :c:func:`rbcGrLegendBindings.PickLegendIn` excludes outer border/padding
 and empty grid cells. A foreground legend's blank area can therefore prevent
 picking an underlying legend entry. Local tests also enforce visible track bounds.
 
-``LegendAtPoint`` checks the raised layer first, global before local within each
-layer, then local legends in track-list order. ``Rbc_PointInTrackLegend`` asks
+:c:func:`rbcGrLegendBindings.LegendAtPoint` checks the raised layer first, global before local within each
+layer, then local legends in track-list order. :c:func:`rbcGrLegendBindings.Rbc_PointInTrackLegend` asks
 whether the *topmost* legend is local, not whether any local rectangle exists
 under the point. External windows are outside this in-widget ordering.
 
@@ -268,7 +268,7 @@ handler does not look up ordinary element names. Malformed coordinates return
 is hidden or has no entries. Valid coordinates with no matching entry return
 success with an empty result. Both global and local commands use this contract.
 
-``Rbc_LegendRemoveElement`` removes object-pointer binding/current-item state
+:c:func:`rbcGrLegendBindings.Rbc_LegendRemoveElement` removes object-pointer binding/current-item state
 from the relevant tables. It does not remove interned string tags or scripts by
 name; element deletion and tag lifetime must not be conflated.
 
@@ -305,7 +305,7 @@ safety should be inferred from double buffering.
 External windows and command routing
 ------------------------------------
 
-``PrepareLegendWindow`` creates the window, instance association, exposure/structure
+:c:func:`rbcGrLegendLifetime.PrepareLegendWindow` creates the window, instance association, exposure/structure
 event handler and a command forwarding to ``Rbc_GraphInstCmdProc``. The external
 window command is consequently a graph dispatcher alias in behavior, not a
 separate legend-only command. Creation does not pack or map the window.
@@ -321,7 +321,7 @@ full graph layout/backing redraw. Deleting the external command alone is not the
 same lifecycle operation: it was created without a command-delete callback.
 
 The idle scheduler only requires a window pointer and no pending request. It
-does not require a mapped window. ``DisplayLegend`` clears the pending bit,
+does not require a mapped window. :c:func:`rbcGrLegendLifetime.DisplayLegend` clears the pending bit,
 checks external size, remaps if needed, then checks mapping before painting.
 Plot-area activation must rebuild the graph backing store rather than painting
 a legend directly over the window; margin/external activation can use the cheaper
@@ -332,3 +332,58 @@ track legend dispatch additionally normalizes its argument vector and refreshes
 graph layout before calling shared handlers. The local-only ``bbox`` returns
 ``x y width height`` for the visible intersection, or an empty result when hidden,
 empty or fully clipped. It does not return four corner coordinates.
+
+Parameter and ownership boundaries
+----------------------------------
+
+The parameters distinguish three coordinate spaces: graph-window pixels for
+in-widget overlap tests, drawing-window pixels for individual entry picking,
+and full track world rectangles for local placement. Picking an external
+legend uses its own window's coordinates. None of these helpers accepts data
+coordinates or a position relative to the legend's cached origin.
+
+.. list-table:: Output ownership and failure contracts
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Helper
+     - Caller responsibility
+   * - :c:func:`rbcGrLegendLayout.GetLegendPixelDimension`
+     - Supply required int output storage; failure leaves its old value unchanged.
+   * - :c:func:`rbcGrLegendConfiguration.GetLegendPositionFromObj`
+     - Supply staging storage and retain the input object while using windowName. Failure can leave partial staging values.
+   * - :c:func:`rbcGrLegendLifetime.PrepareLegendWindow`
+     - Supply both handle outputs; success transfers responsibility to adopt or clean up the window and command together.
+   * - :c:func:`rbcGrLegendBindings.LegendTag`
+     - Use the returned borrowed key only while its owning tag registry remains alive.
+   * - :c:func:`rbcGrLegendBindings.PickLegendEntry`
+     - Optional context output receives the global legend even if no entry is returned.
+   * - :c:func:`rbcGrLegendBindings.PickTrackLegendEntry`
+     - Context output is required and may identify a global occluding legend even when no local entry is returned.
+
+A non-NULL picking context is therefore not proof that an entry was selected.
+The returned element pointer determines whether an item was found; the context
+identifies the scope for subsequent tag collection. Neither result acquires an
+element or legend reference.
+
+:c:func:`rbcGrLegendOutput.Rbc_DrawTrackLegends` and
+:c:func:`rbcGrLegendOutput.Rbc_ExportTrackLegends` compare the requested
+``raised`` value directly with the stored flag. Pass zero or one, rather than
+an arbitrary nonzero value. Their drawable or export context remains borrowed.
+The direct :c:func:`rbcGrLegendOutput.Rbc_LegendExport` call does not supply the
+track clip itself; that is the layer wrapper's responsibility.
+
+The full nested argument vector passed to
+:c:func:`rbcGrLegendCommands.Rbc_TrackLegendOp` has its operation at index four.
+The adapter creates a normalized vector with the operation at index two, which
+is what the shared handlers expect. It also refreshes graph layout before
+calling them. :c:func:`rbcGrLegendCommands.Rbc_LegendOp` receives an ordinary
+full widget command and performs no corresponding layout refresh.
+
+Lifecycle order remains explicit: cancel idle delivery and release Tk resources
+while the window context is valid; destroy local legend records while their
+shared binding table still exists; then destroy the global legend and shared
+local binding infrastructure. The private
+:c:func:`rbcGrLegendLifetime.DestroyLegend` does not clear its owner's pointer.
+Use :c:func:`rbcGrLegendLifetime.Rbc_DestroyTrackLegend` or
+:c:func:`rbcGrLegendLifetime.Rbc_DestroyLegend` at those ownership boundaries.

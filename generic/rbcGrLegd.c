@@ -118,6 +118,8 @@ typedef struct {
  *
  * Nonpositive values return zero; larger positive values saturate at INT_MAX.
  * No allocation or graph mutation occurs.
+ *
+ * @param[in] value Wide pixel dimension; nonpositive values become zero and large values saturate.
  */
 static int LegendLayoutSize(Tcl_WideInt value) {
     if (value <= 0) {
@@ -132,6 +134,8 @@ static int LegendLayoutSize(Tcl_WideInt value) {
  *
  * Values within int bounds truncate toward zero. The caller must exclude NaN;
  * this helper does not report a conversion error.
+ *
+ * @param[in] value Pixel coordinate excluding NaN; finite values truncate toward zero within int bounds.
  */
 static int LegendCoordinate(double value) {
     if (value >= (double)INT_MAX) {
@@ -150,6 +154,12 @@ static int LegendCoordinate(double value) {
  * Returns TCL_OK and writes dimensionPtr only when all inputs are nonnegative
  * and the complete dimension fits in int. Returns TCL_ERROR without changing
  * output otherwise. Uses division before multiplication; performs no allocation.
+ *
+ * @param[in] count Number of cells along the requested dimension; negative values are rejected.
+ * @param[in] entrySize Pixel size per cell; zero is allowed, negative values are rejected.
+ * @param[in] borderWidth Pixel border thickness on each side; must be nonnegative.
+ * @param[in] padPtr Borrowed exterior padding with two nonnegative pixel widths.
+ * @param[out] dimensionPtr Required int output; unchanged if inputs or the complete size are invalid.
  */
 static int GetLegendPixelDimension(Tcl_Size count, int entrySize, int borderWidth, const Rbc_Pad *padPtr,
                                    int *dimensionPtr) {
@@ -301,6 +311,10 @@ static RbcGrLegdOp ConfigureOp;
  *
  * Returns a boolean for the borrowed spelling and fullName. Empty and
  * overlong spellings fail; does not allocate or change interpreter state.
+ *
+ * @param[in] string Borrowed candidate spelling, readable for length bytes.
+ * @param[in] length Candidate byte count; zero and overlong spellings do not match.
+ * @param[in] fullName Borrowed NUL-terminated canonical placement name.
  */
 static int IsLegendPositionPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
@@ -317,6 +331,10 @@ static int IsLegendPositionPrefix(const char *string, Tcl_Size length, const cha
  * own string-key table. Returns a borrowed key pointer valid until that table
  * is destroyed. Identical strings in separate local tables have distinct
  * binding identities.
+ *
+ * @param[in,out] legendPtr Borrowed legend selecting the global or local tag registry; missing keys are
+ *    interned.
+ * @param[in] name Borrowed NUL-terminated tag spelling; the registry owns its retained key.
  */
 static ClientData LegendTag(Legend *legendPtr, const char *name) {
     Tcl_HashEntry *entry;
@@ -335,6 +353,12 @@ static ClientData LegendTag(Legend *legendPtr, const char *name) {
  * Borrows the element object and destination list. Context identifies the
  * legend; NULL context falls back to the graph-wide legend. Interns tags
  * through LegendTag. Does not evaluate binding scripts or own the element.
+ *
+ * @param[in] table Borrowed binding table whose client data supplies the graph when context is NULL.
+ * @param[in] object Borrowed picked Element pointer, not a tag string.
+ * @param[in] context Borrowed owning Legend pointer, or NULL to use the global legend.
+ * @param[in,out] list Caller-owned initialized tag list; stable borrowed keys are appended in binding
+ *    order.
  */
 static void LegendTags(Rbc_BindTable table, ClientData object, ClientData context, Rbc_List list) {
     Legend *legendPtr = context;
@@ -359,6 +383,10 @@ static void LegendTags(Rbc_BindTable table, ClientData object, ClientData contex
  * A global legend accepts every borrowed element. A local legend accepts only
  * elements with the same track pointer. Callers separately check label and
  * display-list eligibility; no reference is acquired.
+ *
+ * @param[in] legendPtr Borrowed legend selecting global or one-track membership.
+ * @param[in] elemPtr Borrowed element whose track is compared; label and display membership are not
+ *    tested.
  */
 static int LegendHasElement(Legend *legendPtr, Element *elemPtr) {
     return (legendPtr->track == NULL || elemPtr->track == legendPtr->track);
@@ -373,6 +401,12 @@ static int LegendHasElement(Legend *legendPtr, Element *elemPtr) {
  * borrows the object string. Returns TCL_OK or TCL_ERROR with a diagnostic;
  * output may be partially initialized on error. Coordinate expressions can
  * execute Tcl, so callers must maintain owner and argument lifetime.
+ *
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objPtr Borrowed non-NULL placement object; coordinate expressions may evaluate Tcl.
+ * @param[out] positionPtr Required staging record; may be partially written on error. windowName borrows
+ *    objPtr storage.
  */
 static int GetLegendPositionFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, LegendPosition *positionPtr) {
     const char *string;
@@ -462,6 +496,9 @@ static int GetLegendPositionFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, LegendP
  * Schedules DisplayLegend only with a non-NULL window and no REDRAW_PENDING
  * flag, then marks the request pending. Does not check whether the window is
  * mapped; the idle handler does that. Caller must cancel before freeing records.
+ *
+ * @param[in,out] legendPtr Live legend retained until idle delivery or cancellation; pending state is
+ *    updated.
  */
 static void EventuallyRedrawLegend(Legend *legendPtr) {
     if ((legendPtr->tkwin != NULL) && !(legendPtr->flags & REDRAW_PENDING)) {
@@ -477,6 +514,9 @@ static void EventuallyRedrawLegend(Legend *legendPtr) {
  * Borrows a graph whose legend may be absent. Does nothing for an absent,
  * resource-released or non-window legend. Coalesces idle work without drawing
  * synchronously or remapping the graph.
+ *
+ * @param[in,out] graphPtr Borrowed graph whose global legend may be NULL; eligible external redraw is
+ *    queued.
  */
 void Rbc_RedrawExternalLegend(Graph *graphPtr) {
     Legend *legendPtr = graphPtr->legend;
@@ -495,6 +535,16 @@ void Rbc_RedrawExternalLegend(Graph *graphPtr) {
  * TCL_OK and writes both handles only on success. Returns TCL_ERROR after
  * cleaning partial associations otherwise. The caller owns adoption/cleanup
  * of successful candidates; no packing or mapping is performed.
+ *
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] legendPtr Borrowed legend associated with the candidate window and graph-forwarding
+ *    command.
+ * @param[in] pathName Borrowed NUL-terminated Tk window path.
+ * @param[out] tkwinPtr Required output for the new window; assigned only on success, caller adopts or
+ *    destroys it.
+ * @param[out] cmdTokenPtr Required output for the new command; assigned only on success, caller adopts
+ *    or deletes it.
  */
 static int PrepareLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char *pathName, Tk_Window *tkwinPtr,
                                Tcl_Command *cmdTokenPtr) {
@@ -529,6 +579,9 @@ static int PrepareLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char
  * stored handles before deleting the old command/window associations, and
  * moves the binding table back to the graph. Does not set the new site or
  * position object; the configuration caller completes that transition.
+ *
+ * @param[in,out] legendPtr Live legend with graph and binding infrastructure; external associations are
+ *    removed, record retained.
  */
 static void CloseExternalLegendWindow(Legend *legendPtr) {
     Graph *graphPtr;
@@ -566,6 +619,9 @@ static void CloseExternalLegendWindow(Legend *legendPtr) {
  *
  * Creates and retains a string object, swaps it into the legend and releases
  * the previous reference. Does not parse placement, change site or schedule work.
+ *
+ * @param[in,out] legendPtr Live legend whose retained position object is replaced.
+ * @param[in] value Borrowed NUL-terminated spelling copied into a newly retained Tcl string.
  */
 static void SetLegendPositionObject(Legend *legendPtr, const char *value) {
     Tcl_Obj *newObjPtr;
@@ -589,6 +645,10 @@ static void SetLegendPositionObject(Legend *legendPtr, const char *value) {
  * separately acquired shadow, and releases options/table. Clears an in-widget
  * window pointer but retains an external one for final destruction. Does not
  * free the legend record or binding table.
+ *
+ * @param[in] graphPtr Owning graph with usable Tk window/display for option and drawing-resource
+ *    cleanup.
+ * @param[in,out] legendPtr Legend to release, or NULL; record and binding table are retained.
  */
 static void ReleaseLegendTkResources(Graph *graphPtr, Legend *legendPtr) {
     if ((legendPtr == NULL) || (legendPtr->optionTable == NULL) || (legendPtr->tkResourcesReleased)) {
@@ -632,6 +692,9 @@ static void ReleaseLegendTkResources(Graph *graphPtr, Legend *legendPtr) {
  * Requires the owning graph's valid track list and Tk window context. Visits
  * local legends first, then the optional global legend. Per-record guards
  * prevent duplicate release; final destruction owns records and bindings.
+ *
+ * @param[in,out] graphPtr Owning graph with valid track list and Tk cleanup context; records remain for
+ *    final destruction.
  */
 void Rbc_ReleaseLegendTkResources(Graph *graphPtr) {
     RbcTrack *track;
@@ -650,6 +713,9 @@ void Rbc_ReleaseLegendTkResources(Graph *graphPtr) {
  * removes command/instance associations, cancels pending work, restores
  * rightmargin and its retained option string, moves bindings to the graph
  * and requests graph remapping/redrawing. Borrows a live legend record.
+ *
+ * @param[in,out] clientData Borrowed Legend pointer registered with the external window event handler.
+ * @param[in] eventPtr Borrowed exposure or structure event; not retained or modified.
  */
 static void LegendEventProc(ClientData clientData, register XEvent *eventPtr) {
     Legend *legendPtr = clientData;
@@ -692,6 +758,9 @@ static void LegendEventProc(ClientData clientData, register XEvent *eventPtr) {
  * Negative explicit coordinates are relative to the graph window extent.
  * Applies the anchor and padding with saturated arithmetic. External placement
  * forces the NW anchor and origin zero. Does not remeasure entries.
+ *
+ * @param[in,out] legendPtr Mapped legend with current owning-region geometry; cached origin and external
+ *    anchor may change.
  */
 static void SetLegendOrigin(Legend *legendPtr) {
     Graph *graphPtr;
@@ -793,6 +862,9 @@ static void SetLegendOrigin(Legend *legendPtr) {
  * Borrows a labeled element and initialized text style. In one row, remeasures
  * that label and adds entryInset; otherwise returns cached style.width.
  * Mapping must already have validated the dimensions and label state.
+ *
+ * @param[in] legendPtr Mapped legend with initialized font/style and validated entry inset.
+ * @param[in] elemPtr Borrowed element with a non-NULL label; measured only for a single-row layout.
  */
 static int LegendEntryWidth(Legend *legendPtr, Element *elemPtr) {
     int width, height;
@@ -813,6 +885,10 @@ static int LegendEntryWidth(Legend *legendPtr, Element *elemPtr) {
  * widths; a grid uses column-major cell indices with overflow checks. Walks
  * the display list in reverse, applying label and track filters. Returns NULL
  * for no entry; does not update graph layout or acquire an element reference.
+ *
+ * @param[in,out] legendPtr Borrowed mapped legend; origin may be recomputed, layout is not refreshed.
+ * @param[in] x Horizontal pixel coordinate in the legend drawing window, not relative to its origin.
+ * @param[in] y Vertical pixel coordinate in the same drawing window.
  */
 static ClientData PickLegendIn(Legend *legendPtr, int x, int y) {
     Graph *graphPtr;
@@ -897,6 +973,10 @@ static ClientData PickLegendIn(Legend *legendPtr, int x, int y) {
  * Recomputes origin and rejects hidden/empty/unattached legends. Local legends
  * additionally require the point inside visible track bounds. This boolean
  * test deliberately differs from entry picking: padding can occlude content.
+ *
+ * @param[in,out] legendPtr Borrowed mapped legend; origin may be recomputed, layout is not refreshed.
+ * @param[in] x Horizontal pixel coordinate in the legend drawing window, not relative to its origin.
+ * @param[in] y Vertical pixel coordinate in the same drawing window.
  */
 static int LegendContains(Legend *legendPtr, int x, int y) {
     if (legendPtr->tkwin == NULL || legendPtr->hidden || legendPtr->nEntries == 0) {
@@ -918,6 +998,11 @@ static int LegendContains(Legend *legendPtr, int x, int y) {
  * Requires a live graph-wide legend. Checks raised then non-raised layers,
  * global before local within each layer, and tracks in list order. Excludes
  * external windows. Returns a borrowed legend or NULL, without picking an entry.
+ *
+ * @param[in,out] graphPtr Live graph with a global legend and prepared global/local layouts; tested
+ *    origins may change.
+ * @param[in] x Horizontal graph-window pixel coordinate.
+ * @param[in] y Vertical graph-window pixel coordinate.
  */
 static Legend *LegendAtPoint(Graph *graphPtr, int x, int y) {
     RbcTrack *track;
@@ -942,6 +1027,11 @@ static Legend *LegendAtPoint(Graph *graphPtr, int x, int y) {
  *
  * Delegates to LegendAtPoint, including blank legend areas. Does not remap
  * the graph or test external legend windows.
+ *
+ * @param[in,out] graphPtr Live graph with a global legend and prepared global/local layouts; tested
+ *    origins may change.
+ * @param[in] x Horizontal graph-window pixel coordinate.
+ * @param[in] y Vertical graph-window pixel coordinate.
  */
 int Rbc_PointInLegend(Graph *graphPtr, int x, int y) { return LegendAtPoint(graphPtr, x, y) != NULL; }
 
@@ -951,6 +1041,11 @@ int Rbc_PointInLegend(Graph *graphPtr, int x, int y) { return LegendAtPoint(grap
  *
  * Returns false when a global legend occludes a local one. Uses current
  * mapped geometry and borrows the graph; no binding scripts are run.
+ *
+ * @param[in,out] graphPtr Live graph with a global legend and prepared global/local layouts; tested
+ *    origins may change.
+ * @param[in] x Horizontal graph-window pixel coordinate.
+ * @param[in] y Vertical graph-window pixel coordinate.
  */
 int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y) {
     Legend *legendPtr = LegendAtPoint(graphPtr, x, y);
@@ -965,6 +1060,12 @@ int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y) {
  * even if no entry is found. In-widget picking requires it to be topmost;
  * external picking uses that window's coordinates directly. Returns a
  * borrowed element or NULL.
+ *
+ * @param[in,out] clientData Borrowed Graph pointer supplied by the binding table.
+ * @param[in] x Horizontal event-window pixel coordinate; graph coordinates for local legends.
+ * @param[in] y Vertical event-window pixel coordinate.
+ * @param[out] contextPtr Optional output for the borrowed global legend, including when no item is
+ *    found.
  */
 static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientData *contextPtr) {
     Graph *graphPtr = clientData;
@@ -985,6 +1086,12 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
  * clientData is the graph and contextPtr must be writable. Stores the
  * topmost legend, then returns a borrowed entry only if that legend is local.
  * Context can identify a global legend even when the returned item is NULL.
+ *
+ * @param[in,out] clientData Borrowed Graph pointer supplied by the binding table.
+ * @param[in] x Horizontal event-window pixel coordinate; graph coordinates for local legends.
+ * @param[in] y Vertical event-window pixel coordinate.
+ * @param[out] contextPtr Required output for the borrowed topmost legend or NULL; can identify a global
+ *    legend with no returned item.
  */
 static ClientData PickTrackLegendEntry(ClientData clientData, int x, int y, ClientData *contextPtr) {
     Graph *graphPtr = clientData;
@@ -1006,6 +1113,11 @@ static ClientData PickTrackLegendEntry(ClientData clientData, int x, int y, Clie
  * Single rows use individual widths; multiple rows use maximum-size cells.
  * Unusable or overflowing dimensions leave an empty layout. Does not set the
  * origin or draw; may request new external-window geometry.
+ *
+ * @param[in,out] legendPtr Initialized legend with live graph and display-list elements; cached layout
+ *    is replaced.
+ * @param[in] plotWidth Available pixel width; a usable external-window width overrides it.
+ * @param[in] plotHeight Available pixel height; a usable external-window height overrides it.
  */
 void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     Rbc_ChainLink *linkPtr;
@@ -1203,6 +1315,11 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
  * Local copies are intersected with the visible track rectangle. Frees the
  * pixmap and closes the text context. Borrows entries; does not own elements
  * or provide a mutation-safe snapshot across symbol callbacks.
+ *
+ * @param[in,out] legendPtr Mapped legend with live window, graph and element records; origin and draw
+ *    flags may change.
+ * @param[in] drawable Borrowed compatible destination receiving the composed legend; not freed by this
+ *    call.
  */
 void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     Graph *graphPtr;
@@ -1358,6 +1475,10 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
  * and handles decorations before visiting entries in column-major order.
  * Uses each concrete element's exportSymbolProc and closes its own output
  * context. Local clipping and external-legend exclusion belong to callers.
+ *
+ * @param[in,out] legendPtr Mapped legend with valid styles and displayed elements; origin is recomputed.
+ * @param[in,out] exportPtr Borrowed initialized document context; caller supplies local clipping and
+ *    finalization.
  */
 void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
@@ -1446,6 +1567,9 @@ void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr) {
  * of at most one pixel are skipped; changed dimensions trigger remapping.
  * Unmapped windows are not painted. The scheduled record must remain live
  * until the callback runs or is cancelled.
+ *
+ * @param[in,out] clientData Scheduled Legend pointer retained by its owner until callback or
+ *    cancellation.
  */
 static void DisplayLegend(ClientData clientData) {
     Legend *legendPtr = clientData;
@@ -1482,6 +1606,12 @@ static void DisplayLegend(ClientData clientData) {
  * and schedules layout/redraw as the mask requires. Returns TCL_OK or
  * TCL_ERROR, freeing staged resources on error. Caller restores Tk fields;
  * callback side effects from expressions/window operations are not rolled back.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; mapping/redraw flags and external associations may
+ *    change.
+ * @param[in,out] legendPtr Initialized legend with candidate Tk fields; caller restores Tk saved options
+ *    on error.
+ * @param[in] mask LEGEND_*_CHANGED bits selecting conversion, placement, text-style and layout work.
  */
 static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask) {
     Rbc_Pad newIpadX;
@@ -1665,6 +1795,10 @@ error:
  * stored handles. Local legends remove their private tag bindings and table;
  * global legends destroy their owned binding table. Frees the record, but
  * does not clear owner pointers or destroy the shared local binding table.
+ *
+ * @param[in,out] graphPtr Owning graph; Tk resources must already be released if its window is gone.
+ * @param[in,out] legendPtr Owned legend to free, or NULL; caller clears its owner pointer and retains
+ *    shared local binding infrastructure.
  */
 static void DestroyLegend(Graph *graphPtr, Legend *legendPtr) {
     if (legendPtr == NULL) {
@@ -1718,6 +1852,9 @@ static void DestroyLegend(Graph *graphPtr, Legend *legendPtr) {
  * Clears graph-owned pointers. Local legends must already have been destroyed
  * before their shared binding table disappears. Tk resources should have
  * been released while the graph window was valid.
+ *
+ * @param[in,out] graphPtr Owning graph after local legends are destroyed; global legend and shared
+ *    binding pointers are cleared.
  */
 void Rbc_DestroyLegend(Graph *graphPtr) {
     DestroyLegend(graphPtr, graphPtr->legend);
@@ -1735,6 +1872,9 @@ void Rbc_DestroyLegend(Graph *graphPtr) {
  * Requires the shared local binding table to remain live. An absent legend
  * is harmless. Releases local tag bindings, not the shared binding table;
  * Tk resources must be released before window loss.
+ *
+ * @param[in,out] graphPtr Owning graph whose shared local-legend binding table remains live.
+ * @param[in,out] track Live owning track; its legend is freed if present and its pointer cleared.
  */
 void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track) {
     DestroyLegend(graphPtr, track->legend);
@@ -1750,6 +1890,9 @@ void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track) {
  * legend/Legend, then configures derived state. Returns TCL_OK on success.
  * On failure destroys partial legend state and returns TCL_ERROR. Allocation
  * is asserted; this is an internal constructor, not a public stubs API.
+ *
+ * @param[in,out] graphPtr Live graph with option proxy and no global legend; owns the new record and
+ *    bindings on success.
  */
 int Rbc_CreateLegend(Graph *graphPtr) {
     Legend *legendPtr;
@@ -1788,6 +1931,11 @@ error:
  * borrows or lazily creates trackLegendBindings and initializes component
  * options under trackLegend/TrackLegend. Returns TCL_OK on success; failure
  * destroys the partial local legend but retains the graph-owned shared table.
+ *
+ * @param[in,out] graphPtr Live owning graph; shared local binding table may be created and retained even
+ *    after failure.
+ * @param[in,out] track Live graph member with no legend; receives the new record on success, NULL after
+ *    failure.
  */
 int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track) {
     Legend *legendPtr;
@@ -1833,6 +1981,12 @@ error:
  * ordinary element-name strings. Malformed coordinates return TCL_ERROR
  * with the parser diagnostic, even for hidden or empty legends. Valid queries
  * with no matching entry return TCL_OK without setting a name.
+ *
+ * @param[in,out] legendPtr Borrowed live legend selected by global or nested track dispatch.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Validated count of four; selector is objv[3].
+ * @param[in] objv Borrowed normalized command vector; see @ref rbc_command_arguments.
  */
 static int GetOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Graph *graphPtr = legendPtr->graphPtr;
@@ -1872,6 +2026,13 @@ static int GetOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
  * of all active names in scope, in hash order, including undisplayed elements.
  * Schedules graph/backing redraw for plot legends and cheaper legend redraw
  * when appropriate; track graphs also refresh other copies of shared entries.
+ *
+ * @param[in,out] legendPtr Borrowed live legend selected by global or nested track dispatch.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Normalized count including operation at index two and zero or more patterns from index
+ *    three.
+ * @param[in] objv Borrowed normalized command vector; see @ref rbc_command_arguments.
  */
 static int ActivateOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Graph *graphPtr = legendPtr->graphPtr;
@@ -1956,6 +2117,12 @@ static int ActivateOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
  * returns the owning tag table's keys in hash order; these need not all have
  * scripts. Otherwise interns the supplied tag and delegates remaining
  * arguments to the shared binding service. Returns its Tcl status.
+ *
+ * @param[in,out] legendPtr Borrowed live legend selected by global or nested track dispatch.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Validated normalized count from three through six: optional tag, sequence and script.
+ * @param[in] objv Borrowed normalized command vector; see @ref rbc_command_arguments.
  */
 static int BindOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Graph *graphPtr = legendPtr->graphPtr;
@@ -1983,6 +2150,12 @@ static int BindOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  *
  * Borrows a live legend and normalized option name at objv[3]. Returns
  * TCL_OK with the value or TCL_ERROR from Tk. Does not configure or redraw.
+ *
+ * @param[in,out] legendPtr Borrowed live legend selected by global or nested track dispatch.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Validated count of four; option name is objv[3].
+ * @param[in] objv Borrowed normalized command vector; see @ref rbc_command_arguments.
  */
 static int CgetOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Graph *graphPtr = legendPtr->graphPtr;
@@ -2005,6 +2178,13 @@ static int CgetOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
  * Derived failure restores saved options while preserving the diagnostic;
  * success frees saved options. Returns a Tcl status. Does not undo arbitrary
  * application side effects from coordinate expressions or window callbacks.
+ *
+ * @param[in,out] legendPtr Borrowed live legend selected by global or nested track dispatch.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Normalized count: three queries all options, four queries one, otherwise option/value
+ *    pairs start at three.
+ * @param[in] objv Borrowed normalized command vector; see @ref rbc_command_arguments.
  */
 static int ConfigureOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Graph *graphPtr = legendPtr->graphPtr;
@@ -2055,6 +2235,13 @@ static const LegendOpSpec legendOps[] = {{{"activate", 3, 0, "?pattern?..."}, Ac
  * index two. Shared dispatch checks spelling and arity, then calls the
  * selected handler. Returns TCL_OK/TCL_ERROR; this dispatcher adds no layout
  * refresh or object-lifetime preservation around the handler.
+ *
+ * @param[in,out] graphPtr Live graph with initialized global legend; enclosing caller owns lifetime
+ *    protection.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Full widget-command count; operation is at index two.
+ * @param[in] objv Borrowed full widget-command vector; see @ref rbc_command_arguments.
  */
 int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -2072,6 +2259,9 @@ int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  *
  * Requires a non-NULL live legend. Reads site without remapping, scheduling
  * work or acquiring a reference; cached geometry need not be current.
+ *
+ * @param[in] legendPtr Non-NULL live legend; reads cached state without refreshing layout or acquiring a
+ *    reference.
  */
 int Rbc_LegendSite(Legend *legendPtr) { return legendPtr->site; }
 
@@ -2081,6 +2271,9 @@ int Rbc_LegendSite(Legend *legendPtr) { return legendPtr->site; }
  *
  * Requires a non-NULL live legend. Reads width without remapping, scheduling
  * work or acquiring a reference; cached geometry need not be current.
+ *
+ * @param[in] legendPtr Non-NULL live legend; reads cached state without refreshing layout or acquiring a
+ *    reference.
  */
 int Rbc_LegendWidth(Legend *legendPtr) { return legendPtr->width; }
 
@@ -2090,6 +2283,9 @@ int Rbc_LegendWidth(Legend *legendPtr) { return legendPtr->width; }
  *
  * Requires a non-NULL live legend. Reads height without remapping, scheduling
  * work or acquiring a reference; cached geometry need not be current.
+ *
+ * @param[in] legendPtr Non-NULL live legend; reads cached state without refreshing layout or acquiring a
+ *    reference.
  */
 int Rbc_LegendHeight(Legend *legendPtr) { return legendPtr->height; }
 
@@ -2099,6 +2295,9 @@ int Rbc_LegendHeight(Legend *legendPtr) { return legendPtr->height; }
  *
  * Requires a non-NULL live legend. Reads hidden without remapping, scheduling
  * work or acquiring a reference; cached geometry need not be current.
+ *
+ * @param[in] legendPtr Non-NULL live legend; reads cached state without refreshing layout or acquiring a
+ *    reference.
  */
 int Rbc_LegendIsHidden(Legend *legendPtr) { return legendPtr->hidden; }
 
@@ -2108,6 +2307,9 @@ int Rbc_LegendIsHidden(Legend *legendPtr) { return legendPtr->hidden; }
  *
  * Requires a non-NULL live legend. Reads raised without remapping, scheduling
  * work or acquiring a reference; cached geometry need not be current.
+ *
+ * @param[in] legendPtr Non-NULL live legend; reads cached state without refreshing layout or acquiring a
+ *    reference.
  */
 int Rbc_LegendIsRaised(Legend *legendPtr) { return legendPtr->raised; }
 
@@ -2117,6 +2319,9 @@ int Rbc_LegendIsRaised(Legend *legendPtr) { return legendPtr->raised; }
  *
  * Requires a non-NULL live legend. Reads x without remapping, scheduling
  * work or acquiring a reference; cached geometry need not be current.
+ *
+ * @param[in] legendPtr Non-NULL live legend; reads cached state without refreshing layout or acquiring a
+ *    reference.
  */
 int Rbc_LegendX(Legend *legendPtr) { return legendPtr->x; }
 
@@ -2126,6 +2331,9 @@ int Rbc_LegendX(Legend *legendPtr) { return legendPtr->x; }
  *
  * Requires a non-NULL live legend. Reads y without remapping, scheduling
  * work or acquiring a reference; cached geometry need not be current.
+ *
+ * @param[in] legendPtr Non-NULL live legend; reads cached state without refreshing layout or acquiring a
+ *    reference.
  */
 int Rbc_LegendY(Legend *legendPtr) { return legendPtr->y; }
 
@@ -2136,6 +2344,10 @@ int Rbc_LegendY(Legend *legendPtr) { return legendPtr->y; }
  * Passes the borrowed element pointer to Rbc_DeleteBindings in both relevant
  * tables, clearing current/new item state as needed. Does not remove interned
  * string tags, erase tag scripts by name, free the element or edit display order.
+ *
+ * @param[in,out] legendPtr Live legend identifying the global/shared-local binding state to clear.
+ * @param[in] elemPtr Borrowed element identity to forget; neither the record nor its string tags are
+ *    freed.
  */
 void Rbc_LegendRemoveElement(Legend *legendPtr, Element *elemPtr) {
     Rbc_DeleteBindings(legendPtr->bindTable, elemPtr);
@@ -2151,6 +2363,9 @@ void Rbc_LegendRemoveElement(Legend *legendPtr, Element *elemPtr) {
  * Borrows graph and track records. Resets styles only when window and font
  * are available; an external global legend receives an idle redraw request.
  * Does not itself remap legends or schedule in-widget graph redisplay.
+ *
+ * @param[in,out] graphPtr Borrowed graph with valid track list; available styles are reset and external
+ *    redraw may be queued.
  */
 void Rbc_LegendFontsChanged(Graph *graphPtr) {
     RbcTrack *track;
@@ -2177,6 +2392,9 @@ void Rbc_LegendFontsChanged(Graph *graphPtr) {
  * Uses world widths/heights, then computes origins. Local legends do not
  * reserve graph margins. Borrows graph and tracks, and does not draw or
  * schedule redisplay; visible clipping is handled separately.
+ *
+ * @param[in,out] graphPtr Borrowed graph with prepared full track world rectangles; local dimensions and
+ *    origins are updated.
  */
 void Rbc_MapTrackLegends(Graph *graphPtr) {
     RbcTrack *track;
@@ -2195,6 +2413,11 @@ void Rbc_MapTrackLegends(Graph *graphPtr) {
  * Borrows tracks in list order. Selects legends with matching raised flag
  * and a noncollapsed visible track rectangle; Rbc_DrawLegend handles hidden
  * and empty legends and clips the final copy. Does not remap tracks.
+ *
+ * @param[in,out] graphPtr Borrowed graph with mapped local legends and current visible track bounds.
+ * @param[in] drawable Borrowed compatible graph destination; each local copy is clipped to its visible
+ *    track.
+ * @param[in] raised Exact raised flag to select, normally zero or one; not an arbitrary truth value.
  */
 void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised) {
     RbcTrack *track;
@@ -2213,6 +2436,11 @@ void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised) {
  * Selects matching raised flags and noncollapsed track rectangles. Opens an
  * output context, pushes the inclusive visible rectangle as a clip, exports
  * the legend, then balances clip/context cleanup. Does not remap track geometry.
+ *
+ * @param[in,out] graphPtr Borrowed graph with mapped local legends and visible track bounds.
+ * @param[in,out] exportPtr Borrowed initialized export context; each local clip is balanced before
+ *    return.
+ * @param[in] raised Exact raised flag to select, normally zero or one.
  */
 void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised) {
     RbcTrack *track;
@@ -2237,6 +2465,12 @@ void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int r
  * fully clipped legends leave no result. Intersects the legend extent with
  * inclusive visible track bounds and returns pixel dimensions, not right and
  * bottom coordinates. Recomputes origin but does not remap.
+ *
+ * @param[in,out] legendPtr Borrowed live local legend with current track layout.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Validated count of three; unused by this handler.
+ * @param[in] objv Unused normalized command vector.
  */
 static int TrackLegendBboxOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcTrack *track = legendPtr->track;
@@ -2275,6 +2509,15 @@ static const LegendOpSpec trackLegendOps[] = {{{"activate", 3, 0, "?pattern?..."
  * success, then releases the vector. Returns the Tcl status of the failing
  * stage or handler. Borrows graph/track/legend; adds no preservation boundary
  * around layout callbacks.
+ *
+ * @param[in,out] graphPtr Live graph retained across layout callbacks by the enclosing caller.
+ * @param[in,out] track Live graph member with an existing legend; borrowed across layout and handler
+ *    dispatch.
+ * @param[in] interp Borrowed interpreter receiving results and diagnostics; see @ref
+ *    rbc_interp_argument.
+ * @param[in] objc Full nested-command count; operation is at index four.
+ * @param[in] objv Borrowed nested command; a temporary adapted vector is freed before return. See @ref
+ *    rbc_command_arguments.
  */
 int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj **args;
