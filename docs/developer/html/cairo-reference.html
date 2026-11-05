@@ -47,7 +47,14 @@
 <p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcRenderCairo.c</span></code>. They are not component APIs.
 The documentation preprocessor enables <code class="docutils literal notranslate"><span class="pre">RBC_HAVE_CAIRO</span></code> to extract this group;
 it does not change the configured library build or require Cairo to build docs.
-See <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for platform-specific target lifetime.</p>
+See <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for platform-specific target lifetime, path consumption
+and pattern ownership. The parameter contracts describe backend state, not
+permission to call a helper on an arbitrary renderer context. In particular,
+fill callbacks require initialized fill style, and cleanup consumes its context.</p>
+<p>Start with <a class="reference internal" href="#c.BeginRenderTarget" title="BeginRenderTarget"><code class="xref c c-func docutils literal notranslate"><span class="pre">BeginRenderTarget()</span></code></a> for setup,
+<a class="reference internal" href="#c.StrokeRenderPath" title="StrokeRenderPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">StrokeRenderPath()</span></code></a> for stroke composition, and
+<a class="reference internal" href="#c.CreateRenderPhoto" title="CreateRenderPhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a> for copied pixel storage. Component code should use
+the interface in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> instead of calling these static functions.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__cairo__backend"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Cairo</span> <span class="pre">backend</span> <span class="pre">internals</span></span></dt>
@@ -58,26 +65,43 @@ See <a class="reference internal" href="cairo-rendering.html"><span class="doc">
 <dt class="sig sig-object c" id="c.CairoClipBegin">
 <span class="target" id="group__cairo__backend_1ga5161a6e59d0b6a72f7060b2b2ff2433b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoClipBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoClipBegin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Save graphics state and intersect with a rectangular clip. </p>
-<p>Nonpositive dimensions become an empty rectangle. Coordinates use the current transform; the common dispatcher owns clip depth. Cairo clipping consumes the current path, so callers must finish pending geometry before pushing a clip. </p>
+<p>Nonpositive dimensions become an empty rectangle. Coordinates use the current transform; the common dispatcher owns clip depth. Cairo clipping consumes the current path, so callers must finish pending geometry before pushing a clip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in display units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in display units. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in pixels; nonpositive clip dimensions select an empty rectangle. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in pixels; nonpositive clip dimensions select an empty rectangle. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoClipEnd">
 <span class="target" id="group__cairo__backend_1ga476c6eb2db4470501d8f23a8931fba23"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoClipEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoClipEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Restore the state saved by one clip push. </p>
-<p>Requires a matching CairoClipBegin through common dispatch. This does not decrement common clip depth itself and cannot restore a consumed path. </p>
+<p>Requires a matching CairoClipBegin through common dispatch. This does not decrement common clip depth itself and cannot restore a consumed path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo context with one matching saved clip state; common dispatch owns depth bookkeeping. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FreeRenderContext">
 <span class="target" id="group__cairo__backend_1gacd8da8729dc618c3e1de14fca627ca88"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeRenderContext</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeRenderContext" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a fully or partially initialized Cairo context. </p>
-<p>
-Destroys owned pattern, cairo_t and surface reference, then restores saved Windows DC state and releases its acquisition record. Finally frees the context. Does not flush/report drawing errors; CairoEnd provides that normal-completion behavior. Borrowed graph and component resources survive. </p>
+<p>Destroys owned pattern, cairo_t and surface reference, then restores saved Windows DC state and releases its acquisition record. Finally frees the context. Does not flush/report drawing errors; CairoEnd provides that normal-completion behavior. Borrowed graph and component resources survive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ctx</strong> – Non-NULL owned context whose optional fields were zero-initialized.</p></li>
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned non-NULL Cairo context with zero-initialized optional fields; consumed even after partial setup. </p></li>
 </ul>
 </dd>
 </dl>
@@ -87,26 +111,43 @@ Destroys owned pattern, cairo_t and surface reference, then restores saved Windo
 <dt class="sig sig-object c" id="c.GetAntialias">
 <span class="target" id="group__cairo__backend_1ga1c62734dc8784fbaa5bf92e183fb1a60"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">cairo_antialias_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAntialias</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetAntialias" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Translate an RBC antialias mode to Cairo. </p>
-<p>Known modes map directly; unrecognized values select Cairo default. This is a mapping helper, not option validation. </p>
+<p>Known modes map directly; unrecognized values select Cairo default. This is a mapping helper, not option validation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> – <strong>[in]</strong> RBC_ANTIALIAS_* value; an unknown value selects Cairo default. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapped Cairo antialias constant. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.SetStrokeColor">
 <span class="target" id="group__cairo__backend_1ga6969c2a600f3a2298800d0f37018ee37"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetStrokeColor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">cairo_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetStrokeColor" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Set an opaque RGB source from a borrowed Tk color. </p>
-<p>Requires a non-NULL color. Channels are normalized from 16-bit values; Cairo copies the numeric source, so the color pointer is not retained. </p>
+<p>Requires a non-NULL color. Channels are normalized from 16-bit values; Cairo copies the numeric source, so the color pointer is not retained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cr</strong> – <strong>[inout]</strong> Borrowed live cairo_t receiving an opaque RGB source. </p></li>
+<li><p><strong>colorPtr</strong> – <strong>[in]</strong> Required borrowed Tk color; channel values are copied. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.StrokeRenderPath">
 <span class="target" id="group__cairo__backend_1ga2350590d8111526efde3f67af2029acc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StrokeRenderPath</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StrokeRenderPath" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke and consume the current path using the context’s dash policy. </p>
-<p>
-Double-dash mode first paints a solid off-color stroke while preserving the path, then applies foreground dashes and consumes the path. Owns no additional resources. This is not an XOR/raster-operation adapter. </p>
+<p>Double-dash mode first paints a solid off-color stroke while preserving the path, then applies foreground dashes and consumes the path. Owns no additional resources. This is not an XOR/raster-operation adapter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ctx</strong> – Live Cairo context with initialized stroke colors and dashes.</p></li>
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
 </ul>
 </dd>
 </dl>
@@ -117,10 +158,26 @@ Double-dash mode first paints a solid off-color stroke while preserving the path
 <span class="target" id="group__cairo__backend_1ga6d5e625a3d502e9c5061f9df30404b25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">BeginRenderTarget</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offColorPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">left</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">top</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">right</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">bottom</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BeginRenderTarget" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create a Cairo context for an explicitly sized native target and clip. </p>
 <p>
-Borrows graph/drawable, copies stroke colors and dash values, and owns the resulting surface reference and cairo_t. The four final integers are inclusive clip edges; target dimensions describe the underlying drawable. Establishes the clip before the half-pixel translation. Windows can reference the current marker-pass image, otherwise it acquires/saves a display DC; X11 creates an Xlib surface wrapper. Printing/metafile Windows targets decline Cairo. Finish successful contexts with Rbc_RenderEnd while borrowed resources and any enclosing marker pass remain alive. No native retry occurs here. </p>
+Borrows graph/drawable, copies stroke colors and dash values, and owns the resulting surface reference and cairo_t. The four final integers are inclusive clip edges; target dimensions describe the underlying drawable. Establishes the clip before the half-pixel translation. Windows can reference the current marker-pass image, otherwise it acquires/saves a display DC; X11 creates an Xlib surface wrapper. Printing/metafile Windows targets decline Cairo. Finish successful contexts with Rbc_RenderEnd while borrowed resources and any enclosing marker pass remain alive. No native retry occurs here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Owned context, or NULL after cleanup if input or setup is unsupported.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until context release; must select Cairo. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed non-None destination kept valid until context release and within any enclosing marker pass. </p></li>
+<li><p><strong>colorPtr</strong> – <strong>[in]</strong> Required borrowed Tk color; channel values are copied. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Finite positive stroke width in display units, not destination width. </p></li>
+<li><p><strong>dashesPtr</strong> – <strong>[in]</strong> Optional borrowed dash specification copied into the context; NULL selects solid. </p></li>
+<li><p><strong>offColorPtr</strong> – <strong>[in]</strong> Optional borrowed off-dash color copied into the context when used. </p></li>
+<li><p><strong>targetWidth</strong> – <strong>[in]</strong> Positive destination width in pixels. </p></li>
+<li><p><strong>targetHeight</strong> – <strong>[in]</strong> Positive destination height in pixels. </p></li>
+<li><p><strong>left</strong> – <strong>[in]</strong> Inclusive left target clip edge in pixels. </p></li>
+<li><p><strong>top</strong> – <strong>[in]</strong> Inclusive top target clip edge in pixels. </p></li>
+<li><p><strong>right</strong> – <strong>[in]</strong> Inclusive right target clip edge in pixels. </p></li>
+<li><p><strong>bottom</strong> – <strong>[in]</strong> Inclusive bottom target clip edge in pixels. </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -129,98 +186,233 @@ Borrows graph/drawable, copies stroke colors and dash values, and owns the resul
 <dt class="sig sig-object c" id="c.CairoPolyline">
 <span class="target" id="group__cairo__backend_1gabfa9dbaf675ab1c24d61a5f1c52458ec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoPolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoPolyline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build and stroke a connected trace. </p>
-<p>Counts below two do nothing. Borrows mapped points and preserves joins within the trace. StrokeRenderPath consumes the path, including its optional off-color pass; callers must not leave unrelated pending geometry. </p>
+<p>Counts below two do nothing. Borrows mapped points and preserves joins within the trace. StrokeRenderPath consumes the path, including its optional off-color pass; callers must not leave unrelated pending geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array, readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoArcPath">
 <span class="target" id="group__cairo__backend_1ga86164e6cb50abad26650189a3f5040d5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoArcPath</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoArcPath" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace the path with a normalized mapped ellipse arc. </p>
-<p>Builds the arc under a temporary translate/scale, then restores the transform before painting. Full sweeps close without a radial edge; partial sectors add the center and chords close directly. The caller supplies common-dispatch-validated geometry. </p>
+<p>Builds the arc under a temporary translate/scale, then restores the transform before painting. Full sweeps close without a radial edge; partial sectors add the center and chords close directly. The caller supplies common-dispatch-validated geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed finite ellipse geometry already normalized by common dispatch; radii are positive. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoArc">
 <span class="target" id="group__cairo__backend_1ga2d5d612d61d886a8e21fede8ba15f6a0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke the normalized arc with current dash policy. </p>
-<p>Replaces and consumes the current path. The temporary ellipse transform affects geometry only, preserving screen-space line widths and dash lengths. </p>
+<p>Replaces and consumes the current path. The temporary ellipse transform affects geometry only, preserving screen-space line widths and dash lengths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed finite ellipse geometry already normalized by common dispatch; radii are positive. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoFillArc">
 <span class="target" id="group__cairo__backend_1gaaaae9b580cf23231c3d7ecb326a43ae5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoFillArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoFillArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a normalized closed arc with the configured style. </p>
-<p>Temporarily cancels the half-pixel center translation and selects even-odd fill. A retained bitmap pattern takes precedence over solid opacity. Common dispatch excludes open arcs; a solid style requires its borrowed foreground to remain live. </p>
+<p>Temporarily cancels the half-pixel center translation and selects even-odd fill. A retained bitmap pattern takes precedence over solid opacity. Common dispatch excludes open arcs; a solid style requires its borrowed foreground to remain live.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo fill context with initialized fillStyle and optional owned bitmapPattern. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed finite ellipse geometry already normalized by common dispatch; radii are positive. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoLineStyle">
 <span class="target" id="group__cairo__backend_1gaf7ae28579ee91e6f5f27197c76766358"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoLineStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoLineStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Translate native cap and join constants to Cairo state. </p>
-<p>Round and projecting caps map to round and square; other caps use butt. Round and bevel joins map directly, with miter as the fallback. Does not change dash state or pending geometry. </p>
+<p>Round and projecting caps map to round and square; other caps use butt. Round and bevel joins map directly, with miter as the fallback. Does not change dash state or pending geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>capStyle</strong> – <strong>[in]</strong> X/Tk cap constant: round and projecting have dedicated mappings; other values select butt. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> X/Tk join constant: round and bevel have dedicated mappings; other values select miter. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoDashBackground">
 <span class="target" id="group__cairo__backend_1gabc275b1f587fd004daef03b66cbefd91"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoDashBackground</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoDashBackground" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Update the off-color underlay without changing dashes. </p>
-<p>Enables double-dash only when dashes exist and a color is supplied, copying that color by value. NULL disables the underlay; unlike initial construction, this helper does not collapse equal colors to a solid stroke. </p>
+<p>Enables double-dash only when dashes exist and a color is supplied, copying that color by value. NULL disables the underlay; unlike initial construction, this helper does not collapse equal colors to a solid stroke.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Optional borrowed off-dash color copied by value; NULL disables the underlay. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoSegments">
 <span class="target" id="group__cairo__backend_1gacfb6ece39eca4929f478b00c630c39ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke independent segment subpaths in bounded batches. </p>
-<p>Ordinary strokes flush every 8192 segments and at completion. Double-dash strokes flush after each segment to preserve painter order at intersections. Input geometry is borrowed, and each flush consumes the path. </p>
+<p>Ordinary strokes flush every 8192 segments and at completion. Double-dash strokes flush after each segment to preserve painter order at intersections. Input geometry is borrowed, and each flush consumes the path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs, readable for count Segment2D records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.AppendRenderSymbol">
 <span class="target" id="group__cairo__backend_1gaffdfb63e048f545ee861fd604188dbf2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendRenderSymbol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">cairo_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderShape" title="Rbc_RenderShape"><span class="n"><span class="pre">Rbc_RenderShape</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shape</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">center</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendRenderSymbol" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append one independent symbol without painting it. </p>
-<p>Borrows shape and center. Circles start a new subpath; segment shapes use pairs and ignore an unmatched final point; other nonempty shapes close a polygon. Does not clear existing shapes, set paint or allocate caller-owned storage. </p>
+<p>Borrows shape and center. Circles start a new subpath; segment shapes use pairs and ignore an unmatched final point; other nonempty shapes close a polygon. Does not clear existing shapes, set paint or allocate caller-owned storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cr</strong> – <strong>[inout]</strong> Borrowed live cairo_t; the symbol is appended to its current path without painting. </p></li>
+<li><p><strong>shape</strong> – <strong>[in]</strong> Borrowed screen-space template; nPoints must fit its fixed point array. </p></li>
+<li><p><strong>center</strong> – <strong>[in]</strong> Borrowed mapped symbol center added to template coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.RenderAreaPixel">
 <span class="target" id="group__cairo__backend_1gacedcf2dd953f58cb60945af17f60f6b9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RenderAreaPixel</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RenderAreaPixel" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a borrowed Tk color to an opaque ARGB32 pixel. </p>
-<p>NULL becomes transparent zero. Color channels use rounded division by 257, not truncation; opaque channels require no additional premultiplication. </p>
+<p>NULL becomes transparent zero. Color channels use rounded division by 257, not truncation; opaque channels require no additional premultiplication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> – <strong>[in]</strong> Optional borrowed color; NULL selects transparent pixels. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Opaque ARGB32 pixel, or transparent zero for NULL. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CreateRenderStipple">
 <span class="target" id="group__cairo__backend_1ga1a82179f30823c45ee2df355c33cdd7d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">cairo_pattern_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateRenderStipple</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CreateRenderStipple" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a named bitmap into an owned repeating pattern. </p>
-<p>Reads XYPixmap bits before destination-context acquisition and maps them to foreground/background ARGB pixels. Releases the temporary XImage and local surface reference. Returns a nearest-filtered pattern owned by the caller, or NULL after cleanup on failure; NULL colors create transparent pixels. </p>
+<p>Reads XYPixmap bits before destination-context acquisition and maps them to foreground/background ARGB pixels. Releases the temporary XImage and local surface reference. Returns a nearest-filtered pattern owned by the caller, or NULL after cleanup on failure; NULL colors create transparent pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with live display, window and interpreter resources. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Borrowed named Tk bitmap, readable through the graph display. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Optional borrowed foreground color; NULL converts set bits to transparent pixels. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL converts clear bits to transparent pixels. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned repeating nearest-filtered pattern, or NULL after cleanup on failure. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoFillRectangles">
 <span class="target" id="group__cairo__backend_1gace2531e0b3141dc2375c6b03570c0a37"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoFillRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoFillRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill rectangle batches with optional group opacity. </p>
-<p>Temporarily cancels pixel-center translation and uses winding fill. Nonpositive rectangles are skipped and paths flush every 8192 input entries. Opacity applies once to the composed group, including stipple paint, rather than separately at every overlap. Restores graphics state after consuming the path. </p>
+<p>Temporarily cancels pixel-center translation and uses winding fill. Nonpositive rectangles are skipped and paths flush every 8192 input entries. Opacity applies once to the composed group, including stipple paint, rather than separately at every overlap. Restores graphics state after consuming the path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo fill context with initialized fillStyle and optional owned bitmapPattern. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array, readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FillRenderArea">
 <span class="target" id="group__cairo__backend_1ga22a65480bfbf41f38987b16a272029bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FillRenderArea</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">cairo_pattern_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pattern</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FillRenderArea" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a borrowed polygon in pixel-boundary coordinates. </p>
-<p>Requires at least three readable points and no unrelated pending geometry. Cancels the half-pixel translation, selects even-odd fill and optionally sets a borrowed pattern. This helper does not save or restore graphics state: callers must bracket it or end the context afterward. </p>
+<p>Requires at least three readable points and no unrelated pending geometry. Cancels the half-pixel translation, selects even-odd fill and optionally sets a borrowed pattern. This helper does not save or restore graphics state: callers must bracket it or end the context afterward.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo-backed context with initialized graphics state; no ownership transfer. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array, readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of vertices; caller must supply at least three. </p></li>
+<li><p><strong>pattern</strong> – <strong>[in]</strong> Optional borrowed fill pattern; NULL retains the current Cairo source. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CreateRenderBitmap">
 <span class="target" id="group__cairo__backend_1gac767f35db3349b44a3c0baa35cdd6e77"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">cairo_pattern_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateRenderBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CreateRenderBitmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy mapped bitmap and optional mask into an owned pattern. </p>
-<p>Caller supplies positive dimensions and pixmaps readable over that rectangle. When mask equals bitmap, one XImage serves both roles and is freed once. Distinct readbacks and the local surface are cleaned up on failure. Returns a nearest-filtered, nonrepeating pattern or NULL; source pixmaps remain borrowed. </p>
+<p>Caller supplies positive dimensions and pixmaps readable over that rectangle. When mask equals bitmap, one XImage serves both roles and is freed once. Distinct readbacks and the local surface are cleaned up on failure. Returns a nearest-filtered, nonrepeating pattern or NULL; source pixmaps remain borrowed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with live display, window and interpreter resources. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit source pixmap readable over width by height pixels. </p></li>
+<li><p><strong>mask</strong> – <strong>[in]</strong> Optional one-bit visibility mask, or None; may equal bitmap. Zero mask bits become transparent. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive source bitmap and mask width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive source bitmap and mask height in pixels. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Optional borrowed foreground color; NULL converts set bits to transparent pixels. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Optional borrowed background color; NULL converts clear bits to transparent pixels. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned nonrepeating nearest-filtered pattern, or NULL after cleanup on failure. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CairoFillPolygon">
 <span class="target" id="group__cairo__backend_1gad030b3f52cac180f4439430071e5830c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoFillPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoFillPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a polygon using retained solid or stipple style. </p>
-<p>Common dispatch guarantees at least three points. Solid opacity is applied only without a stipple; the retained pattern already owns its pixel alpha. Saves and restores state around FillRenderArea, but consumes the path. </p>
+<p>Common dispatch guarantees at least three points. Solid opacity is applied only without a stipple; the retained pattern already owns its pixel alpha. Saves and restores state around FillRenderArea, but consumes the path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Cairo fill context with initialized fillStyle and optional owned bitmapPattern. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array, readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -228,15 +420,15 @@ Borrows graph/drawable, copies stroke colors and dash values, and owns the resul
 <span class="target" id="group__cairo__backend_1gac0e6a5b0f9aebe0d7c254c9b76cdd465"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">cairo_pattern_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateRenderPhoto</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CreateRenderPhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a Tk photo block into an owned repeating Cairo pattern. </p>
 <p>
-Validates RGB offsets. A distinct valid alpha offset selects alpha; otherwise pixels are opaque. Premultiplies RGB with rounded division by 255. The pattern retains its copied surface; no source pixel pointer escapes. Does not validate the caller’s allocation size or retain the Tk photo itself. </p>
+Validates RGB offsets. A distinct valid alpha offset selects alpha; otherwise pixels are opaque. Premultiplies RGB with rounded division by 255. The pattern retains its copied surface; no source pixel pointer escapes. Does not validate the caller’s allocation size or retain the Tk photo itself.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>block</strong> – Borrowed readable block with valid dimensions, pitch and storage. </p></li>
-</ul>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Owned nearest-filtered ARGB32 pattern, or NULL on invalid channel layout or failed surface/pattern creation. Caller destroys a returned pattern.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Owned nearest-filtered ARGB32 pattern, or NULL on invalid channel layout or failed surface/pattern creation. Caller destroys a returned pattern.</p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>block</strong> – <strong>[in]</strong> Borrowed photo block with readable pixels, dimensions, pitch and channel layout. </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -245,7 +437,14 @@ Validates RGB offsets. A distinct valid alpha offset selects alpha; otherwise pi
 <dt class="sig sig-object c" id="c.CairoEnd">
 <span class="target" id="group__cairo__backend_1ga52d69b6d33315aa8868c5d16e3614104"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CairoEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Flush, release and report completion errors. </p>
-<p>Requires a live context and interpreter after common clip unwinding. Captures context status, then surface status if needed, frees owned resources, and reports a background Tcl exception with interpreter state restored. This is terminal cleanup, not a request to replay native drawing. </p>
+<p>Requires a live context and interpreter after common clip unwinding. Captures context status, then surface status if needed, frees owned resources, and reports a background Tcl exception with interpreter state restored. This is terminal cleanup, not a request to replay native drawing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned live Cairo context after common clip unwinding; consumed by this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

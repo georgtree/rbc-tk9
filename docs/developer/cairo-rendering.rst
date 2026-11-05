@@ -43,7 +43,7 @@ surface reference, ``cairo_t`` and optional bitmap/stipple pattern. It copies
 stroke colors, dash values and offset. Its fill style is a shallow copy, so
 referenced component colors remain borrowed until drawing completes.
 
-``BeginRenderTarget`` rejects non-Cairo selection, absent drawable/color,
+:c:func:`BeginRenderTarget` rejects non-Cairo selection, absent drawable/color,
 nonfinite or nonpositive line width, and nonpositive target dimensions. Setup
 failure frees partial resources and returns NULL. On X11 it wraps the drawable
 using the Tk visual and explicit target dimensions. On Windows it either
@@ -59,19 +59,63 @@ uses the entire explicitly sized target, for output such as legend samples.
 The latter is not implicitly constrained to the plot rectangle.
 
 Contexts must end while their graph, drawable, component resources and enclosing
-marker target are alive. ``CairoEnd`` flushes the surface before native drawing
+marker target are alive. :c:func:`CairoEnd` flushes the surface before native drawing
 can resume, captures context/surface status and frees resources. A drawing
 failure is reported as a background Tcl exception while preserving interpreter
 state. This occurs after drawing; it does not request a native replay.
-``FreeRenderContext`` alone is the partial-construction cleanup helper and does
+:c:func:`FreeRenderContext` alone is the partial-construction cleanup helper and does
 not perform that completion/reporting sequence.
+
+Path and resource contracts
+----------------------------
+
+:c:func:`BeginRenderTarget` takes a stroke width separately from drawable
+width/height. Its clip edges are inclusive; the half-pixel translation is applied
+after clipping. :c:func:`GetAntialias` maps an already parsed option value,
+and :c:func:`SetStrokeColor` copies color channels into the Cairo source.
+
+The helpers below differ in their treatment of pending paths and state. A Cairo
+save/restore pair restores graphics state, but does not preserve a consumed
+path. Callers must finish unrelated geometry before dispatching these operations.
+
+.. list-table:: Internal drawing contracts
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Helper
+     - Path and state effect
+   * - :c:func:`CairoPolyline`, :c:func:`CairoSegments`
+     - Build mapped strokes and consume their paths through
+       :c:func:`StrokeRenderPath`; segment flushing preserves double-dash order.
+   * - :c:func:`CairoArcPath`
+     - Replaces the path with a validated ellipse, restoring its temporary
+       transform before :c:func:`CairoArc` or :c:func:`CairoFillArc` paints it.
+   * - :c:func:`AppendRenderSymbol`
+     - Appends independent shapes without painting or clearing earlier shapes.
+   * - :c:func:`FillRenderArea`
+     - Consumes the polygon path and changes transform/fill state;
+       its caller must bracket or finish the context.
+   * - :c:func:`CairoFillPolygon`, :c:func:`CairoFillRectangles`
+     - Save and restore graphics state around painting, but consume the path.
+       Rectangle opacity applies to the composed group.
+   * - :c:func:`CairoClipBegin`, :c:func:`CairoClipEnd`
+     - Pair graphics-state scopes through common dispatch. Pushing a clip
+       consumes the pending path; popping cannot recover it.
+
+:c:func:`CreateRenderStipple`, :c:func:`CreateRenderBitmap` and
+:c:func:`CreateRenderPhoto` return owned patterns containing copied pixels.
+Their input images and colors remain borrowed. :c:func:`RenderAreaPixel`
+converts a missing color to transparency; this is distinct from constructors
+that reject a missing required stroke color. Completion through
+:c:func:`CairoEnd` flushes and reports errors; failure cleanup through
+:c:func:`FreeRenderContext` only releases resources.
 
 Paths and clip scopes
 ---------------------
 
 Each polyline call creates a separate trace. Independent segments remain
 separate subpaths. Stroke state belongs to the context. For two-color dashes,
-``StrokeRenderPath`` paints a solid off-color stroke with the path preserved,
+:c:func:`StrokeRenderPath` paints a solid off-color stroke with the path preserved,
 then foreground dashes. Equal foreground/off colors are reduced to one solid
 stroke at construction to avoid duplicate coverage.
 
@@ -94,7 +138,7 @@ foreground or background-only policy. Stipple bits are read before acquiring
 the destination context. A successful context owns the resulting pattern and
 borrows the colors in its copied style.
 
-``CreateRenderStipple`` reads monochrome data with ``XYPixmap``; this avoids the
+:c:func:`CreateRenderStipple` reads monochrome data with ``XYPixmap``; this avoids the
 Tk/Windows monochrome inversion associated with the other image format. It
 creates ARGB32 pixels from foreground/background colors, destroys the XImage,
 and returns a repeating nearest-filtered pattern. A missing background can
@@ -103,7 +147,7 @@ polygon and arc pattern pixels retain their constructed alpha rather than being
 multiplied by solid-fill opacity. Rectangle batches and legend bar swatches
 instead apply opacity to a composed group, including stipple paint.
 
-``CreateRenderPhoto`` copies a borrowed Tk photo block into a new ARGB32 image.
+:c:func:`CreateRenderPhoto` copies a borrowed Tk photo block into a new ARGB32 image.
 RGB offsets must be within the pixel size. Alpha is used only if its offset is
 valid and distinct from all RGB offsets; otherwise pixels are opaque. Each RGB
 channel is premultiplied using ``(channel * alpha + 127) / 255``. Source rows
@@ -169,7 +213,7 @@ Path consumption and batching
 Cairo paths are not part of saved graphics state. A save/restore pair restores
 sources, transforms and clipping, but does not resurrect geometry consumed by
 fill, stroke or clip. Callers must finish each primitive before entering another
-operation or clip scope. ``CairoArcPath`` explicitly replaces the path; other
+operation or clip scope. :c:func:`CairoArcPath` explicitly replaces the path; other
 append helpers rely on the preceding operation having consumed its geometry.
 
 Segment strokes flush every 8192 segments to bound path storage. With two-color
@@ -190,7 +234,7 @@ Coordinate and pattern state
 
 Stroke contexts start with a half-pixel translation. Area boundaries, integer
 rectangles, bitmap symbols and photos cancel it where their contracts require
-pixel-boundary coordinates. ``FillRenderArea`` makes that translation without
+pixel-boundary coordinates. :c:func:`FillRenderArea` makes that translation without
 saving state itself: reusable polygon callers bracket it, while one-shot tile
 and bitmap callers finish the context afterward. Calling it repeatedly without
 a corresponding restore would accumulate translations.
@@ -208,7 +252,7 @@ instead. These conversions serve different source layouts and should not be
 merged by substituting simple channel truncation.
 
 Initial stroke construction collapses equal foreground/off-colors to a solid
-stroke. Later ``CairoDashBackground`` calls only enable or disable the underlay
+stroke. Later :c:func:`CairoDashBackground` calls only enable or disable the underlay
 and copy its color; they do not repeat that optimization or reconstruct dash
 values discarded during construction. Callers needing a different dash pattern
 must construct an appropriately configured context.

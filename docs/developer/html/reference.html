@@ -1685,7 +1685,11 @@ place function-pointer member names after the pointer declarator.</p>
 <h2>Common screen adapters<a class="headerlink" href="#common-screen-adapters" title="Link to this heading">¶</a></h2>
 <p>These private callbacks implement the constructor families described in
 <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>. A populated operation table alone does not establish that a
-particular constructor initialized every callback’s required state.</p>
+particular constructor initialized every callback’s required state. Each
+callback’s parameter description identifies the required family. Destructors
+consume heap contexts; synchronous decoration/detail contexts can be stack-based
+and must not be passed to them. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the internal adapter
+call relationships.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__render__dispatch__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Screen</span> <span class="pre">dispatch</span> <span class="pre">internals</span></span></dt>
@@ -1697,238 +1701,571 @@ particular constructor initialized every callback’s required state.</p>
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeText">
 <span class="target" id="group__render__dispatch__internals_1ga9f64dec6230ed509fcb6dc77f6de2e91"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeText</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeText" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw native text at integer-truncated screen coordinates. </p>
-<p>Borrows the exact window/drawable captured by BeginScreenText and the text style. Requires finite int-representable coordinates. Does not round, retain the string or select Cairo even on a Cairo graph. </p>
+<p>Borrows the exact window/drawable captured by BeginScreenText and the text style. Requires finite int-representable coordinates. Does not round, retain the string or select Cairo even on a Cairo graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-text context created by Rbc_RenderBeginScreenText. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated text consumed synchronously. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed text style and live font/GC resources; the text service may refresh GC state. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite int-representable X coordinate; truncated to int before native drawing. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite int-representable Y coordinate; truncated to int before native drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeTextLayout">
 <span class="target" id="group__render__dispatch__internals_1ga1372e22b5f2a97e2f7fa976f120ecb10"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeTextLayout</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">layout</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeTextLayout" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a caller-owned cached layout on the captured native text target. </p>
-<p>Preserves integer coordinates and delegates font/bitmap work to the native backend. The layout, style and window must remain live for the call. </p>
+<p>Preserves integer coordinates and delegates font/bitmap work to the native backend. The layout, style and window must remain live for the call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-text context created by Rbc_RenderBeginScreenText. </p></li>
+<li><p><strong>layout</strong> – <strong>[in]</strong> Borrowed cached text layout; not rebuilt or freed here. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed text style and live font/GC resources; the text service may refresh GC state. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in display units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in display units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeTextSize">
 <span class="target" id="group__render__dispatch__internals_1gac1a1a7b31014bca4ab099774d986fbf1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeTextSize</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Dim2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeTextSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw and measure text using the native text service. </p>
-<p>Borrows text/style and writes the requested size through the backend. This is not a measurement-only adapter; it uses the captured destination. </p>
+<p>Borrows text/style and writes the requested size through the backend. This is not a measurement-only adapter; it uses the captured destination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-text context created by Rbc_RenderBeginScreenText. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated text consumed synchronously. </p></li>
+<li><p><strong>style</strong> – <strong>[inout]</strong> Borrowed text style and live font/GC resources; the text service may refresh GC state. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in display units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in display units. </p></li>
+<li><p><strong>size</strong> – <strong>[out]</strong> Required caller-owned storage for rotated text dimensions. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeTextEnd">
 <span class="target" id="group__render__dispatch__internals_1gab432654c9facacfb8052e65b3b118ff9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeTextEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeTextEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Free the screen-text adapter record. </p>
-<p>Owns no font, window, layout or drawable. Called after common clip unwinding; text contexts themselves expose no clip operations. </p>
+<p>Owns no font, window, layout or drawable. Called after common clip unwinding; text contexts themselves expose no clip operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned screen-text context consumed by this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenMappedBitmap">
 <span class="target" id="group__render__dispatch__internals_1gab7915ccc6f354777175fcc97af66f7ee"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenMappedBitmap</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderBitmapStyle" title="Rbc_RenderBitmapStyle"><span class="n"><span class="pre">Rbc_RenderBitmapStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenMappedBitmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Try the configured bitmap renderer before native presentation. </p>
-<p>Uses the explicit foreground or queries the borrowed GC. With a usable color, tries Rbc_RenderBitmap and returns when handled; otherwise delegates the unchanged style to Rbc_NativeBitmap. Does not retain bitmap/mask/color resources or establish an independent clipping scope. </p>
+<p>Uses the explicit foreground or queries the borrowed GC. With a usable color, tries Rbc_RenderBitmap and returns when handled; otherwise delegates the unchanged style to Rbc_NativeBitmap. Does not retain bitmap/mask/color resources or establish an independent clipping scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-raster context created by Rbc_RenderBeginScreenRaster. </p></li>
+<li><p><strong>r</strong> – <strong>[in]</strong> Borrowed mapped destination rectangle; dimensions also select the source extent. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed bitmap/mask/color style; native fallback changes the private bitmap GC clip state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenTkImage">
 <span class="target" id="group__render__dispatch__internals_1ga155d8df23707597116dfa1dd79adaeb7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenTkImage</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenTkImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Present a Tk image with a Cairo photo attempt and native fallback. </p>
-<p>On a Cairo graph, resolves the image name to a photo and borrows its block only during Rbc_RenderPhoto. Other images or failed attempts use the native Tk image path. Coordinates truncate to int; no surface/DC is retained by this adapter across Tk image redraw. </p>
+<p>On a Cairo graph, resolves the image name to a photo and borrows its block only during Rbc_RenderPhoto. Other images or failed attempts use the native Tk image path. Coordinates truncate to int; no surface/DC is retained by this adapter across Tk image redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-raster context created by Rbc_RenderBeginScreenRaster. </p></li>
+<li><p><strong>image</strong> – <strong>[in]</strong> Borrowed live Tk image; its current full extent is presented. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite int-representable X coordinate; truncated to int before native drawing. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite int-representable Y coordinate; truncated to int before native drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenPixmap">
 <span class="target" id="group__render__dispatch__internals_1ga140cb64bdc2a0d3093a883af435864c2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenPixmap</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">pixmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenPixmap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a borrowed pixmap using native presentation. </p>
-<p>Delegates the mapped rectangle and GC unchanged. A Cairo graph still uses this path because the input contains completed native pixels. </p>
+<p>Delegates the mapped rectangle and GC unchanged. A Cairo graph still uses this path because the input contains completed native pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-raster context created by Rbc_RenderBeginScreenRaster. </p></li>
+<li><p><strong>pixmap</strong> – <strong>[in]</strong> Borrowed source pixmap readable from (0,0) over the rectangle extent. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC with the required clip, raster operation and drawing style. </p></li>
+<li><p><strong>r</strong> – <strong>[in]</strong> Borrowed mapped destination rectangle; dimensions also select the source extent. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenRasterEnd">
 <span class="target" id="group__render__dispatch__internals_1ga8ec21504816d3f10afe0f9088f64497b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenRasterEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenRasterEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Free the screen-raster adapter record. </p>
-<p>Does not release any caller-owned Tk image, pixmap, mask, GC or graph. </p>
+<p>Does not release any caller-owned Tk image, pixmap, mask, GC or graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned screen-raster context consumed by this call. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenBorder">
 <span class="target" id="group__render__dispatch__internals_1ga97b7beeaede35fd5332ed19a84e246e9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenBorder</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fill</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenBorder" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a native Tk border or relief rectangle. </p>
-<p>Truncates double origins to int and preserves size, fill and relief flags. Called through a synchronous stack decoration context; owns no resources. </p>
+<p>Truncates double origins to int and preserves size, fill and relief flags. Called through a synchronous stack decoration context; owns no resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed Tk border supplying relief colors. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite int-representable X coordinate; truncated to int before native drawing. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite int-representable Y coordinate; truncated to int before native drawing. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap height in pixels. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Border thickness in pixels. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief constant. </p></li>
+<li><p><strong>fill</strong> – <strong>[in]</strong> Nonzero fills the interior; zero draws only the relief border. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenRectangle">
 <span class="target" id="group__render__dispatch__internals_1gad48500a163b6e23fb36952aea9c0fd75"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenRectangle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill an integer rectangle through the native rectangle service. </p>
-<p>Borrows GC and optional tile and preserves their backend-specific behavior. Does not select Cairo or retain resources after the call. </p>
+<p>Borrows GC and optional tile and preserves their backend-specific behavior. Does not select Cairo or retain resources after the call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed fill GC, required only when tile is NULL. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Optional borrowed tile taking precedence over gc; existing origin is preserved. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in display units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in display units. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap height in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenSegments">
 <span class="target" id="group__render__dispatch__internals_1gab8101bc9f2a767d9cac7a5f880240fc0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw native screen segments with the complete borrowed GC. </p>
-<p>Preserves raster operation, clip, dash and cap settings. Used for overlays including XOR; ordinary Cairo compositing is not an equivalent substitute. </p>
+<p>Preserves raster operation, clip, dash and cap settings. Used for overlays including XOR; ordinary Cairo compositing is not an equivalent substitute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs, readable for count Segment2D records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenCopyArea">
 <span class="target" id="group__render__dispatch__internals_1ga1f32fc46401e4b1a5c809967d2b7e9b6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenCopyArea</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcY</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">dstX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">dstY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenCopyArea" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy completed pixels to the captured destination. </p>
-<p>Borrows both drawables and the GC, preserving integer source/destination coordinates and dimensions. Does not rerender geometry or choose Cairo. </p>
+<p>Borrows both drawables and the GC, preserving integer source/destination coordinates and dimensions. Does not rerender geometry or choose Cairo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>source</strong> – <strong>[in]</strong> Borrowed source drawable compatible with the destination captured by ctx. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC with the required clip, raster operation and drawing style. </p></li>
+<li><p><strong>srcX</strong> – <strong>[in]</strong> Source rectangle X coordinate in pixels. </p></li>
+<li><p><strong>srcY</strong> – <strong>[in]</strong> Source rectangle Y coordinate in pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap height in pixels. </p></li>
+<li><p><strong>dstX</strong> – <strong>[in]</strong> Destination rectangle X coordinate in pixels. </p></li>
+<li><p><strong>dstY</strong> – <strong>[in]</strong> Destination rectangle Y coordinate in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenFocus">
 <span class="target" id="group__render__dispatch__internals_1ga63cd844c66e4ad67230b2270f79b93af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenFocus</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenFocus" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a native focus decoration on the captured target. </p>
-<p>Borrows window and GC; the native backend owns the exact focus geometry. The adapter neither changes graph geometry nor retains resources. </p>
+<p>Borrows window and GC; the native backend owns the exact focus geometry. The adapter neither changes graph geometry nor retains resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC with the required clip, raster operation and drawing style. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Native focus highlight thickness in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeClipBegin">
 <span class="target" id="group__render__dispatch__internals_1ga103ea3c8406e76a40177477630d44a41"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeClipBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeClipBegin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Push a native rectangular clip frame. </p>
-<p>Uses the owned native clip stack. Common dispatch has already incremented clipDepth. Callers obtain the resulting target through Rbc_RenderClipDrawable and must skip drawing for None while still balancing the frame. </p>
+<p>Uses the owned native clip stack. Common dispatch has already incremented clipDepth. Callers obtain the resulting target through Rbc_RenderClipDrawable and must skip drawing for None while still balancing the frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-clip context with a live owned nativeClip stack. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in display units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in display units. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Clip width; nonpositive values push an empty frame. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Clip height; nonpositive values push an empty frame. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeClipEnd">
 <span class="target" id="group__render__dispatch__internals_1gafabf28b07fa5acfdec0bf3f7396be940"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeClipEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeClipEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Pop and commit the current native clip frame. </p>
-<p>Common dispatch decrements clipDepth first. Backend handling restores native state or copies scratch pixels to the parent; no geometry is redrawn here. </p>
+<p>Common dispatch decrements clipDepth first. Backend handling restores native state or copies scratch pixels to the parent; no geometry is redrawn here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Screen-clip context with a live owned nativeClip stack; common depth was already decremented. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenClipEnd">
 <span class="target" id="group__render__dispatch__internals_1gade481152f5fd324d6a32b07f3e20d20e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenClipEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenClipEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy the owned native clip stack and its adapter. </p>
-<p>Invoked by Rbc_RenderEnd after common clip-depth unwinding. Borrowed graph, base drawable and copy GC remain caller-owned. </p>
+<p>Invoked by Rbc_RenderEnd after common clip-depth unwinding. Borrowed graph, base drawable and copy GC remain caller-owned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned screen-clip context consumed here, including its nativeClip stack. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativePolyline">
 <span class="target" id="group__render__dispatch__internals_1ga5189d09caec8214926c4b5dd38227d25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativePolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativePolyline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit one polyline to the retained native trace batch. </p>
-<p>Requires a trace context initialized by Rbc_NativeBeginTrace. Borrows the point array for this call; backend scratch storage and any DC survive until End. Do not use the shared operation table as permission to call this on a segments-only context whose trace pointer is NULL. </p>
+<p>Requires a trace context initialized by Rbc_NativeBeginTrace. Borrows the point array for this call; backend scratch storage and any DC survive until End. Do not use the shared operation table as permission to call this on a segments-only context whose trace pointer is NULL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Native trace context with nativeTrace initialized by Rbc_NativeBeginTrace. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array, readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeStrips">
 <span class="target" id="group__render__dispatch__internals_1gaf57522287733e9e91ba51a240642ee10"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeStrips</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeStrips" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit independent strip segments to the native strip path. </p>
-<p>Borrows graph, drawable, GC and segment array. Keeps the strip-specific backend batching behavior rather than translating it into joined polylines. </p>
+<p>Borrows graph, drawable, GC and segment array. Keeps the strip-specific backend batching behavior rather than translating it into joined polylines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Native strip context with live graph, drawable and GC fields. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs, readable for count Segment2D records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeSegments">
 <span class="target" id="group__render__dispatch__internals_1gae0df93e277fd9269fe830f8806e13140"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit independent segments using the borrowed native GC. </p>
-<p>Uses the ordinary native segment backend, including its chunking and platform resource handling. Does not own the array or a retained trace batch. </p>
+<p>Uses the ordinary native segment backend, including its chunking and platform resource handling. Does not own the array or a retained trace batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Native segment-capable context with live graph, drawable and GC fields. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs, readable for count Segment2D records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeEnd">
 <span class="target" id="group__render__dispatch__internals_1ga24abc0480f43ebe30395c1d02536c752"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release any retained native trace and the stroke adapter. </p>
-<p>Rbc_NativeEndTrace accepts NULL for strip/segment contexts. The caller GC, graph and drawable remain borrowed and are not destroyed. </p>
+<p>Rbc_NativeEndTrace accepts NULL for strip/segment contexts. The caller GC, graph and drawable remain borrowed and are not destroyed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned native stroke context consumed here; any retained trace is released. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeSymbolPoints">
 <span class="target" id="group__render__dispatch__internals_1ga4459253d55a4bc353b68dd58e81a434c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeSymbolPoints</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeSymbolPoints" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw symbols with the retained native style and integer size. </p>
-<p>The style pointer is borrowed, not copied. Native sampling may update its counter; callers must keep style and referenced resources live until End. </p>
+<p>The style pointer is borrowed, not copied. Native sampling may update its counter; callers must keep style and referenced resources live until End.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Native symbol context with borrowed symbol style and mapped size initialized. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array, readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeFillPolygon">
 <span class="target" id="group__render__dispatch__internals_1ga26f7c5e908a25c8363ceac7896d4ee5d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeFillPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeFillPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch a native fill through a retained batch or ordinary fill path. </p>
-<p>Uses the polygon batch when available; otherwise passes the borrowed GC, tile and stipple to Rbc_NativeFillPolygon. A failed or unsupported batch constructor therefore retains the ordinary fill fallback. </p>
+<p>Uses the polygon batch when available; otherwise passes the borrowed GC, tile and stipple to Rbc_NativeFillPolygon. A failed or unsupported batch constructor therefore retains the ordinary fill fallback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Native fill context with either a retained polygon batch or configured GC/tile/stipple fallback. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array, readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenBarRectangles">
 <span class="target" id="group__render__dispatch__internals_1ga2e828763940aa21c50852d03deb35a91"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenBarRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rects</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenBarRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Combine an optional Cairo fill with native bar decoration. </p>
-<p>Copies the retained bar style locally. When positive-opacity fill is handled by Rbc_RenderRectangles, sets only the local fill opacity to zero before native bars draw relief/borders. Otherwise native bars retain fill ownership. Neither the caller style nor the context copy is modified by this decision. </p>
+<p>Copies the retained bar style locally. When positive-opacity fill is handled by Rbc_RenderRectangles, sets only the local fill opacity to zero before native bars draw relief/borders. Otherwise native bars retain fill ownership. Neither the caller style nor the context copy is modified by this decision.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> <a class="reference internal" href="bar-reference.html#struct_bar"><span class="std std-ref">Bar</span></a> context holding a shallow copy of the component bar style. </p></li>
+<li><p><strong>rects</strong> – <strong>[in]</strong> Borrowed mapped bar rectangle array with count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeArc">
 <span class="target" id="group__render__dispatch__internals_1gac4c47dd69e83417e142d4a4a84767fa3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw the native arc from borrowed precomputed segments. </p>
-<p>The arc argument has passed common validation but is not consumed here. Uses the arrays retained by BeginNativeArc; callers must keep those arrays consistent with the validated geometry and alive until End. </p>
+<p>The arc argument has passed common validation but is not consumed here. Uses the arrays retained by BeginNativeArc; callers must keep those arrays consistent with the validated geometry and alive until End.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Native arc context retaining precomputed mapped stroke segments. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Validated analytic arc, unused by this callback; retained mapped arrays must describe the same geometry. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeFillArc">
 <span class="target" id="group__render__dispatch__internals_1ga88ebf46b36f0f6041468ddde4030d66f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeFillArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeFillArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill the native arc from its borrowed precomputed polygon. </p>
-<p>Ignores the analytic arc argument and delegates retained points to NativeFillPolygon. Common dispatch has already rejected open-arc filling. </p>
+<p>Ignores the analytic arc argument and delegates retained points to NativeFillPolygon. Common dispatch has already rejected open-arc filling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Native arc context retaining precomputed mapped fill vertices and fill style. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Validated analytic arc, unused by this callback; retained mapped arrays must describe the same geometry. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeGeometryEnd">
 <span class="target" id="group__render__dispatch__internals_1gaf5a2bf8cd3d7c2342c8ec249d79af047"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeGeometryEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NativeGeometryEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a retained polygon batch and the geometry adapter. </p>
-<p>Does not release borrowed symbol style, arc arrays, GC, tile or bar resources. The batch, if present, restores and releases its platform-owned state. </p>
+<p>Does not release borrowed symbol style, arc arrays, GC, tile or bar resources. The batch, if present, restores and releases its platform-owned state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Owned native geometry context consumed here; any polygon batch is released. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.BeginNativeGeometry">
 <span class="target" id="group__render__dispatch__internals_1gab13e65953e14fd2d9fd4022d4f588784"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">BeginNativeGeometry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.BeginNativeGeometry" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a zeroed native geometry adapter with borrowed graph and target. </p>
-<p>Returns an owned context requiring End. The shared table advertises several callbacks, but each specialized constructor populates only its required state. Calling another family’s operation is not supported merely because the shared callback pointer is non-NULL. </p>
+<p>Returns an owned context requiring End. The shared table advertises several callbacks, but each specialized constructor populates only its required state. Calling another family’s operation is not supported merely because the shared callback pointer is non-NULL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph, kept alive until context release. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed destination, kept valid until context release. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned zeroed geometry adapter; the caller must populate its specialized fields before dispatch. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.NormalizeRenderArc">
 <span class="target" id="group__render__dispatch__internals_1gaba31f309d74ca22d9db39d56fa1be7b0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalizeRenderArc</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span>, <a class="reference internal" href="#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">normalized</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.NormalizeRenderArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate an ellipse arc and normalize its angle range. </p>
-<p>Rejects NULL, nonfinite fields, nonpositive radii, zero extent and invalid closure styles. Copies valid input, reduces start with fmod and clamps sweep to [-360,360]. Negative start values remain negative. Output is only valid on TRUE; this does not clip the ellipse or bound later integer conversions. </p>
+<p>Rejects NULL, nonfinite fields, nonpositive radii, zero extent and invalid closure styles. Copies valid input, reduces start with fmod and clamps sweep to [-360,360]. Negative start values remain negative. Output is only valid on TRUE; this does not clip the ellipse or bound later integer conversions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed candidate ellipse; NULL and invalid geometry are rejected. </p></li>
+<li><p><strong>normalized</strong> – <strong>[out]</strong> Required caller-owned result; valid only when TRUE is returned. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE for valid normalized output; FALSE leaves output unspecified. </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenTextBackground">
 <span class="target" id="group__render__dispatch__internals_1ga3becad50d73aeb33b5e25cdd1e2ea1b9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenTextBackground</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outline</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">anchor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenTextBackground" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a native text-marker background using mapped geometry. </p>
-<p>Borrows outline and anchor; delegates their original conversion order to the native backend rather than converting them separately in this layer. </p>
+<p>Borrows outline and anchor; delegates their original conversion order to the native backend rather than converting them separately in this layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC with the required clip, raster operation and drawing style. </p></li>
+<li><p><strong>outline</strong> – <strong>[in]</strong> Four borrowed text-background vertices relative to anchor. </p></li>
+<li><p><strong>anchor</strong> – <strong>[in]</strong> Borrowed mapped text anchor added before native short conversion. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenArrowHead">
 <span class="target" id="group__render__dispatch__internals_1ga52c8757c38494e23b4f63e67699016d2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenArrowHead</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenArrowHead" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a native arrowhead through scan-converted spans. </p>
-<p>Borrows the mapped point array and GC. Retains native span batching and integer conversion policy; no Cairo geometry replacement is attempted. </p>
+<p>Borrows the mapped point array and GC. Retains native span batching and integer conversion policy; no Cairo geometry replacement is attempted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC with the required clip, raster operation and drawing style. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed finite closed arrowhead with RBC_RENDER_ARROW_POINTS entries. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenLegendLine">
 <span class="target" id="group__render__dispatch__internals_1gac55e01d77ecb9b07fcb972d08ce4a6aa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenLegendLine</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenLegendLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a native line legend sample. </p>
-<p>Preserves integer geometry and the borrowed GC, including stipple-origin behavior implemented by the native helper. </p>
+<p>Preserves integer geometry and the borrowed GC, including stipple-origin behavior implemented by the native helper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed configured GC with the required clip, raster operation and drawing style. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in display units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in display units. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Horizontal sample half-length; rows are y and y+1. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenLegendBar">
 <span class="target" id="group__render__dispatch__internals_1gaa664f9e991d4fbadf42c5ccdd0544789"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenLegendBar</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenLegendBar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a native bar legend sample. </p>
-<p>Borrows graph, GC and target; passes integer geometry to the native helper without changing the graph’s renderer or component options. </p>
+<p>Borrows graph, GC and target; passes integer geometry to the native helper without changing the graph’s renderer or component options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>gc</strong> – <strong>[inout]</strong> Borrowed fill GC; native drawing resets its stipple origin to (0,0). </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Destination X coordinate in display units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Destination Y coordinate in display units. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Nonnegative square side length in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenRun">
 <span class="target" id="group__render__dispatch__internals_1ga605e42d8cbf8ae1d2aa8c2e004224626"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenRun</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <a class="reference internal" href="#c.Rbc_RenderRunProc" title="Rbc_RenderRunProc"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Execute a synchronous native marker run. </p>
-<p>Borrows callback data and function for the duration of native batching. Nothing is retained after return; backend-specific DC lifetime remains in Rbc_NativeRun. This adapter adds no Tcl callback lifetime protection. </p>
+<p>Borrows callback data and function for the duration of native batching. Nothing is retained after return; backend-specific DC lifetime remains in Rbc_NativeRun. This adapter adds no Tcl callback lifetime protection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>data</strong> – <strong>[in]</strong> Borrowed callback-specific run data; NULL suppresses the run. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+<li><p><strong>proc</strong> – <strong>[in]</strong> Synchronous callback; must not retain its temporary target or destroy borrowed drawing resources. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcRenderDispatch.ScreenBitmapRun">
 <span class="target" id="group__render__dispatch__internals_1gaa878bfd0d6421680446f3464fc7fb00a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScreenBitmapRun</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcRenderDispatch.ScreenBitmapRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw repeated native bitmap positions as one backend run. </p>
-<p>Borrows bitmap, GC and position array. Leaves opaque bitmap/DC batching and resource restoration to the native backend. </p>
+<p>Borrows bitmap, GC and position array. Leaves opaque bitmap/DC batching and resource restoration to the native backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Synchronous stack screen adapter with graph/window and destination fields initialized. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit source pixmap readable over width by height pixels. </p></li>
+<li><p><strong>gc</strong> – <strong>[inout]</strong> Borrowed opaque GXcopy-compatible GC; fallback clears its clip mask and origin. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Nonnegative rectangle or bitmap height in pixels. </p></li>
+<li><p><strong>positions</strong> – <strong>[in]</strong> Borrowed array of count integer bitmap destination origins. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

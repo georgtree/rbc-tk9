@@ -79,7 +79,7 @@ image scaling, or rotation; the component must prepare those inputs first.</p>
 surface reference, <code class="docutils literal notranslate"><span class="pre">cairo_t</span></code> and optional bitmap/stipple pattern. It copies
 stroke colors, dash values and offset. Its fill style is a shallow copy, so
 referenced component colors remain borrowed until drawing completes.</p>
-<p><code class="docutils literal notranslate"><span class="pre">BeginRenderTarget</span></code> rejects non-Cairo selection, absent drawable/color,
+<p><a class="reference internal" href="cairo-reference.html#c.BeginRenderTarget" title="BeginRenderTarget"><code class="xref c c-func docutils literal notranslate"><span class="pre">BeginRenderTarget()</span></code></a> rejects non-Cairo selection, absent drawable/color,
 nonfinite or nonpositive line width, and nonpositive target dimensions. Setup
 failure frees partial resources and returns NULL. On X11 it wraps the drawable
 using the Tk visual and explicit target dimensions. On Windows it either
@@ -93,18 +93,72 @@ sets line width, butt caps, round joins, graph antialias mode and dash state.
 uses the entire explicitly sized target, for output such as legend samples.
 The latter is not implicitly constrained to the plot rectangle.</p>
 <p>Contexts must end while their graph, drawable, component resources and enclosing
-marker target are alive. <code class="docutils literal notranslate"><span class="pre">CairoEnd</span></code> flushes the surface before native drawing
+marker target are alive. <a class="reference internal" href="cairo-reference.html#c.CairoEnd" title="CairoEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoEnd()</span></code></a> flushes the surface before native drawing
 can resume, captures context/surface status and frees resources. A drawing
 failure is reported as a background Tcl exception while preserving interpreter
 state. This occurs after drawing; it does not request a native replay.
-<code class="docutils literal notranslate"><span class="pre">FreeRenderContext</span></code> alone is the partial-construction cleanup helper and does
+<a class="reference internal" href="cairo-reference.html#c.FreeRenderContext" title="FreeRenderContext"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeRenderContext()</span></code></a> alone is the partial-construction cleanup helper and does
 not perform that completion/reporting sequence.</p>
+</section>
+<section id="path-and-resource-contracts">
+<h2>Path and resource contracts<a class="headerlink" href="#path-and-resource-contracts" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="cairo-reference.html#c.BeginRenderTarget" title="BeginRenderTarget"><code class="xref c c-func docutils literal notranslate"><span class="pre">BeginRenderTarget()</span></code></a> takes a stroke width separately from drawable
+width/height. Its clip edges are inclusive; the half-pixel translation is applied
+after clipping. <a class="reference internal" href="cairo-reference.html#c.GetAntialias" title="GetAntialias"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetAntialias()</span></code></a> maps an already parsed option value,
+and <a class="reference internal" href="cairo-reference.html#c.SetStrokeColor" title="SetStrokeColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetStrokeColor()</span></code></a> copies color channels into the Cairo source.</p>
+<p>The helpers below differ in their treatment of pending paths and state. A Cairo
+save/restore pair restores graphics state, but does not preserve a consumed
+path. Callers must finish unrelated geometry before dispatching these operations.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Internal drawing contracts</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 35.0%" />
+<col style="width: 65.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helper</p></th>
+<th class="head"><p>Path and state effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="cairo-reference.html#c.CairoPolyline" title="CairoPolyline"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoPolyline()</span></code></a>, <a class="reference internal" href="cairo-reference.html#c.CairoSegments" title="CairoSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoSegments()</span></code></a></p></td>
+<td><p>Build mapped strokes and consume their paths through
+<a class="reference internal" href="cairo-reference.html#c.StrokeRenderPath" title="StrokeRenderPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">StrokeRenderPath()</span></code></a>; segment flushing preserves double-dash order.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cairo-reference.html#c.CairoArcPath" title="CairoArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoArcPath()</span></code></a></p></td>
+<td><p>Replaces the path with a validated ellipse, restoring its temporary
+transform before <a class="reference internal" href="cairo-reference.html#c.CairoArc" title="CairoArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoArc()</span></code></a> or <a class="reference internal" href="cairo-reference.html#c.CairoFillArc" title="CairoFillArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoFillArc()</span></code></a> paints it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cairo-reference.html#c.AppendRenderSymbol" title="AppendRenderSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendRenderSymbol()</span></code></a></p></td>
+<td><p>Appends independent shapes without painting or clearing earlier shapes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cairo-reference.html#c.FillRenderArea" title="FillRenderArea"><code class="xref c c-func docutils literal notranslate"><span class="pre">FillRenderArea()</span></code></a></p></td>
+<td><p>Consumes the polygon path and changes transform/fill state;
+its caller must bracket or finish the context.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cairo-reference.html#c.CairoFillPolygon" title="CairoFillPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoFillPolygon()</span></code></a>, <a class="reference internal" href="cairo-reference.html#c.CairoFillRectangles" title="CairoFillRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoFillRectangles()</span></code></a></p></td>
+<td><p>Save and restore graphics state around painting, but consume the path.
+Rectangle opacity applies to the composed group.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cairo-reference.html#c.CairoClipBegin" title="CairoClipBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoClipBegin()</span></code></a>, <a class="reference internal" href="cairo-reference.html#c.CairoClipEnd" title="CairoClipEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoClipEnd()</span></code></a></p></td>
+<td><p>Pair graphics-state scopes through common dispatch. Pushing a clip
+consumes the pending path; popping cannot recover it.</p></td>
+</tr>
+</tbody>
+</table>
+<p><a class="reference internal" href="cairo-reference.html#c.CreateRenderStipple" title="CreateRenderStipple"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderStipple()</span></code></a>, <a class="reference internal" href="cairo-reference.html#c.CreateRenderBitmap" title="CreateRenderBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderBitmap()</span></code></a> and
+<a class="reference internal" href="cairo-reference.html#c.CreateRenderPhoto" title="CreateRenderPhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a> return owned patterns containing copied pixels.
+Their input images and colors remain borrowed. <a class="reference internal" href="cairo-reference.html#c.RenderAreaPixel" title="RenderAreaPixel"><code class="xref c c-func docutils literal notranslate"><span class="pre">RenderAreaPixel()</span></code></a>
+converts a missing color to transparency; this is distinct from constructors
+that reject a missing required stroke color. Completion through
+<a class="reference internal" href="cairo-reference.html#c.CairoEnd" title="CairoEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoEnd()</span></code></a> flushes and reports errors; failure cleanup through
+<a class="reference internal" href="cairo-reference.html#c.FreeRenderContext" title="FreeRenderContext"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeRenderContext()</span></code></a> only releases resources.</p>
 </section>
 <section id="paths-and-clip-scopes">
 <h2>Paths and clip scopes<a class="headerlink" href="#paths-and-clip-scopes" title="Link to this heading">¶</a></h2>
 <p>Each polyline call creates a separate trace. Independent segments remain
 separate subpaths. Stroke state belongs to the context. For two-color dashes,
-<code class="docutils literal notranslate"><span class="pre">StrokeRenderPath</span></code> paints a solid off-color stroke with the path preserved,
+<a class="reference internal" href="cairo-reference.html#c.StrokeRenderPath" title="StrokeRenderPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">StrokeRenderPath()</span></code></a> paints a solid off-color stroke with the path preserved,
 then foreground dashes. Equal foreground/off colors are reduced to one solid
 stroke at construction to avoid duplicate coverage.</p>
 <p>Nested rectangular clips use Cairo save/rectangle/clip and restore operations.
@@ -123,7 +177,7 @@ remain the shared renderer convention; no data-axis mapping happens here.</p>
 foreground or background-only policy. Stipple bits are read before acquiring
 the destination context. A successful context owns the resulting pattern and
 borrows the colors in its copied style.</p>
-<p><code class="docutils literal notranslate"><span class="pre">CreateRenderStipple</span></code> reads monochrome data with <code class="docutils literal notranslate"><span class="pre">XYPixmap</span></code>; this avoids the
+<p><a class="reference internal" href="cairo-reference.html#c.CreateRenderStipple" title="CreateRenderStipple"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderStipple()</span></code></a> reads monochrome data with <code class="docutils literal notranslate"><span class="pre">XYPixmap</span></code>; this avoids the
 Tk/Windows monochrome inversion associated with the other image format. It
 creates ARGB32 pixels from foreground/background colors, destroys the XImage,
 and returns a repeating nearest-filtered pattern. A missing background can
@@ -131,7 +185,7 @@ leave transparent pattern pixels. Solid-fill opacity is applied separately;
 polygon and arc pattern pixels retain their constructed alpha rather than being
 multiplied by solid-fill opacity. Rectangle batches and legend bar swatches
 instead apply opacity to a composed group, including stipple paint.</p>
-<p><code class="docutils literal notranslate"><span class="pre">CreateRenderPhoto</span></code> copies a borrowed Tk photo block into a new ARGB32 image.
+<p><a class="reference internal" href="cairo-reference.html#c.CreateRenderPhoto" title="CreateRenderPhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a> copies a borrowed Tk photo block into a new ARGB32 image.
 RGB offsets must be within the pixel size. Alpha is used only if its offset is
 valid and distinct from all RGB offsets; otherwise pixels are opaque. Each RGB
 channel is premultiplied using <code class="docutils literal notranslate"><span class="pre">(channel</span> <span class="pre">*</span> <span class="pre">alpha</span> <span class="pre">+</span> <span class="pre">127)</span> <span class="pre">/</span> <span class="pre">255</span></code>. Source rows
@@ -188,7 +242,7 @@ synchronization and X11 surface wrapping exercise different lifetime paths.</p>
 <p>Cairo paths are not part of saved graphics state. A save/restore pair restores
 sources, transforms and clipping, but does not resurrect geometry consumed by
 fill, stroke or clip. Callers must finish each primitive before entering another
-operation or clip scope. <code class="docutils literal notranslate"><span class="pre">CairoArcPath</span></code> explicitly replaces the path; other
+operation or clip scope. <a class="reference internal" href="cairo-reference.html#c.CairoArcPath" title="CairoArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoArcPath()</span></code></a> explicitly replaces the path; other
 append helpers rely on the preceding operation having consumed its geometry.</p>
 <p>Segment strokes flush every 8192 segments to bound path storage. With two-color
 dashes they instead finish each segment separately, preserving painter order
@@ -206,7 +260,7 @@ paint their opacity directly. Preserve call boundaries when changing batching.</
 <h2>Coordinate and pattern state<a class="headerlink" href="#coordinate-and-pattern-state" title="Link to this heading">¶</a></h2>
 <p>Stroke contexts start with a half-pixel translation. Area boundaries, integer
 rectangles, bitmap symbols and photos cancel it where their contracts require
-pixel-boundary coordinates. <code class="docutils literal notranslate"><span class="pre">FillRenderArea</span></code> makes that translation without
+pixel-boundary coordinates. <a class="reference internal" href="cairo-reference.html#c.FillRenderArea" title="FillRenderArea"><code class="xref c c-func docutils literal notranslate"><span class="pre">FillRenderArea()</span></code></a> makes that translation without
 saving state itself: reusable polygon callers bracket it, while one-shot tile
 and bitmap callers finish the context afterward. Calling it repeatedly without
 a corresponding restore would accumulate translations.</p>
@@ -221,7 +275,7 @@ bitmap registry.</p>
 instead. These conversions serve different source layouts and should not be
 merged by substituting simple channel truncation.</p>
 <p>Initial stroke construction collapses equal foreground/off-colors to a solid
-stroke. Later <code class="docutils literal notranslate"><span class="pre">CairoDashBackground</span></code> calls only enable or disable the underlay
+stroke. Later <a class="reference internal" href="cairo-reference.html#c.CairoDashBackground" title="CairoDashBackground"><code class="xref c c-func docutils literal notranslate"><span class="pre">CairoDashBackground()</span></code></a> calls only enable or disable the underlay
 and copy its color; they do not repeat that optimization or reconstruct dash
 values discarded during construction. Callers needing a different dash pattern
 must construct an appropriately configured context.</p>
@@ -241,6 +295,7 @@ must construct an appropriately configured context.</p>
 <li><a class="reference internal" href="#">Cairo surfaces and drawing contexts</a><ul>
 <li><a class="reference internal" href="#component-facing-attempts">Component-facing attempts</a></li>
 <li><a class="reference internal" href="#construction-and-ownership">Construction and ownership</a></li>
+<li><a class="reference internal" href="#path-and-resource-contracts">Path and resource contracts</a></li>
 <li><a class="reference internal" href="#paths-and-clip-scopes">Paths and clip scopes</a></li>
 <li><a class="reference internal" href="#patterns-and-pixel-conversion">Patterns and pixel conversion</a></li>
 <li><a class="reference internal" href="#windows-marker-pass-target">Windows marker-pass target</a></li>

@@ -337,3 +337,34 @@ likewise require the correct context family. Symbol templates describe local
 geometry, centers describe mapped positions, and stroke widths remain display
 quantities. No renderer operation performs axis transforms or establishes
 component ownership.
+
+Internal adapter contracts
+---------------------------
+
+The common callbacks in :doc:`reference` now identify the context family they
+require. :c:func:`rbcRenderDispatch.BeginNativeGeometry` installs a shared table
+but initializes only its common fields. Specialized constructors still have to
+populate symbol, bar, polygon or arc state before the corresponding callback
+can be used. A non-NULL callback pointer alone is not a capability check.
+
+:c:func:`rbcRenderDispatch.NativePolyline` requires a retained native trace;
+:c:func:`rbcRenderDispatch.NativeSegments` consumes independent endpoint pairs.
+:c:func:`rbcRenderDispatch.NativeSymbolPoints` borrows mutable interval state.
+:c:func:`rbcRenderDispatch.NativeArc` and
+:c:func:`rbcRenderDispatch.NativeFillArc` use precomputed arrays, while
+:c:func:`rbcRenderDispatch.NormalizeRenderArc` validates the analytic geometry
+before dispatch. Those two representations must remain consistent.
+
+:c:func:`rbcRenderDispatch.ScreenMappedBitmap` and
+:c:func:`rbcRenderDispatch.ScreenTkImage` select Cairo attempts before native
+fallback. :c:func:`rbcRenderDispatch.ScreenBarRectangles` can suppress an already
+handled fill in a local style copy while retaining native relief drawing.
+These callbacks do not transfer ownership of component images or style resources.
+
+Native clip pushes and pops use :c:func:`rbcRenderDispatch.NativeClipBegin` and
+:c:func:`rbcRenderDispatch.NativeClipEnd`; final release uses
+:c:func:`rbcRenderDispatch.ScreenClipEnd`. The last operation destroys the stack,
+whereas a pop only completes one scope. Likewise,
+:c:func:`rbcRenderDispatch.NativeGeometryEnd` and
+:c:func:`rbcRenderDispatch.NativeEnd` release different retained backend state.
+Stack-based decoration and detail adapters must never enter these destructors.

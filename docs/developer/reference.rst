@@ -60,7 +60,11 @@ Common screen adapters
 
 These private callbacks implement the constructor families described in
 :doc:`rendering`. A populated operation table alone does not establish that a
-particular constructor initialized every callback's required state.
+particular constructor initialized every callback's required state. Each
+callback's parameter description identifies the required family. Destructors
+consume heap contexts; synchronous decoration/detail contexts can be stack-based
+and must not be passed to them. See :doc:`rendering` for the internal adapter
+call relationships.
 
 .. c:namespace-push:: rbcRenderDispatch
 

@@ -56,6 +56,12 @@ typedef struct {
  * Borrows the exact window/drawable captured by BeginScreenText and the text
  * style. Requires finite int-representable coordinates. Does not round, retain
  * the string or select Cairo even on a Cairo graph.
+ *
+ * @param[in,out] ctx Screen-text context created by Rbc_RenderBeginScreenText.
+ * @param[in] string Borrowed NUL-terminated text consumed synchronously.
+ * @param[in,out] style Borrowed text style and live font/GC resources; the text service may refresh GC state.
+ * @param[in] x Finite int-representable X coordinate; truncated to int before native drawing.
+ * @param[in] y Finite int-representable Y coordinate; truncated to int before native drawing.
  */
 static void NativeText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_NativeText(NATIVE(ctx)->nativeWindow, NATIVE(ctx)->nativeDrawable, string, style, (int)x, (int)y);
@@ -66,6 +72,12 @@ static void NativeText(Rbc_RenderContext *ctx, char *string, TextStyle *style, d
  * @brief Draw a caller-owned cached layout on the captured native text target.
  * Preserves integer coordinates and delegates font/bitmap work to the native
  * backend. The layout, style and window must remain live for the call.
+ *
+ * @param[in,out] ctx Screen-text context created by Rbc_RenderBeginScreenText.
+ * @param[in] layout Borrowed cached text layout; not rebuilt or freed here.
+ * @param[in,out] style Borrowed text style and live font/GC resources; the text service may refresh GC state.
+ * @param[in] x Destination X coordinate in display units.
+ * @param[in] y Destination Y coordinate in display units.
  */
 static void NativeTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle *style, int x, int y) {
     Rbc_NativeTextLayout(NATIVE(ctx)->nativeWindow, NATIVE(ctx)->nativeDrawable, layout, style, x, y);
@@ -76,6 +88,13 @@ static void NativeTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextSty
  * @brief Draw and measure text using the native text service.
  * Borrows text/style and writes the requested size through the backend. This
  * is not a measurement-only adapter; it uses the captured destination.
+ *
+ * @param[in,out] ctx Screen-text context created by Rbc_RenderBeginScreenText.
+ * @param[in] string Borrowed NUL-terminated text consumed synchronously.
+ * @param[in,out] style Borrowed text style and live font/GC resources; the text service may refresh GC state.
+ * @param[in] x Destination X coordinate in display units.
+ * @param[in] y Destination Y coordinate in display units.
+ * @param[out] size Required caller-owned storage for rotated text dimensions.
  */
 static void NativeTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *style, int x, int y, Dim2D *size) {
     Rbc_NativeTextSize(NATIVE(ctx)->nativeWindow, NATIVE(ctx)->nativeDrawable, string, style, x, y, size);
@@ -86,6 +105,8 @@ static void NativeTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle
  * @brief Free the screen-text adapter record.
  * Owns no font, window, layout or drawable. Called after common clip unwinding;
  * text contexts themselves expose no clip operations.
+ *
+ * @param[in] ctx Owned screen-text context consumed by this call.
  */
 static void NativeTextEnd(Rbc_RenderContext *ctx) { ckfree(ctx); }
 
@@ -119,6 +140,10 @@ void Rbc_RenderTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *s
  * color, tries Rbc_RenderBitmap and returns when handled; otherwise delegates
  * the unchanged style to Rbc_NativeBitmap. Does not retain bitmap/mask/color
  * resources or establish an independent clipping scope.
+ *
+ * @param[in,out] ctx Screen-raster context created by Rbc_RenderBeginScreenRaster.
+ * @param[in] r Borrowed mapped destination rectangle; dimensions also select the source extent.
+ * @param[in] style Borrowed bitmap/mask/color style; native fallback changes the private bitmap GC clip state.
  */
 static void ScreenMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r,
                                const Rbc_RenderBitmapStyle *style) {
@@ -143,6 +168,11 @@ static void ScreenMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle
  * only during Rbc_RenderPhoto. Other images or failed attempts use the native
  * Tk image path. Coordinates truncate to int; no surface/DC is retained by
  * this adapter across Tk image redraw.
+ *
+ * @param[in,out] ctx Screen-raster context created by Rbc_RenderBeginScreenRaster.
+ * @param[in] image Borrowed live Tk image; its current full extent is presented.
+ * @param[in] x Finite int-representable X coordinate; truncated to int before native drawing.
+ * @param[in] y Finite int-representable Y coordinate; truncated to int before native drawing.
  */
 static void ScreenTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
     if (ctx->graphPtr->renderer == RBC_RENDERER_CAIRO) {
@@ -162,6 +192,11 @@ static void ScreenTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, doub
  * @brief Copy a borrowed pixmap using native presentation.
  * Delegates the mapped rectangle and GC unchanged. A Cairo graph still uses
  * this path because the input contains completed native pixels.
+ *
+ * @param[in,out] ctx Screen-raster context created by Rbc_RenderBeginScreenRaster.
+ * @param[in] pixmap Borrowed source pixmap readable from (0,0) over the rectangle extent.
+ * @param[in] gc Borrowed configured GC with the required clip, raster operation and drawing style.
+ * @param[in] r Borrowed mapped destination rectangle; dimensions also select the source extent.
  */
 static void ScreenPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r) {
     Rbc_NativePixmap(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, pixmap, gc, r);
@@ -171,6 +206,8 @@ static void ScreenPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc
  * @ingroup render_dispatch_internals
  * @brief Free the screen-raster adapter record.
  * Does not release any caller-owned Tk image, pixmap, mask, GC or graph.
+ *
+ * @param[in] ctx Owned screen-raster context consumed by this call.
  */
 static void ScreenRasterEnd(Rbc_RenderContext *ctx) { ckfree(ctx); }
 
@@ -203,6 +240,16 @@ void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_Re
  * @brief Draw a native Tk border or relief rectangle.
  * Truncates double origins to int and preserves size, fill and relief flags.
  * Called through a synchronous stack decoration context; owns no resources.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] border Borrowed Tk border supplying relief colors.
+ * @param[in] x Finite int-representable X coordinate; truncated to int before native drawing.
+ * @param[in] y Finite int-representable Y coordinate; truncated to int before native drawing.
+ * @param[in] width Nonnegative rectangle or bitmap width in pixels.
+ * @param[in] height Nonnegative rectangle or bitmap height in pixels.
+ * @param[in] borderWidth Border thickness in pixels.
+ * @param[in] relief Tk relief constant.
+ * @param[in] fill Nonzero fills the interior; zero draws only the relief border.
  */
 static void ScreenBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                          int borderWidth, int relief, int fill) {
@@ -215,6 +262,14 @@ static void ScreenBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, d
  * @brief Fill an integer rectangle through the native rectangle service.
  * Borrows GC and optional tile and preserves their backend-specific behavior.
  * Does not select Cairo or retain resources after the call.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] gc Borrowed fill GC, required only when tile is NULL.
+ * @param[in] tile Optional borrowed tile taking precedence over gc; existing origin is preserved.
+ * @param[in] x Destination X coordinate in display units.
+ * @param[in] y Destination Y coordinate in display units.
+ * @param[in] width Nonnegative rectangle or bitmap width in pixels.
+ * @param[in] height Nonnegative rectangle or bitmap height in pixels.
  */
 static void ScreenRectangle(Rbc_RenderContext *ctx, GC gc, Rbc_Tile tile, int x, int y, int width, int height) {
     Rbc_NativeRectangle(NATIVE(ctx)->nativeWindow, NATIVE(ctx)->nativeDrawable, gc, tile, x, y, width, height);
@@ -225,6 +280,10 @@ static void ScreenRectangle(Rbc_RenderContext *ctx, GC gc, Rbc_Tile tile, int x,
  * @brief Draw native screen segments with the complete borrowed GC.
  * Preserves raster operation, clip, dash and cap settings. Used for overlays
  * including XOR; ordinary Cairo compositing is not an equivalent substitute.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] segments Borrowed mapped endpoint pairs, readable for count Segment2D records.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void ScreenSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Rbc_NativeScreenSegments(NATIVE(ctx)->nativeWindow, NATIVE(ctx)->nativeDrawable, NATIVE(ctx)->nativeGC, segments,
@@ -236,6 +295,16 @@ static void ScreenSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tc
  * @brief Copy completed pixels to the captured destination.
  * Borrows both drawables and the GC, preserving integer source/destination
  * coordinates and dimensions. Does not rerender geometry or choose Cairo.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] source Borrowed source drawable compatible with the destination captured by ctx.
+ * @param[in] gc Borrowed configured GC with the required clip, raster operation and drawing style.
+ * @param[in] srcX Source rectangle X coordinate in pixels.
+ * @param[in] srcY Source rectangle Y coordinate in pixels.
+ * @param[in] width Nonnegative rectangle or bitmap width in pixels.
+ * @param[in] height Nonnegative rectangle or bitmap height in pixels.
+ * @param[in] dstX Destination rectangle X coordinate in pixels.
+ * @param[in] dstY Destination rectangle Y coordinate in pixels.
  */
 static void ScreenCopyArea(Rbc_RenderContext *ctx, Drawable source, GC gc, int srcX, int srcY, unsigned int width,
                            unsigned int height, int dstX, int dstY) {
@@ -248,6 +317,10 @@ static void ScreenCopyArea(Rbc_RenderContext *ctx, Drawable source, GC gc, int s
  * @brief Draw a native focus decoration on the captured target.
  * Borrows window and GC; the native backend owns the exact focus geometry.
  * The adapter neither changes graph geometry nor retains resources.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] gc Borrowed configured GC with the required clip, raster operation and drawing style.
+ * @param[in] width Native focus highlight thickness in pixels.
  */
 static void ScreenFocus(Rbc_RenderContext *ctx, GC gc, int width) {
     Rbc_NativeFocus(NATIVE(ctx)->nativeWindow, NATIVE(ctx)->nativeDrawable, gc, width);
@@ -304,6 +377,12 @@ void Rbc_RenderScreenFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width)
  * Uses the owned native clip stack. Common dispatch has already incremented
  * clipDepth. Callers obtain the resulting target through Rbc_RenderClipDrawable
  * and must skip drawing for None while still balancing the frame.
+ *
+ * @param[in,out] ctx Screen-clip context with a live owned nativeClip stack.
+ * @param[in] x Destination X coordinate in display units.
+ * @param[in] y Destination Y coordinate in display units.
+ * @param[in] width Clip width; nonpositive values push an empty frame.
+ * @param[in] height Clip height; nonpositive values push an empty frame.
  */
 static void NativeClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_NativePushClip(NATIVE(ctx)->nativeClip, x, y, width, height);
@@ -313,6 +392,8 @@ static void NativeClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int
  * @brief Pop and commit the current native clip frame.
  * Common dispatch decrements clipDepth first. Backend handling restores native
  * state or copies scratch pixels to the parent; no geometry is redrawn here.
+ *
+ * @param[in,out] ctx Screen-clip context with a live owned nativeClip stack; common depth was already decremented.
  */
 static void NativeClipEnd(Rbc_RenderContext *ctx) { Rbc_NativePopClip(NATIVE(ctx)->nativeClip); }
 
@@ -321,6 +402,8 @@ static void NativeClipEnd(Rbc_RenderContext *ctx) { Rbc_NativePopClip(NATIVE(ctx
  * @brief Destroy the owned native clip stack and its adapter.
  * Invoked by Rbc_RenderEnd after common clip-depth unwinding. Borrowed graph,
  * base drawable and copy GC remain caller-owned.
+ *
+ * @param[in] ctx Owned screen-clip context consumed here, including its nativeClip stack.
  */
 static void ScreenClipEnd(Rbc_RenderContext *ctx) {
     Rbc_NativeDestroyClip(NATIVE(ctx)->nativeClip);
@@ -349,6 +432,10 @@ Drawable Rbc_RenderClipDrawable(Rbc_RenderContext *ctx) { return Rbc_NativeClipD
  * point array for this call; backend scratch storage and any DC survive until End.
  * Do not use the shared operation table as permission to call this on a
  * segments-only context whose trace pointer is NULL.
+ *
+ * @param[in,out] ctx Native trace context with nativeTrace initialized by Rbc_NativeBeginTrace.
+ * @param[in] points Borrowed mapped point array, readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void NativePolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Rbc_NativePolyline(NATIVE(ctx)->nativeTrace, points, count);
@@ -359,6 +446,10 @@ static void NativePolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
  * @brief Submit independent strip segments to the native strip path.
  * Borrows graph, drawable, GC and segment array. Keeps the strip-specific
  * backend batching behavior rather than translating it into joined polylines.
+ *
+ * @param[in,out] ctx Native strip context with live graph, drawable and GC fields.
+ * @param[in] segments Borrowed mapped endpoint pairs, readable for count Segment2D records.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void NativeStrips(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Rbc_NativeStrips(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, NATIVE(ctx)->nativeGC, segments, count);
@@ -369,6 +460,10 @@ static void NativeStrips(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_
  * @brief Submit independent segments using the borrowed native GC.
  * Uses the ordinary native segment backend, including its chunking and
  * platform resource handling. Does not own the array or a retained trace batch.
+ *
+ * @param[in,out] ctx Native segment-capable context with live graph, drawable and GC fields.
+ * @param[in] segments Borrowed mapped endpoint pairs, readable for count Segment2D records.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void NativeSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Rbc_NativeSegments(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, NATIVE(ctx)->nativeGC, segments, count);
@@ -379,6 +474,8 @@ static void NativeSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tc
  * @brief Release any retained native trace and the stroke adapter.
  * Rbc_NativeEndTrace accepts NULL for strip/segment contexts. The caller GC,
  * graph and drawable remain borrowed and are not destroyed.
+ *
+ * @param[in] ctx Owned native stroke context consumed here; any retained trace is released.
  */
 static void NativeEnd(Rbc_RenderContext *ctx) {
     Rbc_NativeEndTrace(NATIVE(ctx)->nativeTrace);
@@ -429,6 +526,10 @@ Rbc_RenderContext *Rbc_RenderBeginStroke(Graph *graphPtr, Drawable drawable, GC 
  * @brief Draw symbols with the retained native style and integer size.
  * The style pointer is borrowed, not copied. Native sampling may update its
  * counter; callers must keep style and referenced resources live until End.
+ *
+ * @param[in,out] ctx Native symbol context with borrowed symbol style and mapped size initialized.
+ * @param[in] points Borrowed mapped point array, readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void NativeSymbolPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Rbc_NativeSymbolPoints(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, NATIVE(ctx)->nativeSymbolStyle,
@@ -441,6 +542,10 @@ static void NativeSymbolPoints(Rbc_RenderContext *ctx, const Point2D *points, Tc
  * Uses the polygon batch when available; otherwise passes the borrowed GC,
  * tile and stipple to Rbc_NativeFillPolygon. A failed or unsupported batch
  * constructor therefore retains the ordinary fill fallback.
+ *
+ * @param[in,out] ctx Native fill context with either a retained polygon batch or configured GC/tile/stipple fallback.
+ * @param[in] points Borrowed mapped point array, readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void NativeFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     if (NATIVE(ctx)->nativePolygonBatch != NULL) {
@@ -458,6 +563,10 @@ static void NativeFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl
  * by Rbc_RenderRectangles, sets only the local fill opacity to zero before
  * native bars draw relief/borders. Otherwise native bars retain fill ownership.
  * Neither the caller style nor the context copy is modified by this decision.
+ *
+ * @param[in,out] ctx Bar context holding a shallow copy of the component bar style.
+ * @param[in] rects Borrowed mapped bar rectangle array with count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void ScreenBarRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rects, Tcl_Size count) {
     Rbc_RenderBarStyle style = NATIVE(ctx)->nativeBarStyle;
@@ -478,6 +587,9 @@ static void ScreenBarRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangl
  * The arc argument has passed common validation but is not consumed here.
  * Uses the arrays retained by BeginNativeArc; callers must keep those arrays
  * consistent with the validated geometry and alive until End.
+ *
+ * @param[in,out] ctx Native arc context retaining precomputed mapped stroke segments.
+ * @param[in] arc Validated analytic arc, unused by this callback; retained mapped arrays must describe the same geometry.
  */
 static void NativeArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     (void)arc;
@@ -490,6 +602,9 @@ static void NativeArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) 
  * @brief Fill the native arc from its borrowed precomputed polygon.
  * Ignores the analytic arc argument and delegates retained points to
  * NativeFillPolygon. Common dispatch has already rejected open-arc filling.
+ *
+ * @param[in,out] ctx Native arc context retaining precomputed mapped fill vertices and fill style.
+ * @param[in] arc Validated analytic arc, unused by this callback; retained mapped arrays must describe the same geometry.
  */
 static void NativeFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     (void)arc;
@@ -501,6 +616,8 @@ static void NativeFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *a
  * @brief Release a retained polygon batch and the geometry adapter.
  * Does not release borrowed symbol style, arc arrays, GC, tile or bar resources.
  * The batch, if present, restores and releases its platform-owned state.
+ *
+ * @param[in] ctx Owned native geometry context consumed here; any polygon batch is released.
  */
 static void NativeGeometryEnd(Rbc_RenderContext *ctx) {
     if (NATIVE(ctx)->nativePolygonBatch != NULL)
@@ -519,6 +636,10 @@ static const Rbc_RenderOps nativeGeometryOps = {
  * callbacks, but each specialized constructor populates only its required
  * state. Calling another family's operation is not supported merely because
  * the shared callback pointer is non-NULL.
+ *
+ * @param[in] graphPtr Borrowed owning graph, kept alive until context release.
+ * @param[in] drawable Borrowed destination, kept valid until context release.
+ * @return Owned zeroed geometry adapter; the caller must populate its specialized fields before dispatch.
  */
 static Rbc_RenderContext *BeginNativeGeometry(Graph *graphPtr, Drawable drawable) {
     Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(NativeRenderContext));
@@ -604,6 +725,10 @@ void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
  * closure styles. Copies valid input, reduces start with fmod and clamps sweep
  * to [-360,360]. Negative start values remain negative. Output is only valid
  * on TRUE; this does not clip the ellipse or bound later integer conversions.
+ *
+ * @param[in] arc Borrowed candidate ellipse; NULL and invalid geometry are rejected.
+ * @param[out] normalized Required caller-owned result; valid only when TRUE is returned.
+ * @return TRUE for valid normalized output; FALSE leaves output unspecified.
  */
 static int NormalizeRenderArc(const Rbc_RenderArcGeometry *arc, Rbc_RenderArcGeometry *normalized) {
     if ((arc == NULL) || !FINITE(arc->cx) || !FINITE(arc->cy) || !FINITE(arc->rx) || !FINITE(arc->ry) ||
@@ -716,6 +841,11 @@ void Rbc_RenderClipEnd(Rbc_RenderContext *ctx) {
  * @brief Draw a native text-marker background using mapped geometry.
  * Borrows outline and anchor; delegates their original conversion order to
  * the native backend rather than converting them separately in this layer.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] gc Borrowed configured GC with the required clip, raster operation and drawing style.
+ * @param[in] outline Four borrowed text-background vertices relative to anchor.
+ * @param[in] anchor Borrowed mapped text anchor added before native short conversion.
  */
 static void ScreenTextBackground(Rbc_RenderContext *ctx, GC gc, const Point2D *outline, const Point2D *anchor) {
     Rbc_NativeTextBackground(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, gc, outline, anchor);
@@ -726,6 +856,10 @@ static void ScreenTextBackground(Rbc_RenderContext *ctx, GC gc, const Point2D *o
  * @brief Draw a native arrowhead through scan-converted spans.
  * Borrows the mapped point array and GC. Retains native span batching and
  * integer conversion policy; no Cairo geometry replacement is attempted.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] gc Borrowed configured GC with the required clip, raster operation and drawing style.
+ * @param[in] points Borrowed finite closed arrowhead with RBC_RENDER_ARROW_POINTS entries.
  */
 static void ScreenArrowHead(Rbc_RenderContext *ctx, GC gc, const Point2D *points) {
     Rbc_NativeArrowHead(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, gc, points);
@@ -736,6 +870,12 @@ static void ScreenArrowHead(Rbc_RenderContext *ctx, GC gc, const Point2D *points
  * @brief Draw a native line legend sample.
  * Preserves integer geometry and the borrowed GC, including stipple-origin
  * behavior implemented by the native helper.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] gc Borrowed configured GC with the required clip, raster operation and drawing style.
+ * @param[in] x Destination X coordinate in display units.
+ * @param[in] y Destination Y coordinate in display units.
+ * @param[in] size Horizontal sample half-length; rows are y and y+1.
  */
 static void ScreenLegendLine(Rbc_RenderContext *ctx, GC gc, int x, int y, int size) {
     Rbc_NativeLegendLine(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, gc, x, y, size);
@@ -746,6 +886,12 @@ static void ScreenLegendLine(Rbc_RenderContext *ctx, GC gc, int x, int y, int si
  * @brief Draw a native bar legend sample.
  * Borrows graph, GC and target; passes integer geometry to the native helper
  * without changing the graph's renderer or component options.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in,out] gc Borrowed fill GC; native drawing resets its stipple origin to (0,0).
+ * @param[in] x Destination X coordinate in display units.
+ * @param[in] y Destination Y coordinate in display units.
+ * @param[in] size Nonnegative square side length in pixels.
  */
 static void ScreenLegendBar(Rbc_RenderContext *ctx, GC gc, int x, int y, int size) {
     Rbc_NativeLegendBar(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, gc, x, y, size);
@@ -757,6 +903,11 @@ static void ScreenLegendBar(Rbc_RenderContext *ctx, GC gc, int x, int y, int siz
  * Borrows callback data and function for the duration of native batching.
  * Nothing is retained after return; backend-specific DC lifetime remains in
  * Rbc_NativeRun. This adapter adds no Tcl callback lifetime protection.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] data Borrowed callback-specific run data; NULL suppresses the run.
+ * @param[in] count Number of geometry records, not bytes.
+ * @param[in] proc Synchronous callback; must not retain its temporary target or destroy borrowed drawing resources.
  */
 static void ScreenRun(Rbc_RenderContext *ctx, void *data, Tcl_Size count, Rbc_RenderRunProc *proc) {
     Rbc_NativeRun(ctx->graphPtr, NATIVE(ctx)->nativeDrawable, data, count, proc);
@@ -767,6 +918,14 @@ static void ScreenRun(Rbc_RenderContext *ctx, void *data, Tcl_Size count, Rbc_Re
  * @brief Draw repeated native bitmap positions as one backend run.
  * Borrows bitmap, GC and position array. Leaves opaque bitmap/DC batching
  * and resource restoration to the native backend.
+ *
+ * @param[in,out] ctx Synchronous stack screen adapter with graph/window and destination fields initialized.
+ * @param[in] bitmap Borrowed one-bit source pixmap readable over width by height pixels.
+ * @param[in,out] gc Borrowed opaque GXcopy-compatible GC; fallback clears its clip mask and origin.
+ * @param[in] width Nonnegative rectangle or bitmap width in pixels.
+ * @param[in] height Nonnegative rectangle or bitmap height in pixels.
+ * @param[in] positions Borrowed array of count integer bitmap destination origins.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void ScreenBitmapRun(Rbc_RenderContext *ctx, Pixmap bitmap, GC gc, int width, int height,
                             const Rbc_RenderPosition *positions, Tcl_Size count) {

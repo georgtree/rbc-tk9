@@ -386,6 +386,33 @@ geometry, centers describe mapped positions, and stroke widths remain display
 quantities. No renderer operation performs axis transforms or establishes
 component ownership.</p>
 </section>
+<section id="internal-adapter-contracts">
+<h2>Internal adapter contracts<a class="headerlink" href="#internal-adapter-contracts" title="Link to this heading">¶</a></h2>
+<p>The common callbacks in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> now identify the context family they
+require. <a class="reference internal" href="reference.html#c.rbcRenderDispatch.BeginNativeGeometry" title="rbcRenderDispatch.BeginNativeGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.BeginNativeGeometry()</span></code></a> installs a shared table
+but initializes only its common fields. Specialized constructors still have to
+populate symbol, bar, polygon or arc state before the corresponding callback
+can be used. A non-NULL callback pointer alone is not a capability check.</p>
+<p><a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativePolyline" title="rbcRenderDispatch.NativePolyline"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativePolyline()</span></code></a> requires a retained native trace;
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeSegments" title="rbcRenderDispatch.NativeSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeSegments()</span></code></a> consumes independent endpoint pairs.
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeSymbolPoints" title="rbcRenderDispatch.NativeSymbolPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeSymbolPoints()</span></code></a> borrows mutable interval state.
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeArc" title="rbcRenderDispatch.NativeArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeArc()</span></code></a> and
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeFillArc" title="rbcRenderDispatch.NativeFillArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeFillArc()</span></code></a> use precomputed arrays, while
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NormalizeRenderArc" title="rbcRenderDispatch.NormalizeRenderArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NormalizeRenderArc()</span></code></a> validates the analytic geometry
+before dispatch. Those two representations must remain consistent.</p>
+<p><a class="reference internal" href="reference.html#c.rbcRenderDispatch.ScreenMappedBitmap" title="rbcRenderDispatch.ScreenMappedBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.ScreenMappedBitmap()</span></code></a> and
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.ScreenTkImage" title="rbcRenderDispatch.ScreenTkImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.ScreenTkImage()</span></code></a> select Cairo attempts before native
+fallback. <a class="reference internal" href="reference.html#c.rbcRenderDispatch.ScreenBarRectangles" title="rbcRenderDispatch.ScreenBarRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.ScreenBarRectangles()</span></code></a> can suppress an already
+handled fill in a local style copy while retaining native relief drawing.
+These callbacks do not transfer ownership of component images or style resources.</p>
+<p>Native clip pushes and pops use <a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeClipBegin" title="rbcRenderDispatch.NativeClipBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeClipBegin()</span></code></a> and
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeClipEnd" title="rbcRenderDispatch.NativeClipEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeClipEnd()</span></code></a>; final release uses
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.ScreenClipEnd" title="rbcRenderDispatch.ScreenClipEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.ScreenClipEnd()</span></code></a>. The last operation destroys the stack,
+whereas a pop only completes one scope. Likewise,
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeGeometryEnd" title="rbcRenderDispatch.NativeGeometryEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeGeometryEnd()</span></code></a> and
+<a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeEnd" title="rbcRenderDispatch.NativeEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativeEnd()</span></code></a> release different retained backend state.
+Stack-based decoration and detail adapters must never enter these destructors.</p>
+</section>
 </section>
 
 
@@ -413,6 +440,7 @@ component ownership.</p>
 <li><a class="reference internal" href="#argument-lifetimes-and-dispatch-requirements">Argument lifetimes and dispatch requirements</a></li>
 <li><a class="reference internal" href="#screen-text-and-raster-batches">Screen text and raster batches</a></li>
 <li><a class="reference internal" href="#export-scopes-and-completion">Export scopes and completion</a></li>
+<li><a class="reference internal" href="#internal-adapter-contracts">Internal adapter contracts</a></li>
 </ul>
 </li>
 </ul>
