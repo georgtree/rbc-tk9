@@ -62,10 +62,6 @@ logical state. See <a class="reference internal" href="calling-conventions.html"
 <p>
 With no indices, destroys the vector. Otherwise parses inclusive ranges into a bitmap, then compacts surviving real or complex entries in place and reduces length without shrinking capacity. Flushes when configured and reports a full update. Returns a Tcl status. Index expressions may run Tcl; rejects length changes, destroyed/read-only receivers and invalid selections before accessing the original bitmap. Callback side effects are not undone. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -75,7 +71,7 @@ With no indices, destroys the vector. Otherwise parses inclusive ranges into a b
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> At least 3 through normal dispatch; the internal two-argument branch destroys the receiver. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are inclusive index/range selections to remove. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are inclusive index/range selections to remove. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -91,10 +87,6 @@ With no indices, destroys the vector. Otherwise parses inclusive ranges into a b
 <p>
 Creates a missing destination with the source type; skips the receiver itself. Copies the source selection and offset into prepared storage before releasing the previous allocation. Retains destination identity through mapping and notification callbacks. Returns a Tcl status. The command table permits one destination; source data need not be snapshotted because no callback occurs before the copy completes. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -104,7 +96,7 @@ Creates a missing destination with the source type; skips the receiver itself. C
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 3; validated by the dispatcher. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is the literal output vector name. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is the literal output vector name. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -120,10 +112,6 @@ Creates a missing destination with the source type; skips the receiver itself. C
 <p>
 Reads return a Tcl list, including one-element selections. Writes convert a real scalar or complex pair and return the original input object. The append position may grow storage by one value but cannot be read. Reports a ranged update for existing real writes or recognized appends, otherwise a full update. Rechecks lifetime, writability and saved bounds after conversion; append follows the current end. Complete data precedes custom storage release. Cache flushing and notification retain identity and preserve the Tcl result. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -133,7 +121,7 @@ Reads return a Tcl list, including one-element selections. Writes convert a real
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 3 to read, or 4 to assign. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is the index/range; optional objv[3] is the real scalar or complex pair to replicate. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is the index/range; optional objv[3] is the real scalar or complex pair to replicate. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -149,10 +137,6 @@ Reads return a Tcl list, including one-element selections. Writes convert a real
 <p>
 Accepts a nonnegative Tcl_Size, reuses capacity or prepares larger storage, and zero-fills new entries before committing. Returns the requested length even if a post-commit callback destroys the vector. Flushes/notifies only a still-live identity, preserving the result across callbacks. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -162,7 +146,7 @@ Accepts a nonnegative Tcl_Size, reuses capacity or prepares larger storage, and 
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 2 to query, or 3 to resize. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the new nonnegative logical length. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the new nonnegative logical length. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -178,10 +162,6 @@ Accepts a nonnegative Tcl_Size, reuses capacity or prepares larger storage, and 
 <p>
 Resolves sources and saves their first indices, then builds the complete interleaved array before replacing destination storage. Retains all resolved source identities and revalidates their selections after the final lookup. Supports self-merge, checks count/byte arithmetic, and frees scratch storage on all exits. Completed data precedes release/flush callbacks. Returns a Tcl status. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -191,7 +171,7 @@ Resolves sources and saves their first indices, then builds the complete interle
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> At least 3. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are same-type vector references with equal selected lengths. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are same-type vector references with equal selected lengths. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -205,26 +185,18 @@ Resolves sources and saves their first indices, then builds the complete interle
 <span class="target" id="group__vector__edit__paths_1ga6d4f2fb850397642f00ea2414e89fcfc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OffsetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.OffsetOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or assign the external numeric index offset. </p>
 <p>
-Parses a Tcl_Size and returns the current offset as an integer. Does not move values, flush array entries or notify observers. The dispatcher treats the setter as a receiver mutation and rejects read-only vectors. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
-</div>
-</p>
+Parses a Tcl_Size and returns the current offset as an integer. Does not move values, flush array entries or notify observers. The dispatcher treats the setter as a receiver mutation and rejects read-only vectors. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 2 to query, or 3 to assign. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the new external Tcl_Size index offset. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the new external Tcl_Size index offset. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with the current offset, or TCL_ERROR for conversion failure. </p>
+<dd class="field-even"><p>TCL_OK with the current offset, or TCL_ERROR for conversion failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -236,10 +208,6 @@ Parses a Tcl_Size and returns the current offset as an integer. Does not move va
 <p>
 Requires integer density at least one. For nonempty length N, output length is (N-1)*(density+1)+1 with overflow checks; empty input produces empty output. Builds a complete same-type result before resolving the destination, allowing self-output without a temporary vector object. Interpolates real and imaginary components independently and retains the last endpoint. Publishes only after commit; callbacks see complete data. Returns a Tcl status. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -249,7 +217,7 @@ Requires integer density at least one. For nonempty length N, output length is (
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 4; validated by the dispatcher. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] names the destination; objv[3] is the positive number of inserted values per interval. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] names the destination; objv[3] is the positive number of inserted values per interval. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -265,10 +233,6 @@ Requires integer density at least one. For nonempty length N, output length is (
 <p>
 Requires source length divisible by destination count; no destinations is a no-op. Prechecks writable existing destinations and creates missing ones. Snapshots the source and retains all destination identities. Each append is complete before releasing its old storage; publication follows the write loop, flushing before notification. A later failure leaves earlier appends committed and published. Destroyed/recreated identities are never written again. Returns a Tcl status; this is not an all-output transaction. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -278,7 +242,7 @@ Requires source length divisible by destination count; no destinations is a no-o
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> At least 2; no destinations is a successful no-op. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are literal destination names receiving round-robin source subsequences. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are literal destination names receiving round-robin source subsequences. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

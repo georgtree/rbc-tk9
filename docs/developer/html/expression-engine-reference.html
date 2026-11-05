@@ -64,11 +64,7 @@ failure-state descriptions in <a class="reference internal" href="expression-eng
 <span class="target" id="group__expression__engine_1gaab8b84f961862a337ec9d318ad245e9f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetArrayByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elementSize</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteCountPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetArrayByteCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check a temporary-array allocation size. </p>
 <p>
-Requires nonzero elementSize. Rejects negative count and size_t multiplication overflow with a Tcl error; writes byteCountPtr only on success. Does not allocate storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires nonzero elementSize. Rejects negative count and size_t multiplication overflow with a Tcl error; writes byteCountPtr only on success. Does not allocate storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -79,7 +75,7 @@ Requires nonzero elementSize. Rejects negative count and size_t multiplication o
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with the product, otherwise TCL_ERROR; no allocation occurs. </p>
+<dd class="field-even"><p>TCL_OK with the product, otherwise TCL_ERROR; no allocation occurs.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -89,11 +85,7 @@ Requires nonzero elementSize. Rejects negative count and size_t multiplication o
 <span class="target" id="group__expression__engine_1gaa31ea4df35a338c9b1ac42263c4063ac"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetDoubleArrayByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteCountPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetDoubleArrayByteCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check the byte count for real expression storage. </p>
 <p>
-Delegates to GetArrayByteCount with sizeof(double); output remains untouched on validation failure. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Delegates to GetArrayByteCount with sizeof(double); output remains untouched on validation failure. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -103,7 +95,7 @@ Delegates to GetArrayByteCount with sizeof(double); output remains untouched on 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with the byte count, otherwise TCL_ERROR. </p>
+<dd class="field-even"><p>TCL_OK with the byte count, otherwise TCL_ERROR.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -113,11 +105,7 @@ Delegates to GetArrayByteCount with sizeof(double); output remains untouched on 
 <span class="target" id="group__expression__engine_1gae677bfa6b480ee1fb04b4262140cb027"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRotationOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsetPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetRotationOffset" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a scalar shift into a bounded rotation offset. </p>
 <p>
-Initializes the output to zero. Length zero or one returns before finite validation. Otherwise rejects nonfinite counts, leaves nonpositive counts as a no-op for compatibility, reduces positive counts modulo length and truncates the remainder to Tcl_Size. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Initializes the output to zero. Length zero or one returns before finite validation. Otherwise rejects nonfinite counts, leaves nonpositive counts as a no-op for compatibility, reduces positive counts modulo length and truncates the remainder to Tcl_Size. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -128,7 +116,7 @@ Initializes the output to zero. Length zero or one returns before finite validat
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with a bounded offset, or TCL_ERROR for a nonfinite count when length exceeds one. </p>
+<dd class="field-even"><p>TCL_OK with a bounded offset, or TCL_ERROR for a nonfinite count when length exceeds one.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -138,11 +126,7 @@ Initializes the output to zero. Length zero or one returns before finite validat
 <span class="target" id="group__expression__engine_1ga5c9119a1897c072cc98f14a084d1275c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RotateExpressionVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">operator</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RotateExpressionVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rotate real or complex temporary storage in place. </p>
 <p>
-Requires LEFT_SHIFT or RIGHT_SHIFT and an evaluator-owned vector. Allocates a hold buffer for the wrapped portion, then uses memmove for overlap. Validation/allocation errors precede data mutation; successful rotation leaves type, length and selection unchanged and sends no notifications. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires LEFT_SHIFT or RIGHT_SHIFT and an evaluator-owned vector. Allocates a hold buffer for the wrapped portion, then uses memmove for overlap. Validation/allocation errors precede data mutation; successful rotation leaves type, length and selection unchanged and sends no notifications. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -153,7 +137,7 @@ Requires LEFT_SHIFT or RIGHT_SHIFT and an evaluator-owned vector. Allocates a ho
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after rotation or a no-op, otherwise TCL_ERROR before storage mutation. </p>
+<dd class="field-even"><p>TCL_OK after rotation or a no-op, otherwise TCL_ERROR before storage mutation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -163,15 +147,11 @@ Requires LEFT_SHIFT or RIGHT_SHIFT and an evaluator-owned vector. Allocates a ho
 <span class="target" id="group__expression__engine_1ga662fa71acd7eb56b61746e679fa548ec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeExpressionData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeExpressionData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a temporary allocation according to its current policy. </p>
 <p>
-Static storage is borrowed, dynamic storage uses ckfree, and a custom policy is invoked directly. Does not clear metadata or retain the record across custom callbacks. Evaluator temporaries normally own dynamic storage; this is not the guarded public reset path. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Static storage is borrowed, dynamic storage uses ckfree, and a custom policy is invoked directly. Does not clear metadata or retain the record across custom callbacks. Evaluator temporaries normally own dynamic storage; this is not the guarded public reset path. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Exclusively owned evaluator temporary, not a registered named vector. No metadata is cleared; caller must not use the released pointer afterward. </p></li>
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Exclusively owned evaluator temporary, not a registered named vector. No metadata is cleared; caller must not use the released pointer afterward.</p></li>
 </ul>
 </dd>
 </dl>
@@ -182,15 +162,11 @@ Static storage is borrowed, dynamic storage uses ckfree, and a custom policy is 
 <span class="target" id="group__expression__engine_1gae1cce261b0e40d1df000d9698d21f06c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseExpressionStorage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReleaseExpressionStorage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release and clear an expression temporary’s storage metadata. </p>
 <p>
-Resets data, length, capacity, selection and freeProc after FreeExpressionData. Leaves type and registration fields unchanged. Requires exclusive temporary ownership and no destructive release reentry. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Resets data, length, capacity, selection and freeProc after FreeExpressionData. Leaves type and registration fields unchanged. Requires exclusive temporary ownership and no destructive release reentry. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Exclusively owned evaluator temporary, not a registered named vector. Caller guarantees that a custom storage release cannot destroy or reenter this temporary. </p></li>
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Exclusively owned evaluator temporary, not a registered named vector. Caller guarantees that a custom storage release cannot destroy or reenter this temporary.</p></li>
 </ul>
 </dd>
 </dl>
@@ -201,16 +177,12 @@ Resets data, length, capacity, selection and freeProc after FreeExpressionData. 
 <span class="target" id="group__expression__engine_1gae2da600de8777ea8e6685b8b02d8799d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetExpressionVectorType</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetExpressionVectorType" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Discard storage when changing an unregistered temporary’s type. </p>
 <p>
-Same type is a no-op. A change asserts no registry entry, command or mapped array, releases old storage, then sets type. Not valid for changing a named vector’s immutable type. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Same type is a no-op. A change asserts no registry entry, command or mapped array, releases old storage, then sets type. Not valid for changing a named vector’s immutable type. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Exclusively owned evaluator temporary, not a registered named vector. </p></li>
-<li><p><strong>type</strong> – <strong>[in]</strong> Desired real or complex type; a change discards the existing values. </p></li>
+<li><p><strong>type</strong> – <strong>[in]</strong> Desired real or complex type; a change discards the existing values.</p></li>
 </ul>
 </dd>
 </dl>
@@ -221,11 +193,7 @@ Same type is a no-op. A change asserts no registry entry, command or mapped arra
 <span class="target" id="group__expression__engine_1ga6c316676ff79f68e10b852c9c669b0c3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyExpressionVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CopyExpressionVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a selected source into an evaluator temporary of matching type. </p>
 <p>
-Changes the destination temporary’s type before private duplication. The caller retains the source for the synchronous copy. Failure can leave the temporary cleared or retyped; no named output is committed here. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Changes the destination temporary’s type before private duplication. The caller retains the source for the synchronous copy. Failure can leave the temporary cleared or retyped; no named output is committed here. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -234,7 +202,7 @@ Changes the destination temporary’s type before private duplication. The calle
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after typed duplication, otherwise TCL_ERROR; no named output is published. </p>
+<dd class="field-even"><p>TCL_OK after typed duplication, otherwise TCL_ERROR; no named output is published.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -244,11 +212,7 @@ Changes the destination temporary’s type before private duplication. The calle
 <span class="target" id="group__expression__engine_1ga4c62d98ddd6cbbadc6283fef9ed2f13c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PromoteExpressionVectorToComplex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PromoteExpressionVectorToComplex" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Promote a real temporary while preserving length and capacity. </p>
 <p>
-Allocates complex capacity, copies used real values with zero imaginary parts and then releases old storage. Already-complex input is unchanged. Size/allocation failures leave old storage intact; requires exclusive temporary ownership across release. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Allocates complex capacity, copies used real values with zero imaginary parts and then releases old storage. Already-complex input is unchanged. Size/allocation failures leave old storage intact; requires exclusive temporary ownership across release. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -256,7 +220,7 @@ Allocates complex capacity, copies used real values with zero imaginary parts an
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after promotion or for already-complex input; TCL_ERROR on size/allocation failure. </p>
+<dd class="field-even"><p>TCL_OK after promotion or for already-complex input; TCL_ERROR on size/allocation failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -266,11 +230,7 @@ Allocates complex capacity, copies used real values with zero imaginary parts an
 <span class="target" id="group__expression__engine_1gafd2ca5a37cb89ad77432a44b6c4a8586"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetExpressionRealScalar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetExpressionRealScalar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace an expression temporary with one real value. </p>
 <p>
-Sets real type, resizes to one and stores the value. Returns Tcl status without checking finiteness; evaluation or the calling adapter owns that check. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Sets real type, resizes to one and stores the value. Returns Tcl status without checking finiteness; evaluation or the calling adapter owns that check. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -279,7 +239,7 @@ Sets real type, resizes to one and stores the value. Returns Tcl status without 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back. </p>
+<dd class="field-even"><p>TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -289,11 +249,7 @@ Sets real type, resizes to one and stores the value. Returns Tcl status without 
 <span class="target" id="group__expression__engine_1ga98574a1cdf9d742e338e326fdfc87b81"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetExpressionComplexScalar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetExpressionComplexScalar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace an expression temporary with one complex value. </p>
 <p>
-Sets complex type, resizes to one and stores the pair. Returns Tcl status; does not publish a named- vector change or validate component finiteness. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Sets complex type, resizes to one and stores the pair. Returns Tcl status; does not publish a named- vector change or validate component finiteness. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -302,7 +258,7 @@ Sets complex type, resizes to one and stores the pair. Returns Tcl status; does 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back. </p>
+<dd class="field-even"><p>TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -312,11 +268,7 @@ Sets complex type, resizes to one and stores the pair. Returns Tcl status; does 
 <span class="target" id="group__expression__engine_1ga8db91ffe3c85d9cc3cdae5f7a55dccb0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ApplyComplexBinaryValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">operator</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">b</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ApplyComplexBinaryValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute one supported complex arithmetic operation. </p>
 <p>
-Handles addition, subtraction, multiplication, division and power. Rejects zero divisor and unsupported operators; power delegates domain checks. Writes the output on success and returns Tcl status. The enclosing evaluator checks final finiteness. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Handles addition, subtraction, multiplication, division and power. Rejects zero divisor and unsupported operators; power delegates domain checks. Writes the output on success and returns Tcl status. The enclosing evaluator checks final finiteness. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -328,7 +280,7 @@ Handles addition, subtraction, multiplication, division and power. Rejects zero 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after arithmetic, otherwise TCL_ERROR for an unsupported operator or domain failure. </p>
+<dd class="field-even"><p>TCL_OK after arithmetic, otherwise TCL_ERROR for an unsupported operator or domain failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -338,11 +290,7 @@ Handles addition, subtraction, multiplication, division and power. Rejects zero 
 <span class="target" id="group__expression__engine_1ga22e76653937e1753f0f086436bed5f43"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ApplyComplexNotOperator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ApplyComplexNotOperator" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace a complex temporary with real boolean negation values. </p>
 <p>
-Allocates a separate real array and computes exact complex-zero tests before releasing the input. Sets capacity equal to length and resets selection to the complete result. Validation/allocation failure leaves the input untouched. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Allocates a separate real array and computes exact complex-zero tests before releasing the input. Sets capacity equal to length and resets selection to the complete result. Validation/allocation failure leaves the input untouched. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -351,7 +299,7 @@ Allocates a separate real array and computes exact complex-zero tests before rel
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with real boolean values, otherwise TCL_ERROR before replacing storage. Input must be complex. </p>
+<dd class="field-even"><p>TCL_OK with real boolean values, otherwise TCL_ERROR before replacing storage. Input must be complex.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -361,11 +309,7 @@ Allocates a separate real array and computes exact complex-zero tests before rel
 <span class="target" id="group__expression__engine_1ga299b66b9676aa313783ddd022500aa56"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ApplyComplexBooleanOperator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">operator</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">v2Ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ApplyComplexBooleanOperator" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute broadcast complex equality or logical results as real values. </p>
 <p>
-Requires EQUAL, NEQ, AND or OR. Length-one operands broadcast; other lengths must match. Computes into a new real array before replacing the left temporary. Equality compares both components exactly; truth means either component is nonzero. Both operands have already been evaluated, so this is not short-circuit evaluation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires EQUAL, NEQ, AND or OR. Length-one operands broadcast; other lengths must match. Computes into a new real array before replacing the left temporary. Equality compares both components exactly; truth means either component is nonzero. Both operands have already been evaluated, so this is not short-circuit evaluation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -376,7 +320,7 @@ Requires EQUAL, NEQ, AND or OR. Length-one operands broadcast; other lengths mus
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed. </p>
+<dd class="field-even"><p>TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -386,11 +330,7 @@ Requires EQUAL, NEQ, AND or OR. Length-one operands broadcast; other lengths mus
 <span class="target" id="group__expression__engine_1gacc4be797f32c3bb1394aa4beec3d3820"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ApplyComplexShiftOperator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">operator</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">v2Ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ApplyComplexShiftOperator" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a real-valued scalar count and rotate the left temporary. </p>
 <p>
-Requires a length-one right operand. A complex scalar with zero imaginary part is accepted; nonzero imaginary part is rejected. Rotation retains the left type and length. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a length-one right operand. A complex scalar with zero imaginary part is accepted; nonzero imaginary part is rejected. Rotation retains the left type and length. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -401,7 +341,7 @@ Requires a length-one right operand. A complex scalar with zero imaginary part i
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed. </p>
+<dd class="field-even"><p>TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -411,11 +351,7 @@ Requires a length-one right operand. A complex scalar with zero imaginary part i
 <span class="target" id="group__expression__engine_1gad020e0ce6ffbe949c6049057693ed5d6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ApplyComplexBinaryOperator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">operator</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">v2Ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ApplyComplexBinaryOperator" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch complex arithmetic, boolean or rotation operations. </p>
 <p>
-Either operand may be real. Arithmetic promotes the left temporary and broadcasts scalars, otherwise requires equal lengths; boolean operations return real storage and shifts retain the left type. Unsupported ordering/modulus operators fail. Elementwise arithmetic can partially change the temporary before an error; named destinations are committed by the outer layer only. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Either operand may be real. Arithmetic promotes the left temporary and broadcasts scalars, otherwise requires equal lengths; boolean operations return real storage and shifts retain the left type. Unsupported ordering/modulus operators fail. Elementwise arithmetic can partially change the temporary before an error; named destinations are committed by the outer layer only. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -426,7 +362,7 @@ Either operand may be real. Arithmetic promotes the left temporary and broadcast
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed. </p>
+<dd class="field-even"><p>TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -436,15 +372,11 @@ Either operand may be real. Arithmetic promotes the left temporary and broadcast
 <span class="target" id="group__expression__engine_1ga8beb68697bd1ba6484ecb022aa24bef4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexValueIsFinite</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexValueIsFinite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test finiteness of both complex components. </p>
 <p>
-Returns true only if both real and imaginary values are finite. Does not inspect errno or set a Tcl diagnostic. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns true only if both real and imaginary values are finite. Does not inspect errno or set a Tcl diagnostic. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose two components are tested. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose two components are tested. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -455,17 +387,13 @@ Returns true only if both real and imaginary values are finite. Does not inspect
 <span class="target" id="group__expression__engine_1gaa77599d0c18932dded72349c334e87b5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InstallIndexProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tablePtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Rbc_VectorIndexProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">procPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InstallIndexProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Install or remove a named special-index procedure. </p>
 <p>
-Requires an initialized string-key hash table. Stores a borrowed function pointer, or deletes the entry for NULL. Does not own or release callback state. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires an initialized string-key hash table. Stores a borrowed function pointer, or deletes the entry for NULL. Does not own or release callback state. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>tablePtr</strong> – <strong>[inout]</strong> Initialized string-key table owned by the vector subsystem. </p></li>
 <li><p><strong>string</strong> – <strong>[in]</strong> NUL-terminated index name; Tcl copies the key when creating an entry. </p></li>
-<li><p><strong>procPtr</strong> – <strong>[in]</strong> Borrowed callback to store, or NULL to remove the name. The table does not own callback state. </p></li>
+<li><p><strong>procPtr</strong> – <strong>[in]</strong> Borrowed callback to store, or NULL to remove the name. The table does not own callback state.</p></li>
 </ul>
 </dd>
 </dl>
@@ -476,11 +404,7 @@ Requires an initialized string-key hash table. Stores a borrowed function pointe
 <span class="target" id="group__expression__engine_1ga77ea5faa6afda7e47c04f300af2d68e2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">First</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.First" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first finite real value in the selected interval. </p>
 <p>
-Requires valid real storage and first/last bounds. Returns its storage index or -1. Does not alter selection or cached extrema. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires valid real storage and first/last bounds. Returns its storage index or -1. Does not alter selection or cached extrema. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -488,7 +412,7 @@ Requires valid real storage and first/last bounds. Returns its storage index or 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>First finite storage index in the selection, or -1 when none exists. </p>
+<dd class="field-even"><p>First finite storage index in the selection, or -1 when none exists.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -498,11 +422,7 @@ Requires valid real storage and first/last bounds. Returns its storage index or 
 <span class="target" id="group__expression__engine_1ga47ef79171c315c72d08493744044ad74"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Next</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">current</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Next" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the next finite real value after a current index. </p>
 <p>
-Scans through last inclusive, returning a storage index or -1. Requires valid real storage and a current index from the same traversal. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Scans through last inclusive, returning a storage index or -1. Requires valid real storage and a current index from the same traversal. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -511,7 +431,7 @@ Scans through last inclusive, returning a storage index or -1. Requires valid re
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Next finite storage index, or -1 when no later finite value exists. </p>
+<dd class="field-even"><p>Next finite storage index, or -1 when no later finite value exists.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -521,11 +441,7 @@ Scans through last inclusive, returning a storage index or -1. Requires valid re
 <span class="target" id="group__expression__engine_1ga77a991c2241887b03b0f4466560669e0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyExpressionResult</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CopyExpressionResult" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy an evaluated temporary into a fixed-type destination. </p>
 <p>
-Matching types delegate to private duplication. Real results can populate a complex destination with zero imaginary parts; complex-to-real assignment is rejected. Resizing/copying does not flush mapped caches or notify. The caller checks destination lifetime and writability across expression callbacks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Matching types delegate to private duplication. Real results can populate a complex destination with zero imaginary parts; complex-to-real assignment is rejected. Resizing/copying does not flush mapped caches or notify. The caller checks destination lifetime and writability across expression callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -535,7 +451,7 @@ Matching types delegate to private duplication. Real results can populate a comp
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after copying, or TCL_ERROR for incompatible types or resize/copy failure. </p>
+<dd class="field-even"><p>TCL_OK after copying, or TCL_ERROR for incompatible types or resize/copy failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -545,17 +461,13 @@ Matching types delegate to private duplication. Real results can populate a comp
 <span class="target" id="group__expression__engine_1ga5491afa241f38981217cd197b5216e46"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ExpressionDestinationChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorNotify" title="Rbc_VectorNotify"><span class="n"><span class="pre">Rbc_VectorNotify</span></span></a><span class="w"> </span><span class="n"><span class="pre">notify</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ExpressionDestinationChanged" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Record destruction of the original assignment destination. </p>
 <p>
-clientData points to the caller’s live stack flag. Only DESTROY sets it. The destruction path releases the observer; the callback does not access the vector or keep an interpreter alive. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+clientData points to the caller’s live stack flag. Only DESTROY sets it. The destruction path releases the observer; the callback does not access the vector or keep an interpreter alive. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – <strong>[in]</strong> Notification interpreter, unused here. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Notification interpreter, unused here. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>clientData</strong> – <strong>[inout]</strong> Caller-owned int destruction flag, valid for the temporary observer’s lifetime. </p></li>
-<li><p><strong>notify</strong> – <strong>[in]</strong> Notification kind; only RBC_VECTOR_NOTIFY_DESTROY sets the flag. </p></li>
+<li><p><strong>notify</strong> – <strong>[in]</strong> Notification kind; only RBC_VECTOR_NOTIFY_DESTROY sets the flag.</p></li>
 </ul>
 </dd>
 </dl>
@@ -566,11 +478,7 @@ clientData points to the caller’s live stack flag. Only DESTROY sets it. The d
 <span class="target" id="group__expression__engine_1gaab4f05603e859410fa4b0ffd010a3a91"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EvaluateExpression</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EvaluateExpression" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the complete writable expression into a caller-owned temporary. </p>
 <p>
-Initializes parser state, calls NextValue and requires END. Rejects nonfinite components in the final result through MathError. The caller frees the temporary on success or failure. Substitutions and map callbacks execute Tcl; their side effects are not rolled back. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Initializes parser state, calls NextValue and requires END. Rejects nonfinite components in the final result through MathError. The caller frees the temporary on success or failure. Substitutions and map callbacks execute Tcl; their side effects are not rolled back. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -580,7 +488,7 @@ Initializes parser state, calls NextValue and requires END. Rejects nonfinite co
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with a complete finite result, otherwise a non-OK evaluation status; side effects remain. </p>
+<dd class="field-even"><p>TCL_OK with a complete finite result, otherwise a non-OK evaluation status; side effects remain.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -590,11 +498,7 @@ Initializes parser state, calls NextValue and requires END. Rejects nonfinite co
 <span class="target" id="group__expression__engine_1ga67c9dd108e06ed93a761b12b408d61a2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NextValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">parsePtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">prec</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.NextValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate one precedence-delimited expression into an existing temporary. </p>
 <p>
-Owns a second operand temporary for this recursive invocation and frees it on every exit. Stops at END, CLOSE_PAREN, COMMA or an operator whose precedence is at most prec; token/nextPtr describe the terminator already scanned. Evaluates both operands before applying operators, including logical operators. Errors can leave partial temporary data and Tcl side effects. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Owns a second operand temporary for this recursive invocation and frees it on every exit. Stops at END, CLOSE_PAREN, COMMA or an operator whose precedence is at most prec; token/nextPtr describe the terminator already scanned. Evaluates both operands before applying operators, including logical operators. Errors can leave partial temporary data and Tcl side effects. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -605,7 +509,7 @@ Owns a second operand temporary for this recursive invocation and frees it on ev
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK for the parsed subexpression, otherwise a non-OK status; temporary contents may be partial. </p>
+<dd class="field-even"><p>TCL_OK for the parsed subexpression, otherwise a non-OK status; temporary contents may be partial.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -615,17 +519,13 @@ Owns a second operand temporary for this recursive invocation and frees it on ev
 <span class="target" id="group__expression__engine_1ga24949d542b27521c65ba8e9351713517"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMathError</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">className</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">messageObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetMathError" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Set an arithmetic message and structured Tcl error code. </p>
 <p>
-Installs messageObj as result and as the third element of the ARITH/class/message error-code list. Accepts a newly created message object; Tcl result/error-code references retain it. Does not raise a completion code itself. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Installs messageObj as result and as the third element of the ARITH/class/message error-code list. Accepts a newly created message object; Tcl result/error-code references retain it. Does not raise a completion code itself. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>interp</strong> – <strong>[in]</strong> Evaluation/diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>className</strong> – <strong>[in]</strong> Borrowed NUL-terminated arithmetic error class, copied into the error-code list. </p></li>
-<li><p><strong>messageObj</strong> – <strong>[in]</strong> Message object retained by the Tcl result and error code; a new reference-count-zero object is valid. </p></li>
+<li><p><strong>messageObj</strong> – <strong>[in]</strong> Message object retained by the Tcl result and error code; a new reference-count-zero object is valid.</p></li>
 </ul>
 </dd>
 </dl>
@@ -636,16 +536,12 @@ Installs messageObj as result and as the third element of the ARITH/class/messag
 <span class="target" id="group__expression__engine_1gac3cb3b7cd5e64bff602275b55a31d7f7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MathError</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MathError" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify a floating-point failure using errno and the value. </p>
 <p>
-Reports DOMAIN for EDOM or NaN, UNDERFLOW/OVERFLOW for ERANGE or infinity, otherwise UNKNOWN. Reads but does not clear errno. Callers that depend on errno must reset it before the operation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Reports DOMAIN for EDOM or NaN, UNDERFLOW/OVERFLOW for ERANGE or infinity, otherwise UNKNOWN. Reads but does not clear errno. Callers that depend on errno must reset it before the operation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>interp</strong> – <strong>[in]</strong> Evaluation/diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
-<li><p><strong>value</strong> – <strong>[in]</strong> Failed arithmetic value, interpreted together with the current errno; errno is not reset here. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Failed arithmetic value, interpreted together with the current errno; errno is not reset here.</p></li>
 </ul>
 </dd>
 </dl>
@@ -656,11 +552,7 @@ Reports DOMAIN for EDOM or NaN, UNDERFLOW/OVERFLOW for ERANGE or infinity, other
 <span class="target" id="group__expression__engine_1ga8141d71cc2c63062b0e701651d33243f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseSubstitutionResult</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseSubstitutionResult" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a retained Tcl result into an expression value. </p>
 <p>
-Increments the result object reference before clearing the interpreter result, so conversion cannot invalidate its borrowed string. Releases the reference afterward and returns ParseString status. Does not retain arbitrary vector identities resolved by the conversion. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Increments the result object reference before clearing the interpreter result, so conversion cannot invalidate its borrowed string. Releases the reference afterward and returns ParseString status. Does not retain arbitrary vector identities resolved by the conversion. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -669,7 +561,7 @@ Increments the result object reference before clearing the interpreter result, s
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Conversion status after clearing and parsing the retained interpreter result. </p>
+<dd class="field-even"><p>Conversion status after clearing and parsing the retained interpreter result.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -679,11 +571,7 @@ Increments the result object reference before clearing the interpreter result, s
 <span class="target" id="group__expression__engine_1ga27266ac694d3487519e0057f20d8ff50"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseBracketScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">termPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseBracketScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Locate a matching close bracket and evaluate the enclosed Tcl script. </p>
 <p>
-Input begins after the opening bracket. Uses Tcl_ParseCommand repeatedly to respect command syntax, writes termPtr after the closing bracket once found, then returns Tcl_EvalEx completion unchanged. Missing terminator reports an error. The caller provides valid input and interpreter lifetime through evaluation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Input begins after the opening bracket. Uses Tcl_ParseCommand repeatedly to respect command syntax, writes termPtr after the closing bracket once found, then returns Tcl_EvalEx completion unchanged. Missing terminator reports an error. The caller provides valid input and interpreter lifetime through evaluation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -693,7 +581,7 @@ Input begins after the opening bracket. Uses Tcl_ParseCommand repeatedly to resp
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Parsing error or the unchanged Tcl_EvalEx completion code, not necessarily only TCL_OK/TCL_ERROR. </p>
+<dd class="field-even"><p>Parsing error or the unchanged Tcl_EvalEx completion code, not necessarily only TCL_OK/TCL_ERROR.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -703,11 +591,7 @@ Input begins after the opening bracket. Uses Tcl_ParseCommand repeatedly to resp
 <span class="target" id="group__expression__engine_1ga9c53ec5c47d7c998b5dc0a465fa9e4a2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseBracketValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">termPtr</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseBracketValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate bracketed Tcl and convert its result to numeric storage. </p>
 <p>
-Delegates bracket parsing/evaluation and then ParseSubstitutionResult. Non-OK Tcl completion propagates before numeric conversion. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Delegates bracket parsing/evaluation and then ParseSubstitutionResult. Non-OK Tcl completion propagates before numeric conversion. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -718,7 +602,7 @@ Delegates bracket parsing/evaluation and then ParseSubstitutionResult. Non-OK Tc
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation. </p>
+<dd class="field-even"><p>Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -728,11 +612,7 @@ Delegates bracket parsing/evaluation and then ParseSubstitutionResult. Non-OK Tc
 <span class="target" id="group__expression__engine_1gab54f91482a07734e0ed5fb9335009103"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseQuotedValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">termPtr</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseQuotedValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse and evaluate a quoted Tcl token sequence. </p>
 <p>
-Input includes the opening quote. Uses Tcl parsing/substitution rules, releases parse storage after token evaluation, then converts the retained result. termPtr follows the closing quote on successful parsing; substitutions may execute Tcl. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Input includes the opening quote. Uses Tcl parsing/substitution rules, releases parse storage after token evaluation, then converts the retained result. termPtr follows the closing quote on successful parsing; substitutions may execute Tcl. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -743,7 +623,7 @@ Input includes the opening quote. Uses Tcl parsing/substitution rules, releases 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation. </p>
+<dd class="field-even"><p>Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -753,11 +633,7 @@ Input includes the opening quote. Uses Tcl parsing/substitution rules, releases 
 <span class="target" id="group__expression__engine_1gaee7be014e256145ad66501a9131bf905"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseBracedValue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">termPtr</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseBracedValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a braced Tcl value and convert it to expression storage. </p>
 <p>
-Input includes the opening brace. Uses Tcl_ParseBraces and evaluates its tokens, preserving brace substitution rules including backslash-newline handling. Converts through ParseSubstitutionResult after freeing successful parse storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Input includes the opening brace. Uses Tcl_ParseBraces and evaluates its tokens, preserving brace substitution rules including backslash-newline handling. Converts through ParseSubstitutionResult after freeing successful parse storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -768,7 +644,7 @@ Input includes the opening brace. Uses Tcl_ParseBraces and evaluates its tokens,
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation. </p>
+<dd class="field-even"><p>Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -778,11 +654,7 @@ Input includes the opening brace. Uses Tcl_ParseBraces and evaluates its tokens,
 <span class="target" id="group__expression__engine_1ga48456aef4ca695bb763d7ffe63786c85"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NextToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">parsePtr</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.NextToken" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Scan one operator, delimiter or numeric/vector value. </p>
 <p>
-Advances nextPtr and records token; VALUE fills the supplied temporary. Bare numbers use SetExpressionRealScalar. Substitutions use ParseString, while other names first try function lookup then vector/range lookup and copying. Variable traces, commands and map functions can execute Tcl; this scanner has no independent interpreter lifetime guard. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Advances nextPtr and records token; VALUE fills the supplied temporary. Bare numbers use SetExpressionRealScalar. Substitutions use ParseString, while other names first try function lookup then vector/range lookup and copying. Variable traces, commands and map functions can execute Tcl; this scanner has no independent interpreter lifetime guard. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -792,7 +664,7 @@ Advances nextPtr and records token; VALUE fills the supplied temporary. Bare num
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after scanning; VALUE fills the temporary, while operators/delimiters need not change it. </p>
+<dd class="field-even"><p>TCL_OK after scanning; VALUE fills the temporary, while operators/delimiters need not change it.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -802,11 +674,7 @@ Advances nextPtr and records token; VALUE fills the supplied temporary. Bare num
 <span class="target" id="group__expression__engine_1ga1c8c674d386aa3c150825ae283dad946"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Fmod</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Fmod" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the legacy floor-based real remainder. </p>
 <p>
-Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C fmod for negative operands. Does not report an error or validate finite input. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C fmod for negative operands. Does not report an error or validate finite input. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -815,7 +683,7 @@ Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C f
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>x-floor(x/y)*y for nonzero y, otherwise zero; this is not C fmod semantics. </p>
+<dd class="field-even"><p>x-floor(x/y)*y for nonzero y, otherwise zero; this is not C fmod semantics.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -825,11 +693,7 @@ Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C f
 <span class="target" id="group__expression__engine_1ga252cb03f73add41bc9b756932e57c101"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Interpret substitution text as a scalar, complex pair or vector reference. </p>
 <p>
-Tries a fully consumed strtod number, then a two-element complex list, then a fully consumed vector/range reference. Does not accept arbitrary numeric lists as vectors. The current real-number branch uses the same real scalar setter as bare numeric tokens, clearing any complex type and imaginary component left in a reused operand temporary. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Tries a fully consumed strtod number, then a two-element complex list, then a fully consumed vector/range reference. Does not accept arbitrary numeric lists as vectors. The current real-number branch uses the same real scalar setter as bare numeric tokens, clearing any complex type and imaginary component left in a reused operand temporary. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -839,7 +703,7 @@ Tries a fully consumed strtod number, then a two-element complex list, then a fu
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with copied scalar/pair/vector values, otherwise TCL_ERROR; arbitrary numeric lists are not vectors. </p>
+<dd class="field-even"><p>TCL_OK with copied scalar/pair/vector values, otherwise TCL_ERROR; arbitrary numeric lists are not vectors.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -849,11 +713,7 @@ Tries a fully consumed strtod number, then a two-element complex list, then a fu
 <span class="target" id="group__expression__engine_1ga255595c2f3616cb5f1c1c89d674b4ec0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ParseMapPrefix</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nextPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseMapPrefix" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse and retain one Tcl command-prefix value. </p>
 <p>
-Accepts braces, quotes, variable or bracket substitution, or a bare word ending at whitespace/comma/parenthesis. Substitutions run once in the current frame. Returns a reference- counted object and advances nextPtr, or NULL on failure. The caller decrements the reference; MapVector validates list structure and nonemptiness. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Accepts braces, quotes, variable or bracket substitution, or a bare word ending at whitespace/comma/parenthesis. Substitutions run once in the current frame. Returns a reference- counted object and advances nextPtr, or NULL on failure. The caller decrements the reference; MapVector validates list structure and nonemptiness. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -862,7 +722,7 @@ Accepts braces, quotes, variable or bracket substitution, or a bare word ending 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Tcl object with one retained reference, released by the caller with Tcl_DecrRefCount, or NULL on failure. </p>
+<dd class="field-even"><p>Tcl object with one retained reference, released by the caller with Tcl_DecrRefCount, or NULL on failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -872,11 +732,7 @@ Accepts braces, quotes, variable or bracket substitution, or a bare word ending 
 <span class="target" id="group__expression__engine_1gab70f5e2796345bd57bab668be8c6a5fe"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">prefix</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply a Tcl command prefix to every value of a detached temporary. </p>
 <p>
-Retains individual prefix words against recursive shimmering and appends one real or complex-pair argument per invocation. Builds a separate zero-initialized result, promoting on the first pair return. Requires finite numeric results; empty input yields an empty real result with no calls. Tcl errors gain an element index, other completion codes become MAP COMPLETION errors, and invalid results become MAP VALUE errors. Frees argument references and partial results on failure; callback side effects remain. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Retains individual prefix words against recursive shimmering and appends one real or complex-pair argument per invocation. Builds a separate zero-initialized result, promoting on the first pair return. Requires finite numeric results; empty input yields an empty real result with no calls. Tcl errors gain an element index, other completion codes become MAP COMPLETION errors, and invalid results become MAP VALUE errors. Frees argument references and partial results on failure; callback side effects remain. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -886,7 +742,7 @@ Retains individual prefix words against recursive shimmering and appends one rea
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after replacing the temporary with complete finite callback results, otherwise TCL_ERROR. Callback side effects remain; callback completion codes other than TCL_OK are converted to errors. </p>
+<dd class="field-even"><p>TCL_OK after replacing the temporary with complete finite callback results, otherwise TCL_ERROR. Callback side effects remain; callback completion codes other than TCL_OK are converted to errors.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -896,11 +752,7 @@ Retains individual prefix words against recursive shimmering and appends one rea
 <span class="target" id="group__expression__engine_1ga700e6fd3ebfa6a7f12410bc5cbfdbad1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseMapFunction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">parsePtr</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseMapFunction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse map(prefix, expression) before invoking element callbacks. </p>
 <p>
-Retains the parsed prefix while evaluating the complete second argument. Requires comma and closing parenthesis; successful MapVector changes token to VALUE. Releases the prefix on every exit. Prefix and numeric-argument evaluation precede the per-element callbacks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Retains the parsed prefix while evaluating the complete second argument. Requires comma and closing parenthesis; successful MapVector changes token to VALUE. Releases the prefix on every exit. Prefix and numeric-argument evaluation precede the per-element callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -910,7 +762,7 @@ Retains the parsed prefix while evaluating the complete second argument. Require
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after argument evaluation and mapping, otherwise TCL_ERROR. </p>
+<dd class="field-even"><p>TCL_OK after argument evaluation and mapping, otherwise TCL_ERROR.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -920,11 +772,7 @@ Retains the parsed prefix while evaluating the complete second argument. Require
 <span class="target" id="group__expression__engine_1ga5c86619bbc5c510694af0f8bfa3923e0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseMathFunction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">start</span></span>, <span class="n"><span class="pre">ParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">parsePtr</span></span>, <span class="n"><span class="pre">Value</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseMathFunction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Try function syntax before falling back to vector-name parsing. </p>
 <p>
-Requires a writable input string: temporarily replaces the opening parenthesis with NUL during lookup, then restores it. Recognizes map specially; ordinary names use the interpreter’s math table. TCL_RETURN means no recognized function, not a script return. Parses one expression argument and invokes its adapter after the close parenthesis. The hash entry is borrowed across argument evaluation; this helper does not guard registry teardown during callbacks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a writable input string: temporarily replaces the opening parenthesis with NUL during lookup, then restores it. Recognizes map specially; ordinary names use the interpreter’s math table. TCL_RETURN means no recognized function, not a script return. Parses one expression argument and invokes its adapter after the close parenthesis. The hash entry is borrowed across argument evaluation; this helper does not guard registry teardown during callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -935,7 +783,7 @@ Requires a writable input string: temporarily replaces the opening parenthesis w
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK for a completed function, TCL_RETURN for no recognized function, or TCL_ERROR on evaluation failure. </p>
+<dd class="field-even"><p>TCL_OK for a completed function, TCL_RETURN for no recognized function, or TCL_ERROR on evaluation failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -945,11 +793,7 @@ Requires a writable input string: temporarily replaces the opening parenthesis w
 <span class="target" id="group__expression__engine_1ga5640a06714caf45ff6ba172a8bc34f14"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComponentFunc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComponentFunc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply a real component function to finite selected values. </p>
 <p>
-Rejects complex input, resets errno and walks First/Next. Writes each result before errno/finite validation; failure can leave a partially transformed temporary. Does not notify or commit named output. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Rejects complex input, resets errno and walks First/Next. Writes each result before errno/finite validation; failure can leave a partially transformed temporary. Does not notify or commit named output. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -959,7 +803,7 @@ Rejects complex input, resets errno and walks First/Next. Writes each result bef
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks. </p>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -969,11 +813,7 @@ Rejects complex input, resets errno and walks First/Next. Writes each result bef
 <span class="target" id="group__expression__engine_1ga3f5cfc3ec17246dfc88c6698b7d55f0e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexComponentFunc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexComponentFunc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply paired real/complex component implementations. </p>
 <p>
-Real input delegates to ComponentFunc. Complex input visits all used values, resets errno for each call, validates both components and stores each successful result. Errors can leave earlier elements changed. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Real input delegates to ComponentFunc. Complex input visits all used values, resets errno for each call, validates both components and stores each successful result. Errors can leave earlier elements changed. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -983,7 +823,7 @@ Real input delegates to ComponentFunc. Complex input visits all used values, res
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks. </p>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -993,11 +833,7 @@ Real input delegates to ComponentFunc. Complex input visits all used values, res
 <span class="target" id="group__expression__engine_1gada8ce54e974e2f29dff2ae891f580aff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScalarFunc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ScalarFunc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reduce a real temporary to one real value. </p>
 <p>
-Rejects complex input, computes the scalar before resizing and checks errno. Stores one value on successful resize; final finiteness is checked by EvaluateExpression. No named-vector notification is sent. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Rejects complex input, computes the scalar before resizing and checks errno. Stores one value on successful resize; final finiteness is checked by EvaluateExpression. No named-vector notification is sent. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1007,7 +843,7 @@ Rejects complex input, computes the scalar before resizing and checks errno. Sto
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks. </p>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1017,11 +853,7 @@ Rejects complex input, computes the scalar before resizing and checks errno. Sto
 <span class="target" id="group__expression__engine_1gafb91384c17b4aa40f984de62a3bd268b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexScalarFunc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexScalarFunc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reduce a real or complex temporary while retaining its type. </p>
 <p>
-Selects the corresponding reducer, computes before resizing to one, and reports errno failures. A complex result remains a pair. Final nonfinite results are rejected by the enclosing evaluator. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Selects the corresponding reducer, computes before resizing to one, and reports errno failures. A complex result remains a pair. Final nonfinite results are rejected by the enclosing evaluator. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1031,7 +863,7 @@ Selects the corresponding reducer, computes before resizing to one, and reports 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks. </p>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1041,11 +873,7 @@ Selects the corresponding reducer, computes before resizing to one, and reports 
 <span class="target" id="group__expression__engine_1gac557756c4dc1ab0ebcf762f27d6a7cb6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexRealScalarFunc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexRealScalarFunc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reduce either numeric type to one real result. </p>
 <p>
-Computes the reduction before any type change or release, checks errno, then uses SetExpressionRealScalar. Operates on evaluator temporaries only; final finiteness belongs to EvaluateExpression. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Computes the reduction before any type change or release, checks errno, then uses SetExpressionRealScalar. Operates on evaluator temporaries only; final finiteness belongs to EvaluateExpression. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1055,7 +883,7 @@ Computes the reduction before any type change or release, checks errno, then use
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks. </p>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1065,11 +893,7 @@ Computes the reduction before any type change or release, checks errno, then use
 <span class="target" id="group__expression__engine_1ga34284953cfab5f2d938824c31536836a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorFunc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorFunc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invoke a real-only whole-vector function adapter. </p>
 <p>
-Rejects complex input and returns the selected function’s Tcl status. The function owns its mutation/allocation policy; this wrapper neither checks errno nor publishes notifications. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Rejects complex input and returns the selected function’s Tcl status. The function owns its mutation/allocation policy; this wrapper neither checks errno nor publishes notifications. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1079,7 +903,7 @@ Rejects complex input and returns the selected function’s Tcl status. The func
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks. </p>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1089,11 +913,7 @@ Rejects complex input and returns the selected function’s Tcl status. The func
 <span class="target" id="group__expression__engine_1ga748af5b6dd3703e4f6a37b6b04d427b1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexRealFunc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexRealFunc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert component results from complex input into real temporary storage. </p>
 <p>
-Real input delegates to ComponentFunc. Complex input allocates real capacity and validates each transformed value before releasing old storage. Failure frees the new buffer and retains the old one. On success preserves length/capacity/selection and changes only the temporary type and owned data. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Real input delegates to ComponentFunc. Complex input allocates real capacity and validates each transformed value before releasing old storage. Failure frees the new buffer and retains the old one. On success preserves length/capacity/selection and changes only the temporary type and owned data. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1103,7 +923,7 @@ Real input delegates to ComponentFunc. Complex input allocates real capacity and
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks. </p>
+<dd class="field-even"><p>TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and finite checks.</p>
 </dd>
 </dl>
 </dd></dl>

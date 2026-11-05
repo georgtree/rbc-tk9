@@ -86,7 +86,6 @@ static Tcl_Size QuadraticParametricSplineCore(const Point2D origPts[], Tcl_Size 
  * @param[in] count Nonnegative number of array elements; zero is allowed.
  * @param[in] elementSize Nonzero size of one element in bytes.
  * @param[out] byteCountPtr Required size output, written only on TCL_OK.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -106,7 +105,6 @@ static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *b
  * @brief Validate both coordinates of a point array.
  * @param[in] points Coordinates to validate; NULL is rejected.
  * @param[in] nPoints Number of accessible records; negative counts are rejected and zero is allowed.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -131,7 +129,6 @@ static int SplinePointsAreFinite(const Point2D *points, Tcl_Size nPoints) {
  * @brief Validate finite source points with strictly increasing X.
  * @param[in] points Source coordinates to validate for finiteness and strictly increasing X.
  * @param[in] nPoints Number of accessible source records, at least two for success.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -160,7 +157,6 @@ static int SplinePointsHaveIncreasingX(const Point2D *points, Tcl_Size nPoints) 
  * @brief Validate Cartesian query abscissas without inspecting ordinates.
  * @param[in] points Query records; only X is inspected, and Y need not be initialized.
  * @param[in] nPoints Number of accessible query records; negative counts are rejected and zero is allowed.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -188,7 +184,6 @@ static int SplineEvaluationPointsAreFinite(const Point2D *points, Tcl_Size nPoin
  * @param[in] nPoints Number of source points.
  * @param[in] key Finite abscissa to locate.
  * @param[out] foundPtr Required boolean output distinguishing an exact knot from an insertion position.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -229,7 +224,6 @@ static Tcl_Size Search(const Point2D points[], Tcl_Size nPoints, double key, int
  * @param[in] m1 Finite slope at the left endpoint.
  * @param[in] m2 Finite slope at the right endpoint.
  * @param[in] epsilon Relative tolerance for slope comparisons; current Cartesian calls use zero.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -336,7 +330,6 @@ static int QuadChoose(const Point2D *p, const Point2D *q, double m1, double m2, 
  * @param[in] m2 Finite slope at the right endpoint.
  * @param[out] param Caller-owned array of QUAD_PARAM_COUNT (ten) doubles, fully initialized here.
  * @param[in] which Case 1 through 4 returned by QuadChoose for these endpoints and slopes.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -418,7 +411,6 @@ static void QuadCases(const Point2D *p, const Point2D *q, double m1, double m2, 
  * @param[in] m2 Finite slope at the right endpoint.
  * @param[in] epsilon Relative slope-comparison tolerance passed to QuadChoose.
  * @param[out] param Caller-owned array of ten doubles for the returned case.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -442,7 +434,6 @@ static int QuadSelect(const Point2D *p, const Point2D *q, double m1, double m2, 
  * @param[in] x1 First endpoint abscissa, distinct from x3.
  * @param[in] x2 Evaluation abscissa.
  * @param[in] x3 Other endpoint abscissa.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -468,7 +459,6 @@ INLINE static double QuadGetImage(double p1, double p2, double p3, double x1, do
  * @param[in] right Borrowed right source endpoint.
  * @param[in] param Ten prepared parameters matching the endpoints and case.
  * @param[in] ncase Case returned by QuadSelect for this interval.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -527,7 +517,6 @@ static void QuadSpline(Point2D *intp, const Point2D *left, const Point2D *right,
  * @param[in] points Finite source points with strictly increasing X.
  * @param[out] m Caller-owned storage for nPoints knot derivatives.
  * @param[in] nPoints Number of source points, at least three.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -614,7 +603,6 @@ static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
  * @param[in] nIntpPts Number of query records, nonnegative.
  * @param[in] m One prepared derivative per source knot; source X must strictly increase.
  * @param[in] epsilon Relative slope-comparison tolerance for interval preparation.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -914,7 +902,6 @@ static const SplineOpSpec splineOps[] = {{{"natural", 6, 6, "x y splx sply"}, Rb
  * @param[in] name Borrowed vector name resolved in the interpreter.
  * @param[out] vecPtrPtr Required output for a borrowed real vector. May already be assigned when type
  *     validation fails; no lifetime reference is acquired.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -939,7 +926,6 @@ static int GetRealSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vector 
  * @param[in] name Borrowed vector name resolved in the interpreter.
  * @param[out] vecPtrPtr Required output for a borrowed complex vector. May already be assigned when type
  *     validation fails; no lifetime reference is acquired.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -967,7 +953,6 @@ static int GetComplexSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vect
  * @param[in] points Borrowed completed coordinates; Y becomes real data, or X/Y become complex real/imaginary
  *     components.
  * @param[in] length Nonnegative number of completed points to copy; caller retains the input array.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1083,7 +1068,6 @@ static int SplineStoreResult(Tcl_Interp *interp, const char *name, Rbc_VectorTyp
  * @param[in] objc Must be six, already validated by SplineObjCmd; not checked again here.
  * @param[in] objv Full words: command, parametric, natural|quadratic, source, result, samples. Borrowed as in
  *     @ref rbc_command_arguments.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1215,7 +1199,6 @@ cleanup:
  * @param[in] interp Command interpreter; see @ref rbc_interp_argument.
  * @param[in] objc Count including the command name; see @ref rbc_command_arguments.
  * @param[in] objv Borrowed full command argument array; see @ref rbc_command_arguments.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1374,7 +1357,6 @@ cleanup:
 /**
  * @brief Register the Tcl spline command.
  * @param[in] interp Target interpreter with the rbc namespace already available; see @ref rbc_interp_argument.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1392,7 +1374,6 @@ int Rbc_SplineInit(Tcl_Interp *interp) {
  * @param[in,out] A Caller-owned n-row cyclic symmetric tridiagonal matrix, overwritten with factors; partial
  *     factors may remain on failure.
  * @param[in] n Matrix dimension, at least one for success.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1443,7 +1424,6 @@ static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n) {
  * @param[in] A Borrowed successful SolveCubic1 factors for nIntervals rows.
  * @param[in,out] spline Caller-owned rows: X/Y right-hand sides become solutions; t fields are retained.
  * @param[in] nIntervals System dimension, at least one.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1500,7 +1480,6 @@ static void SolveCubic2(const TriDiagonalMatrix A[], CubicSpline spline[], Tcl_S
  * @param[in] isClosed Nonzero selects closed-path matrix construction.
  * @param[in] unitX Positive finite X scale used as a divisor in chord lengths.
  * @param[in] unitY Positive finite Y scale used as a divisor in chord lengths.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1655,7 +1634,6 @@ static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int is
  * @param[in] t Local chord distance in [0,spline[interval].t], not a normalized fraction.
  * @param[out] pointPtr Required coordinate output. Arithmetic failure may write nonfinite components before
  *     returning FALSE.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -1713,7 +1691,6 @@ static int CubicEvalPoint(const Point2D origPts[], const CubicSpline spline[], T
  * @param[in] nIntpPts Requested output count, at least two.
  * @param[in] spline Matching coefficients; the first nOrigPts-1 t fields hold positive finite interval
  *     lengths.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -2046,7 +2023,6 @@ cleanup:
  * @param[in,out] intpPts Caller-owned output also used as query workspace; failure may leave parameters or
  *     partial coordinates.
  * @param[in] nIntpPts Requested output count, at least two.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -2219,7 +2195,6 @@ cleanup:
  * @param[out] intpPts Caller-owned output array, disjoint from source and coefficients; partial writes may
  *     remain on failure.
  * @param[in] nIntpPts Requested output count, at least two.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *
@@ -2321,7 +2296,6 @@ Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts,
  * @param[out] b Twice-scaled quadratic coefficient pair.
  * @param[out] c Twice-scaled linear coefficient pair.
  * @param[out] d Twice-scaled constant coefficient pair; all four outputs must be distinct and disjoint from p.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup spline_internals
  *

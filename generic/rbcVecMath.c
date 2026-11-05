@@ -250,7 +250,6 @@ static MathFunction mathFunctions[] = {
  * @param[in] elementSize Nonzero element width in bytes, guaranteed by the caller.
  * @param[out] byteCountPtr Required byte-count output, unchanged on failure.
  * @return TCL_OK with the product, otherwise TCL_ERROR; no allocation occurs.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -276,7 +275,6 @@ static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementS
  * @param[in] count Logical double count, subject to nonnegative/overflow validation.
  * @param[out] byteCountPtr Required output, unchanged on failure.
  * @return TCL_OK with the byte count, otherwise TCL_ERROR.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -293,7 +291,6 @@ static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *b
  * @param[in] length Nonnegative used length supplied by the caller; lengths at most one bypass finite validation.
  * @param[out] offsetPtr Required offset output, initialized zero before validation.
  * @return TCL_OK with a bounded offset, or TCL_ERROR for a nonfinite count when length exceeds one.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -333,7 +330,6 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
  * @param[in] operator LEFT_SHIFT or RIGHT_SHIFT token, guaranteed by the caller.
  * @param[in] scalar Requested rotation count passed through GetRotationOffset.
  * @return TCL_OK after rotation or a no-op, otherwise TCL_ERROR before storage mutation.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -398,7 +394,6 @@ static int RotateExpressionVector(Tcl_Interp *interp, VectorObject *vPtr, int op
  * @brief Release a temporary allocation according to its current policy.
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * No metadata is cleared; caller must not use the released pointer afterward.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -420,7 +415,6 @@ static void FreeExpressionData(VectorObject *vPtr) {
  * @brief Release and clear an expression temporary's storage metadata.
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * Caller guarantees that a custom storage release cannot destroy or reenter this temporary.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -442,7 +436,6 @@ static void ReleaseExpressionStorage(VectorObject *vPtr) {
  * @brief Discard storage when changing an unregistered temporary's type.
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @param[in] type Desired real or complex type; a change discards the existing values.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -468,7 +461,6 @@ static void SetExpressionVectorType(VectorObject *vPtr, Rbc_VectorType type) {
  * @param[in,out] destPtr Detached destination temporary; may be cleared or retyped even on failure.
  * @param[in] srcPtr Live source with a valid inclusive selection, kept alive through synchronous copying.
  * @return TCL_OK after typed duplication, otherwise TCL_ERROR; no named output is published.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -485,7 +477,6 @@ static int CopyExpressionVector(VectorObject *destPtr, VectorObject *srcPtr) {
  * @brief Promote a real temporary while preserving length and capacity.
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK after promotion or for already-complex input; TCL_ERROR on size/allocation failure.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -531,7 +522,6 @@ static int PromoteExpressionVectorToComplex(VectorObject *vPtr) {
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @param[in] value Double copied into the single-element result; finiteness is not checked.
  * @return TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -552,7 +542,6 @@ static int SetExpressionRealScalar(VectorObject *vPtr, double value) {
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @param[in] value Complex pair copied into the single-element result; finiteness is not checked.
  * @return TCL_OK after replacement, otherwise TCL_ERROR; earlier type changes are not rolled back.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -576,7 +565,6 @@ static int SetExpressionComplexScalar(VectorObject *vPtr, Rbc_Complex value) {
  * @param[in] b Right scalar operand, copied by value.
  * @param[out] resultPtr Required result output; consume only on TCL_OK, which does not guarantee finiteness.
  * @return TCL_OK after arithmetic, otherwise TCL_ERROR for an unsupported operator or domain failure.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -615,7 +603,6 @@ static int ApplyComplexBinaryValue(Tcl_Interp *interp, int operator, Rbc_Complex
  * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK with real boolean values, otherwise TCL_ERROR before replacing storage. Input must be complex.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -663,7 +650,6 @@ static int ApplyComplexNotOperator(Tcl_Interp *interp, VectorObject *vPtr) {
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @param[in] v2Ptr Live right operand temporary; scalar broadcasting and shape rules depend on the operator.
  * @return TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -767,7 +753,6 @@ static int ApplyComplexBooleanOperator(Tcl_Interp *interp, int operator, VectorO
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @param[in] v2Ptr Live right operand temporary; scalar broadcasting and shape rules depend on the operator.
  * @return TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -800,7 +785,6 @@ static int ApplyComplexShiftOperator(Tcl_Interp *interp, int operator, VectorObj
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @param[in] v2Ptr Live right operand temporary; scalar broadcasting and shape rules depend on the operator.
  * @return TCL_OK after applying the operator, otherwise TCL_ERROR; the left temporary may be partially changed.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -902,7 +886,6 @@ static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorOb
  * @brief Test finiteness of both complex components.
  * @param[in] value Complex value whose two components are tested.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -936,7 +919,6 @@ void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr) {
  * @param[in] string NUL-terminated index name; Tcl copies the key when creating an entry.
  * @param[in] procPtr Borrowed callback to store, or NULL to remove the name. The table does not own callback
  *     state.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -959,7 +941,6 @@ static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIn
  * @brief Find the first finite real value in the selected interval.
  * @param[in] vPtr Live real vector with a caller-validated inclusive first/last selection.
  * @return First finite storage index in the selection, or -1 when none exists.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -982,7 +963,6 @@ static Tcl_Size First(VectorObject *vPtr) {
  * @param[in] vPtr Live real vector with a caller-validated inclusive selection.
  * @param[in] current Previous storage index; scanning starts at current+1 through last.
  * @return Next finite storage index, or -1 when no later finite value exists.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -1028,7 +1008,6 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
  * @brief Draw one real random value, ignoring the input value.
  * @param[in] value Ignored real input; the shared random state advances.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1044,7 +1023,6 @@ static double Random(double value) {
  * @brief Draw independent real and imaginary random components.
  * @param[in] value Ignored complex input; the shared random state advances twice.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1088,7 +1066,6 @@ double Rbc_VecMax(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Arithmetic mean, nonfinite when no finite sample exists.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1115,7 +1092,6 @@ static double Mean(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Sum, or zero when no finite sample exists.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1139,7 +1115,6 @@ static double Sum(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Product, or one when no finite sample exists.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1164,7 +1139,6 @@ static double Product(Rbc_Vector *vecPtr) {
  *     selected values are rearranged.
  * @return TCL_OK after sorting or for at most one selected value; TCL_ERROR on size/allocation failure, with
  *     values unchanged.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1213,7 +1187,6 @@ static int Sort(VectorObject *vPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Finite selected sample count as a double.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1237,7 +1210,6 @@ static double Length(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject with selection covering its entire used length. The sort
  *     index is temporary; source values are not rearranged.
  * @return Median, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1278,7 +1250,6 @@ static double Median(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Sample variance, or zero for fewer than two finite samples.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1312,7 +1283,6 @@ static double Variance(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Legacy absolute standardized third moment; constant samples may yield a nonfinite result.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1350,7 +1320,6 @@ static double Skew(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Signed population-moment skewness, or NaN for fewer than two samples or zero variance.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1397,7 +1366,6 @@ static double Skewness(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Square root of positive variance, otherwise zero.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1419,7 +1387,6 @@ static double StdDeviation(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Mean absolute deviation, or zero for fewer than two finite samples.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1452,7 +1419,6 @@ static double AvgDeviation(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Legacy excess statistic, or zero for fewer than two finite samples or zero variance.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1493,7 +1459,6 @@ static double Kurtosis(Rbc_Vector *vecPtr) {
  *     index is temporary; source values are not rearranged.
  * @return Legacy lower quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel
  *     is finite.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1536,7 +1501,6 @@ static double Q1(Rbc_Vector *vecPtr) {
  *     index is temporary; source values are not rearranged.
  * @return Legacy upper quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel
  *     is finite.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1579,7 +1543,6 @@ static double Q3(Rbc_Vector *vecPtr) {
  * @param[in,out] vecPtr Caller-owned detached real VectorObject passed through its Rbc_Vector prefix. Rewrites
  *     all used values and refreshes extrema while computing the range.
  * @return TCL_OK after normalization; this status does not imply finite output for a zero range.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1607,7 +1570,6 @@ static int Norm(Rbc_Vector *vecPtr) {
  * @param[in] vecPtr Borrowed real RBC VectorObject passed through its Rbc_Vector prefix, with valid inclusive
  *     first/last bounds. Storage and selection remain unchanged.
  * @return Count of finite selected samples unequal to zero, as a double.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1632,7 +1594,6 @@ static double Nonzeros(Rbc_Vector *vecPtr) {
  * @brief Return a real component unchanged.
  * @param[in] value Real component returned unchanged.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1644,7 +1605,6 @@ static double Identity(double value) { return value; }
  * @brief Return real zero regardless of the input.
  * @param[in] value Ignored real component.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1661,7 +1621,6 @@ static double Zero(double value) {
  * @brief Return the phase of a real value in radians.
  * @param[in] value Real component whose phase is requested.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1674,7 +1633,6 @@ static double Arg(double value) { return atan2(0.0, value); }
  * @brief Return a complex value's Euclidean magnitude.
  * @param[in] value Complex value whose magnitude is requested.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1687,7 +1645,6 @@ static double ComplexAbs(Rbc_Complex value) { return hypot(value.real, value.ima
  * @brief Return complex phase in radians.
  * @param[in] value Complex value whose phase is requested.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1700,7 +1657,6 @@ static double ComplexArg(Rbc_Complex value) { return atan2(value.imag, value.rea
  * @brief Extract the real component.
  * @param[in] value Complex value whose real component is copied.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1712,7 +1668,6 @@ static double ComplexReal(Rbc_Complex value) { return value.real; }
  * @brief Extract the imaginary component.
  * @param[in] value Complex value whose imaginary component is copied.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1724,7 +1679,6 @@ static double ComplexImag(Rbc_Complex value) { return value.imag; }
  * @brief Return the complex conjugate.
  * @param[in] value Complex value to conjugate.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1741,7 +1695,6 @@ static Rbc_Complex ComplexConj(Rbc_Complex value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Square root on the implemented branch. The caller validates errno and component finiteness; no Tcl
  *     status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1783,7 +1736,6 @@ static Rbc_Complex ComplexSqrt(Rbc_Complex value) {
  * @brief Compute exp(real) times the unit complex phase.
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex exponential. The caller validates errno and component finiteness; no Tcl status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1805,7 +1757,6 @@ static Rbc_Complex ComplexExp(Rbc_Complex value) {
  * @param[in] x First real component of the magnitude.
  * @param[in] y Second real component of the magnitude.
  * @return Logarithmic magnitude; two zero components invoke log(0), leaving error handling to the caller.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1838,7 +1789,6 @@ static double LogHypot(double x, double y) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Logarithmic magnitude plus imaginary principal phase. The caller validates errno and component
  *     finiteness; no Tcl status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1858,7 +1808,6 @@ static Rbc_Complex ComplexLog(Rbc_Complex value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex logarithm divided by ln(10). The caller validates errno and component finiteness; no Tcl
  *     status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1879,7 +1828,6 @@ static Rbc_Complex ComplexLog10(Rbc_Complex value) {
  * @brief Compute complex sine using real trigonometric and hyperbolic functions.
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex sine. The caller validates errno and component finiteness; no Tcl status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1902,7 +1850,6 @@ static Rbc_Complex ComplexSin(Rbc_Complex value) {
  * @brief Compute complex cosine from real trigonometric/hyperbolic functions.
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex cosine. The caller validates errno and component finiteness; no Tcl status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1926,7 +1873,6 @@ static Rbc_Complex ComplexCos(Rbc_Complex value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex hyperbolic sine. The caller validates errno and component finiteness; no Tcl status is
  *     returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1949,7 +1895,6 @@ static Rbc_Complex ComplexSinh(Rbc_Complex value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex hyperbolic cosine. The caller validates errno and component finiteness; no Tcl status is
  *     returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -1971,7 +1916,6 @@ static Rbc_Complex ComplexCosh(Rbc_Complex value) {
  * @brief Compute complex tangent using a decaying exponential formulation.
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex tangent. The caller validates errno and component finiteness; no Tcl status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2030,7 +1974,6 @@ static Rbc_Complex ComplexTan(Rbc_Complex value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Complex hyperbolic tangent. The caller validates errno and component finiteness; no Tcl status is
  *     returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2074,7 +2017,6 @@ static Rbc_Complex ComplexTanh(Rbc_Complex value) {
  * @brief Compute real acosh for an argument at least one.
  * @param[in] value Real scalar at least one; the caller establishes the domain.
  * @return Real inverse hyperbolic cosine; no independent domain or finite-output check is performed.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2095,7 +2037,6 @@ static double RealAcosh(double value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Inverse sine on the implemented branch. The caller validates errno and component finiteness; no Tcl
  *     status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2144,7 +2085,6 @@ static Rbc_Complex ComplexAsin(Rbc_Complex value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Inverse cosine derived from ComplexAsin. The caller validates errno and component finiteness; no Tcl
  *     status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2166,7 +2106,6 @@ static Rbc_Complex ComplexAcos(Rbc_Complex value) {
  * @param[in] value Complex scalar passed by value; no vector or Tcl-object ownership is transferred.
  * @return Inverse tangent on the implemented branch. The caller validates errno and component finiteness; no
  *     Tcl status is returned.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2217,7 +2156,6 @@ static Rbc_Complex ComplexAtan(Rbc_Complex value) {
  * @param[out] resultPtr Non-NULL caller-owned result storage, written on TCL_OK and left unchanged on
  *     TCL_ERROR. Success does not guarantee finite components.
  * @return TCL_OK after computation, or TCL_ERROR with a diagnostic for an unsupported power of zero.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2317,7 +2255,6 @@ static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex expone
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Complex sum, or 0+0i when no sample qualifies.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2347,7 +2284,6 @@ static Rbc_Complex ComplexSum(VectorObject *vPtr) {
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Componentwise mean, or a pair of NaNs when no sample qualifies.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2393,7 +2329,6 @@ static Rbc_Complex ComplexMean(VectorObject *vPtr) {
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Complex product, or 1+0i when no sample qualifies.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2423,7 +2358,6 @@ static Rbc_Complex ComplexProduct(VectorObject *vPtr) {
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Qualifying sample count as a real double.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2448,7 +2382,6 @@ static double ComplexLength(VectorObject *vPtr) {
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Number of qualifying samples with either component nonzero, as a real double.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2477,7 +2410,6 @@ static double ComplexNonzeros(VectorObject *vPtr) {
  * @brief Apply ceil independently to both complex components.
  * @param[in] value Complex value to round upward componentwise.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2493,7 +2425,6 @@ static Rbc_Complex ComplexCeil(Rbc_Complex value) {
  * @brief Apply floor independently to both complex components.
  * @param[in] value Complex value to round downward componentwise.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2509,7 +2440,6 @@ static Rbc_Complex ComplexFloor(Rbc_Complex value) {
  * @brief Round both components halfway away from zero.
  * @param[in] value Complex value to round componentwise.
  * The scalar is passed by value; no vector storage or ownership is transferred.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2526,7 +2456,6 @@ static Rbc_Complex ComplexRound(Rbc_Complex value) {
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Mean complex-plane distance, or zero for fewer than two qualifying samples.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2571,7 +2500,6 @@ static double ComplexAvgDeviation(VectorObject *vPtr) {
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Real squared-magnitude sample variance, or zero for fewer than two qualifying samples.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2619,7 +2547,6 @@ static double ComplexVariance(VectorObject *vPtr) {
  * @param[in] vPtr Borrowed complex vector with valid inclusive first/last bounds. Samples with either
  *     component nonfinite are skipped; storage and selection remain unchanged.
  * @return Square root of positive squared-magnitude variance, otherwise zero.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2640,7 +2567,6 @@ static double ComplexStdDeviation(VectorObject *vPtr) {
  * @brief Return the legacy sign-test absolute value.
  * @param[in] value Real scalar tested against zero; negative zero is preserved.
  * @return Negated input when strictly negative, otherwise the unchanged input.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2658,7 +2584,6 @@ static double Fabs(double value) {
  * @brief Round a real value halfway away from zero as a double.
  * @param[in] value Real scalar to round without narrowing to an integer type.
  * @return Rounded double using the implemented half-away-from-zero formula; the caller checks finiteness.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_numerics
  *
@@ -2679,7 +2604,6 @@ static double Round(double value) {
  * @param[in,out] destPtr Live writable fixed-type destination; caller protects lifetime across storage release.
  * @param[in] srcPtr Evaluated source temporary with a valid selected interval, kept alive through copying.
  * @return TCL_OK after copying, or TCL_ERROR for incompatible types or resize/copy failure.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -2716,10 +2640,9 @@ static int CopyExpressionResult(Tcl_Interp *interp, VectorObject *destPtr, Vecto
 
 /**
  * @brief Record destruction of the original assignment destination.
- * @param[in] interp Notification interpreter, unused here.
+ * @param[in] interp Notification interpreter, unused here. See @ref rbc_interp_argument.
  * @param[in,out] clientData Caller-owned int destruction flag, valid for the temporary observer's lifetime.
  * @param[in] notify Notification kind; only RBC_VECTOR_NOTIFY_DESTROY sets the flag.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -2820,7 +2743,6 @@ done:
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return TCL_OK with a complete finite result, otherwise a non-OK evaluation status; side effects remain.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -2879,7 +2801,6 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return TCL_OK for the parsed subexpression, otherwise a non-OK status; temporary contents may be partial.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3312,7 +3233,6 @@ error:
  * @param[in] className Borrowed NUL-terminated arithmetic error class, copied into the error-code list.
  * @param[in] messageObj Message object retained by the Tcl result and error code; a new reference-count-zero
  *     object is valid.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3336,7 +3256,6 @@ static void SetMathError(Tcl_Interp *interp, const char *className, Tcl_Obj *mes
  * @brief Classify a floating-point failure using errno and the value.
  * @param[in] interp Evaluation/diagnostic interpreter; see @ref rbc_interp_argument.
  * @param[in] value Failed arithmetic value, interpreted together with the current errno; errno is not reset here.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3379,7 +3298,6 @@ static void MathError(Tcl_Interp *interp, double value) {
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return Conversion status after clearing and parsing the retained interpreter result.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3411,7 +3329,6 @@ static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr) {
  * @param[in] string NUL-terminated buffer starting immediately after the opening bracket.
  * @param[out] termPtr Required borrowed cursor output after the closing bracket; may be set before script failure.
  * @return Parsing error or the unchanged Tcl_EvalEx completion code, not necessarily only TCL_OK/TCL_ERROR.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3467,7 +3384,6 @@ static int ParseBracketScript(Tcl_Interp *interp, const char *string, const char
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3491,7 +3407,6 @@ static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char 
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3524,7 +3439,6 @@ static int ParseQuotedValue(Tcl_Interp *interp, const char *string, const char *
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return Non-OK parsing/evaluation completion, or the numeric conversion status after successful evaluation.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3555,7 +3469,6 @@ static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char *
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return TCL_OK after scanning; VALUE fills the temporary, while operators/delimiters need not change it.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3766,7 +3679,6 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
  * @param[in] x Real dividend.
  * @param[in] y Real divisor; zero is handled by returning zero.
  * @return x-floor(x/y)*y for nonzero y, otherwise zero; this is not C fmod semantics.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3788,7 +3700,6 @@ static double Fmod(double x, double y) {
  *     outcome.
  * @return TCL_OK with copied scalar/pair/vector values, otherwise TCL_ERROR; arbitrary numeric lists are not
  *     vectors.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3855,7 +3766,6 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
  * @param[in,out] nextPtr Required cursor into a live expression buffer, advanced after successful prefix parsing.
  * @return Tcl object with one retained reference, released by the caller with Tcl_DecrRefCount, or NULL on
  *     failure.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -3914,7 +3824,6 @@ static Tcl_Obj *ParseMapPrefix(Tcl_Interp *interp, const char **nextPtr) {
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK after replacing the temporary with complete finite callback results, otherwise TCL_ERROR.
  * Callback side effects remain; callback completion codes other than TCL_OK are converted to errors.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4036,7 +3945,6 @@ done:
  * @param[in,out] valuePtr Caller-owned Value containing a live evaluator temporary; caller releases it on every
  *     outcome.
  * @return TCL_OK after argument evaluation and mapping, otherwise TCL_ERROR.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4087,7 +3995,6 @@ done:
  *     outcome.
  * @return TCL_OK for a completed function, TCL_RETURN for no recognized function, or TCL_ERROR on evaluation
  *     failure.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4155,7 +4062,6 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
  *     finite checks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4197,7 +4103,6 @@ static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
  *     finite checks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4253,7 +4158,6 @@ static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, Vecto
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
  *     finite checks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4290,7 +4194,6 @@ static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
  *     finite checks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4355,7 +4258,6 @@ static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorOb
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
  *     finite checks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4394,7 +4296,6 @@ static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, Vect
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
  *     finite checks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *
@@ -4418,7 +4319,6 @@ static int VectorFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
  * @param[in,out] vPtr Exclusively owned evaluator temporary, not a registered named vector.
  * @return TCL_OK on completion, otherwise TCL_ERROR; the adapter-specific contract defines partial mutation and
  *     finite checks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup expression_engine
  *

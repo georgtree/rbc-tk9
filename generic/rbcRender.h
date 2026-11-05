@@ -29,7 +29,6 @@ typedef struct Rbc_RenderTarget Rbc_RenderTarget;
  *
  * @param[in] graphPtr Borrowed owning graph with current mapped geometry, kept alive through the operation or
  *     context lifetime.
- * @see @ref rbc_calling_conventions
  */
 Tcl_Size Rbc_RenderPolygonPointLimit(Graph *graphPtr);
 
@@ -63,7 +62,6 @@ void Rbc_RenderScreenBitmapRun(Graph *, Drawable, Pixmap, GC, int, int, const Rb
  *     EndMarkerPass.
  * @param[in,out] drawablePtr Required pointer to the original destination; replaced by a temporary drawable
  *     only on success.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr);
 /**
@@ -71,7 +69,6 @@ Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawableP
  *
  * @param[in,out] target Owned target returned by BeginMarkerPass, consumed here; NULL is accepted. The
  *     replacement drawable is invalid afterward.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target);
 
@@ -84,7 +81,6 @@ void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target);
  * @param[in] tkwin Borrowed Tk window providing text resources, kept alive until End.
  * @param[in] drawable Borrowed destination drawable in mapped widget coordinates, kept valid through context
  *     release.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginScreenText(Tk_Window tkwin, Drawable drawable);
 /**
@@ -95,7 +91,6 @@ Rbc_RenderContext *Rbc_RenderBeginScreenText(Tk_Window tkwin, Drawable drawable)
  * @param[in,out] style Caller-provided text style with live font/GC resources; no ownership transfer.
  * @param[in] x Mapped horizontal position in destination coordinates.
  * @param[in] y Mapped vertical position in destination coordinates.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle *style, int x, int y);
 /**
@@ -107,7 +102,6 @@ void Rbc_RenderTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle 
  * @param[in] x Mapped horizontal position in destination coordinates.
  * @param[in] y Mapped vertical position in destination coordinates.
  * @param[out] size Required caller-owned output for the rotated text extent.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *style, int x, int y, Dim2D *size);
 
@@ -138,7 +132,6 @@ typedef struct {
  *     context lifetime.
  * @param[in] drawable Borrowed destination drawable in mapped widget coordinates, kept valid through context
  *     release.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginScreenRaster(Graph *graphPtr, Drawable drawable);
 /**
@@ -148,7 +141,6 @@ Rbc_RenderContext *Rbc_RenderBeginScreenRaster(Graph *graphPtr, Drawable drawabl
  *     operation.
  * @param[in] r Borrowed mapped destination rectangle.
  * @param[in] style Borrowed bitmap/mask/style resources valid through this synchronous call.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r, const Rbc_RenderBitmapStyle *style);
 /**
@@ -159,7 +151,6 @@ void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r
  * @param[in] pixmap Borrowed source pixmap.
  * @param[in] gc Borrowed copy GC, including its clip/mask state.
  * @param[in] r Borrowed mapped copy rectangle.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r);
 
@@ -199,7 +190,6 @@ typedef struct {
  *     release.
  * @param[in] style Required fill policy; referenced colors and stipple remain borrowed until End. NULL return
  *     requires caller-selected fallback.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style);
 /**
@@ -209,7 +199,6 @@ Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const
  *     context lifetime.
  * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
  * @param[in] style Required fill policy copied by value; referenced Tk resources remain borrowed until End.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                              const Rbc_RenderFillStyle *style);
@@ -219,7 +208,6 @@ Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext 
  *
  * @param[in,out] ctx Live context created for export fill; its constructor must support this operation.
  * @param[in] tile Borrowed tile retained for this fill context; PostScript retains its background fallback.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderSetFillTile(Rbc_RenderContext *ctx, Rbc_Tile tile);
 /**
@@ -228,7 +216,6 @@ void Rbc_RenderSetFillTile(Rbc_RenderContext *ctx, Rbc_Tile tile);
  * @param[in,out] ctx Live context created for polygon fill; its constructor must support this operation.
  * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
  * @param[in] count Number of point records, not bytes.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 /**
@@ -237,7 +224,6 @@ void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
  * @param[in,out] ctx Live context created for rectangle fill; its constructor must support this operation.
  * @param[in] rectangles Borrowed mapped rectangle array, accessible for count entries during this call.
  * @param[in] count Number of rectangle records, not bytes.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
 
@@ -262,7 +248,6 @@ typedef struct {
  * @param[in,out] ctx Context supporting arc strokes, or NULL to draw nothing.
  * @param[in] arc Borrowed ellipse geometry; invalid fields draw nothing. Valid geometry is copied and
  *     normalized before dispatch.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
 /**
@@ -271,7 +256,6 @@ void Rbc_RenderArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
  * @param[in,out] ctx Context supporting arc fills, or NULL to draw nothing.
  * @param[in] arc Borrowed ellipse geometry; invalid fields draw nothing. Valid geometry is copied and
  *     normalized before dispatch.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
 
@@ -345,7 +329,6 @@ Rbc_RenderContext *Rbc_RenderBeginNativePolygonBatch(Graph *, Drawable, GC, Tcl_
  * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
  * @param[in] style Required symbol description copied by value; bitmap and color resources remain borrowed
  *     until End.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                const Rbc_RenderSymbolStyle *style);
@@ -357,7 +340,6 @@ Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContex
  * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
  * @param[in] style Required fill policy copied by value; referenced resources remain borrowed until End.
  * @param[in] size Legend swatch size in mapped display units.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginExportBarSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                   const Rbc_RenderFillStyle *style, int size);
@@ -369,7 +351,6 @@ Rbc_RenderContext *Rbc_RenderBeginExportBarSymbol(Graph *graphPtr, Rbc_ExportCon
  * @param[in] centers Borrowed mapped symbol centers; native sampling may update the context-associated style
  *     counter.
  * @param[in] count Number of centers; nonpositive counts draw nothing.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count);
 
@@ -379,7 +360,6 @@ void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
  * Document setup, trailers and I/O remain with each backend command.
  *
  * @param[in] exportPtr Borrowed live document state; caller owns document setup, completion and I/O.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr);
 /**
@@ -392,7 +372,6 @@ Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr);
  *     style state.
  * @param[in] x Mapped horizontal position in destination coordinates.
  * @param[in] y Mapped vertical position in destination coordinates.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y);
 
@@ -404,7 +383,6 @@ void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
  * @param[in] image Borrowed live Tk image.
  * @param[in] x Mapped horizontal position in destination coordinates.
  * @param[in] y Mapped vertical position in destination coordinates.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y);
 /**
@@ -414,7 +392,6 @@ void Rbc_RenderTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double 
  * @param[in] photo Borrowed live Tk photo handle.
  * @param[in] x Mapped horizontal position in destination coordinates.
  * @param[in] y Mapped vertical position in destination coordinates.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y);
 /**
@@ -424,7 +401,6 @@ void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x
  * @param[in] tkwin Borrowed live Tk window to capture, subject to backend export policy.
  * @param[in] x Mapped horizontal position in destination coordinates.
  * @param[in] y Mapped vertical position in destination coordinates.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y);
 /**
@@ -434,7 +410,6 @@ void Rbc_RenderWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double 
  * @param[in] color Borrowed resolved background color.
  * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
  * @param[in] count Number of point records, not bytes.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count);
 /**
@@ -449,7 +424,6 @@ void Rbc_RenderBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, co
  * @param[in] borderWidth Border thickness in display units.
  * @param[in] relief Tk relief value.
  * @param[in] fill Nonzero requests filling as well as border drawing.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                       int borderWidth, int relief, int fill);
@@ -461,7 +435,6 @@ void Rbc_RenderBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, doub
  * @param[in] y Mapped vertical position in destination coordinates.
  * @param[in] width Rectangle width in display units.
  * @param[in] height Rectangle height in display units.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height);
 /**
@@ -471,7 +444,6 @@ void Rbc_RenderClearRectangle(Rbc_RenderContext *ctx, double x, double y, int wi
  * @param[in] color Borrowed resolved background color.
  * @param[in] rectangles Borrowed mapped rectangle array, accessible for count entries during this call.
  * @param[in] count Number of rectangle records, not bytes.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color, const Rbc_RenderRectangle *rectangles,
                                     Tcl_Size count);
@@ -485,7 +457,6 @@ void Rbc_RenderBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
  * @param[in] width Rectangle width in display units.
  * @param[in] height Rectangle height in display units.
  * @param[in] background Borrowed background color used by backend plot setup.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                          const XColor *background);
@@ -494,7 +465,6 @@ void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
  *
  * @param[in,out] ctx Live context created for export output with an outstanding PlotBegin scope; its
  *     constructor must support this operation.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx);
 
@@ -519,7 +489,6 @@ Drawable Rbc_RenderClipDrawable(Rbc_RenderContext *);
  * @param[in] y Mapped vertical position in destination coordinates.
  * @param[in] width Rectangle width in display units.
  * @param[in] height Rectangle height in display units.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height);
 /**
@@ -544,7 +513,6 @@ void Rbc_RenderClipEnd(Rbc_RenderContext *ctx);
  * @param[in] height Rectangle height in display units.
  * @param[in] color Borrowed paint color.
  * @param[in] background Backend background/foreground pass selector; preserve the component-provided value.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                           int height, const XColor *color, int background);
@@ -585,7 +553,6 @@ typedef enum { RBC_RENDER_STROKE_TRACES, RBC_RENDER_STROKE_STRIPS, RBC_RENDER_ST
  * @param[in] width Stroke width in display units; not scaled with geometry.
  * @param[in] dashes Borrowed dash specification, or NULL for a solid stroke.
  * @param[in] offColor Optional borrowed off-dash color.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginStroke(Graph *graphPtr, Drawable drawable, GC gc, Rbc_RenderStrokeKind kind,
                                          const XColor *color, double width, const Rbc_Dashes *dashes,
@@ -602,7 +569,6 @@ Rbc_RenderContext *Rbc_RenderBeginStroke(Graph *graphPtr, Drawable drawable, GC 
  * @param[in] width Stroke width in display units.
  * @param[in] dashesPtr Borrowed dash specification, or NULL for solid.
  * @param[in] offColorPtr Optional borrowed off-dash color.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr);
@@ -617,7 +583,6 @@ Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XCo
  * @param[in] dashes Borrowed dash specification, or NULL for solid.
  * @param[in] capStyle X/Tk line cap style.
  * @param[in] joinStyle X/Tk line join style.
- * @see @ref rbc_calling_conventions
  */
 Rbc_RenderContext *Rbc_RenderBeginExport(Rbc_ExportContext *exportPtr, const XColor *color, int lineWidth,
                                          const Rbc_Dashes *dashes, int capStyle, int joinStyle);
@@ -628,7 +593,6 @@ Rbc_RenderContext *Rbc_RenderBeginExport(Rbc_ExportContext *exportPtr, const XCo
  *     context lifetime.
  * @param[in] gc Borrowed GC to query.
  * @param[out] color Caller-owned XColor storage for the resolved foreground on success.
- * @see @ref rbc_calling_conventions
  */
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color);
 /**
@@ -637,7 +601,6 @@ int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color);
  * @param[in,out] ctx Live context created for Cairo geometry; its constructor must support this operation.
  * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
  * @param[in] count Number of point records, not bytes.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 /**
@@ -646,7 +609,6 @@ void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size co
  * @param[in,out] ctx Live context created for polyline drawing; its constructor must support this operation.
  * @param[in] points Borrowed mapped point array, accessible for count entries during this call.
  * @param[in] count Number of point records, not bytes.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 /**
@@ -656,7 +618,6 @@ void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
  *     operation.
  * @param[in] segments Borrowed mapped endpoint pairs, accessible for count records during this call.
  * @param[in] count Number of Segment2D records, not number of endpoints.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count);
 /**
@@ -666,7 +627,6 @@ void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
  *     this operation.
  * @param[in] capStyle X/Tk line cap style.
  * @param[in] joinStyle X/Tk line join style.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle);
 /**
@@ -675,7 +635,6 @@ void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle);
  * @param[in,out] ctx Live context created for Cairo or export stroke styling; its constructor must support
  *     this operation.
  * @param[in] color Optional borrowed off-dash color.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color);
 /**
@@ -688,7 +647,6 @@ void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color);
  * @param[in] count Number of center records.
  * @param[in] fillColor Optional borrowed fill color; NULL suppresses filling.
  * @param[in] outline Nonzero requests outlining with the context stroke color.
- * @see @ref rbc_calling_conventions
  */
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, const Point2D *centers, Tcl_Size count,
                        const XColor *fillColor, int outline);

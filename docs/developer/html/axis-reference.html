@@ -678,17 +678,13 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <span class="target" id="group__axis__ranges_1ga41447542c7f7959141b489874fa56bff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetAxisRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.SetAxisRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Store endpoints and cached normalization factors. </p>
 <p>
-Stores min/max unchanged, computes their difference and substitutes a unit range when its absolute value is below DBL_EPSILON. Stores the reciprocal as scale. Does not sort or validate endpoints; an overflowed difference remains nonfinite for the normalization helpers to handle. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Stores min/max unchanged, computes their difference and substitutes a unit range when its absolute value is below DBL_EPSILON. Stores the reciprocal as scale. Does not sort or validate endpoints; an overflowed difference remains nonfinite for the normalization helpers to handle. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rangePtr</strong> – <strong>[inout]</strong> Caller-owned range record whose endpoints, range and scale are replaced. </p></li>
 <li><p><strong>min</strong> – <strong>[in]</strong> Lower endpoint in axis space; not sorted or validated here. </p></li>
-<li><p><strong>max</strong> – <strong>[in]</strong> Upper endpoint in axis space; logarithmic ranges use exponents. </p></li>
+<li><p><strong>max</strong> – <strong>[in]</strong> Upper endpoint in axis space; logarithmic ranges use exponents.</p></li>
 </ul>
 </dd>
 </dl>
@@ -699,16 +695,12 @@ Stores min/max unchanged, computes their difference and substitutes a unit range
 <span class="target" id="group__axis__ranges_1ga03092d0fed167364f40e9608c5358bc2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalizeAxisValue</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.NormalizeAxisValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Normalize a coordinate against a prepared axis range. </p>
 <p>
-Uses cached range/scale for finite spans. For an overflowed span, halves endpoints and the value before division; returns NAN when the half-span is invalid or zero. Does not clip to 0..1 or apply logarithms, descending direction or screen offsets. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses cached range/scale for finite spans. For an overflowed span, halves endpoints and the value before division; returns NAN when the half-span is invalid or zero. Does not clip to 0..1 or apply logarithms, descending direction or screen offsets. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rangePtr</strong> – <strong>[in]</strong> Borrowed prepared range with consistent endpoints and cached range/scale. </p></li>
-<li><p><strong>value</strong> – <strong>[in]</strong> Axis-space coordinate, already logarithmically converted when needed. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Axis-space coordinate, already logarithmically converted when needed.</p></li>
 </ul>
 </dd>
 </dl>
@@ -719,16 +711,12 @@ Uses cached range/scale for finite spans. For an overflowed span, halves endpoin
 <span class="target" id="group__axis__ranges_1ga7e0e0df887e7497125c57f60e6f03bd5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InterpolateAxisValue</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">norm</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InterpolateAxisValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reconstruct an axis-space value from a normalized coordinate. </p>
 <p>
-Uses cached range and minimum for finite spans, or a half-scaled endpoint interpolation for overflowed spans. Does not clamp the normalized coordinate. Extrapolation may produce nonfinite results; callers must validate values before drawing or integer conversion. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses cached range and minimum for finite spans, or a half-scaled endpoint interpolation for overflowed spans. Does not clamp the normalized coordinate. Extrapolation may produce nonfinite results; callers must validate values before drawing or integer conversion. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rangePtr</strong> – <strong>[in]</strong> Borrowed prepared range. </p></li>
-<li><p><strong>norm</strong> – <strong>[in]</strong> Normalized fraction; values outside [0,1] request extrapolation rather than clipping. </p></li>
+<li><p><strong>norm</strong> – <strong>[in]</strong> Normalized fraction; values outside [0,1] request extrapolation rather than clipping.</p></li>
 </ul>
 </dd>
 </dl>
@@ -739,15 +727,11 @@ Uses cached range and minimum for finite spans, or a half-scaled endpoint interp
 <span class="target" id="group__axis__ranges_1ga7448b937a2f74ac7f3c48f7e2feaa2be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LogAxisValue</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">exponent</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.LogAxisValue" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a base-ten exponent within the supported normal-double interval. </p>
 <p>
-Rejects nonfinite exponents and those outside log10(DBL_MIN)..log10(DBL_MAX) with NAN. Returns exact DBL_MIN/DBL_MAX at the endpoints to avoid power rounding across them. Otherwise requires a finite positive power result. This policy deliberately does not expose subnormal values. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Rejects nonfinite exponents and those outside log10(DBL_MIN)..log10(DBL_MAX) with NAN. Returns exact DBL_MIN/DBL_MAX at the endpoints to avoid power rounding across them. Otherwise requires a finite positive power result. This policy deliberately does not expose subnormal values. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>exponent</strong> – <strong>[in]</strong> Base-ten exponent to convert; supported bounds are log10(DBL_MIN) through log10(DBL_MAX). </p></li>
+<li><p><strong>exponent</strong> – <strong>[in]</strong> Base-ten exponent to convert; supported bounds are log10(DBL_MIN) through log10(DBL_MAX).</p></li>
 </ul>
 </dd>
 </dl>
@@ -758,17 +742,13 @@ Rejects nonfinite exponents and those outside log10(DBL_MIN)..log10(DBL_MAX) wit
 <span class="target" id="group__axis__ranges_1gad9ca3692230e1a706b65a91fb356e7c9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapHorizontalAxisCoordinate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.MapHorizontalAxisCoordinate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map an already converted axis-space value horizontally. </p>
 <p>
-Normalizes, rejects nonfinite normalized values and applies descending reversal. Uses the owning track world rectangle when present, otherwise graph horizontal range/offset. Track spans have a one- pixel minimum. Does not perform logarithmic conversion or clipping. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Normalizes, rejects nonfinite normalized values and applies descending reversal. Uses the owning track world rectangle when present, otherwise graph horizontal range/offset. Track spans have a one- pixel minimum. Does not perform logarithmic conversion or clipping. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current layout and mapping scales. </p></li>
 <li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with a prepared axisRange and live owning track, if any. </p></li>
-<li><p><strong>value</strong> – <strong>[in]</strong> Already converted axis-space value; logarithmic axes require an exponent, not raw data. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Already converted axis-space value; logarithmic axes require an exponent, not raw data.</p></li>
 </ul>
 </dd>
 </dl>
@@ -779,17 +759,13 @@ Normalizes, rejects nonfinite normalized values and applies descending reversal.
 <span class="target" id="group__axis__ranges_1ga7ca7ac10b9f58c2f01693335c372d5f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapVerticalAxisCoordinate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.MapVerticalAxisCoordinate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map an already converted axis-space value vertically. </p>
 <p>
-Normalizes, rejects nonfinite normalized values and applies descending reversal and downward screen Y direction. Uses the owning track world rectangle or graph vertical range/offset. Track spans have a one-pixel minimum; no clipping or logarithmic conversion occurs here. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Normalizes, rejects nonfinite normalized values and applies descending reversal and downward screen Y direction. Uses the owning track world rectangle or graph vertical range/offset. Track spans have a one-pixel minimum; no clipping or logarithmic conversion occurs here. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current layout and mapping scales. </p></li>
 <li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with a prepared axisRange and live owning track, if any. </p></li>
-<li><p><strong>value</strong> – <strong>[in]</strong> Already converted axis-space value; logarithmic axes require an exponent, not raw data. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Already converted axis-space value; logarithmic axes require an exponent, not raw data.</p></li>
 </ul>
 </dd>
 </dl>
@@ -800,17 +776,13 @@ Normalizes, rejects nonfinite normalized values and applies descending reversal 
 <span class="target" id="group__axis__ranges_1gaf3b2691a67b5b3562e447665c0590f61"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeLogRange</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.MakeLogRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Construct a positive logarithmic interval around one value. </p>
 <p>
-Invalid or nonpositive input selects 0.001..1.0. Otherwise chooses roughly one decade centred on the value, shifting the interval at supported exponent endpoints, and converts it with LogAxisValue. Writes both outputs without changing an Axis record. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Invalid or nonpositive input selects 0.001..1.0. Otherwise chooses roughly one decade centred on the value, shifting the interval at supported exponent endpoints, and converts it with LogAxisValue. Writes both outputs without changing an Axis record. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>value</strong> – <strong>[in]</strong> Raw positive data value around which to form a range; invalid inputs select fallback bounds. </p></li>
 <li><p><strong>minPtr</strong> – <strong>[out]</strong> Required separate output for the positive raw-data lower limit. </p></li>
-<li><p><strong>maxPtr</strong> – <strong>[out]</strong> Required separate output for the positive raw-data upper limit. </p></li>
+<li><p><strong>maxPtr</strong> – <strong>[out]</strong> Required separate output for the positive raw-data upper limit.</p></li>
 </ul>
 </dd>
 </dl>
@@ -821,16 +793,12 @@ Invalid or nonpositive input selects 0.001..1.0. Otherwise chooses roughly one d
 <span class="target" id="group__axis__ranges_1ga8454081649aa961f3245860357f863b5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InRange</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test a finite coordinate against a prepared range. </p>
 <p>
-Normalizes the coordinate, rejects nonfinite results and applies DBL_EPSILON tolerance around the unit interval. Uses axis-space coordinates, which are exponents for logarithmic axes; does not perform raw-data log conversion. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Normalizes the coordinate, rejects nonfinite results and applies DBL_EPSILON tolerance around the unit interval. Uses axis-space coordinates, which are exponents for logarithmic axes; does not perform raw-data log conversion. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> – <strong>[in]</strong> Axis-space coordinate to test, not unconverted logarithmic data. </p></li>
-<li><p><strong>rangePtr</strong> – <strong>[in]</strong> Borrowed prepared range; not modified despite the non-const pointer type. </p></li>
+<li><p><strong>rangePtr</strong> – <strong>[in]</strong> Borrowed prepared range; not modified despite the non-const pointer type.</p></li>
 </ul>
 </dd>
 </dl>
@@ -841,16 +809,12 @@ Normalizes the coordinate, rejects nonfinite results and applies DBL_EPSILON tol
 <span class="target" id="group__axis__ranges_1ga29ef525bd3bcec89838f527ddb8e1960"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisIsHorizontal</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.AxisIsHorizontal" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve logical axis identity into screen orientation. </p>
 <p>
-Compares the logical Y class with graph inversion. Borrows graph and axis; does not modify their class or layout. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Compares the logical Y class with graph inversion. Borrows graph and axis; does not modify their class or layout. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph supplying inversion state. </p></li>
-<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis supplying its logical class identity. </p></li>
+<li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis supplying its logical class identity.</p></li>
 </ul>
 </dd>
 </dl>
@@ -861,17 +825,13 @@ Compares the logical Y class with graph inversion. Borrows graph and axis; does 
 <span class="target" id="group__axis__ranges_1ga5f2902f02b5151d12e53031bae0106f4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvHMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InvHMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invert horizontal mapping into a logical data value. </p>
 <p>
-Normalizes against the full owning-track world extent or graph horizontal scale, reverses descending direction and interpolates axis space. Converts logarithmic exponents through LogAxisValue. Extrapolates outside the plot and may return nonfinite values; no layout is performed. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Normalizes against the full owning-track world extent or graph horizontal scale, reverses descending direction and interpolates axis space. Converts logarithmic exponents through LogAxisValue. Extrapolates outside the plot and may return nonfinite values; no layout is performed. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current layout and mapping scales. </p></li>
 <li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with a prepared axisRange and live owning track, if any. </p></li>
-<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal widget coordinate; off-plot positions are extrapolated. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal widget coordinate; off-plot positions are extrapolated.</p></li>
 </ul>
 </dd>
 </dl>
@@ -882,17 +842,13 @@ Normalizes against the full owning-track world extent or graph horizontal scale,
 <span class="target" id="group__axis__ranges_1ga654d95ba3c30417f8563078dd9d28c4b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvVMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InvVMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invert vertical mapping into a logical data value. </p>
 <p>
-Normalizes against the full owning-track world extent or graph vertical scale, reverses descending direction and accounts for downward screen Y. Interpolates axis space and converts logarithmic exponents. Does not clip or refresh layout; callers must handle nonfinite results. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Normalizes against the full owning-track world extent or graph vertical scale, reverses descending direction and accounts for downward screen Y. Interpolates axis space and converts logarithmic exponents. Does not clip or refresh layout; callers must handle nonfinite results. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph with current layout and mapping scales. </p></li>
 <li><p><strong>axisPtr</strong> – <strong>[in]</strong> Borrowed axis with a prepared axisRange and live owning track, if any. </p></li>
-<li><p><strong>y</strong> – <strong>[in]</strong> Vertical widget coordinate increasing downward; off-plot positions are extrapolated. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical widget coordinate increasing downward; off-plot positions are extrapolated.</p></li>
 </ul>
 </dd>
 </dl>
@@ -903,17 +859,13 @@ Normalizes against the full owning-track world extent or graph vertical scale, r
 <span class="target" id="group__axis__ranges_1ga8fc14a4a2ccbba92bd3f76d0a6a53d81"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetDataLimits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GetDataLimits" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Accumulate an element extent into an axis data range. </p>
 <p>
-Expands valueRange endpoints by comparison only; does not validate the extent, recompute cached range/scale or apply requested limits. Rbc_ResetAxes initializes the accumulation sentinels before calling this helper. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Expands valueRange endpoints by comparison only; does not validate the extent, recompute cached range/scale or apply requested limits. Rbc_ResetAxes initializes the accumulation sentinels before calling this helper. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>axisPtr</strong> – <strong>[inout]</strong> Live axis whose initialized valueRange endpoints accumulate the extent. </p></li>
 <li><p><strong>min</strong> – <strong>[in]</strong> Contributing raw-data lower bound. </p></li>
-<li><p><strong>max</strong> – <strong>[in]</strong> Contributing raw-data upper bound; cached range/scale are not recomputed here. </p></li>
+<li><p><strong>max</strong> – <strong>[in]</strong> Contributing raw-data upper bound; cached range/scale are not recomputed here.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1212,16 +1164,12 @@ Expands valueRange endpoints by comparison only; does not validate the extent, r
 <span class="target" id="group__axis__layout__control_1gaeb84856f29f83a7bbcad3a72ac6bb054"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AdjustViewport</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">windowSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisLayoutControl.AdjustViewport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Constrain a normalized scrolling offset using canvas-style rules. </p>
 <p>
-For views no larger than the world, constrains the offset to 0..1-windowSize. Larger views permit the world to move within the window. Returns the adjusted offset without validating finiteness; callers establish valid scroll state first. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+For views no larger than the world, constrains the offset to 0..1-windowSize. Larger views permit the world to move within the window. Returns the adjusted offset without validating finiteness; callers establish valid scroll state first. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>offset</strong> – <strong>[in]</strong> Finite normalized start position established by the caller. </p></li>
-<li><p><strong>windowSize</strong> – <strong>[in]</strong> Finite view/world size ratio; values greater than one allow the world to move within the view. </p></li>
+<li><p><strong>windowSize</strong> – <strong>[in]</strong> Finite view/world size ratio; values greater than one allow the world to move within the view.</p></li>
 </ul>
 </dd>
 </dl>

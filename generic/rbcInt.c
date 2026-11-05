@@ -67,7 +67,6 @@ typedef struct {
  * @brief Release the interpreter initialization bookkeeping.
  * @param[in] clientData Owned RbcInitData record being released.
  * @param[in] interp Unused here; see @ref rbc_interp_argument.
- * @see @ref rbc_calling_conventions
  *
  * clientData is the allocated RbcInitData owned by Tcl associated data.
  * Free only that record. Subsystem registries, commands, widgets and vectors
@@ -86,7 +85,6 @@ static void FreeInitData(ClientData clientData, Tcl_Interp *interp) {
  * @param[in] objc See @ref rbc_command_arguments; must equal one.
  * @param[in] objv See @ref rbc_command_arguments.
  * @return Tcl status from registration, export or package provision.
- * @see @ref rbc_calling_conventions
  *
  * Require the rbc::init associated record and namespace established by Rbc_Init.
  * Accept no arguments beyond the command name; initialize Tk stubs, then run

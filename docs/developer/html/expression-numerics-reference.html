@@ -65,15 +65,11 @@ see <a class="reference internal" href="expression-numerics.html"><span class="d
 <span class="target" id="group__expression__numerics_1gaf0c6ed26e281dc843e13dff3e7dbef45"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Random</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Random" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw one real random value, ignoring the input value. </p>
 <p>
-Delegates to Rbc_RandomDouble and advances its random state. Invocation count is controlled by the component adapter; this helper does not seed or create an independent generator. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Delegates to Rbc_RandomDouble and advances its random state. Invocation count is controlled by the component adapter; this helper does not seed or create an independent generator. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Ignored real input; the shared random state advances. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Ignored real input; the shared random state advances. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -84,15 +80,11 @@ Delegates to Rbc_RandomDouble and advances its random state. Invocation count is
 <span class="target" id="group__expression__numerics_1ga3ba9a695f9d900f5c9ccb36836a091e5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexRandom</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexRandom" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw independent real and imaginary random components. </p>
 <p>
-Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginary order. Uses the shared random helper, not a vector-owned generator. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginary order. Uses the shared random helper, not a vector-owned generator. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Ignored complex input; the shared random state advances twice. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Ignored complex input; the shared random state advances twice. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -103,11 +95,7 @@ Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginar
 <span class="target" id="group__expression__numerics_1ga2ebb0b96481497cf89dbe60ee37dd235"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Mean</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Mean" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the real mean over finite selected values. </p>
 <p>
-Uses First/Next and ordinary double summation. Divides by the finite count; no finite values produce a nonfinite result rejected by expression evaluation. Does not modify storage or selection. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses First/Next and ordinary double summation. Divides by the finite count; no finite values produce a nonfinite result rejected by expression evaluation. Does not modify storage or selection. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -115,7 +103,7 @@ Uses First/Next and ordinary double summation. Divides by the finite count; no f
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Arithmetic mean, nonfinite when no finite sample exists. </p>
+<dd class="field-even"><p>Arithmetic mean, nonfinite when no finite sample exists.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -125,11 +113,7 @@ Uses First/Next and ordinary double summation. Divides by the finite count; no f
 <span class="target" id="group__expression__numerics_1ga467ae99da6d0ef6a66337baa5dc7bf1c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Sum</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Sum" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sum finite real values in the selected interval. </p>
 <p>
-Starts at zero and accumulates in storage order without compensation. Empty or entirely nonfinite selections return zero. No allocation, notification or Tcl evaluation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Starts at zero and accumulates in storage order without compensation. Empty or entirely nonfinite selections return zero. No allocation, notification or Tcl evaluation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -137,7 +121,7 @@ Starts at zero and accumulates in storage order without compensation. Empty or e
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Sum, or zero when no finite sample exists. </p>
+<dd class="field-even"><p>Sum, or zero when no finite sample exists.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -147,11 +131,7 @@ Starts at zero and accumulates in storage order without compensation. Empty or e
 <span class="target" id="group__expression__numerics_1gaa32a6eb1c726629ce1eeb3460cc686e9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Product</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Product" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Multiply finite real values in the selected interval. </p>
 <p>
-Starts at one; empty or entirely nonfinite selections return one. Ordinary multiplication can overflow or underflow; final validation belongs to the adapter/evaluator. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Starts at one; empty or entirely nonfinite selections return one. Ordinary multiplication can overflow or underflow; final validation belongs to the adapter/evaluator. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -159,7 +139,7 @@ Starts at one; empty or entirely nonfinite selections return one. Ordinary multi
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Product, or one when no finite sample exists. </p>
+<dd class="field-even"><p>Product, or one when no finite sample exists.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -169,11 +149,7 @@ Starts at one; empty or entirely nonfinite selections return one. Ordinary multi
 <span class="target" id="group__expression__numerics_1ga77e13638b082222421edfc7e7b191720"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Sort</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Sort" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sort the selected real interval through an index permutation. </p>
 <p>
-Selections of at most one value are unchanged. Allocates an index array and a temporary value array, copies sorted values back only after allocation succeeds, then frees both arrays. Returns TCL_ERROR on size/allocation failure. Intended for detached expression storage; sends no notifications. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Selections of at most one value are unchanged. Allocates an index array and a temporary value array, copies sorted values back only after allocation succeeds, then frees both arrays. Returns TCL_ERROR on size/allocation failure. Intended for detached expression storage; sends no notifications. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -181,7 +157,7 @@ Selections of at most one value are unchanged. Allocates an index array and a te
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after sorting or for at most one selected value; TCL_ERROR on size/allocation failure, with values unchanged. </p>
+<dd class="field-even"><p>TCL_OK after sorting or for at most one selected value; TCL_ERROR on size/allocation failure, with values unchanged.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -191,11 +167,7 @@ Selections of at most one value are unchanged. Allocates an index array and a te
 <span class="target" id="group__expression__numerics_1ga02d2da9d4fd405a6cee3d7de6a0ccc02"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Length</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Length" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count finite real values in the selected interval. </p>
 <p>
-Returns the count as double, not allocated capacity or unfiltered vector length. Uses First/Next and does not mutate the record. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns the count as double, not allocated capacity or unfiltered vector length. Uses First/Next and does not mutate the record. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -203,7 +175,7 @@ Returns the count as double, not allocated capacity or unfiltered vector length.
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Finite selected sample count as a double. </p>
+<dd class="field-even"><p>Finite selected sample count as a double.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -213,11 +185,7 @@ Returns the count as double, not allocated capacity or unfiltered vector length.
 <span class="target" id="group__expression__numerics_1gad712444719113428d6993e2e664db989"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Median</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Median" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the real middle order statistic without rearranging data. </p>
 <p>
-Allocates a sort index and frees it before returning. Uses full vector length to choose one middle value or the average of two; requires the selected interval to cover the full vector, as expression copies normally do. Empty input or sort-index failure returns the finite sentinel -DBL_MAX rather than a Tcl status. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Allocates a sort index and frees it before returning. Uses full vector length to choose one middle value or the average of two; requires the selected interval to cover the full vector, as expression copies normally do. Empty input or sort-index failure returns the finite sentinel -DBL_MAX rather than a Tcl status. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -225,7 +193,7 @@ Allocates a sort index and frees it before returning. Uses full vector length to
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Median, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite. </p>
+<dd class="field-even"><p>Median, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -235,11 +203,7 @@ Allocates a sort index and frees it before returning. Uses full vector length to
 <span class="target" id="group__expression__numerics_1ga6e09d6fc8c7b5067ce6caaa69e5adf13"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Variance</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Variance" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute real sample variance over finite selected values. </p>
 <p>
-Computes Mean first, then sums squared deviations and divides by count-1. Fewer than two finite samples return zero. Uses ordinary double arithmetic without compensated summation or overflow scaling. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Computes Mean first, then sums squared deviations and divides by count-1. Fewer than two finite samples return zero. Uses ordinary double arithmetic without compensated summation or overflow scaling. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -247,7 +211,7 @@ Computes Mean first, then sums squared deviations and divides by count-1. Fewer 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Sample variance, or zero for fewer than two finite samples. </p>
+<dd class="field-even"><p>Sample variance, or zero for fewer than two finite samples.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -257,11 +221,7 @@ Computes Mean first, then sums squared deviations and divides by count-1. Fewer 
 <span class="target" id="group__expression__numerics_1ga7e8479348c3d30e0b23a9d5e491bda53"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Skew</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Skew" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the legacy absolute standardized third moment. </p>
 <p>
-Accumulates absolute cubed deviations and divides by count times sample variance to the power 3/2. Fewer than two finite samples return zero; constant samples of length at least two yield a nonfinite division. This is not conventional signed skewness; symmetry does not generally give zero. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Accumulates absolute cubed deviations and divides by count times sample variance to the power 3/2. Fewer than two finite samples return zero; constant samples of length at least two yield a nonfinite division. This is not conventional signed skewness; symmetry does not generally give zero. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -269,7 +229,7 @@ Accumulates absolute cubed deviations and divides by count times sample variance
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Legacy absolute standardized third moment; constant samples may yield a nonfinite result. </p>
+<dd class="field-even"><p>Legacy absolute standardized third moment; constant samples may yield a nonfinite result.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -279,11 +239,7 @@ Accumulates absolute cubed deviations and divides by count times sample variance
 <span class="target" id="group__expression__numerics_1gac5c42fd3edc04a4b7d059983a0e5a257"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Skewness</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Skewness" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute signed skewness using population central moments. </p>
 <p>
-Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where mk=sum((x-mean)^k)/count. This is the unadjusted moment coefficient, not a bias-corrected sample estimator. Scales inputs by their maximum magnitude before accumulation to avoid overflow/underflow from cubing raw values. Returns NaN for empty or constant input; final expression validation reports a domain error. Does not modify storage or change the legacy Skew formula. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where mk=sum((x-mean)^k)/count. This is the unadjusted moment coefficient, not a bias-corrected sample estimator. Scales inputs by their maximum magnitude before accumulation to avoid overflow/underflow from cubing raw values. Returns NaN for empty or constant input; final expression validation reports a domain error. Does not modify storage or change the legacy Skew formula. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -291,7 +247,7 @@ Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where mk=sum((x-
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Signed population-moment skewness, or NaN for fewer than two samples or zero variance. </p>
+<dd class="field-even"><p>Signed population-moment skewness, or NaN for fewer than two samples or zero variance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -301,11 +257,7 @@ Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where mk=sum((x-
 <span class="target" id="group__expression__numerics_1ga07dffedd039a3a9bc71b0ee05d5f0708"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StdDeviation</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StdDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the square root of positive real sample variance. </p>
 <p>
-Delegates to Variance. Returns zero when variance is not greater than zero, including a NaN comparison; does not independently propagate a Tcl status. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Delegates to Variance. Returns zero when variance is not greater than zero, including a NaN comparison; does not independently propagate a Tcl status. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -313,7 +265,7 @@ Delegates to Variance. Returns zero when variance is not greater than zero, incl
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Square root of positive variance, otherwise zero. </p>
+<dd class="field-even"><p>Square root of positive variance, otherwise zero.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -323,11 +275,7 @@ Delegates to Variance. Returns zero when variance is not greater than zero, incl
 <span class="target" id="group__expression__numerics_1ga2368b892f5e4d1b3ba08b6b2cc7b675b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AvgDeviation</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AvgDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute mean absolute real deviation from the finite-sample mean. </p>
 <p>
-Uses finite selected values, divides by their count, and returns zero for fewer than two. Does not use sample count-1 normalization. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses finite selected values, divides by their count, and returns zero for fewer than two. Does not use sample count-1 normalization. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -335,7 +283,7 @@ Uses finite selected values, divides by their count, and returns zero for fewer 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Mean absolute deviation, or zero for fewer than two finite samples. </p>
+<dd class="field-even"><p>Mean absolute deviation, or zero for fewer than two finite samples.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -345,11 +293,7 @@ Uses finite selected values, divides by their count, and returns zero for fewer 
 <span class="target" id="group__expression__numerics_1gaaeb5db9de8d3f76d43dcb82aaea3dd07"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Kurtosis</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Kurtosis" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the legacy fourth-moment excess statistic. </p>
 <p>
-Uses finite selected values and sample variance. Returns sum of fourth powers divided by count*variance*variance, minus three. Returns zero for fewer than two samples or zero variance. This is not a bias-corrected estimator and is not population-moment normalization. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses finite selected values and sample variance. Returns sum of fourth powers divided by count*variance*variance, minus three. Returns zero for fewer than two samples or zero variance. This is not a bias-corrected estimator and is not population-moment normalization. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -357,7 +301,7 @@ Uses finite selected values and sample variance. Returns sum of fourth powers di
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Legacy excess statistic, or zero for fewer than two finite samples or zero variance. </p>
+<dd class="field-even"><p>Legacy excess statistic, or zero for fewer than two finite samples or zero variance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -367,11 +311,7 @@ Uses finite selected values and sample variance. Returns sum of fourth powers di
 <span class="target" id="group__expression__numerics_1ga122adfc365c7198694fd4ac2c9354638"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Q1</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Q1" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the legacy lower quartile from a sorted index. </p>
 <p>
-Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the minimum. Otherwise mid=(length-1)/2 and q=mid/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. Frees the index without rearranging source data. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the minimum. Otherwise mid=(length-1)/2 and q=mid/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. Frees the index without rearranging source data. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -379,7 +319,7 @@ Empty input or index allocation failure returns -DBL_MAX. Lengths below four sel
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Legacy lower quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite. </p>
+<dd class="field-even"><p>Legacy lower quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -389,11 +329,7 @@ Empty input or index allocation failure returns -DBL_MAX. Lengths below four sel
 <span class="target" id="group__expression__numerics_1gad360761e21358e1eef6be3f1085cac31"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Q3</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Q3" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the legacy upper quartile from a sorted index. </p>
 <p>
-Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the maximum. Otherwise mid=(length-1)/2 and q=mid+(length-mid)/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. These are legacy index rules, not a selectable percentile convention. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the maximum. Otherwise mid=(length-1)/2 and q=mid+(length-mid)/2; odd mid selects q, even mid averages q and q+1. Requires a full-length selection. These are legacy index rules, not a selectable percentile convention. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -401,7 +337,7 @@ Empty input or index allocation failure returns -DBL_MAX. Lengths below four sel
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Legacy upper quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite. </p>
+<dd class="field-even"><p>Legacy upper quartile, or -DBL_MAX for empty input or sort-index allocation failure; this sentinel is finite.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -411,11 +347,7 @@ Empty input or index allocation failure returns -DBL_MAX. Lengths below four sel
 <span class="target" id="group__expression__numerics_1ga209a018fa0f2d3ba9661ef354f444f7f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Norm</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Norm" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Normalize every real value using full-vector finite extrema. </p>
 <p>
-Computes min/max, then writes (value-min)/(max-min) in place over the full length. Has no zero-range guard: constant nonempty input produces nonfinite values rejected later by the expression evaluator. Returns TCL_OK after the loop and does not notify; operates on detached expression storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Computes min/max, then writes (value-min)/(max-min) in place over the full length. Has no zero-range guard: constant nonempty input produces nonfinite values rejected later by the expression evaluator. Returns TCL_OK after the loop and does not notify; operates on detached expression storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -423,7 +355,7 @@ Computes min/max, then writes (value-min)/(max-min) in place over the full lengt
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after normalization; this status does not imply finite output for a zero range. </p>
+<dd class="field-even"><p>TCL_OK after normalization; this status does not imply finite output for a zero range.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -433,11 +365,7 @@ Computes min/max, then writes (value-min)/(max-min) in place over the full lengt
 <span class="target" id="group__expression__numerics_1ga624690ad26560a814d38bf280f29ec89"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Nonzeros</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Nonzeros" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count nonzero finite real values in the selected interval. </p>
 <p>
-Uses exact comparison with zero, so both signed zeros are excluded. Returns a double count; no tolerance or magnitude threshold is applied. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses exact comparison with zero, so both signed zeros are excluded. Returns a double count; no tolerance or magnitude threshold is applied. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -445,7 +373,7 @@ Uses exact comparison with zero, so both signed zeros are excluded. Returns a do
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Count of finite selected samples unequal to zero, as a double. </p>
+<dd class="field-even"><p>Count of finite selected samples unequal to zero, as a double.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -455,15 +383,11 @@ Uses exact comparison with zero, so both signed zeros are excluded. Returns a do
 <span class="target" id="group__expression__numerics_1gaadbb95828eae47534c3c2a735ff0dd85"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Identity</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Identity" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a real component unchanged. </p>
 <p>
-Used by real branches of component adapters. Does not validate finiteness or normalize signed zero. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Used by real branches of component adapters. Does not validate finiteness or normalize signed zero. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Real component returned unchanged. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Real component returned unchanged. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -474,15 +398,11 @@ Used by real branches of component adapters. Does not validate finiteness or nor
 <span class="target" id="group__expression__numerics_1ga9f80f330400030c86e93554e7b49e7a7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Zero</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Zero" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return real zero regardless of the input. </p>
 <p>
-Supplies the imaginary-part adapter for real input. Finite-input iteration belongs to the enclosing adapter. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Supplies the imaginary-part adapter for real input. Finite-input iteration belongs to the enclosing adapter. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Ignored real component. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Ignored real component. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -493,15 +413,11 @@ Supplies the imaginary-part adapter for real input. Finite-input iteration belon
 <span class="target" id="group__expression__numerics_1ga35479ab1156fe7d291e468f2031b6b2a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Arg</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Arg" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the phase of a real value in radians. </p>
 <p>
-Uses atan2 with positive zero as the imaginary argument. Branch and signed-zero behavior follow that libm call, rather than a hand-coded sign test. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses atan2 with positive zero as the imaginary argument. Branch and signed-zero behavior follow that libm call, rather than a hand-coded sign test. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Real component whose phase is requested. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Real component whose phase is requested. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -512,15 +428,11 @@ Uses atan2 with positive zero as the imaginary argument. Branch and signed-zero 
 <span class="target" id="group__expression__numerics_1ga17adbce60251a029fb61779e50f05cb3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAbs</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAbs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a complex value’s Euclidean magnitude. </p>
 <p>
-Uses hypot to avoid unnecessary overflow in intermediate squares. The magnitude itself can exceed the finite double range. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses hypot to avoid unnecessary overflow in intermediate squares. The magnitude itself can exceed the finite double range. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose magnitude is requested. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose magnitude is requested. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -531,15 +443,11 @@ Uses hypot to avoid unnecessary overflow in intermediate squares. The magnitude 
 <span class="target" id="group__expression__numerics_1ga317cdf2cf750e48de1a51ed4075fe626"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexArg</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexArg" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return complex phase in radians. </p>
 <p>
-Uses atan2(imag, real), including its branch and signed-zero behavior. Does not alter the value or report a Tcl status. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses atan2(imag, real), including its branch and signed-zero behavior. Does not alter the value or report a Tcl status. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose phase is requested. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose phase is requested. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -550,15 +458,11 @@ Uses atan2(imag, real), including its branch and signed-zero behavior. Does not 
 <span class="target" id="group__expression__numerics_1gaea5905dba1a335376392593bac46a4b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexReal</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexReal" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Extract the real component. </p>
 <p>
-Returns the stored double directly; validation is the adapter’s responsibility. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns the stored double directly; validation is the adapter’s responsibility. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose real component is copied. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose real component is copied. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -569,15 +473,11 @@ Returns the stored double directly; validation is the adapter’s responsibility
 <span class="target" id="group__expression__numerics_1ga9b0692329096714c7110300ffb68ec9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexImag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexImag" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Extract the imaginary component. </p>
 <p>
-Returns the stored double directly; validation is the adapter’s responsibility. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns the stored double directly; validation is the adapter’s responsibility. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose imaginary component is copied. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value whose imaginary component is copied. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -588,15 +488,11 @@ Returns the stored double directly; validation is the adapter’s responsibility
 <span class="target" id="group__expression__numerics_1ga985bcb10237bef66e1ad885be9ae3645"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexConj</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexConj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the complex conjugate. </p>
 <p>
-Negates only the imaginary component, including its sign bit for zero. Does not allocate or validate the pair. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Negates only the imaginary component, including its sign bit for zero. Does not allocate or validate the pair. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to conjugate. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to conjugate. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -607,11 +503,7 @@ Negates only the imaginary component, including its sign bit for zero. Does not 
 <span class="target" id="group__expression__numerics_1gae065f7bead68e18bd7c1ca3d9e8dfce2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSqrt</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSqrt" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the square-root branch with nonnegative real part. </p>
 <p>
-Returns complex zero unchanged. Scales very large components before hypot/2 to avoid avoidable overflow. For negative real input, imaginary sign uses imag&lt;0, so negative zero takes the same branch as positive zero. The adapter checks errno and finite components; this is not a full C99 signed-zero branch guarantee. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns complex zero unchanged. Scales very large components before hypot/2 to avoid avoidable overflow. For negative real input, imaginary sign uses imag&lt;0, so negative zero takes the same branch as positive zero. The adapter checks errno and finite components; this is not a full C99 signed-zero branch guarantee. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -619,7 +511,7 @@ Returns complex zero unchanged. Scales very large components before hypot/2 to a
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Square root on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Square root on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -629,11 +521,7 @@ Returns complex zero unchanged. Scales very large components before hypot/2 to a
 <span class="target" id="group__expression__numerics_1ga686517a0fead3bdcca8938d9938f8a99"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexExp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexExp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute exp(real) times the unit complex phase. </p>
 <p>
-Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the component adapter owns errno and finite-result checks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the component adapter owns errno and finite-result checks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -641,7 +529,7 @@ Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the componen
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex exponential. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex exponential. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -651,11 +539,7 @@ Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the componen
 <span class="target" id="group__expression__numerics_1ga7758bcfaa6250883ea97eaab77c9a192"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LogHypot</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.LogHypot" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute log of a magnitude without first forming that magnitude. </p>
 <p>
-For finite inputs, factors out the larger absolute component and uses log(max)+log(1+ratio*ratio)/2. Both zero calls log(0), preserving libm error behavior. Does not clear errno or set Tcl errors. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+For finite inputs, factors out the larger absolute component and uses log(max)+log(1+ratio*ratio)/2. Both zero calls log(0), preserving libm error behavior. Does not clear errno or set Tcl errors. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -664,7 +548,7 @@ For finite inputs, factors out the larger absolute component and uses log(max)+l
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Logarithmic magnitude; two zero components invoke log(0), leaving error handling to the caller. </p>
+<dd class="field-even"><p>Logarithmic magnitude; two zero components invoke log(0), leaving error handling to the caller.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -674,11 +558,7 @@ For finite inputs, factors out the larger absolute component and uses log(max)+l
 <span class="target" id="group__expression__numerics_1ga71711a90ed82d4bb816c73d9d7a55ef3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexLog</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexLog" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return logarithmic magnitude and principal atan2 phase. </p>
 <p>
-Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Zero input is singular; the adapter reports its libm/nonfinite failure. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Zero input is singular; the adapter reports its libm/nonfinite failure. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -686,7 +566,7 @@ Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Ze
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Logarithmic magnitude plus imaginary principal phase. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Logarithmic magnitude plus imaginary principal phase. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -696,11 +576,7 @@ Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Ze
 <span class="target" id="group__expression__numerics_1ga0375c65e3c2e2de4ef3caaa4151928c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexLog10</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexLog10" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Scale the complex natural logarithm to base ten. </p>
 <p>
-Multiplies both components by 1/ln(10), retaining the same phase branch and zero singularity as ComplexLog. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Multiplies both components by 1/ln(10), retaining the same phase branch and zero singularity as ComplexLog. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -708,7 +584,7 @@ Multiplies both components by 1/ln(10), retaining the same phase branch and zero
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex logarithm divided by ln(10). The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex logarithm divided by ln(10). The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -718,11 +594,7 @@ Multiplies both components by 1/ln(10), retaining the same phase branch and zero
 <span class="target" id="group__expression__numerics_1ga403a5c338fcf9468e899382e434ef185"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex sine using real trigonometric and hyperbolic functions. </p>
 <p>
-Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is not scaled away; caller validates errno and result components. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is not scaled away; caller validates errno and result components. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -730,7 +602,7 @@ Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is n
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex sine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex sine. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -740,11 +612,7 @@ Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is n
 <span class="target" id="group__expression__numerics_1ga03a8cceb5dd3e27984d58452adaae61e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexCos</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexCos" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex cosine from real trigonometric/hyperbolic functions. </p>
 <p>
-Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflow or report a Tcl error. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflow or report a Tcl error. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -752,7 +620,7 @@ Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflo
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex cosine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex cosine. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -762,11 +630,7 @@ Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflo
 <span class="target" id="group__expression__numerics_1ga71acbfb33d9ff19c7ab8688155fcb3a7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSinh</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSinh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex hyperbolic sine. </p>
 <p>
-Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result validation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result validation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -774,7 +638,7 @@ Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result v
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex hyperbolic sine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex hyperbolic sine. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -784,11 +648,7 @@ Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result v
 <span class="target" id="group__expression__numerics_1ga77f8eaf5390f4de0b937ac63ec6892d7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexCosh</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexCosh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex hyperbolic cosine. </p>
 <p>
-Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result validation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result validation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -796,7 +656,7 @@ Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result v
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex hyperbolic cosine. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex hyperbolic cosine. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -806,11 +666,7 @@ Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result v
 <span class="target" id="group__expression__numerics_1gaed2e6a7b9814cba036674fdc47acc666"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexTan</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexTan" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex tangent using a decaying exponential formulation. </p>
 <p>
-On the real axis delegates to tan and preserves imaginary zero. Otherwise uses exp(-2*abs(imag)) and a denominator arranged to reduce cancellation near poles. For abs(imag)&gt;350 sets the exponential term to zero to avoid irrelevant underflow errno. Does not suppress true singular or nonfinite results. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+On the real axis delegates to tan and preserves imaginary zero. Otherwise uses exp(-2*abs(imag)) and a denominator arranged to reduce cancellation near poles. For abs(imag)&gt;350 sets the exponential term to zero to avoid irrelevant underflow errno. Does not suppress true singular or nonfinite results. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -818,7 +674,7 @@ On the real axis delegates to tan and preserves imaginary zero. Otherwise uses e
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex tangent. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex tangent. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -828,11 +684,7 @@ On the real axis delegates to tan and preserves imaginary zero. Otherwise uses e
 <span class="target" id="group__expression__numerics_1ga4aad2893ab9a30cd759bf20efdd33fba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexTanh</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexTanh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex hyperbolic tangent with scaled exponential terms. </p>
 <p>
-On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses exp(-2*abs(real)), setting it to zero above 350, with a cancellation-reduced denominator. Caller checks singularities/nonfinite results. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses exp(-2*abs(real)), setting it to zero above 350, with a cancellation-reduced denominator. Caller checks singularities/nonfinite results. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -840,7 +692,7 @@ On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses e
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex hyperbolic tangent. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Complex hyperbolic tangent. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -850,11 +702,7 @@ On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses e
 <span class="target" id="group__expression__numerics_1gaf73a8ae614156bd8ba56b262086497da"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RealAcosh</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RealAcosh" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute real acosh for an argument at least one. </p>
 <p>
-Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(2). Does not validate its domain; ComplexAsin clamps its argument before calling. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(2). Does not validate its domain; ComplexAsin clamps its argument before calling. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -862,7 +710,7 @@ Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Real inverse hyperbolic cosine; no independent domain or finite-output check is performed. </p>
+<dd class="field-even"><p>Real inverse hyperbolic cosine; no independent domain or finite-output check is performed.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -872,11 +720,7 @@ Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(
 <span class="target" id="group__expression__numerics_1ga77f6416a00ca8b2e336655434605801d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAsin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAsin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute an inverse-sine branch from distances to plus/minus one. </p>
 <p>
-Forms alpha as two half magnitudes to avoid adding them before division. Clamps alpha to at least one and beta=real/alpha into [-1,1], then combines asin(beta) and signed acosh(alpha). Uses copysign for imaginary sign. Individual magnitudes can still overflow for extreme finite inputs. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Forms alpha as two half magnitudes to avoid adding them before division. Clamps alpha to at least one and beta=real/alpha into [-1,1], then combines asin(beta) and signed acosh(alpha). Uses copysign for imaginary sign. Individual magnitudes can still overflow for extreme finite inputs. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -884,7 +728,7 @@ Forms alpha as two half magnitudes to avoid adding them before division. Clamps 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Inverse sine on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Inverse sine on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -894,11 +738,7 @@ Forms alpha as two half magnitudes to avoid adding them before division. Clamps 
 <span class="target" id="group__expression__numerics_1ga79c8f707fa4ffa0889793343b2c844a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAcos</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAcos" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute inverse cosine from the inverse-sine branch. </p>
 <p>
-Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. Inherits that helper’s numerical limits and branch behavior. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. Inherits that helper’s numerical limits and branch behavior. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -906,7 +746,7 @@ Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Inverse cosine derived from ComplexAsin. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Inverse cosine derived from ComplexAsin. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -916,11 +756,7 @@ Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. 
 <span class="target" id="group__expression__numerics_1ga34351e4044558c1478469f26e28fc353"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAtan</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAtan" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex inverse tangent with scaled angle and logarithmic distances. </p>
 <p>
-Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus/minus i. Returns half the angle and half the log-distance difference. Poles at plus/minus i remain singular; caller validates errno and finite components. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus/minus i. Returns half the angle and half the log-distance difference. Poles at plus/minus i remain singular; caller validates errno and finite components. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -928,7 +764,7 @@ Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Inverse tangent on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned. </p>
+<dd class="field-even"><p>Inverse tangent on the implemented branch. The caller validates errno and component finiteness; no Tcl status is returned.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -938,11 +774,7 @@ Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus
 <span class="target" id="group__expression__numerics_1ga848762e239b7be855bf9606de3cbd9bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexPower</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">base</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">exponent</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexPower" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute complex powers with a separate integral-exponent path. </p>
 <p>
-Finite real integer exponents use exponentiation by squaring with the exponent kept as double. Zero exponent returns one, including zero-to-zero; negative powers of zero fail. For zero base, positive nonintegral real powers return zero and finite nonreal exponents fail. Other cases use exp(exponent*Log(base)). Returns Tcl status; successful computation can still be nonfinite and requires outer validation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Finite real integer exponents use exponentiation by squaring with the exponent kept as double. Zero exponent returns one, including zero-to-zero; negative powers of zero fail. For zero base, positive nonintegral real powers return zero and finite nonreal exponents fail. Other cases use exp(exponent*Log(base)). Returns Tcl status; successful computation can still be nonfinite and requires outer validation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -953,7 +785,7 @@ Finite real integer exponents use exponentiation by squaring with the exponent k
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after computation, or TCL_ERROR with a diagnostic for an unsupported power of zero. </p>
+<dd class="field-even"><p>TCL_OK after computation, or TCL_ERROR with a diagnostic for an unsupported power of zero.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -963,11 +795,7 @@ Finite real integer exponents use exponentiation by squaring with the exponent k
 <span class="target" id="group__expression__numerics_1ga5f9943b8672b49ae9b7177525b41cfb3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSum</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSum" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sum selected complex values having two finite components. </p>
 <p>
-Starts at 0+0i and skips the entire sample if either component is nonfinite. Uses ordinary complex addition in storage order; empty input returns complex zero. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Starts at 0+0i and skips the entire sample if either component is nonfinite. Uses ordinary complex addition in storage order; empty input returns complex zero. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -975,7 +803,7 @@ Starts at 0+0i and skips the entire sample if either component is nonfinite. Use
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex sum, or 0+0i when no sample qualifies. </p>
+<dd class="field-even"><p>Complex sum, or 0+0i when no sample qualifies.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -985,11 +813,7 @@ Starts at 0+0i and skips the entire sample if either component is nonfinite. Use
 <span class="target" id="group__expression__numerics_1ga833ff2347ea4707772370fb90a5f59ff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexMean</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexMean" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the componentwise mean of finite complex samples. </p>
 <p>
-Both components must be finite for a sample to count. Divides real and imaginary sums by the same selected sample count. No finite samples return NaN in both components; the evaluator rejects that result. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Both components must be finite for a sample to count. Divides real and imaginary sums by the same selected sample count. No finite samples return NaN in both components; the evaluator rejects that result. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -997,7 +821,7 @@ Both components must be finite for a sample to count. Divides real and imaginary
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Componentwise mean, or a pair of NaNs when no sample qualifies. </p>
+<dd class="field-even"><p>Componentwise mean, or a pair of NaNs when no sample qualifies.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1007,11 +831,7 @@ Both components must be finite for a sample to count. Divides real and imaginary
 <span class="target" id="group__expression__numerics_1ga27993094db8edb8a5f9807baac6401fe"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexProduct</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexProduct" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Multiply selected finite complex samples. </p>
 <p>
-Starts at 1+0i and skips samples with either component nonfinite. Empty input returns complex one. Uses Rbc_ComplexMul; does not promise overflow-free accumulation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Starts at 1+0i and skips samples with either component nonfinite. Empty input returns complex one. Uses Rbc_ComplexMul; does not promise overflow-free accumulation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1019,7 +839,7 @@ Starts at 1+0i and skips samples with either component nonfinite. Empty input re
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complex product, or 1+0i when no sample qualifies. </p>
+<dd class="field-even"><p>Complex product, or 1+0i when no sample qualifies.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1029,11 +849,7 @@ Starts at 1+0i and skips samples with either component nonfinite. Empty input re
 <span class="target" id="group__expression__numerics_1ga21e7a626a03948ea9fd55a1c84fac144"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count selected complex samples with both components finite. </p>
 <p>
-Returns a double count. A sample with only one finite component is excluded entirely; this is not raw vector length. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns a double count. A sample with only one finite component is excluded entirely; this is not raw vector length. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1041,7 +857,7 @@ Returns a double count. A sample with only one finite component is excluded enti
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Qualifying sample count as a real double. </p>
+<dd class="field-even"><p>Qualifying sample count as a real double.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1051,11 +867,7 @@ Returns a double count. A sample with only one finite component is excluded enti
 <span class="target" id="group__expression__numerics_1ga9ea0bc24f0d39371d844e7cffa933077"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexNonzeros</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexNonzeros" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count finite selected complex samples other than complex zero. </p>
 <p>
-A sample counts when both components are finite and at least one is nonzero. No tolerance is used. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+A sample counts when both components are finite and at least one is nonzero. No tolerance is used. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1063,7 +875,7 @@ A sample counts when both components are finite and at least one is nonzero. No 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Number of qualifying samples with either component nonzero, as a real double. </p>
+<dd class="field-even"><p>Number of qualifying samples with either component nonzero, as a real double.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1073,15 +885,11 @@ A sample counts when both components are finite and at least one is nonzero. No 
 <span class="target" id="group__expression__numerics_1gabdac4fc98d978a85032d2582782fe2c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexCeil</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexCeil" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply ceil independently to both complex components. </p>
 <p>
-Does not round magnitude or phase. The adapter validates errno and finite results. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Does not round magnitude or phase. The adapter validates errno and finite results. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round upward componentwise. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round upward componentwise. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1092,15 +900,11 @@ Does not round magnitude or phase. The adapter validates errno and finite result
 <span class="target" id="group__expression__numerics_1gaf1ba41dc0b268862808f0efdd4193149"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexFloor</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexFloor" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply floor independently to both complex components. </p>
 <p>
-Does not round magnitude or phase. The adapter validates errno and finite results. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Does not round magnitude or phase. The adapter validates errno and finite results. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round downward componentwise. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round downward componentwise. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1111,15 +915,11 @@ Does not round magnitude or phase. The adapter validates errno and finite result
 <span class="target" id="group__expression__numerics_1gaa105844b94e758a1cd935a8c4b90b50c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexRound</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexRound" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round both components halfway away from zero. </p>
 <p>
-Delegates each component to Round. Does not change a complex temporary into real storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Delegates each component to Round. Does not change a complex temporary into real storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round componentwise. The scalar is passed by value; no vector storage or ownership is transferred. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Complex value to round componentwise. The scalar is passed by value; no vector storage or ownership is transferred.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1130,11 +930,7 @@ Delegates each component to Round. Does not change a complex temporary into real
 <span class="target" id="group__expression__numerics_1gaf669ab69e8d66b33d854813923528033"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexAvgDeviation</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexAvgDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute mean complex-plane distance from the sample mean. </p>
 <p>
-Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by count. Returns real zero for fewer than two finite samples. Does not compute independent real/imaginary deviations. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by count. Returns real zero for fewer than two finite samples. Does not compute independent real/imaginary deviations. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1142,7 +938,7 @@ Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by co
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Mean complex-plane distance, or zero for fewer than two qualifying samples. </p>
+<dd class="field-even"><p>Mean complex-plane distance, or zero for fewer than two qualifying samples.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1152,11 +948,7 @@ Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by co
 <span class="target" id="group__expression__numerics_1ga175f6e0992565f705f71bb0f282adabd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexVariance</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexVariance" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute real sample variance from squared complex magnitudes. </p>
 <p>
-Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and divides by count-1. Returns zero for fewer than two finite samples. This is squared-magnitude variance, not the possibly complex mean of squared deviations; squaring can still overflow. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and divides by count-1. Returns zero for fewer than two finite samples. This is squared-magnitude variance, not the possibly complex mean of squared deviations; squaring can still overflow. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1164,7 +956,7 @@ Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and div
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Real squared-magnitude sample variance, or zero for fewer than two qualifying samples. </p>
+<dd class="field-even"><p>Real squared-magnitude sample variance, or zero for fewer than two qualifying samples.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1174,11 +966,7 @@ Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and div
 <span class="target" id="group__expression__numerics_1ga38e29f9df58512df68d2bed956268619"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexStdDeviation</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexStdDeviation" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the square root of positive complex sample variance. </p>
 <p>
-Returns a real scalar. Delegates to ComplexVariance and returns zero when variance is not greater than zero; does not separately diagnose a nonfinite intermediate. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns a real scalar. Delegates to ComplexVariance and returns zero when variance is not greater than zero; does not separately diagnose a nonfinite intermediate. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1186,7 +974,7 @@ Returns a real scalar. Delegates to ComplexVariance and returns zero when varian
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Square root of positive squared-magnitude variance, otherwise zero. </p>
+<dd class="field-even"><p>Square root of positive squared-magnitude variance, otherwise zero.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1196,11 +984,7 @@ Returns a real scalar. Delegates to ComplexVariance and returns zero when varian
 <span class="target" id="group__expression__numerics_1gae3b3d2b16f9a52bd1012d312a140c145"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Fabs</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Fabs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the legacy sign-test absolute value. </p>
 <p>
-Negates values strictly below zero and otherwise returns the original value. Unlike fabs, negative zero retains its sign. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Negates values strictly below zero and otherwise returns the original value. Unlike fabs, negative zero retains its sign. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1208,7 +992,7 @@ Negates values strictly below zero and otherwise returns the original value. Unl
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Negated input when strictly negative, otherwise the unchanged input. </p>
+<dd class="field-even"><p>Negated input when strictly negative, otherwise the unchanged input.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1218,11 +1002,7 @@ Negates values strictly below zero and otherwise returns the original value. Unl
 <span class="target" id="group__expression__numerics_1ga5725f013ccec099e9ae5eeda8d4eed04"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Round</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Round" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Round a real value halfway away from zero as a double. </p>
 <p>
-Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Performs no integer conversion or independent finite check. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Performs no integer conversion or independent finite check. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1230,7 +1010,7 @@ Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Perform
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Rounded double using the implemented half-away-from-zero formula; the caller checks finiteness. </p>
+<dd class="field-even"><p>Rounded double using the implemented half-away-from-zero formula; the caller checks finiteness.</p>
 </dd>
 </dl>
 </dd></dl>

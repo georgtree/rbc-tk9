@@ -20,7 +20,6 @@
 /**
  * @brief Test a point pointer and both coordinates.
  * @param[in] pointPtr Borrowed point to test; NULL is accepted as an invalid input.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup geometry_internals
  *
@@ -34,7 +33,6 @@ static int IsFinitePoint(const Point2D *pointPtr) {
 /**
  * @brief Test finite ordered rectangular extents.
  * @param[in] extsPtr Borrowed rectangle to test; NULL, reversed or nonfinite bounds are rejected.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup geometry_internals
  *
@@ -215,7 +213,6 @@ int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Siz
  * @param[in,out] t1 Required initialized entry fraction, normally zero before the first boundary.
  * @param[in,out] t2 Required initialized exit fraction, normally one; this call changes neither fraction on
  *     rejection.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup geometry_internals
  *
@@ -289,7 +286,6 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
  * @param[in,out] countPtr Required current vertex count; incremented once on success and retained on failure.
  * @param[in] x X coordinate to append without finite validation.
  * @param[in] y Y coordinate to append without finite validation.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup geometry_internals
  *
@@ -440,7 +436,6 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *points, Tcl_S
  * @param[in] j Original index of the right endpoint; a split requires at least one interior point.
  * @param[out] split Original index of the first farthest interior point; initialized to -1. NULL causes a -1
  *     distance result.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup geometry_internals
  *

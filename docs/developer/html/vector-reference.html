@@ -169,15 +169,11 @@ in <a class="reference internal" href="vectors.html"><span class="doc">Vector ow
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="#rbc_vector_8h_1ac351a8a045043525d3b86397e7b9ad87"><span class="std std-ref">Rbc_FreeVectorId</span></a></p>
 </div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter containing the vector registry. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter containing the vector registry. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>vecName</strong> – <strong>[in]</strong> Borrowed name resolved by the vector name lookup rules. </p></li>
 </ul>
 </dd>
@@ -192,11 +188,7 @@ in <a class="reference internal" href="vectors.html"><span class="doc">Vector ow
 <span class="target" id="rbc_vector_8h_1ac351a8a045043525d3b86397e7b9ad87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeVectorId</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeVectorId" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach an observer, deferring reclamation while delivery retains it. </p>
 <p>
-Does not destroy the vector. May be called from UPDATE or DESTROY callbacks. Destruction itself frees remaining IDs. A magic-field check is not permission to pass freed or arbitrary pointers. NULL is accepted. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Does not destroy the vector. May be called from UPDATE or DESTROY callbacks. Destruction itself frees remaining IDs. A magic-field check is not permission to pass freed or arbitrary pointers. NULL is accepted. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -211,15 +203,11 @@ Does not destroy the vector. May be called from UPDATE or DESTROY callbacks. Des
 <span class="target" id="rbc_vector_8h_1ac6247b14d0bccc017f500800e5263e5a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetVectorById</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span>, <a class="reference internal" href="#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetVectorById" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow the vector associated with a client ID and refresh its range. </p>
 <p>
-Neither the returned pointer nor the ID extends vector lifetime. Never call this with a token left over after vector destruction. Cached extrema are recomputed when invalidated; this is not always a constant-time lookup. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Neither the returned pointer nor the ID extends vector lifetime. Never call this with a token left over after vector destruction. Cached extrema are recomputed when invalidated; this is not always a constant-time lookup. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter used for error reporting. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter used for error reporting. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>clientId</strong> – <strong>[in]</strong> Non-NULL live token. </p></li>
 <li><p><strong>vecPtrPtr</strong> – <strong>[out]</strong> Receives the borrowed vector on success only. </p></li>
 </ul>
@@ -235,11 +223,7 @@ Neither the returned pointer nor the ID extends vector lifetime. Never call this
 <span class="target" id="rbc_vector_8h_1a978a0729bdc738eccc7eab3ee3f0d9b1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetVectorChangedProc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span>, <span class="n"><span class="pre">Rbc_VectorChangedProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetVectorChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace an observer’s callback and borrowed callback data. </p>
 <p>
-Does not invoke the callback immediately or transfer ownership of clientData. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Does not invoke the callback immediately or transfer ownership of clientData. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -256,11 +240,7 @@ Does not invoke the callback immediately or transfer ownership of clientData. <d
 <span class="target" id="rbc_vector_8h_1a775fd83a2136d08696a4ab9864cee8d3"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NameOfVectorId</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NameOfVectorId" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the vector’s current registered name, not its array mapping. </p>
 <p>
-Do not modify or free the returned string. Copy it if it must survive rename. A token already freed by destruction cannot be queried. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Do not modify or free the returned string. Copy it if it must survive rename. A token already freed by destruction cannot be queried. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -278,11 +258,7 @@ Do not modify or free the returned string. Copy it if it must survive rename. A 
 <span class="target" id="rbc_vector_8h_1a5e2e5a7d50475e56fc2930d79af23e3a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorNotifyPending</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorNotifyPending" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test whether an idle update notification is queued. </p>
 <p>
-The nonzero result is a flag mask, not necessarily 1. It is not a test for all possible data changes, and cannot validate a freed token. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+The nonzero result is a flag mask, not necessarily 1. It is not a test for all possible data changes, and cannot validate a freed token. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -300,13 +276,9 @@ The nonzero result is a flag mask, not necessarily 1. It is not a test for all p
 <span class="target" id="rbc_vector_8h_1ab8492906ecb646ae4db48e4081ed3854"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetRange</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Get cached finite extrema of a real vector, recomputing if necessary. </p>
 <p>Read cached finite extrema of a real vector.</p>
-<p><p>Empty vectors and vectors without finite values return NaN extrema.</p>
+<p>
+Empty vectors and vectors without finite values return NaN extrema.</p>
 <p>Get cached finite extrema of a real vector, recomputing if necessary.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
 <p>Requires a live vector and two non-NULL output pointers. Returns TCL_ERROR for complex vectors without changing outputs. Recomputes whole-vector extrema only when UPDATE_RANGE is set, otherwise uses the cache. Empty or entirely nonfinite real vectors return TCL_OK with NaN bounds. Does not use the current selection, flush mapped arrays or notify observers. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

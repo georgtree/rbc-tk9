@@ -361,8 +361,6 @@ double Rbc_RandomDouble(void);
  * Preserves exact source-knot values and extrapolates with the first/last
  * interval outside the source domain. Allocates and frees private workspace;
  * does not own either caller array or invoke Tcl callbacks.
- *
- * @see @ref rbc_calling_conventions
  */
 int Rbc_NaturalSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 /**
@@ -379,8 +377,6 @@ int Rbc_NaturalSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPt
  * Preserves exact source-knot values and extrapolates with the first/last
  * interval outside the source domain. Allocates and frees private workspace;
  * does not own either caller array or invoke Tcl callbacks.
- *
- * @see @ref rbc_calling_conventions
  */
 int Rbc_QuadraticSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 /**
@@ -398,8 +394,6 @@ int Rbc_QuadraticSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intp
  * unusable accumulated lengths. Source knots are copied exactly. Stages output
  * separately before copying it back; releases all private workspace and invokes
  * no Tcl callbacks. Caller retains ownership of both arrays.
- *
- * @see @ref rbc_calling_conventions
  */
 int Rbc_NaturalParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 /**
@@ -417,8 +411,6 @@ int Rbc_NaturalParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts, P
  * unusable accumulated lengths. Source knots are copied exactly. Stages output
  * separately before copying it back; releases all private workspace and invokes
  * no Tcl callbacks. Caller retains ownership of both arrays.
- *
- * @see @ref rbc_calling_conventions
  */
 int Rbc_QuadraticParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 /**
@@ -437,8 +429,6 @@ int Rbc_QuadraticParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts,
  * Samples approximately uniformly in chord parameter, not exact curve arc length.
  * Copies the first point and makes the last exact when the full count is produced.
  * Frees internal coefficients and any closure copy. No Tcl callbacks or diagnostic.
- *
- * @see @ref rbc_calling_conventions
  */
 Tcl_Size Rbc_NaturalParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts);
@@ -456,8 +446,6 @@ Tcl_Size Rbc_NaturalParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, 
  * Validates parameters before writing, copies and extends source endpoints
  * privately, then evaluates cubic coefficients. Does not use chord-length
  * parameterization. Caller retains both arrays; no Tcl callbacks or diagnostic.
- *
- * @see @ref rbc_calling_conventions
  */
 int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 /**
@@ -467,7 +455,6 @@ int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2
  * @param[in] q Borrowed finite second endpoint.
  * @param[out] closestPtr Required caller-owned nearest-point output; rejected inputs/intermediates leave it
  *     unchanged.
- * @see @ref rbc_calling_conventions
  *
  * Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of
  * length at most DBL_EPSILON use p. Invalid inputs or rejected intermediate
@@ -482,7 +469,6 @@ double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, 
  * @param[in] q Borrowed finite second endpoint.
  * @param[out] clippedPtr Optional clipped segment; NULL requests a visibility test. Rejection leaves separate
  *     output untouched.
- * @see @ref rbc_calling_conventions
  *
  * Requires finite, ordered extents and finite endpoints. Returns false for
  * invalid/disjoint input, leaving output untouched. On success, writes the
@@ -498,7 +484,6 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
  * @param[in] nInputPts Number of accessible source vertices, positive for nonempty output.
  * @param[out] outputPts Caller-owned output buffer; failure may leave a prefix that must be discarded.
  * @param[in] outputCapacity Number of available Point2D slots including the repeated closing vertex.
- * @see @ref rbc_calling_conventions
  *
  * Input contains exactly nInputPts vertices; the closing edge is implicit.
  * Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is
@@ -514,7 +499,6 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *inputPts, Tcl
  * @param[in] samplePtr Borrowed finite query point in the polygon coordinate system.
  * @param[in] points Borrowed finite polygon vertices; the closing edge is implicit.
  * @param[in] nPoints Number of accessible vertices, at least three for membership/enclosure tests.
- * @see @ref rbc_calling_conventions
  *
  * Requires at least three finite vertices and a finite sample; invalid input
  * returns false. The closing edge is implicit. Half-open crossing comparisons
@@ -528,7 +512,6 @@ int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size
  * @param[in] nPoints Number of accessible vertices, at least three for membership/enclosure tests.
  * @param[in] enclosed Nonzero tests whether the rectangle encloses the polygon; zero tests overlap or
  *     containment.
- * @see @ref rbc_calling_conventions
  *
  * With enclosed nonzero, every polygon vertex must be inside inclusive extents;
  * this means the rectangle encloses the polygon, not the reverse. Otherwise
@@ -542,7 +525,6 @@ int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Siz
  * @param[in] segments Borrowed array of accessible segment records.
  * @param[in] nSegments Number of segment records; zero or negative counts return false.
  * @param[in] halo Finite positive strict distance threshold in the input coordinate units; zero never matches.
- * @see @ref rbc_calling_conventions
  *
  * Requires a finite positive halo; zero or invalid halo, no segments or an
  * invalid sample returns false. Uses clamped segment distance, including
@@ -558,7 +540,6 @@ int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl
  * @param[in] tolerance Finite nonnegative distance tolerance in the same units as the points.
  * @param[out] indices Caller-owned room for high-low+1 original indices; discard partial output when the
  *     returned count is zero.
- * @see @ref rbc_calling_conventions
  *
  * Caller supplies valid finite points through high and space for high-low+1
  * indices; no array lengths are supplied or checked here. Use a finite,

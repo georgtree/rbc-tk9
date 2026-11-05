@@ -50,15 +50,11 @@ not invoked through a table slot. See <a class="reference internal" href="initia
 <span class="target" id="rbc_8h_1ab7e074a0b82f33f2eab992987c1f984a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Init</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Init" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize the Tcl-only vector package in an interpreter. </p>
 <p>
-Initializes Tcl stubs, creates interpreter-associated readiness state and the rbc namespace, and registers vector commands plus the private _initTk command. Provides rbc::vector with the shared RBC stubs table. Does not load Tk or source the Tcl support scripts; the package index performs those later steps. Completed initialization phases survive errors. Readiness flags prevent repeating completed phases, but do not repair commands deleted by callers. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Initializes Tcl stubs, creates interpreter-associated readiness state and the rbc namespace, and registers vector commands plus the private _initTk command. Provides rbc::vector with the shared RBC stubs table. Does not load Tk or source the Tcl support scripts; the package index performs those later steps. Completed initialization phases survive errors. Readiness flags prevent repeating completed phases, but do not repair commands deleted by callers. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – Interpreter receiving the commands and package registration. </p></li>
+<li><p><strong>interp</strong> – Interpreter receiving the commands and package registration. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -72,15 +68,11 @@ Initializes Tcl stubs, creates interpreter-associated readiness state and the rb
 <span class="target" id="rbc_8h_1a0f13ed409b5dd9007b75a07ca396300a"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitStubs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">version</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">exact</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InitStubs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Require the full RBC package and initialize the client’s stubs pointer. </p>
 <p>
-Linked statically into the consumer from the RBC stub library. On success, replaces that consumer’s rbcStubsPtr with package client data. On failure, leaves its previous value unchanged. Requires Tk through the full package loader. Does not retain an interpreter or vector, validate table entries, or provide synchronization for changing the pointer. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Linked statically into the consumer from the RBC stub library. On success, replaces that consumer’s rbcStubsPtr with package client data. On failure, leaves its previous value unchanged. Requires Tk through the full package loader. Does not retain an interpreter or vector, validate table entries, or provide synchronization for changing the pointer. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – Interpreter in which to require rbc; loading may execute Tcl. </p></li>
+<li><p><strong>interp</strong> – Interpreter in which to require rbc; loading may execute Tcl. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>version</strong> – Required version, interpreted by Tcl_PkgRequireEx. </p></li>
 <li><p><strong>exact</strong> – Nonzero requests an exact version match. </p></li>
 </ul>
@@ -96,15 +88,11 @@ Linked statically into the consumer from the RBC stub library. On success, repla
 <span class="target" id="rbc_8h_1a4bca41cb16c2585324911cd8a50da978"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorInitStubs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">version</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">exact</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorInitStubs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Require the Tcl-only vector package and initialize the client’s stubs pointer. </p>
 <p>
-Has the same pointer ownership and failure behavior as Rbc_InitStubs, but does not require Tk. Both packages publish the same RBC stubs table. The caller must request a version supporting every table slot it will use. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Has the same pointer ownership and failure behavior as Rbc_InitStubs, but does not require Tk. Both packages publish the same RBC stubs table. The caller must request a version supporting every table slot it will use. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – Interpreter in which to require rbc::vector; loading may execute Tcl. </p></li>
+<li><p><strong>interp</strong> – Interpreter in which to require rbc::vector; loading may execute Tcl. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>version</strong> – Required version, interpreted by Tcl_PkgRequireEx. </p></li>
 <li><p><strong>exact</strong> – Nonzero requests an exact version match. </p></li>
 </ul>
@@ -131,16 +119,12 @@ because it receives the table published by package initialization.</p>
 <span class="target" id="group__initialization__private_1ga3a14609e5ce8ae947845cd8753396110"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeInitData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcInitialization.FreeInitData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release the interpreter initialization bookkeeping. </p>
 <p>
-clientData is the allocated <a class="reference internal" href="#struct_rbc_init_data"><span class="std std-ref">RbcInitData</span></a> owned by Tcl associated data. Free only that record. Subsystem registries, commands, widgets and vectors have separate deletion paths. interp is unused; no Tcl evaluation occurs. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+clientData is the allocated <a class="reference internal" href="#struct_rbc_init_data"><span class="std std-ref">RbcInitData</span></a> owned by Tcl associated data. Free only that record. Subsystem registries, commands, widgets and vectors have separate deletion paths. interp is unused; no Tcl evaluation occurs. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>clientData</strong> – <strong>[in]</strong> Owned <a class="reference internal" href="#struct_rbc_init_data"><span class="std std-ref">RbcInitData</span></a> record being released. </p></li>
-<li><p><strong>interp</strong> – <strong>[in]</strong> Unused here; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Unused here; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -151,11 +135,7 @@ clientData is the allocated <a class="reference internal" href="#struct_rbc_init
 <span class="target" id="group__initialization__private_1ga399143588858c31561d507548b390ed6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitTkObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcInitialization.InitTkObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Complete the Tk-dependent phases after Tcl-only initialization. </p>
 <p>
-Require the rbc::init associated record and namespace established by Rbc_Init. Accept no arguments beyond the command name; initialize Tk stubs, then run graph, winop, spline and EPS registration in order. Completed phase flags survive later errors, so retries skip completed work. Re-export constructor names on every successful traversal and provide the full package with the shared stubs table. Do not source support scripts or create widgets here. Return the first Tcl error or package-provision status. The EPS initializer has no status return. This is a private loader command, not a reinitialization or command-repair API. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Require the rbc::init associated record and namespace established by Rbc_Init. Accept no arguments beyond the command name; initialize Tk stubs, then run graph, winop, spline and EPS registration in order. Completed phase flags survive later errors, so retries skip completed work. Re-export constructor names on every successful traversal and provide the full package with the shared stubs table. Do not source support scripts or create widgets here. Return the first Tcl error or package-provision status. The EPS initializer has no status return. This is a private loader command, not a reinitialization or command-repair API. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -166,7 +146,7 @@ Require the rbc::init associated record and namespace established by Rbc_Init. A
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Tcl status from registration, export or package provision. </p>
+<dd class="field-even"><p>Tcl status from registration, export or package provision.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -176,11 +156,7 @@ Require the rbc::init associated record and namespace established by Rbc_Init. A
 <span class="target" id="group__initialization__private_1gaaf1369b1b540de8ab4d78681cb341aa0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">InitPackageStubs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">package</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">version</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">exact</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcInitialization.InitPackageStubs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Require a package and select its published C dispatch table. </p>
 <p>
-Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx. Package loading may execute Tcl. If require fails or returns NULL client data, return NULL without changing rbcStubsPtr; missing client data adds no diagnostic. Otherwise assign the borrowed table and return the borrowed actual version. No table-magic/slot checks, copying, interpreter retention or locking occur. Both public stubs initializers share this path; the package name chooses whether Tk and full support scripts are required. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx. Package loading may execute Tcl. If require fails or returns NULL client data, return NULL without changing rbcStubsPtr; missing client data adds no diagnostic. Otherwise assign the borrowed table and return the borrowed actual version. No table-magic/slot checks, copying, interpreter retention or locking occur. Both public stubs initializers share this path; the package name chooses whether Tk and full support scripts are required. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -191,7 +167,7 @@ Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx. Pa
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Borrowed actual version on success, or NULL on failure. </p>
+<dd class="field-even"><p>Borrowed actual version on success, or NULL on failure.</p>
 </dd>
 </dl>
 </dd></dl>

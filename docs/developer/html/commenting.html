@@ -88,14 +88,19 @@ against the generated reference with the strict build.</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">&#64;param</span></code> entries for meaningful function-specific inputs and outputs.
 For standard <code class="docutils literal notranslate"><span class="pre">interp</span></code> and <code class="docutils literal notranslate"><span class="pre">objc</span></code>/<code class="docutils literal notranslate"><span class="pre">objv</span></code> semantics, add
 <code class="docutils literal notranslate"><span class="pre">&#64;param[in]</span> <span class="pre">interp</span> <span class="pre">See</span> <span class="pre">&#64;ref</span> <span class="pre">rbc_interp_argument.</span></code> and corresponding links
-to <code class="docutils literal notranslate"><span class="pre">rbc_command_arguments</span></code> for <code class="docutils literal notranslate"><span class="pre">objc</span></code>/<code class="docutils literal notranslate"><span class="pre">objv</span></code>. Add
-<code class="docutils literal notranslate"><span class="pre">&#64;see</span> <span class="pre">&#64;ref</span> <span class="pre">rbc_calling_conventions</span></code> for the complete contract. Describe local
-exceptions explicitly. Once a function uses <code class="docutils literal notranslate"><span class="pre">&#64;param</span></code>, document every parameter
+to <code class="docutils literal notranslate"><span class="pre">rbc_command_arguments</span></code> for <code class="docutils literal notranslate"><span class="pre">objc</span></code>/<code class="docutils literal notranslate"><span class="pre">objv</span></code>. Put the link beside the
+parameter it explains, and describe local exceptions explicitly. Do not append
+a blanket <code class="docutils literal notranslate"><span class="pre">&#64;see</span> <span class="pre">&#64;ref</span> <span class="pre">rbc_calling_conventions</span></code> to every function: an already
+complete geometry or numeric parameter description does not benefit from it.
+Once a function uses <code class="docutils literal notranslate"><span class="pre">&#64;param</span></code>, document every parameter
 to retain Doxygen missing-parameter checks. Always identify
 the concrete <code class="docutils literal notranslate"><span class="pre">clientData</span></code> type and its owner. Do not infer that a pointer is
 borrowed or that an output is unchanged on error without checking the code.</p>
-<p>Use <code class="docutils literal notranslate"><span class="pre">&#64;see</span></code> or Sphinx references to connect related operations. Use the C
-domain for C identifiers, for example <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.
+<p>Use <code class="docutils literal notranslate"><span class="pre">&#64;see</span></code> or Sphinx references to connect related operations. Link a shared
+lifetime section only when it explains a concrete callback, reentry or ownership
+requirement in the local contract. A pointer argument alone is not sufficient
+reason to add a lifetime link. Use the C domain for C identifiers, for example
+<a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.
 Prose chapters explain relationships; reference signatures come from headers.</p>
 </section>
 <section id="migration-and-review">

@@ -50,12 +50,7 @@ See <a class="reference internal" href="splines.html"><span class="doc">Spline i
 <span class="target" id="rbc_int_8h_1a2467b3c7d7b23ace0f5d01100066269b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NaturalSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NaturalSpline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate a natural cubic spline at caller-supplied abscissas. </p>
 <p>
-Preserves exact source-knot values and extrapolates with the first/last interval outside the source domain. Allocates and frees private workspace; does not own either caller array or invoke Tcl callbacks.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Preserves exact source-knot values and extrapolates with the first/last interval outside the source domain. Allocates and frees private workspace; does not own either caller array or invoke Tcl callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -76,12 +71,7 @@ Preserves exact source-knot values and extrapolates with the first/last interval
 <span class="target" id="rbc_int_8h_1aa6872be178672598200304fa5a03407d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_QuadraticSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_QuadraticSpline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate a shape-preserving quadratic spline at caller-supplied abscissas. </p>
 <p>
-Preserves exact source-knot values and extrapolates with the first/last interval outside the source domain. Allocates and frees private workspace; does not own either caller array or invoke Tcl callbacks.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Preserves exact source-knot values and extrapolates with the first/last interval outside the source domain. Allocates and frees private workspace; does not own either caller array or invoke Tcl callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -102,12 +92,7 @@ Preserves exact source-knot values and extrapolates with the first/last interval
 <span class="target" id="rbc_int_8h_1a888b5410cf45265a00e0cd4716e2bf76"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NaturalParametricSplineEval</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NaturalParametricSplineEval" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate an open natural cubic path at interval/fraction parameters. </p>
 <p>
-Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusable accumulated lengths. Source knots are copied exactly. Stages output separately before copying it back; releases all private workspace and invokes no Tcl callbacks. Caller retains ownership of both arrays.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusable accumulated lengths. Source knots are copied exactly. Stages output separately before copying it back; releases all private workspace and invokes no Tcl callbacks. Caller retains ownership of both arrays. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -128,12 +113,7 @@ Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusab
 <span class="target" id="rbc_int_8h_1aa4b2233e09d6d24f7ca7d9ac70933a9d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_QuadraticParametricSplineEval</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_QuadraticParametricSplineEval" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate an open quadratic path at interval/fraction parameters. </p>
 <p>
-Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusable accumulated lengths. Source knots are copied exactly. Stages output separately before copying it back; releases all private workspace and invokes no Tcl callbacks. Caller retains ownership of both arrays.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusable accumulated lengths. Source knots are copied exactly. Stages output separately before copying it back; releases all private workspace and invokes no Tcl callbacks. Caller retains ownership of both arrays. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -154,12 +134,7 @@ Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusab
 <span class="target" id="rbc_int_8h_1a78ffd410e2dc4077cd4a5197f2d66450"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NaturalParametricSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">isClosed</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NaturalParametricSpline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sample a natural parametric path using an extent-scaled chord metric. </p>
 <p>
-Samples approximately uniformly in chord parameter, not exact curve arc length. Copies the first point and makes the last exact when the full count is produced. Frees internal coefficients and any closure copy. No Tcl callbacks or diagnostic.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Samples approximately uniformly in chord parameter, not exact curve arc length. Copies the first point and makes the last exact when the full count is produced. Frees internal coefficients and any closure copy. No Tcl callbacks or diagnostic. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -182,12 +157,7 @@ Samples approximately uniformly in chord parameter, not exact curve arc length. 
 <span class="target" id="rbc_int_8h_1ad82d1d70808a9e900f13487c4d73f4f8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CatromParametricSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CatromParametricSpline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate a Catmull-Rom path at interval/fraction parameters. </p>
 <p>
-Validates parameters before writing, copies and extends source endpoints privately, then evaluates cubic coefficients. Does not use chord-length parameterization. Caller retains both arrays; no Tcl callbacks or diagnostic.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Validates parameters before writing, copies and extends source endpoints privately, then evaluates cubic coefficients. Does not use chord-length parameterization. Caller retains both arrays; no Tcl callbacks or diagnostic. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -219,17 +189,13 @@ entry points below do not acquire vector ownership or publish notifications.</p>
 <span class="target" id="group__spline__internals_1ga011f7156d0dc4a16c86989cdf793c18f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSplineArrayByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elementSize</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteCountPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetSplineArrayByteCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check the byte size of a spline workspace array. </p>
 <p>
-Accepts zero count but rejects negative count, zero elementSize or SIZE_MAX overflow. Returns TCL_OK and writes byteCountPtr on success; otherwise returns TCL_ERROR without changing the output. No allocation or interpreter result. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Accepts zero count but rejects negative count, zero elementSize or SIZE_MAX overflow. Returns TCL_OK and writes byteCountPtr on success; otherwise returns TCL_ERROR without changing the output. No allocation or interpreter result. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of array elements; zero is allowed. </p></li>
 <li><p><strong>elementSize</strong> – <strong>[in]</strong> Nonzero size of one element in bytes. </p></li>
-<li><p><strong>byteCountPtr</strong> – <strong>[out]</strong> Required size output, written only on TCL_OK. </p></li>
+<li><p><strong>byteCountPtr</strong> – <strong>[out]</strong> Required size output, written only on TCL_OK.</p></li>
 </ul>
 </dd>
 </dl>
@@ -240,16 +206,12 @@ Accepts zero count but rejects negative count, zero elementSize or SIZE_MAX over
 <span class="target" id="group__spline__internals_1ga9f87680d6d5e30966f5d0b6cd3762ad6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SplinePointsAreFinite</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SplinePointsAreFinite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate both coordinates of a point array. </p>
 <p>
-Returns FALSE for NULL storage, negative count or a non-finite coordinate. A non-NULL array with zero points is valid. Does not modify the array. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns FALSE for NULL storage, negative count or a non-finite coordinate. A non-NULL array with zero points is valid. Does not modify the array. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> – <strong>[in]</strong> Coordinates to validate; NULL is rejected. </p></li>
-<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible records; negative counts are rejected and zero is allowed. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible records; negative counts are rejected and zero is allowed.</p></li>
 </ul>
 </dd>
 </dl>
@@ -260,16 +222,12 @@ Returns FALSE for NULL storage, negative count or a non-finite coordinate. A non
 <span class="target" id="group__spline__internals_1ga1d8263e81d46214f9e449e156db09534"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SplinePointsHaveIncreasingX</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SplinePointsHaveIncreasingX" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate finite source points with strictly increasing X. </p>
 <p>
-Requires at least two points and validates both coordinates before comparing adjacent abscissas. Returns boolean; the interpolation wrappers impose their own stronger minimum of three source points. Does not modify storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires at least two points and validates both coordinates before comparing adjacent abscissas. Returns boolean; the interpolation wrappers impose their own stronger minimum of three source points. Does not modify storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> – <strong>[in]</strong> Source coordinates to validate for finiteness and strictly increasing X. </p></li>
-<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible source records, at least two for success. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible source records, at least two for success.</p></li>
 </ul>
 </dd>
 </dl>
@@ -280,16 +238,12 @@ Requires at least two points and validates both coordinates before comparing adj
 <span class="target" id="group__spline__internals_1ga8086b918aa431fce0658f281bdd9230c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SplineEvaluationPointsAreFinite</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SplineEvaluationPointsAreFinite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate Cartesian query abscissas without inspecting ordinates. </p>
 <p>
-Rejects NULL storage, negative count and non-finite X. Accepts zero queries with a non-NULL pointer. Query Y may be uninitialized because kernels replace it. Returns boolean and does not change the array. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Rejects NULL storage, negative count and non-finite X. Accepts zero queries with a non-NULL pointer. Query Y may be uninitialized because kernels replace it. Returns boolean and does not change the array. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> – <strong>[in]</strong> Query records; only X is inspected, and Y need not be initialized. </p></li>
-<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible query records; negative counts are rejected and zero is allowed. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of accessible query records; negative counts are rejected and zero is allowed.</p></li>
 </ul>
 </dd>
 </dl>
@@ -300,18 +254,14 @@ Rejects NULL storage, negative count and non-finite X. Accepts zero queries with
 <span class="target" id="group__spline__internals_1gae09adae163eafccf6d55ebfe72771cc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Search</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">key</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foundPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Search" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find an exact knot or insertion position in sorted source X. </p>
 <p>
-Requires strictly increasing source abscissas and finite key. Callers search inside the source domain. Sets foundPtr TRUE for an exact knot, otherwise FALSE and returns the first position whose abscissa exceeds key (possibly nPoints for an out-of-domain caller). Reads only X; no allocation or mutation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires strictly increasing source abscissas and finite key. Callers search inside the source domain. Sets foundPtr TRUE for an exact knot, otherwise FALSE and returns the first position whose abscissa exceeds key (possibly nPoints for an out-of-domain caller). Reads only X; no allocation or mutation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> – <strong>[in]</strong> Source array with strictly increasing finite abscissas. </p></li>
 <li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of source points. </p></li>
 <li><p><strong>key</strong> – <strong>[in]</strong> Finite abscissa to locate. </p></li>
-<li><p><strong>foundPtr</strong> – <strong>[out]</strong> Required boolean output distinguishing an exact knot from an insertion position. </p></li>
+<li><p><strong>foundPtr</strong> – <strong>[out]</strong> Required boolean output distinguishing an exact knot from an insertion position.</p></li>
 </ul>
 </dd>
 </dl>
@@ -322,11 +272,7 @@ Requires strictly increasing source abscissas and finite key. Callers search ins
 <span class="target" id="group__spline__internals_1gaba7d0e511d95b60ee6b0f3041aed69d6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadChoose</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">m1</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">m2</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">epsilon</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadChoose" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Choose one of four quadratic interval constructions. </p>
 <p>
-p and q are ordered knots with distinct X; m1 and m2 are endpoint slopes. epsilon is a relative tolerance for slope comparisons (zero in the current Cartesian wrapper). Returns case 1 through 4 without modifying inputs. Case 4 uses two interior knots; the other cases use one. Assumes valid finite inputs; intermediate arithmetic is not checked here. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+p and q are ordered knots with distinct X; m1 and m2 are endpoint slopes. epsilon is a relative tolerance for slope comparisons (zero in the current Cartesian wrapper). Returns case 1 through 4 without modifying inputs. Case 4 uses two interior knots; the other cases use one. Assumes valid finite inputs; intermediate arithmetic is not checked here. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -334,7 +280,7 @@ p and q are ordered knots with distinct X; m1 and m2 are endpoint slopes. epsilo
 <li><p><strong>q</strong> – <strong>[in]</strong> Borrowed right endpoint, with q-&gt;x greater than p-&gt;x. </p></li>
 <li><p><strong>m1</strong> – <strong>[in]</strong> Finite slope at the left endpoint. </p></li>
 <li><p><strong>m2</strong> – <strong>[in]</strong> Finite slope at the right endpoint. </p></li>
-<li><p><strong>epsilon</strong> – <strong>[in]</strong> Relative tolerance for slope comparisons; current Cartesian calls use zero. </p></li>
+<li><p><strong>epsilon</strong> – <strong>[in]</strong> Relative tolerance for slope comparisons; current Cartesian calls use zero.</p></li>
 </ul>
 </dd>
 </dl>
@@ -345,11 +291,7 @@ p and q are ordered knots with distinct X; m1 and m2 are endpoint slopes. epsilo
 <span class="target" id="group__spline__internals_1gad075550da1f125ce8536ca0d0648533d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadCases</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">m1</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">m2</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">which</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadCases" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Populate the ten parameters of a selected quadratic interval. </p>
 <p>
-Requires the case returned by QuadChoose for p, q, m1 and m2. Clears all QUAD_PARAM_COUNT entries before filling the case-dependent knot/control-point pairs V, W, Z, E and Y. The caller owns param and must supply ten doubles. No allocation or finite-result validation; QuadSpline consumes the same case. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires the case returned by QuadChoose for p, q, m1 and m2. Clears all QUAD_PARAM_COUNT entries before filling the case-dependent knot/control-point pairs V, W, Z, E and Y. The caller owns param and must supply ten doubles. No allocation or finite-result validation; QuadSpline consumes the same case. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -358,7 +300,7 @@ Requires the case returned by QuadChoose for p, q, m1 and m2. Clears all QUAD_PA
 <li><p><strong>m1</strong> – <strong>[in]</strong> Finite slope at the left endpoint. </p></li>
 <li><p><strong>m2</strong> – <strong>[in]</strong> Finite slope at the right endpoint. </p></li>
 <li><p><strong>param</strong> – <strong>[out]</strong> Caller-owned array of QUAD_PARAM_COUNT (ten) doubles, fully initialized here. </p></li>
-<li><p><strong>which</strong> – <strong>[in]</strong> Case 1 through 4 returned by QuadChoose for these endpoints and slopes. </p></li>
+<li><p><strong>which</strong> – <strong>[in]</strong> Case 1 through 4 returned by QuadChoose for these endpoints and slopes.</p></li>
 </ul>
 </dd>
 </dl>
@@ -369,11 +311,7 @@ Requires the case returned by QuadChoose for p, q, m1 and m2. Clears all QUAD_PA
 <span class="target" id="group__spline__internals_1gaf36e149d84490c8ac6f475373d5e3f49"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadSelect</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">m1</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">m2</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">epsilon</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadSelect" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Choose a quadratic case and fill its parameter array. </p>
 <p>
-Combines QuadChoose and QuadCases. Returns the case number and writes ten caller-owned doubles to param. Preconditions and unchecked intermediate arithmetic are the same as those helpers; no allocation or callbacks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Combines QuadChoose and QuadCases. Returns the case number and writes ten caller-owned doubles to param. Preconditions and unchecked intermediate arithmetic are the same as those helpers; no allocation or callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -382,7 +320,7 @@ Combines QuadChoose and QuadCases. Returns the case number and writes ten caller
 <li><p><strong>m1</strong> – <strong>[in]</strong> Finite slope at the left endpoint. </p></li>
 <li><p><strong>m2</strong> – <strong>[in]</strong> Finite slope at the right endpoint. </p></li>
 <li><p><strong>epsilon</strong> – <strong>[in]</strong> Relative slope-comparison tolerance passed to QuadChoose. </p></li>
-<li><p><strong>param</strong> – <strong>[out]</strong> Caller-owned array of ten doubles for the returned case. </p></li>
+<li><p><strong>param</strong> – <strong>[out]</strong> Caller-owned array of ten doubles for the returned case.</p></li>
 </ul>
 </dd>
 </dl>
@@ -393,11 +331,7 @@ Combines QuadChoose and QuadCases. Returns the case number and writes ten caller
 <span class="target" id="group__spline__internals_1gabb4bc5c238089f8c1251ad36f3f7d23f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadGetImage</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">p1</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">p2</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">p3</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x1</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x2</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x3</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadGetImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the quadratic blend used within one spline piece. </p>
 <p>
-Uses weights from x1-x2 and x2-x3 over the squared span x1-x3; p1, p2 and p3 are the corresponding ordinates/control value. Requires distinct x1 and x3. Returns a scalar without finite checks, allocation or side effects. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses weights from x1-x2 and x2-x3 over the squared span x1-x3; p1, p2 and p3 are the corresponding ordinates/control value. Requires distinct x1 and x3. Returns a scalar without finite checks, allocation or side effects. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -406,7 +340,7 @@ Uses weights from x1-x2 and x2-x3 over the squared span x1-x3; p1, p2 and p3 are
 <li><p><strong>p3</strong> – <strong>[in]</strong> Ordinate weighted by (x2-x3) squared. </p></li>
 <li><p><strong>x1</strong> – <strong>[in]</strong> First endpoint abscissa, distinct from x3. </p></li>
 <li><p><strong>x2</strong> – <strong>[in]</strong> Evaluation abscissa. </p></li>
-<li><p><strong>x3</strong> – <strong>[in]</strong> Other endpoint abscissa. </p></li>
+<li><p><strong>x3</strong> – <strong>[in]</strong> Other endpoint abscissa.</p></li>
 </ul>
 </dd>
 </dl>
@@ -417,11 +351,7 @@ Uses weights from x1-x2 and x2-x3 over the squared span x1-x3; p1, p2 and p3 are
 <span class="target" id="group__spline__internals_1gaba3d3463dfc95956c835106e708b2c3e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadSpline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">left</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">right</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">ncase</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadSpline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace one query ordinate using a prepared quadratic interval. </p>
 <p>
-Reads intp-&gt;x and writes only intp-&gt;y. left/right, param and ncase must describe the same interval selected by QuadSelect. Selects the appropriate subpiece, preserving an internal knot ordinate exactly. Allows extrapolation and performs no allocation or finite-result check. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Reads intp-&gt;x and writes only intp-&gt;y. left/right, param and ncase must describe the same interval selected by QuadSelect. Selects the appropriate subpiece, preserving an internal knot ordinate exactly. Allows extrapolation and performs no allocation or finite-result check. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -429,7 +359,7 @@ Reads intp-&gt;x and writes only intp-&gt;y. left/right, param and ncase must de
 <li><p><strong>left</strong> – <strong>[in]</strong> Borrowed left source endpoint. </p></li>
 <li><p><strong>right</strong> – <strong>[in]</strong> Borrowed right source endpoint. </p></li>
 <li><p><strong>param</strong> – <strong>[in]</strong> Ten prepared parameters matching the endpoints and case. </p></li>
-<li><p><strong>ncase</strong> – <strong>[in]</strong> Case returned by QuadSelect for this interval. </p></li>
+<li><p><strong>ncase</strong> – <strong>[in]</strong> Case returned by QuadSelect for this interval.</p></li>
 </ul>
 </dd>
 </dl>
@@ -440,17 +370,13 @@ Reads intp-&gt;x and writes only intp-&gt;y. left/right, param and ncase must de
 <span class="target" id="group__spline__internals_1gad148f16d9b57596350cde2678818a936"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadSlopes</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">m</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadSlopes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Estimate shape-preserving quadratic knot derivatives. </p>
 <p>
-Requires at least three finite points with strictly increasing X and caller storage for nPoints derivatives. Uses adjacent secants, sets interior slopes to zero at flat or sign-changing joins, then derives endpoint slopes. Fills m without allocation; the caller must reject non-finite derivatives afterward. The construction preserves shape where compatible with the supplied data. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires at least three finite points with strictly increasing X and caller storage for nPoints derivatives. Uses adjacent secants, sets interior slopes to zero at flat or sign-changing joins, then derives endpoint slopes. Fills m without allocation; the caller must reject non-finite derivatives afterward. The construction preserves shape where compatible with the supplied data. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> – <strong>[in]</strong> Finite source points with strictly increasing X. </p></li>
 <li><p><strong>m</strong> – <strong>[out]</strong> Caller-owned storage for nPoints knot derivatives. </p></li>
-<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of source points, at least three. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of source points, at least three.</p></li>
 </ul>
 </dd>
 </dl>
@@ -461,11 +387,7 @@ Requires at least three finite points with strictly increasing X and caller stor
 <span class="target" id="group__spline__internals_1gada12a3184b6f50bda122d4955a032ecc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadEval</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">origPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">intpPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">m</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">epsilon</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadEval" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate ordered-source quadratic splines at arbitrary query X. </p>
 <p>
-Source X must increase strictly and m must supply one derivative per source knot. Query X need not be sorted. Preserves exact source knots, uses binary search otherwise, and caches parameters only for the last used interval. Outside-domain queries use the first or final interval for extrapolation.<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Source X must increase strictly and m must supply one derivative per source knot. Query X need not be sorted. Preserves exact source knots, uses binary search otherwise, and caches parameters only for the last used interval. Outside-domain queries use the first or final interval for extrapolation.</p>
 <p>Returns 0 for interpolation only, 1 if any query extrapolated, or 2 for an internal interval lookup failure. Replaces query Y incrementally, never X; outputs can be partially written on failure. The wrapper validates finite results afterward. No allocation or callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -475,7 +397,7 @@ Source X must increase strictly and m must supply one derivative per source knot
 <li><p><strong>intpPts</strong> – <strong>[inout]</strong> Caller-owned queries: X supplies abscissas and is retained; Y receives results. </p></li>
 <li><p><strong>nIntpPts</strong> – <strong>[in]</strong> Number of query records, nonnegative. </p></li>
 <li><p><strong>m</strong> – <strong>[in]</strong> One prepared derivative per source knot; source X must strictly increase. </p></li>
-<li><p><strong>epsilon</strong> – <strong>[in]</strong> Relative slope-comparison tolerance for interval preparation. </p></li>
+<li><p><strong>epsilon</strong> – <strong>[in]</strong> Relative slope-comparison tolerance for interval preparation.</p></li>
 </ul>
 </dd>
 </dl>
@@ -486,17 +408,13 @@ Source X must increase strictly and m must supply one derivative per source knot
 <span class="target" id="group__spline__internals_1gaa985a1ed5fdb5da771232616d06e6679"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRealSplineVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetRealSplineVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Look up a real vector for the spline command. </p>
 <p>
-Returns TCL_OK for an existing real vector, otherwise TCL_ERROR with an interpreter message. vecPtrPtr is borrowed and may already be assigned if the type check fails. Does not create, resize, preserve or check writability. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns TCL_OK for an existing real vector, otherwise TCL_ERROR with an interpreter message. vecPtrPtr is borrowed and may already be assigned if the type check fails. Does not create, resize, preserve or check writability. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>interp</strong> – <strong>[in]</strong> Lookup/diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>name</strong> – <strong>[in]</strong> Borrowed vector name resolved in the interpreter. </p></li>
-<li><p><strong>vecPtrPtr</strong> – <strong>[out]</strong> Required output for a borrowed real vector. May already be assigned when type validation fails; no lifetime reference is acquired. </p></li>
+<li><p><strong>vecPtrPtr</strong> – <strong>[out]</strong> Required output for a borrowed real vector. May already be assigned when type validation fails; no lifetime reference is acquired.</p></li>
 </ul>
 </dd>
 </dl>
@@ -507,17 +425,13 @@ Returns TCL_OK for an existing real vector, otherwise TCL_ERROR with an interpre
 <span class="target" id="group__spline__internals_1ga58bf7b29189290c47d859434a41659d4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetComplexSplineVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetComplexSplineVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Look up a complex vector for the parametric command. </p>
 <p>
-Returns TCL_OK for an existing complex vector, otherwise TCL_ERROR with an interpreter message. vecPtrPtr is borrowed and may already be assigned if the type check fails. Does not create, resize, preserve or check writability. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns TCL_OK for an existing complex vector, otherwise TCL_ERROR with an interpreter message. vecPtrPtr is borrowed and may already be assigned if the type check fails. Does not create, resize, preserve or check writability. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>interp</strong> – <strong>[in]</strong> Lookup/diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>name</strong> – <strong>[in]</strong> Borrowed vector name resolved in the interpreter. </p></li>
-<li><p><strong>vecPtrPtr</strong> – <strong>[out]</strong> Required output for a borrowed complex vector. May already be assigned when type validation fails; no lifetime reference is acquired. </p></li>
+<li><p><strong>vecPtrPtr</strong> – <strong>[out]</strong> Required output for a borrowed complex vector. May already be assigned when type validation fails; no lifetime reference is acquired.</p></li>
 </ul>
 </dd>
 </dl>
@@ -528,11 +442,7 @@ Returns TCL_OK for an existing complex vector, otherwise TCL_ERROR with an inter
 <span class="target" id="group__spline__internals_1ga634bd68b1fd57b3476eeae50c8ee059e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SplineStoreResult</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SplineStoreResult" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy completed points and commit a typed spline result. </p>
 <p>
-Requires validated points and a real or complex type. Copies Y into real storage, or X/Y into complex storage, before resolving or creating the output. Existing outputs must match type and be writable. Installs the complete owned buffer before custom old-storage release, array mapping/traces or notification. Preserves record/interpreter lifetime and checks destruction after callbacks.<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires validated points and a real or complex type. Copies Y into real storage, or X/Y into complex storage, before resolving or creating the output. Existing outputs must match type and be writable. Installs the complete owned buffer before custom old-storage release, array mapping/traces or notification. Preserves record/interpreter lifetime and checks destruction after callbacks.</p>
 <p>New real outputs receive automatic mapping unless their names contain an opening parenthesis. Mapping failure deletes only the newly created original record, never a callback-created replacement. Returns TCL_OK with an empty result or TCL_ERROR with diagnostics. Precommit failures leave an existing output unchanged; callback mutations after commit are not rolled back. The caller retains ownership of points. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -541,7 +451,7 @@ Requires validated points and a real or complex type. Copies Y into real storage
 <li><p><strong>name</strong> – <strong>[in]</strong> Borrowed destination name used for the initial lookup or creation, never re-resolved after commit. </p></li>
 <li><p><strong>type</strong> – <strong>[in]</strong> Required output type: RBC_VECTOR_REAL or RBC_VECTOR_COMPLEX. </p></li>
 <li><p><strong>points</strong> – <strong>[in]</strong> Borrowed completed coordinates; Y becomes real data, or X/Y become complex real/imaginary components. </p></li>
-<li><p><strong>length</strong> – <strong>[in]</strong> Nonnegative number of completed points to copy; caller retains the input array. </p></li>
+<li><p><strong>length</strong> – <strong>[in]</strong> Nonnegative number of completed points to copy; caller retains the input array.</p></li>
 </ul>
 </dd>
 </dl>
@@ -552,17 +462,13 @@ Requires validated points and a real or complex type. Copies Y into real storage
 <span class="target" id="group__spline__internals_1ga263d1a689d7334e4f84910b0750d36c8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParametricSplineObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParametricSplineObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate the six-argument complex-vector spline command. </p>
 <p>
-The dispatcher must validate objc before entry. Accepts natural or quadratic, at least three finite source points without consecutive duplicates, and at least two output samples. Copies source coordinates before computation, stages the complete output and commits through SplineStoreResult only if the requested sample count was produced. Supports source/result aliasing. Frees both scratch arrays on every path; returns Tcl status and diagnostics. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+The dispatcher must validate objc before entry. Accepts natural or quadratic, at least three finite source points without consecutive duplicates, and at least two output samples. Copies source coordinates before computation, stages the complete output and commits through SplineStoreResult only if the requested sample count was produced. Supports source/result aliasing. Frees both scratch arrays on every path; returns Tcl status and diagnostics. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>interp</strong> – <strong>[in]</strong> Command interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Must be six, already validated by SplineObjCmd; not checked again here. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Full words: command, parametric, natural|quadratic, source, result, samples. Borrowed as in <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Full words: command, parametric, natural|quadratic, source, result, samples. Borrowed as in <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -573,11 +479,7 @@ The dispatcher must validate objc before entry. Accepts natural or quadratic, at
 <span class="target" id="group__spline__internals_1ga08a9db4aa7bf02c1ef36c3ad7e71641b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SplineObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SplineObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch Cartesian or parametric Tcl spline operations. </p>
 <p>
-Validates operation/arity through splineOps. Cartesian inputs are real vectors with equal X/Y lengths, at least three finite source points, strictly increasing X, and finite query X in any order. Empty queries are supported. Copies all source/query values before running a kernel, so output may alias any input.<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Validates operation/arity through splineOps. Cartesian inputs are real vectors with equal X/Y lengths, at least three finite source points, strictly increasing X, and finite query X in any order. Empty queries are supported. Copies all source/query values before running a kernel, so output may alias any input.</p>
 <p>Commits only a completely successful numerical result through SplineStoreResult; all temporary arrays remain owned by this call and are released on exit. Returns TCL_OK with an empty result or TCL_ERROR with diagnostics. clientData is unused. Parametric operations delegate after argument-count validation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -585,7 +487,7 @@ Validates operation/arity through splineOps. Cartesian inputs are real vectors w
 <li><p><strong>clientData</strong> – <strong>[in]</strong> Unused command client data; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_client_data"><span class="std std-ref">Callback client data</span></a>. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Command interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Count including the command name; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -596,15 +498,11 @@ Validates operation/arity through splineOps. Cartesian inputs are real vectors w
 <span class="target" id="group__spline__internals_1ga6eee09540082c0dc6419b8f2a0f3b58d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SplineInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SplineInit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Register the Tcl spline command. </p>
 <p>
-Creates ::rbc::spline with SplineObjCmd and no client data or delete callback. Returns TCL_OK. Package initialization supplies the namespace; this routine allocates no persistent spline workspace. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Creates ::rbc::spline with SplineObjCmd and no client data or delete callback. Returns TCL_OK. Package initialization supplies the namespace; this routine allocates no persistent spline workspace. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – <strong>[in]</strong> Target interpreter with the rbc namespace already available; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Target interpreter with the rbc namespace already available; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -615,16 +513,12 @@ Creates ::rbc::spline with SplineObjCmd and no client data or delete callback. R
 <span class="target" id="group__spline__internals_1ga16920c3a0b94ab984920555542f0bc8c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveCubic1</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TriDiagonalMatrix</span></span><span class="w"> </span><span class="n"><span class="pre">A</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SolveCubic1" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Factor a cyclic symmetric tridiagonal system in place. </p>
 <p>
-A stores lower/diagonal/upper entries in slots 0/1/2, including the cyclic corner entries A[0][0] and A[n-1][2]. Requires symmetric positive-definite input and n &gt;= 1. Forms C-transpose * D * C with unit-diagonal upper C, overwriting A. Returns FALSE on detected invalid pivots and may leave partial factors. No allocation; later stages still must validate numerical finiteness. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+A stores lower/diagonal/upper entries in slots 0/1/2, including the cyclic corner entries A[0][0] and A[n-1][2]. Requires symmetric positive-definite input and n &gt;= 1. Forms C-transpose * D * C with unit-diagonal upper C, overwriting A. Returns FALSE on detected invalid pivots and may leave partial factors. No allocation; later stages still must validate numerical finiteness. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>A</strong> – <strong>[inout]</strong> Caller-owned n-row cyclic symmetric tridiagonal matrix, overwritten with factors; partial factors may remain on failure. </p></li>
-<li><p><strong>n</strong> – <strong>[in]</strong> Matrix dimension, at least one for success. </p></li>
+<li><p><strong>n</strong> – <strong>[in]</strong> Matrix dimension, at least one for success.</p></li>
 </ul>
 </dd>
 </dl>
@@ -635,17 +529,13 @@ A stores lower/diagonal/upper entries in slots 0/1/2, including the cyclic corne
 <span class="target" id="group__spline__internals_1ga26374364d6d05c642b14efeffdf2ff2b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveCubic2</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TriDiagonalMatrix</span></span><span class="w"> </span><span class="n"><span class="pre">A</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">CubicSpline</span></span><span class="w"> </span><span class="n"><span class="pre">spline</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntervals</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SolveCubic2" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Solve two right-hand sides using the cyclic factors. </p>
 <p>
-Requires factors from successful SolveCubic1 and nIntervals &gt;= 1. Forward, diagonal and backward substitution replace spline[].x and spline[].y with solutions, leaving t unchanged. Does not allocate, check finiteness or return status; CubicSlopes validates the solved values before using them. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires factors from successful SolveCubic1 and nIntervals &gt;= 1. Forward, diagonal and backward substitution replace spline[].x and spline[].y with solutions, leaving t unchanged. Does not allocate, check finiteness or return status; CubicSlopes validates the solved values before using them. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>A</strong> – <strong>[in]</strong> Borrowed successful SolveCubic1 factors for nIntervals rows. </p></li>
 <li><p><strong>spline</strong> – <strong>[inout]</strong> Caller-owned rows: X/Y right-hand sides become solutions; t fields are retained. </p></li>
-<li><p><strong>nIntervals</strong> – <strong>[in]</strong> System dimension, at least one. </p></li>
+<li><p><strong>nIntervals</strong> – <strong>[in]</strong> System dimension, at least one.</p></li>
 </ul>
 </dd>
 </dl>
@@ -656,11 +546,7 @@ Requires factors from successful SolveCubic1 and nIntervals &gt;= 1. Forward, di
 <span class="target" id="group__spline__internals_1ga77a61e9faed2955ce8599f33211053d0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">CubicSpline</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CubicSlopes</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">isClosed</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">unitX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">unitY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CubicSlopes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build chord lengths and limited parametric cubic derivatives. </p>
 <p>
-Requires at least three finite points and positive finite unitX/unitY. Closed paths must already repeat the first point at the end. Divides coordinate differences by those units for the chord metric and rejects lengths no greater than DBL_EPSILON. Builds and solves a cyclic or open tridiagonal system.<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires at least three finite points and positive finite unitX/unitY. Closed paths must already repeat the first point at the end. Divides coordinate differences by those units for the chord metric and rejects lengths no greater than DBL_EPSILON. Builds and solves a cyclic or open tridiagonal system.</p>
 <p>The historical construction limits the scaled derivative right-hand-side norm to 8.5. Open endpoints copy adjacent solved derivatives rather than imposing zero second derivatives; this is distinct from the Cartesian natural kernel. Returns an owned nPoints CubicSpline array to release with ckfree, or NULL on validation, allocation or detected arithmetic failure. Only the first nPoints-1 t entries are interval lengths. Inputs are never modified. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -669,7 +555,7 @@ Requires at least three finite points and positive finite unitX/unitY. Closed pa
 <li><p><strong>nPoints</strong> – <strong>[in]</strong> Number of source points, at least three. </p></li>
 <li><p><strong>isClosed</strong> – <strong>[in]</strong> Nonzero selects closed-path matrix construction. </p></li>
 <li><p><strong>unitX</strong> – <strong>[in]</strong> Positive finite X scale used as a divisor in chord lengths. </p></li>
-<li><p><strong>unitY</strong> – <strong>[in]</strong> Positive finite Y scale used as a divisor in chord lengths. </p></li>
+<li><p><strong>unitY</strong> – <strong>[in]</strong> Positive finite Y scale used as a divisor in chord lengths.</p></li>
 </ul>
 </dd>
 </dl>
@@ -680,11 +566,7 @@ Requires at least three finite points and positive finite unitX/unitY. Closed pa
 <span class="target" id="group__spline__internals_1gadf16b9f4684460b44448bba26fc51746"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CubicEvalPoint</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">origPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">CubicSpline</span></span><span class="w"> </span><span class="n"><span class="pre">spline</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">interval</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">t</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CubicEvalPoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate one parametric cubic at local chord distance. </p>
 <p>
-Caller guarantees valid interval and interval+1 indices in origPts/spline. Validates positive finite interval length and local t in [0,length], preserving endpoint coordinates exactly. Writes pointPtr and returns finite-result status; FALSE can follow non-finite output writes. No allocation or vector callbacks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Caller guarantees valid interval and interval+1 indices in origPts/spline. Validates positive finite interval length and local t in [0,length], preserving endpoint coordinates exactly. Writes pointPtr and returns finite-result status; FALSE can follow non-finite output writes. No allocation or vector callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -692,7 +574,7 @@ Caller guarantees valid interval and interval+1 indices in origPts/spline. Valid
 <li><p><strong>spline</strong> – <strong>[in]</strong> Matching coefficient array containing interval and interval+1. </p></li>
 <li><p><strong>interval</strong> – <strong>[in]</strong> Caller-validated source interval index. </p></li>
 <li><p><strong>t</strong> – <strong>[in]</strong> Local chord distance in [0,spline[interval].t], not a normalized fraction. </p></li>
-<li><p><strong>pointPtr</strong> – <strong>[out]</strong> Required coordinate output. Arithmetic failure may write nonfinite components before returning FALSE. </p></li>
+<li><p><strong>pointPtr</strong> – <strong>[out]</strong> Required coordinate output. Arithmetic failure may write nonfinite components before returning FALSE.</p></li>
 </ul>
 </dd>
 </dl>
@@ -703,11 +585,7 @@ Caller guarantees valid interval and interval+1 indices in origPts/spline. Valid
 <span class="target" id="group__spline__internals_1ga1f126ba15a89a7d7d0b3cb4c43c2cfcc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CubicEval</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">origPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">intpPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">CubicSpline</span></span><span class="w"> </span><span class="n"><span class="pre">spline</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CubicEval" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sample a cubic path uniformly in its chord parameter. </p>
 <p>
-Requires non-NULL arrays, at least two source points and two output slots, and spline interval lengths matching the source. Validates the accumulated length, then uses (1-1e-7)*total/(samples-1) to avoid losing the last sample. Returns the number generated, or zero for detected failure. Failure can leave partial output; the caller must compare the count with its request. Does not restore the exact final endpoint (NaturalParametricSplineCore does that). No allocation; output must not overwrite source or coefficient storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires non-NULL arrays, at least two source points and two output slots, and spline interval lengths matching the source. Validates the accumulated length, then uses (1-1e-7)*total/(samples-1) to avoid losing the last sample. Returns the number generated, or zero for detected failure. Failure can leave partial output; the caller must compare the count with its request. Does not restore the exact final endpoint (NaturalParametricSplineCore does that). No allocation; output must not overwrite source or coefficient storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -715,7 +593,7 @@ Requires non-NULL arrays, at least two source points and two output slots, and s
 <li><p><strong>nOrigPts</strong> – <strong>[in]</strong> Number of source records. </p></li>
 <li><p><strong>intpPts</strong> – <strong>[out]</strong> Caller-owned output array, disjoint from source and coefficients; partial writes may remain on failure. </p></li>
 <li><p><strong>nIntpPts</strong> – <strong>[in]</strong> Requested output count, at least two. </p></li>
-<li><p><strong>spline</strong> – <strong>[in]</strong> Matching coefficients; the first nOrigPts-1 t fields hold positive finite interval lengths. </p></li>
+<li><p><strong>spline</strong> – <strong>[in]</strong> Matching coefficients; the first nOrigPts-1 t fields hold positive finite interval lengths.</p></li>
 </ul>
 </dd>
 </dl>
@@ -726,18 +604,14 @@ Requires non-NULL arrays, at least two source points and two output slots, and s
 <span class="target" id="group__spline__internals_1ga9b157c807c695de2d9ad4b4aef97d5fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuadraticParametricSplineCore</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">origPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">intpPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuadraticParametricSplineCore" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sample coordinate splines on a shared Euclidean chord parameter. </p>
 <p>
-Requires at least three finite source points and two output slots. Allocates private coordinate/imaginary-query arrays, rejects degenerate chords and non-increasing cumulative parameters, and evaluates both quadratic coordinates. Uses intpPts itself as real-query workspace before converting to X/Y, so a zero failure result may leave temporary parameters or partial coordinates there. Returns nIntpPts on success and restores both endpoints exactly. Releases all private arrays; caller-owned source and output must not overlap. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires at least three finite source points and two output slots. Allocates private coordinate/imaginary-query arrays, rejects degenerate chords and non-increasing cumulative parameters, and evaluates both quadratic coordinates. Uses intpPts itself as real-query workspace before converting to X/Y, so a zero failure result may leave temporary parameters or partial coordinates there. Returns nIntpPts on success and restores both endpoints exactly. Releases all private arrays; caller-owned source and output must not overlap. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>origPts</strong> – <strong>[in]</strong> Borrowed source array, disjoint from output. </p></li>
 <li><p><strong>nOrigPts</strong> – <strong>[in]</strong> Number of source records. </p></li>
 <li><p><strong>intpPts</strong> – <strong>[inout]</strong> Caller-owned output also used as query workspace; failure may leave parameters or partial coordinates. </p></li>
-<li><p><strong>nIntpPts</strong> – <strong>[in]</strong> Requested output count, at least two. </p></li>
+<li><p><strong>nIntpPts</strong> – <strong>[in]</strong> Requested output count, at least two.</p></li>
 </ul>
 </dd>
 </dl>
@@ -748,11 +622,7 @@ Requires at least three finite source points and two output slots. Allocates pri
 <span class="target" id="group__spline__internals_1gaa322194ea60fd99cf8bfdc3d2a99ffb7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NaturalParametricSplineCore</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">origPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">unitX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">unitY</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">isClosed</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">intpPts</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.NaturalParametricSplineCore" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sample an open or closed limited cubic path. </p>
 <p>
-Requires at least three finite source points, two output slots and positive finite metric units. Appends a private closing point if requested and missing, then owns/reclaims CubicSlopes workspace. Returns the CubicEval count (zero on detected failure); restores the last endpoint exactly only for a full result. Output may be partially written on failure and must not overlap input. No vector lookup, notification or Tcl callback occurs. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires at least three finite source points, two output slots and positive finite metric units. Appends a private closing point if requested and missing, then owns/reclaims CubicSlopes workspace. Returns the CubicEval count (zero on detected failure); restores the last endpoint exactly only for a full result. Output may be partially written on failure and must not overlap input. No vector lookup, notification or Tcl callback occurs. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -762,7 +632,7 @@ Requires at least three finite source points, two output slots and positive fini
 <li><p><strong>unitY</strong> – <strong>[in]</strong> Positive finite Y scale used as a divisor in chord lengths. </p></li>
 <li><p><strong>isClosed</strong> – <strong>[in]</strong> Nonzero requests a closed curve, appending a closing point privately if needed. </p></li>
 <li><p><strong>intpPts</strong> – <strong>[out]</strong> Caller-owned output array, disjoint from source and coefficients; partial writes may remain on failure. </p></li>
-<li><p><strong>nIntpPts</strong> – <strong>[in]</strong> Requested output count, at least two. </p></li>
+<li><p><strong>nIntpPts</strong> – <strong>[in]</strong> Requested output count, at least two.</p></li>
 </ul>
 </dd>
 </dl>
@@ -773,11 +643,7 @@ Requires at least three finite source points, two output slots and positive fini
 <span class="target" id="group__spline__internals_1ga3179d9cbd8dda7ce53b78da5bbe3ab29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CatromCoeffs</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">a</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">b</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">c</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">d</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CatromCoeffs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build twice-scaled Catmull-Rom polynomial coefficients. </p>
 <p>
-Reads four consecutive control points and writes X/Y coefficients to a, b, c and d. The caller evaluates (d+t*(c+t*(b+t*a)))/2. Output records must be distinct and must not overlap control points. No validation or allocation; the caller handles non-finite evaluation results. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Reads four consecutive control points and writes X/Y coefficients to a, b, c and d. The caller evaluates (d+t*(c+t*(b+t*a)))/2. Output records must be distinct and must not overlap control points. No validation or allocation; the caller handles non-finite evaluation results. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -785,7 +651,7 @@ Reads four consecutive control points and writes X/Y coefficients to a, b, c and
 <li><p><strong>a</strong> – <strong>[out]</strong> Twice-scaled cubic coefficient pair. </p></li>
 <li><p><strong>b</strong> – <strong>[out]</strong> Twice-scaled quadratic coefficient pair. </p></li>
 <li><p><strong>c</strong> – <strong>[out]</strong> Twice-scaled linear coefficient pair. </p></li>
-<li><p><strong>d</strong> – <strong>[out]</strong> Twice-scaled constant coefficient pair; all four outputs must be distinct and disjoint from p. </p></li>
+<li><p><strong>d</strong> – <strong>[out]</strong> Twice-scaled constant coefficient pair; all four outputs must be distinct and disjoint from p.</p></li>
 </ul>
 </dd>
 </dl>

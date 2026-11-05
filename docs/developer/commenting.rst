@@ -51,15 +51,20 @@ against the generated reference with the strict build.
 Use ``@param`` entries for meaningful function-specific inputs and outputs.
 For standard ``interp`` and ``objc``/``objv`` semantics, add
 ``@param[in] interp See @ref rbc_interp_argument.`` and corresponding links
-to ``rbc_command_arguments`` for ``objc``/``objv``. Add
-``@see @ref rbc_calling_conventions`` for the complete contract. Describe local
-exceptions explicitly. Once a function uses ``@param``, document every parameter
+to ``rbc_command_arguments`` for ``objc``/``objv``. Put the link beside the
+parameter it explains, and describe local exceptions explicitly. Do not append
+a blanket ``@see @ref rbc_calling_conventions`` to every function: an already
+complete geometry or numeric parameter description does not benefit from it.
+Once a function uses ``@param``, document every parameter
 to retain Doxygen missing-parameter checks. Always identify
 the concrete ``clientData`` type and its owner. Do not infer that a pointer is
 borrowed or that an output is unchanged on error without checking the code.
 
-Use ``@see`` or Sphinx references to connect related operations. Use the C
-domain for C identifiers, for example :c:func:`Rbc_RenderEnd`.
+Use ``@see`` or Sphinx references to connect related operations. Link a shared
+lifetime section only when it explains a concrete callback, reentry or ownership
+requirement in the local contract. A pointer argument alone is not sufficient
+reason to add a lifetime link. Use the C domain for C identifiers, for example
+:c:func:`Rbc_RenderEnd`.
 Prose chapters explain relationships; reference signatures come from headers.
 
 Migration and review

@@ -45,7 +45,6 @@ const RbcStubs *rbcStubsPtr;
  * @param[in] version Borrowed version requirement passed to Tcl.
  * @param[in] exact Nonzero requests an exact version match.
  * @return Borrowed actual version on success, or NULL on failure.
- * @see @ref rbc_calling_conventions
  *
  * Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx.
  * Package loading may execute Tcl. If require fails or returns NULL client data,

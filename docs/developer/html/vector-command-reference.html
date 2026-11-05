@@ -61,11 +61,7 @@ table in <a class="reference internal" href="vector-commands.html"><span class="
 <span class="target" id="group__vector__command__paths_1gab8815d87753d4616e779207c4b67bb85"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AddVectorSizes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">b</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.AddVectorSizes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Add two nonnegative logical sizes without signed overflow. </p>
 <p>
-Returns TCL_ERROR with a diagnostic for negative operands or a sum above TCL_SIZE_MAX; leaves the output unchanged on failure. Otherwise writes the sum and returns TCL_OK. Does not allocate or execute Tcl. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns TCL_ERROR with a diagnostic for negative operands or a sum above TCL_SIZE_MAX; leaves the output unchanged on failure. Otherwise writes the sum and returns TCL_OK. Does not allocate or execute Tcl. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -76,7 +72,7 @@ Returns TCL_ERROR with a diagnostic for negative operands or a sum above TCL_SIZ
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with the sum, or TCL_ERROR for negative operands or overflow. </p>
+<dd class="field-even"><p>TCL_OK with the sum, or TCL_ERROR for negative operands or overflow.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -86,11 +82,7 @@ Returns TCL_ERROR with a diagnostic for negative operands or a sum above TCL_SIZ
 <span class="target" id="group__vector__command__paths_1ga0d8e4b2bd0a0ab4ddbd9dff8015fff47"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MultiplyVectorSizes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">b</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.MultiplyVectorSizes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Multiply nonnegative logical sizes with overflow checking. </p>
 <p>
-Accepts zero operands, rejects negative operands and products above TCL_SIZE_MAX, and writes the result only on success. Returns a Tcl status with a diagnostic on failure; no allocation or callbacks occur. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Accepts zero operands, rejects negative operands and products above TCL_SIZE_MAX, and writes the result only on success. Returns a Tcl status with a diagnostic on failure; no allocation or callbacks occur. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -101,7 +93,7 @@ Accepts zero operands, rejects negative operands and products above TCL_SIZE_MAX
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with the product, or TCL_ERROR for negative operands or overflow. </p>
+<dd class="field-even"><p>TCL_OK with the product, or TCL_ERROR for negative operands or overflow.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -111,11 +103,7 @@ Accepts zero operands, rejects negative operands and products above TCL_SIZE_MAX
 <span class="target" id="group__vector__command__paths_1gaab8b84f961862a337ec9d318ad245e9f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetArrayByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elementSize</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteCountPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.GetArrayByteCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a logical count to a checked allocation byte count. </p>
 <p>
-Requires a nonzero elementSize and writable output pointer. Rejects negative counts and multiplication exceeding SIZE_MAX. Writes the product only on success and returns a Tcl status. Does not allocate storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a nonzero elementSize and writable output pointer. Rejects negative counts and multiplication exceeding SIZE_MAX. Writes the product only on success and returns a Tcl status. Does not allocate storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -126,7 +114,7 @@ Requires a nonzero elementSize and writable output pointer. Rejects negative cou
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with count times elementSize, or TCL_ERROR if it cannot be represented. </p>
+<dd class="field-even"><p>TCL_OK with count times elementSize, or TCL_ERROR if it cannot be represented.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -136,11 +124,7 @@ Requires a nonzero elementSize and writable output pointer. Rejects negative cou
 <span class="target" id="group__vector__command__paths_1ga442ba40c6d41cdfc2ac472024d9f6198"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckCommandSource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CheckCommandSource" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check logical liveness of a caller-retained vector. </p>
 <p>
-Requires a valid preserved record and interpreter. Rejects vector destruction or interpreter deletion with RBC VECTOR DESTROYED. Does not retain the object itself, check a selection or validate numerical storage contents. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a valid preserved record and interpreter. Rejects vector destruction or interpreter deletion with RBC VECTOR DESTROYED. Does not retain the object itself, check a selection or validate numerical storage contents. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -148,7 +132,7 @@ Requires a valid preserved record and interpreter. Rejects vector destruction or
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK if both owners remain logically live; otherwise TCL_ERROR with RBC VECTOR DESTROYED. </p>
+<dd class="field-even"><p>TCL_OK if both owners remain logically live; otherwise TCL_ERROR with RBC VECTOR DESTROYED.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -158,11 +142,7 @@ Requires a valid preserved record and interpreter. Rejects vector destruction or
 <span class="target" id="group__vector__command__paths_1ga1180cdb6e82f96c3450571a42a919116"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckCommandDestination</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CheckCommandDestination" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check a retained destination for liveness and writability. </p>
 <p>
-First delegates to CheckCommandSource, then enforces the vector read-only flag. Returns a Tcl status. Does not allocate, resize or publish changes; the caller maintains preservation references. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+First delegates to CheckCommandSource, then enforces the vector read-only flag. Returns a Tcl status. Does not allocate, resize or publish changes; the caller maintains preservation references. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -170,7 +150,7 @@ First delegates to CheckCommandSource, then enforces the vector read-only flag. 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK if live and writable, otherwise TCL_ERROR with a diagnostic. </p>
+<dd class="field-even"><p>TCL_OK if live and writable, otherwise TCL_ERROR with a diagnostic.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -180,11 +160,7 @@ First delegates to CheckCommandSource, then enforces the vector read-only flag. 
 <span class="target" id="group__vector__command__paths_1ga8c1b1e9ea243f1664475a3d098b6cf37"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareCommandWrite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.PrepareCommandWrite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare reusable or enlarged storage without releasing old data. </p>
 <p>
-Requires a nonnegative requested length and a retained destination/interpreter. Checks writability, reuses existing capacity when sufficient, otherwise grows geometrically with overflow checks and copies the existing logical prefix. Does not initialize the added tail or change metadata. On success outputs either borrowed current storage or a new allocation; callers distinguish them when abandoning preparation. No storage-release callback occurs here. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a nonnegative requested length and a retained destination/interpreter. Checks writability, reuses existing capacity when sufficient, otherwise grows geometrically with overflow checks and copies the existing logical prefix. Does not initialize the added tail or change metadata. On success outputs either borrowed current storage or a new allocation; callers distinguish them when abandoning preparation. No storage-release callback occurs here. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -195,7 +171,7 @@ Requires a nonnegative requested length and a retained destination/interpreter. 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with reused storage or an owned allocation; TCL_ERROR on protection or allocation failure. </p>
+<dd class="field-even"><p>TCL_OK with reused storage or an owned allocation; TCL_ERROR on protection or allocation failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -205,11 +181,7 @@ Requires a nonnegative requested length and a retained destination/interpreter. 
 <span class="target" id="group__vector__command__paths_1gaaf16d069b27247b6b91ed1a4ff08f5a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareCommandResize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.PrepareCommandResize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare storage using the explicit-resize capacity policy. </p>
 <p>
-Requires a nonnegative length and a retained destination/interpreter. Checks writability and computes capacity from DEF_ARRAY_SIZE, with zero capacity for zero length. Reuses matching capacity or allocates and copies the retained prefix. Does not zero newly added values, install metadata or release old storage. The caller owns a newly allocated result until commit, but must not free a reused current pointer. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a nonnegative length and a retained destination/interpreter. Checks writability and computes capacity from DEF_ARRAY_SIZE, with zero capacity for zero length. Reuses matching capacity or allocates and copies the retained prefix. Does not zero newly added values, install metadata or release old storage. The caller owns a newly allocated result until commit, but must not free a reused current pointer. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -220,7 +192,7 @@ Requires a nonnegative length and a retained destination/interpreter. Checks wri
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with reused storage, an owned allocation or NULL for zero capacity; otherwise TCL_ERROR. </p>
+<dd class="field-even"><p>TCL_OK with reused storage, an owned allocation or NULL for zero capacity; otherwise TCL_ERROR.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -230,18 +202,14 @@ Requires a nonnegative length and a retained destination/interpreter. Checks wri
 <span class="target" id="group__vector__command__paths_1ga673fb834e4ddc1cc299bc4bb42b4dbe0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FinishCommandWrite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.FinishCommandWrite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Install completed storage before releasing the old allocation. </p>
 <p>
-Caller validates dimensions, prepares all values and retains vector/interpreter. Installs data, length, capacity, whole-vector selection and invalid extrema. A changed pointer acquires TCL_DYNAMIC ownership; an unchanged pointer keeps its existing release procedure. Releases detached old storage according to its previous policy, preserving interpreter state across a custom release callback. Does not access vector storage after release, enforce writability or notify observers. Callback effects are not rolled back. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Caller validates dimensions, prepares all values and retains vector/interpreter. Installs data, length, capacity, whole-vector selection and invalid extrema. A changed pointer acquires TCL_DYNAMIC ownership; an unchanged pointer keeps its existing release procedure. Releases detached old storage according to its previous policy, preserving interpreter state across a custom release callback. Does not access vector storage after release, enforce writability or notify observers. Callback effects are not rolled back. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Caller-retained destination, already validated as writable before commit. </p></li>
 <li><p><strong>data</strong> – <strong>[in]</strong> Completed typed storage, either the current pointer or Tcl-allocated storage to transfer. </p></li>
 <li><p><strong>length</strong> – <strong>[in]</strong> Valid nonnegative used count, no greater than size. </p></li>
-<li><p><strong>size</strong> – <strong>[in]</strong> Valid capacity in values for data; NULL storage requires zero capacity. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Valid capacity in values for data; NULL storage requires zero capacity.</p></li>
 </ul>
 </dd>
 </dl>
@@ -252,16 +220,12 @@ Caller validates dimensions, prepares all values and retains vector/interpreter.
 <span class="target" id="group__vector__command__paths_1ga68970c7b4d6868a2bcfafdee3b2cab7e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NotifyCommandWrite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.NotifyCommandWrite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Flush and publish a committed write while preserving command state. </p>
 <p>
-Requires caller-retained vector/interpreter. Skips destroyed owners, flushes an enabled mapped cache, then checks liveness again before notification. A valid nonnegative first reports first through the current final index; all other values report a full update. Restores the saved interpreter result and return options across traces and immediate observers. Does not retain owners itself or undo callback changes. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires caller-retained vector/interpreter. Skips destroyed owners, flushes an enabled mapped cache, then checks liveness again before notification. A valid nonnegative first reports first through the current final index; all other values report a full update. Restores the saved interpreter result and return options across traces and immediate observers. Does not retain owners itself or undo callback changes. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Caller-retained vector and interpreter; logically destroyed owners are skipped. </p></li>
-<li><p><strong>first</strong> – <strong>[in]</strong> First changed zero-based storage index for a suffix, or -1 for a full update. Out-of-range indices also request a full update after cache flushing. </p></li>
+<li><p><strong>first</strong> – <strong>[in]</strong> First changed zero-based storage index for a suffix, or -1 for a full update. Out-of-range indices also request a full update after cache flushing.</p></li>
 </ul>
 </dd>
 </dl>
@@ -272,11 +236,7 @@ Requires caller-retained vector/interpreter. Skips destroyed owners, flushes an 
 <span class="target" id="group__vector__command__paths_1ga85b657f0a8184d6f2eba707d306980f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckCommandRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CheckCommandRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check two saved indices against current live storage bounds. </p>
 <p>
-Requires a retained record. Rejects dead owners or either endpoint outside zero through length minus one, reporting RBC VECTOR RANGE for invalid bounds. Does not check endpoint ordering, writability or whether values changed since the indices were captured. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a retained record. Rejects dead owners or either endpoint outside zero through length minus one, reporting RBC VECTOR RANGE for invalid bounds. Does not check endpoint ordering, writability or whether values changed since the indices were captured. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -286,7 +246,7 @@ Requires a retained record. Rejects dead owners or either endpoint outside zero 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK when both indices remain in bounds, otherwise TCL_ERROR; ordering is not checked. </p>
+<dd class="field-even"><p>TCL_OK when both indices remain in bounds, otherwise TCL_ERROR; ordering is not checked.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -296,11 +256,7 @@ Requires a retained record. Rejects dead owners or either endpoint outside zero 
 <span class="target" id="group__vector__command__paths_1gadfa9db94dc4053e186774d31bf71ba52"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CommandOutputName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">buffer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CommandOutputName" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Qualify an output name in the current namespace. </p>
 <p>
-Initializes and fills the caller DString, preserving absolute names and prefixing relative names with the current namespace. Returns borrowed DString storage for the caller to free. Does not resolve namespaces, interpret selections or validate the name. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Initializes and fills the caller DString, preserving absolute names and prefixing relative names with the current namespace. Returns borrowed DString storage for the caller to free. Does not resolve namespaces, interpret selections or validate the name. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -310,7 +266,7 @@ Initializes and fills the caller DString, preserving absolute names and prefixin
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Qualified name borrowed from buffer, invalidated by its modification or release. </p>
+<dd class="field-even"><p>Qualified name borrowed from buffer, invalidated by its modification or release.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -320,11 +276,7 @@ Initializes and fills the caller DString, preserving absolute names and prefixin
 <span class="target" id="group__vector__command__paths_1ga040ce784580adffee7582265b4842061"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetCommandOutput</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">isNewPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.GetCommandOutput" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve or create a retained same-type command destination. </p>
 <p>
-Qualifies the name in the current namespace, so a relative output does not fall back to a global vector. Existing outputs must be writable and match the source type; their commands and mapped arrays are retained. Missing outputs are created without array mapping. Returns a preserved vector and sets isNewPtr, or NULL on error. Caller releases the preservation reference; this helper does not publish output data. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Qualifies the name in the current namespace, so a relative output does not fall back to a global vector. Existing outputs must be writable and match the source type; their commands and mapped arrays are retained. Missing outputs are created without array mapping. Returns a preserved vector and sets isNewPtr, or NULL on error. Caller releases the preservation reference; this helper does not publish output data. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -334,7 +286,7 @@ Qualifies the name in the current namespace, so a relative output does not fall 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Preserved destination record, released with Tcl_Release by the caller, or NULL on error. </p>
+<dd class="field-even"><p>Preserved destination record, released with Tcl_Release by the caller, or NULL on error.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -344,16 +296,12 @@ Qualifies the name in the current namespace, so a relative output does not fall 
 <span class="target" id="group__vector__command__paths_1gadb81020eac26cb4dd576304bc3ab91a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseCommandOutputs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">CommandOutput</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outputs</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ReleaseCommandOutputs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an output-record array and its preservation references. </p>
 <p>
-Releases every non-NULL vector slot, then frees the owned array. Requires count initialized slots, which may include repeated identities with separate references. Does not destroy newly created vectors or roll back their data. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Releases every non-NULL vector slot, then frees the owned array. Requires count initialized slots, which may include repeated identities with separate references. Does not destroy newly created vectors or roll back their data. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>outputs</strong> – <strong>[in]</strong> Owned array from GetCommandOutputs, consumed and freed by this call. </p></li>
-<li><p><strong>count</strong> – <strong>[in]</strong> Number of initialized slots, each owning a preservation reference when non-NULL. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of initialized slots, each owning a preservation reference when non-NULL.</p></li>
 </ul>
 </dd>
 </dl>
@@ -364,11 +312,7 @@ Releases every non-NULL vector slot, then frees the owned array. Requires count 
 <span class="target" id="group__vector__command__paths_1gac262d2256b6ae3170531943e36870aa0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">CommandOutput</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetCommandOutputs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.GetCommandOutputs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Precheck existing destinations then collect retained output identities. </p>
 <p>
-Allocates zero-initialized output records after checking the byte count. First validates existing literal destinations for type and writability, then resolves or creates each output. On failure releases collected references and the record array; already created vectors remain. Returns an owned array, including an allocation for count zero. Does not reject duplicate names or source/output aliasing; operation handlers impose their own rules. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Allocates zero-initialized output records after checking the byte count. First validates existing literal destinations for type and writability, then resolves or creates each output. On failure releases collected references and the record array; already created vectors remain. Returns an owned array, including an allocation for count zero. Does not reject duplicate names or source/output aliasing; operation handlers impose their own rules. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -378,7 +322,7 @@ Allocates zero-initialized output records after checking the byte count. First v
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Owned array with preserved output records, or NULL on failure. Release with ReleaseCommandOutputs. </p>
+<dd class="field-even"><p>Owned array with preserved output records, or NULL on failure. Release with ReleaseCommandOutputs.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -388,11 +332,7 @@ Allocates zero-initialized output records after checking the byte count. First v
 <span class="target" id="group__vector__command__paths_1ga7bd7cddfbd9b79f37ef3986f50c850ae"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PublishCommandOutput</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">isNew</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.PublishCommandOutput" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map and notify a completed output without resolving its name again. </p>
 <p>
-Requires a retained destination/interpreter and already committed data. A destroyed owner is treated as successfully committed. New real vectors without parentheses receive their default mapped array; existing outputs and complex or parenthesized names do not get a new mapping. Mapping failure returns TCL_ERROR with its diagnostic. Otherwise publishes a full update while restoring prior interpreter state. Does not roll back committed data or callback effects. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a retained destination/interpreter and already committed data. A destroyed owner is treated as successfully committed. New real vectors without parentheses receive their default mapped array; existing outputs and complex or parenthesized names do not get a new mapping. Mapping failure returns TCL_ERROR with its diagnostic. Otherwise publishes a full update while restoring prior interpreter state. Does not roll back committed data or callback effects. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -401,7 +341,7 @@ Requires a retained destination/interpreter and already committed data. A destro
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after publication or if already destroyed; TCL_ERROR for mapping failure after commit. </p>
+<dd class="field-even"><p>TCL_OK after publication or if already destroyed; TCL_ERROR for mapping failure after commit.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -411,11 +351,7 @@ Requires a retained destination/interpreter and already committed data. A destro
 <span class="target" id="group__vector__command__paths_1ga4e2301eda5f8b3272848e44d24ec5772"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AllocateCommandData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.AllocateCommandData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate uninitialized typed staging storage. </p>
 <p>
-Checks byte-count overflow and attempts an owned allocation, reserving one byte for an empty result so NULL denotes failure. Returns a Tcl status. Does not modify vector metadata, check writability or invoke callbacks. The caller frees the allocation or transfers it at commit. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Checks byte-count overflow and attempts an owned allocation, reserving one byte for an empty result so NULL denotes failure. Returns a Tcl status. Does not modify vector metadata, check writability or invoke callbacks. The caller frees the allocation or transfers it at commit. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -425,7 +361,7 @@ Checks byte-count overflow and attempts an owned allocation, reserving one byte 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with an owned non-NULL allocation, including length zero; TCL_ERROR on failure. </p>
+<dd class="field-even"><p>TCL_OK with an owned non-NULL allocation, including length zero; TCL_ERROR on failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -435,11 +371,7 @@ Checks byte-count overflow and attempts an owned allocation, reserving one byte 
 <span class="target" id="group__vector__command__paths_1ga9c69482e6fc863019c0dc7424355c926"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConvertCommandList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ConvertCommandList" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a complete argument list into owned typed staging storage. </p>
 <p>
-Allocates storage and retains a private outer Tcl list representation before evaluating values. Each successful conversion is followed by a destination liveness/writability check. Failure frees staging storage and resets its pointer to NULL. Success returns owned data, or NULL for an empty list. Does not install values or length; callbacks may change the destination themselves. Caller retains the vector/interpreter throughout conversion. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Allocates storage and retains a private outer Tcl list representation before evaluating values. Each successful conversion is followed by a destination liveness/writability check. Failure frees staging storage and resets its pointer to NULL. Success returns owned data, or NULL for an empty list. Does not install values or length; callbacks may change the destination themselves. Caller retains the vector/interpreter throughout conversion. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -450,7 +382,7 @@ Allocates storage and retains a private outer Tcl list representation before eva
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with staged data, or NULL data for zero values; TCL_ERROR on conversion or protection failure. </p>
+<dd class="field-even"><p>TCL_OK with staged data, or NULL data for zero values; TCL_ERROR on conversion or protection failure.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -480,10 +412,6 @@ Compare handler pointers against the explicit complex-operation allowlist. Alias
 <p>
 clientData is the live receiver. Resolve operation spelling and arity before checking complex support, then reject protected receiver writes according to the handler and argument count. Source-only operations check destinations in their own handlers. Reset the shared inclusive selection to the whole vector only after these checks succeed. Preserve the interpreter and receiver while calling the handler, release both, and return its status. Preservation retains the record, not storage after destruction; handlers must revalidate after callbacks. Rejected dispatch does not reset a prior selection. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -493,7 +421,7 @@ clientData is the live receiver. Resolve operation spelling and arity before che
 <li><p><strong>clientData</strong> – <strong>[in]</strong> Live VectorObject owned by the instance command; retained while its handler runs. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Full Tcl command argument count, including command and operation names. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument array; objv[0] is the command and objv[1] selects the operation. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed argument array; objv[0] is the command and objv[1] selects the operation. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -507,26 +435,18 @@ clientData is the live receiver. Resolve operation spelling and arity before che
 <span class="target" id="group__vector__command__paths_1gadd04ae25aa85256513a9dc0233f8a06f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadOnlyOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ReadOnlyOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query or set reversible vector data protection. </p>
 <p>
-With objv[2], parse a Tcl boolean before setting the flag; invalid input leaves the flag unchanged. Return the current boolean state for both forms. Changing protection does not change values, length or type, flush the array, or notify clients. Unlocking is allowed; this is not a lifetime/ownership lock. The dispatcher preserves the live receiver for this handler. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
-</div>
-</p>
+With objv[2], parse a Tcl boolean before setting the flag; invalid input leaves the flag unchanged. Return the current boolean state for both forms. Changing protection does not change values, length or type, flush the array, or notify clients. Unlocking is allowed; this is not a lifetime/ownership lock. The dispatcher preserves the live receiver for this handler. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 2 for a query, or 3 to set protection. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the new Tcl boolean. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the new Tcl boolean. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with the current protection boolean, or TCL_ERROR for invalid boolean input. </p>
+<dd class="field-even"><p>TCL_OK with the current protection boolean, or TCL_ERROR for invalid boolean input.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -536,26 +456,18 @@ With objv[2], parse a Tcl boolean before setting the flag; invalid input leaves 
 <span class="target" id="group__vector__command__paths_1ga2641e33a8b3066438ef6d6069671f714"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.TypeOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the receiver numeric type without converting storage. </p>
 <p>
-Return real or complex as a Tcl string. Requires a live receiver and performs no mutation, cache flush or client notification. An unrecognized internal type is an invariant violation handled by Tcl_Panic, not a user conversion error. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
-</div>
-</p>
+Return real or complex as a Tcl string. Requires a live receiver and performs no mutation, cache flush or client notification. An unrecognized internal type is an invariant violation handled by Tcl_Panic, not a user conversion error. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 2; validated by the dispatcher. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. No arguments after the operation name; this handler does not inspect the array. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. No arguments after the operation name; this handler does not inspect the array. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with real or complex; an invalid internal type is a fatal invariant violation. </p>
+<dd class="field-even"><p>TCL_OK with real or complex; an invalid internal type is a fatal invariant violation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -567,10 +479,6 @@ Return real or complex as a Tcl string. Requires a live receiver and performs no
 <p>
 Vector lookup precedes list conversion. Earlier arguments remain appended if a later argument fails. Reports the appended range when length grew, including the error path; otherwise successful calls report a full update. Flushes the mapped cache when configured. Notification may execute callbacks. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -580,7 +488,7 @@ Vector lookup precedes list conversion. Earlier arguments remain appended if a l
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> At least 3. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are vector references or Tcl lists, processed in order. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Entries from objv[2] are vector references or Tcl lists, processed in order. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -594,11 +502,7 @@ Vector lookup precedes list conversion. Earlier arguments remain appended if a l
 <span class="target" id="group__vector__command__paths_1ga41cd0bf0ff4a4bee83bed9986540e984"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseFormat</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objv</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ParseFormat" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select a supported native scalar type from a format and byte width. </p>
 <p>
-Floating, signed and unsigned formats resolve against native C sizeof values. Returns the consumed argument count, or -1 on error. This is host representation, not a portable serialized type description; conversion to double may lose integer precision. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Floating, signed and unsigned formats resolve against native C sizeof values. Returns the consumed argument count, or -1 on error. This is host representation, not a portable serialized type description; conversion to double may lose integer precision. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -610,7 +514,7 @@ Floating, signed and unsigned formats resolve against native C sizeof values. Re
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>One consumed argument on success, or -1 on failure; not a Tcl status code. </p>
+<dd class="field-even"><p>One consumed argument on success, or -1 on failure; not a Tcl status code.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -620,11 +524,7 @@ Floating, signed and unsigned formats resolve against native C sizeof values. Re
 <span class="target" id="group__vector__command__paths_1ga6ecdf9807f64869bdf5d58c4b900e7ac"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseAt</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objv</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ParseAt" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a binary-input starting storage position. </p>
 <p>
-Uses vector index conversion, allowing positions from zero through length inclusive. Returns the consumed argument count, or -1 on error. Index expressions may evaluate Tcl. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses vector index conversion, allowing positions from zero through length inclusive. Returns the consumed argument count, or -1 on error. Index expressions may evaluate Tcl. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -636,7 +536,7 @@ Uses vector index conversion, allowing positions from zero through length inclus
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>One consumed argument on success, or -1 on failure; not a Tcl status code. </p>
+<dd class="field-even"><p>One consumed argument on success, or -1 on failure; not a Tcl status code.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -648,10 +548,6 @@ Uses vector index conversion, allowing positions from zero through length inclus
 <p>
 Retains a readable channel, temporarily sets binary translation, and restores the saved translation if the caller has not closed the channel. Real values use one scalar, complex values two interleaved scalars. A positive count performs one read; zero reads chunks until EOF or a zero-byte read. Rejects incomplete values rather than buffering partial records. Completed chunks remain on error and trigger cache flushing/notification while preserving the original error state. Success reports logical value count. Checks destination lifetime/read-only state and channel registration after reflected reads. The dispatcher retains the vector. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -661,7 +557,7 @@ Retains a readable channel, temporarily sets binary translation, and restores th
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> At least 3. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] names the channel; later entries contain the optional count and binary-input switches. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] names the channel; later entries contain the optional count and binary-input switches. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -677,10 +573,6 @@ Retains a readable channel, temporarily sets binary translation, and restores th
 <p>
 Delegate to Rbc_VectorFlushCache even when automatic flushing is disabled. Read-only vectors are accepted because this is not a numerical write. The helper may invoke user variable traces, whose side effects are not undone. Return TCL_OK after the void helper; do not access the receiver afterward or claim that cache recreation errors are propagated. No value notification is requested by this handler. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -690,7 +582,7 @@ Delegate to Rbc_VectorFlushCache even when automatic flushing is disabled. Read-
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 2; validated by the dispatcher. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. No arguments after the operation name; this handler does not inspect the array. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. No arguments after the operation name; this handler does not inspect the array. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -706,10 +598,6 @@ Delegate to Rbc_VectorFlushCache even when automatic flushing is disabled. Read-
 <p>
 Pass objv[2] to Rbc_ExprVector with the receiver as destination. Evaluation uses temporary result storage and validates destination survival, writability and compatible result type before assignment. Propagate an evaluation or assignment error without calling NotifyCommandWrite. On success, request a full update through that callback-aware helper and return TCL_OK. This path does not create a named result vector or return its values as a Tcl list; expression and notification callback side effects remain observable. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -719,7 +607,7 @@ Pass objv[2] to Rbc_ExprVector with the receiver as destination. Evaluation uses
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 3; validated by the dispatcher. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is the vector expression assigned to the existing receiver. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is the vector expression assigned to the existing receiver. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -735,10 +623,6 @@ Pass objv[2] to Rbc_ExprVector with the receiver as destination. Evaluation uses
 <p>
 Stages vector ranges (including self-copy) or converted list values before replacing storage. Failed conversion does not write destination data. Tcl callbacks retain their own side effects. Flushes/notifies only a still-live committed object; callbacks cannot redirect the operation by recreating a name. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -748,7 +632,7 @@ Stages vector ranges (including self-copy) or converted list values before repla
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 3; validated by the dispatcher. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is a vector reference or a Tcl list of replacement values. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. objv[2] is a vector reference or a Tcl list of replacement values. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -764,10 +648,6 @@ Stages vector ranges (including self-copy) or converted list values before repla
 <p>
 Retains resolved destination identities and validates all keys before any write. Reuses one scratch array to apply the permutation without callbacks; only then flushes and notifies surviving objects. Notifications may alter or destroy committed vectors, but never expose a partially applied permutation. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -777,7 +657,7 @@ Retains resolved destination identities and validates all keys before any write.
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> At least 2. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional -reverse starts at objv[2]; following entries are companion vector references. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional -reverse starts at objv[2]; following entries are companion vector references. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -793,10 +673,6 @@ Retains resolved destination identities and validates all keys before any write.
 <p>
 With objv[2], delegate to Rbc_VectorMapVariable and propagate its error. An empty name removes the mapping; it does not rename the vector command. On success, copy the stored array name into the Tcl result when non-NULL; otherwise do not explicitly set a result. The name is the stored mapping spelling, not a newly qualified command name. Read-only and complex receivers are supported. Mapping can invoke traces and is not a rollback transaction. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_callback_lifetimes"><span class="std std-ref">Reentry and object lifetime</span></a></p>
 </div>
 </p>
@@ -806,7 +682,7 @@ With objv[2], delegate to Rbc_VectorMapVariable and propagate its error. An empt
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Receiver retained by the dispatcher; this handler’s contract specifies any mutation. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter for results and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> 2 to query, or 3 to replace/remove the mapping. </p></li>
-<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the array name; an empty string requests unmapping. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed full command argument array. Optional objv[2] is the array name; an empty string requests unmapping. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a> for shared argument lifetime rules. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -820,11 +696,7 @@ With objv[2], delegate to Rbc_VectorMapVariable and propagate its error. An empt
 <span class="target" id="group__vector__command__paths_1gabb05eeca455c477b43d05bafb50aed85"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.AppendVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a selected vector range without Tcl-list conversion. </p>
 <p>
-Requires matching real/complex types. Saves source selection before resize and uses memmove against current storage, permitting self-append. Checks length/byte arithmetic. Returns a Tcl status; does not flush or notify. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires matching real/complex types. Saves source selection before resize and uses memmove against current storage, permitting self-append. Checks length/byte arithmetic. Returns a Tcl status; does not flush or notify. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -833,7 +705,7 @@ Requires matching real/complex types. Saves source selection before resize and u
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after append commit, otherwise TCL_ERROR; publication remains the caller’s responsibility. </p>
+<dd class="field-even"><p>TCL_OK after append commit, otherwise TCL_ERROR; publication remains the caller’s responsibility.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -843,11 +715,7 @@ Requires matching real/complex types. Saves source selection before resize and u
 <span class="target" id="group__vector__command__paths_1gab90c7632638a6757c978ae67cd84915c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.AppendList" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stage list values before appending the completed list. </p>
 <p>
-Converts a complete list into temporary storage and rechecks lifetime and writable state after conversion. Appends to the current length, accounting for callback edits. Conversion failure does not append a partial list. Does not flush or notify; the instance dispatcher retains the destination. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Converts a complete list into temporary storage and rechecks lifetime and writable state after conversion. Appends to the current length, accounting for callback edits. Conversion failure does not append a partial list. Does not flush or notify; the instance dispatcher retains the destination. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -857,7 +725,7 @@ Converts a complete list into temporary storage and rechecks lifetime and writab
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after commit, otherwise TCL_ERROR; callback side effects are not rolled back. </p>
+<dd class="field-even"><p>TCL_OK after commit, otherwise TCL_ERROR; callback side effects are not rolled back.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -867,11 +735,7 @@ Converts a complete list into temporary storage and rechecks lifetime and writab
 <span class="target" id="group__vector__command__paths_1ga33df9783ee82b389ab18502b8c2f4dcf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CopyValues" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a binary scalar buffer into real vector storage. </p>
 <p>
-Checks writable state, range and size arithmetic, extends storage as needed, and advances indexPtr. Optional byte swapping modifies the input buffer in place per scalar. Returns a Tcl status; does not flush or notify. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Checks writable state, range and size arithmetic, extends storage as needed, and advances indexPtr. Optional byte swapping modifies the input buffer in place per scalar. Returns a Tcl status; does not flush or notify. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -885,7 +749,7 @@ Checks writable state, range and size arithmetic, extends storage as needed, and
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after copying and committing, otherwise TCL_ERROR; no cache flushing or notification. </p>
+<dd class="field-even"><p>TCL_OK after copying and committing, otherwise TCL_ERROR; no cache flushing or notification.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -895,11 +759,7 @@ Checks writable state, range and size arithmetic, extends storage as needed, and
 <span class="target" id="group__vector__command__paths_1ga073a7baa979560610b7dbb319d6217f6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyComplexValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CopyComplexValues" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert interleaved binary components into complex storage. </p>
 <p>
-Requires a complex vector. Checks writable state and size arithmetic; extends storage and advances indexPtr by logical values. Swaps bytes within each scalar component, never exchanging real and imaginary components. Modifies the input buffer when swapping; does not flush or notify. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a complex vector. Checks writable state and size arithmetic; extends storage and advances indexPtr by logical values. Swaps bytes within each scalar component, never exchanging real and imaginary components. Modifies the input buffer when swapping; does not flush or notify. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -913,7 +773,7 @@ Requires a complex vector. Checks writable state and size arithmetic; extends st
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after copying and committing, otherwise TCL_ERROR; no cache flushing or notification. </p>
+<dd class="field-even"><p>TCL_OK after copying and committing, otherwise TCL_ERROR; no cache flushing or notification.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -923,11 +783,7 @@ Requires a complex vector. Checks writable state and size arithmetic; extends st
 <span class="target" id="group__vector__command__paths_1gacf829e325065570f97f86571ef4be687"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CopyList" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a complete Tcl list before replacing vector storage. </p>
 <p>
-Returns a Tcl status. Conversion failure leaves destination values/length unchanged except for the callbacks’ own changes. Transfers staged storage on success, with lifetime/read-only checks before commit. Does not notify; callers retain the destination and interpreter through callbacks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns a Tcl status. Conversion failure leaves destination values/length unchanged except for the callbacks’ own changes. Transfers staged storage on success, with lifetime/read-only checks before commit. Does not notify; callers retain the destination and interpreter through callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -937,7 +793,7 @@ Returns a Tcl status. Conversion failure leaves destination values/length unchan
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after commit, otherwise TCL_ERROR; callback side effects are not rolled back. </p>
+<dd class="field-even"><p>TCL_OK after commit, otherwise TCL_ERROR; callback side effects are not rolled back.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -947,11 +803,7 @@ Returns a Tcl status. Conversion failure leaves destination values/length unchan
 <span class="target" id="group__vector__command__paths_1ga4545dbc24b4402cf3843404858f537d2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CompareVectorIndices</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vectorArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nVectors</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">i1</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">i2</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CompareVectorIndices" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compare two storage indices lexicographically across real keys. </p>
 <p>
-Requires valid indices in every key vector. Returns -1 or 1 at the first unequal comparable key, otherwise zero. A NaN comparison falls through to the next key because neither less-than nor greater-than succeeds. Does not break ties by original index or invoke callbacks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires valid indices in every key vector. Returns -1 or 1 at the first unequal comparable key, otherwise zero. A NaN comparison falls through to the next key because neither less-than nor greater-than succeeds. Does not break ties by original index or invoke callbacks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -962,7 +814,7 @@ Requires valid indices in every key vector. Returns -1 or 1 at the first unequal
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>-1, 0 or 1 according to the first ordered unequal key; NaN comparisons advance to the next key. </p>
+<dd class="field-even"><p>-1, 0 or 1 according to the first ordered unequal key; NaN comparisons advance to the next key.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -972,11 +824,7 @@ Requires valid indices in every key vector. Returns -1 or 1 at the first unequal
 <span class="target" id="group__vector__command__paths_1ga580a797f61338b819502f52ee7c0c440"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SiftVectorIndices</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">start</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">end</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vectorArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nVectors</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.SiftVectorIndices" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Restore a max heap within an inclusive permutation boundary. </p>
 <p>
-Requires child subtrees below start already to be heaps and valid key storage for each permutation entry. Moves the root down by comparing children through CompareVectorIndices. The root bound prevents overflow in twice-root-plus-one arithmetic. Does nothing when end is not above start; modifies only permutation entries and allocates nothing. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires child subtrees below start already to be heaps and valid key storage for each permutation entry. Moves the root down by comparing children through CompareVectorIndices. The root bound prevents overflow in twice-root-plus-one arithmetic. Does nothing when end is not above start; modifies only permutation entries and allocates nothing. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -984,7 +832,7 @@ Requires child subtrees below start already to be heaps and valid key storage fo
 <li><p><strong>start</strong> – <strong>[in]</strong> Nonnegative root position in the permutation; child subtrees must already be heaps. </p></li>
 <li><p><strong>end</strong> – <strong>[in]</strong> Inclusive final heap position, not a storage index; end &lt;= start performs no work. </p></li>
 <li><p><strong>vectorArr</strong> – <strong>[in]</strong> Borrowed array of stable real key vectors covering every referenced storage index. </p></li>
-<li><p><strong>nVectors</strong> – <strong>[in]</strong> Number of key vectors in primary-to-secondary order. </p></li>
+<li><p><strong>nVectors</strong> – <strong>[in]</strong> Number of key vectors in primary-to-secondary order.</p></li>
 </ul>
 </dd>
 </dl>
@@ -995,18 +843,14 @@ Requires child subtrees below start already to be heaps and valid key storage fo
 <span class="target" id="group__vector__command__paths_1ga4e4a7ced1436a8b37d76f45d3a6291d2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SortVectorIndices</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vectorArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nVectors</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.SortVectorIndices" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Heap-sort an existing index array in ascending key order. </p>
 <p>
-Heapifies the permutation, then moves successive maxima to the end and repairs the remaining heap. Uses constant auxiliary storage and O(length log length) comparisons, each examining up to nVectors keys. Requires stable valid real key storage for the call. Does not move vector values, invoke Tcl or guarantee stable ordering of equal keys. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Heapifies the permutation, then moves successive maxima to the end and repairs the remaining heap. Uses constant auxiliary storage and O(length log length) comparisons, each examining up to nVectors keys. Requires stable valid real key storage for the call. Does not move vector values, invoke Tcl or guarantee stable ordering of equal keys. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>indexArr</strong> – <strong>[inout]</strong> Permutation array with length entries, rearranged in place without moving vector values. </p></li>
 <li><p><strong>length</strong> – <strong>[in]</strong> Nonnegative permutation length; fewer than two entries require no work. </p></li>
 <li><p><strong>vectorArr</strong> – <strong>[in]</strong> Borrowed array of stable real key vectors covering every referenced storage index. </p></li>
-<li><p><strong>nVectors</strong> – <strong>[in]</strong> Number of key vectors in primary-to-secondary order. </p></li>
+<li><p><strong>nVectors</strong> – <strong>[in]</strong> Number of key vectors in primary-to-secondary order.</p></li>
 </ul>
 </dd>
 </dl>

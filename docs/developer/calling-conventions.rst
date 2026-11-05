@@ -4,7 +4,10 @@ C calling conventions
 These are shared interpretation rules, not substitutes for a function's own
 contract. A specific parameter, return or lifetime description takes precedence.
 The same page is a Doxygen reference target, so source comments can link here
-with ``@ref rbc_calling_conventions``.
+using the relevant section anchor, such as ``@ref rbc_interp_argument``
+beside an interpreter parameter. The page-level target
+``@ref rbc_calling_conventions`` is available for architectural overviews;
+it is not a required See also entry on individual functions.
 
 .. doxygenpage:: rbc_calling_conventions
 

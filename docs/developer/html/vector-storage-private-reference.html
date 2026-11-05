@@ -57,11 +57,7 @@ They are not substitutes for installed public stub entries. See
 <span class="target" id="group__vector__storage__private_1ga9bfb33f4c315fc9684873851329f5b87"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorElementSize</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorElementSize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the byte stride for one real or complex value. </p>
 <p>
-Uses sizeof(double) or sizeof(Rbc_Complex). Unsupported internal types panic; this is not a recoverable public type validator. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses sizeof(double) or sizeof(Rbc_Complex). Unsupported internal types panic; this is not a recoverable public type validator. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -69,7 +65,7 @@ Uses sizeof(double) or sizeof(Rbc_Complex). Unsupported internal types panic; th
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Byte stride of one value; unsupported types panic. </p>
+<dd class="field-even"><p>Byte stride of one value; unsupported types panic.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -79,11 +75,7 @@ Uses sizeof(double) or sizeof(Rbc_Complex). Unsupported internal types panic; th
 <span class="target" id="group__vector__storage__private_1gab568761ccf607d93ec483452f8e6bfa4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetVectorByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteCountPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetVectorByteCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a value count and convert it to an allocation byte count. </p>
 <p>
-Rejects negative counts and multiplication overflow with a Tcl error. Writes the output only on success; calls VectorElementSize, so the type must already be valid. Does not allocate storage or evaluate Tcl. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Rejects negative counts and multiplication overflow with a Tcl error. Writes the output only on success; calls VectorElementSize, so the type must already be valid. Does not allocate storage or evaluate Tcl. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -94,7 +86,7 @@ Rejects negative counts and multiplication overflow with a Tcl error. Writes the
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on success; TCL_ERROR with a size diagnostic otherwise. </p>
+<dd class="field-even"><p>TCL_OK on success; TCL_ERROR with a size diagnostic otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -104,11 +96,7 @@ Rejects negative counts and multiplication overflow with a Tcl error. Writes the
 <span class="target" id="group__vector__storage__private_1ga11060dbef3c46d62bb5ff0a09e77edb4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorAlive</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorAlive" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check logical liveness of a retained vector record. </p>
 <p>
-The caller must already protect storage lifetime; this cannot validate an arbitrary pointer. Rejects destruction or interpreter deletion with RBC VECTOR DESTROYED. Does not check writability, name identity or numeric storage stability. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+The caller must already protect storage lifetime; this cannot validate an arbitrary pointer. Rejects destruction or interpreter deletion with RBC VECTOR DESTROYED. Does not check writability, name identity or numeric storage stability. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -116,7 +104,7 @@ The caller must already protect storage lifetime; this cannot validate an arbitr
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK if live; TCL_ERROR with RBC VECTOR DESTROYED otherwise. </p>
+<dd class="field-even"><p>TCL_OK if live; TCL_ERROR with RBC VECTOR DESTROYED otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -126,17 +114,13 @@ The caller must already protect storage lifetime; this cannot validate an arbitr
 <span class="target" id="group__vector__storage__private_1ga1b3ca3d8c8022b59c4cfd823303c93fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseVectorStorage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReleaseVectorStorage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release detached numeric storage according to its ownership policy. </p>
 <p>
-NULL storage and TCL_STATIC require no action; TCL_DYNAMIC uses ckfree. A custom release callback runs with the outer interpreter state saved and restored. The caller must install the completed replacement contract before calling, and separately protect record/interpreter lifetime across arbitrary callback code. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+NULL storage and TCL_STATIC require no action; TCL_DYNAMIC uses ckfree. A custom release callback runs with the outer interpreter state saved and restored. The caller must install the completed replacement contract before calling, and separately protect record/interpreter lifetime across arbitrary callback code. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>interp</strong> – <strong>[in]</strong> See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. Caller protects its lifetime across a custom destructor. </p></li>
 <li><p><strong>data</strong> – <strong>[in]</strong> Detached allocation to release, or NULL. </p></li>
-<li><p><strong>freeProc</strong> – <strong>[in]</strong> TCL_STATIC, TCL_DYNAMIC, or a callable custom destructor. TCL_VOLATILE must already have been converted to owned storage. </p></li>
+<li><p><strong>freeProc</strong> – <strong>[in]</strong> TCL_STATIC, TCL_DYNAMIC, or a callable custom destructor. TCL_VOLATILE must already have been converted to owned storage.</p></li>
 </ul>
 </dd>
 </dl>
@@ -147,18 +131,14 @@ NULL storage and TCL_STATIC require no action; TCL_DYNAMIC uses ckfree. A custom
 <span class="target" id="group__vector__storage__private_1ga610f0ac1487d85e8654b80535577ccc5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PublishVectorChange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">all</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PublishVectorChange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Publish an update while retaining the original vector identity. </p>
 <p>
-Preserves vector and interpreter, saves interpreter state, optionally flushes mapped-array cache, then rechecks liveness before notifying all data or an inclusive interval. Callbacks may delete or replace the vector; this never resolves a replacement by name. Restores state and releases both records before returning. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Preserves vector and interpreter, saves interpreter state, optionally flushes mapped-array cache, then rechecks liveness before notifying all data or an inclusive interval. Callbacks may delete or replace the vector; this never resolves a replacement by name. Restores state and releases both records before returning. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Valid borrowed record; retained internally across publication callbacks. </p></li>
 <li><p><strong>all</strong> – <strong>[in]</strong> Nonzero publishes a full update; zero selects the interval. </p></li>
 <li><p><strong>first</strong> – <strong>[in]</strong> Inclusive first storage index; ignored for a full update. </p></li>
-<li><p><strong>last</strong> – <strong>[in]</strong> Inclusive last storage index; ignored for a full update. </p></li>
+<li><p><strong>last</strong> – <strong>[in]</strong> Inclusive last storage index; ignored for a full update.</p></li>
 </ul>
 </dd>
 </dl>
@@ -169,11 +149,7 @@ Preserves vector and interpreter, saves interpreter state, optionally flushes ma
 <span class="target" id="group__vector__storage__private_1gacb9be26b5dedbb4443be38da5d4e04d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckResizedVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CheckResizedVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a writable resize destination after callback activity. </p>
 <p>
-Requires a retained record. Checks liveness and read-only state, then compares data pointer, length, capacity and full-vector selection against the caller snapshot. Reports RBC VECTOR CHANGED on layout mismatch. Does not prove that numeric values remained unchanged or that no same-layout mutation occurred. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a retained record. Checks liveness and read-only state, then compares data pointer, length, capacity and full-vector selection against the caller snapshot. Reports RBC VECTOR CHANGED on layout mismatch. Does not prove that numeric values remained unchanged or that no same-layout mutation occurred. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -184,7 +160,7 @@ Requires a retained record. Checks liveness and read-only state, then compares d
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK if writable and matching the snapshot; TCL_ERROR otherwise. </p>
+<dd class="field-even"><p>TCL_OK if writable and matching the snapshot; TCL_ERROR otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -194,11 +170,7 @@ Requires a retained record. Checks liveness and read-only state, then compares d
 <span class="target" id="group__vector__storage__private_1gac92cbc61de9eefab2aac0e75de56034b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">VectorTraceError</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorTraceError" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Retain a Tcl object as a variable-trace error result. </p>
 <p>
-Increments the supplied object reference and returns it through the legacy char pointer signature. Valid only with traces registered using TCL_TRACE_RESULT_OBJECT, which tells Tcl to consume an object rather than interpret the pointer as message bytes. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Increments the supplied object reference and returns it through the legacy char pointer signature. Valid only with traces registered using TCL_TRACE_RESULT_OBJECT, which tells Tcl to consume an object rather than interpret the pointer as message bytes. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -206,7 +178,7 @@ Increments the supplied object reference and returns it through the legacy char 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The retained object cast to char *, for TCL_TRACE_RESULT_OBJECT only. </p>
+<dd class="field-even"><p>The retained object cast to char *, for TCL_TRACE_RESULT_OBJECT only.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -216,18 +188,14 @@ Increments the supplied object reference and returns it through the legacy char 
 <span class="target" id="group__vector__storage__private_1ga66f2408898b303ccb790d553eb8f6c3e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ZeroVectorElements</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ZeroVectorElements" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Zero the half-open interval [first,last) of typed storage. </p>
 <p>
-Zeros both components for complex values. Bounds and capacity are caller preconditions; does not allocate, change metadata, invalidate extrema or notify. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Zeros both components for complex values. Bounds and capacity are caller preconditions; does not allocate, change metadata, invalidate extrema or notify. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>type</strong> – <strong>[in]</strong> Real or complex storage type. </p></li>
 <li><p><strong>data</strong> – <strong>[in]</strong> Borrowed writable typed buffer; must cover the requested interval. </p></li>
 <li><p><strong>first</strong> – <strong>[in]</strong> First storage index, inclusive; bounds are caller-validated. </p></li>
-<li><p><strong>last</strong> – <strong>[in]</strong> End storage index, exclusive; must not exceed capacity. </p></li>
+<li><p><strong>last</strong> – <strong>[in]</strong> End storage index, exclusive; must not exceed capacity.</p></li>
 </ul>
 </dd>
 </dl>
@@ -238,11 +206,7 @@ Zeros both components for complex values. Bounds and capacity are caller precond
 <span class="target" id="group__vector__storage__private_1gafcf8c939be5a55fec201a257498f7c3b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorInit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Register the vector ensemble and standalone simplifier. </p>
 <p>
-Initializes the shared NaN value and obtains interpreter-local registry data. Creates rbc::vector, ensures its command namespace exists, then registers rbc::vector::simplify. Returns TCL_ERROR if namespace creation fails, otherwise TCL_OK. Registration is not transactional: an already installed ensemble is not removed on that error. Registry cleanup belongs to the interpreter associated-data delete procedure. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Initializes the shared NaN value and obtains interpreter-local registry data. Creates rbc::vector, ensures its command namespace exists, then registers rbc::vector::simplify. Returns TCL_ERROR if namespace creation fails, otherwise TCL_OK. Registration is not transactional: an already installed ensemble is not removed on that error. Registry cleanup belongs to the interpreter associated-data delete procedure. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -250,7 +214,7 @@ Initializes the shared NaN value and obtains interpreter-local registry data. Cr
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK after registration, or TCL_ERROR on namespace-creation failure; earlier registration remains. </p>
+<dd class="field-even"><p>TCL_OK after registration, or TCL_ERROR on namespace-creation failure; earlier registration remains.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -260,19 +224,15 @@ Initializes the shared NaN value and obtains interpreter-local registry data. Cr
 <span class="target" id="group__vector__storage__private_1ga26f1be30dc680661188192c164f194ba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorRenameTrace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">oldName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newName</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorRenameTrace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Record deletion during a command rename transaction. </p>
 <p>
-clientData points to a live caller-owned flag, set only for TCL_TRACE_DELETE. Ignores name strings and never dereferences the vector, which user command traces may already have destroyed. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+clientData points to a live caller-owned flag, set only for TCL_TRACE_DELETE. Ignores name strings and never dereferences the vector, which user command traces may already have destroyed. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>clientData</strong> – <strong>[inout]</strong> Caller-owned int flag, valid until the temporary trace is removed; set on deletion. </p></li>
-<li><p><strong>interp</strong> – <strong>[in]</strong> Trace interpreter, unused here. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Trace interpreter, unused here. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>oldName</strong> – <strong>[in]</strong> Borrowed old command name, unused here. </p></li>
 <li><p><strong>newName</strong> – <strong>[in]</strong> Borrowed new name, possibly NULL for deletion; unused here. </p></li>
-<li><p><strong>flags</strong> – <strong>[in]</strong> Trace-event mask; only TCL_TRACE_DELETE changes the flag. </p></li>
+<li><p><strong>flags</strong> – <strong>[in]</strong> Trace-event mask; only TCL_TRACE_DELETE changes the flag.</p></li>
 </ul>
 </dd>
 </dl>
@@ -286,10 +246,6 @@ clientData points to a live caller-owned flag, set only for TCL_TRACE_DELETE. Ig
 Resolves a literal source name and an existing destination namespace, validates the destination tail, and rejects registry or command collisions. A canonical unchanged name succeeds immediately. If an instance command exists, invokes global ::rename with a temporary command trace to detect deletion and recursive rename, then verifies the surviving command name. Rechecks registry collision before moving the hash entry. Retains the same vector, storage, clients and mapped-array association; the array name is not changed. Returns the qualified destination name. User trace effects and an already completed command rename are not rolled back if a later check fails. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
 </div>
 </p>
 <dl class="field-list simple">
@@ -312,11 +268,7 @@ Resolves a literal source name and an existing destination namespace, validates 
 <span class="target" id="group__vector__storage__private_1ga1067bc930e9087d61c3d94034d8fb3ba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SimplifyDistance</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">ax</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">ay</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">bx</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">by</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">px</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">py</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SimplifyDistance" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Measure distance from a finite point to a closed segment. </p>
 <p>
-Uses long-double differences, scaled projection and hypot rather than squaring raw coordinates. If initial differences overflow, halves operands before subtraction and restores the factor afterward. Handles coincident endpoints and projections beyond either endpoint. Returns nonnegative distance; a distance outside the platform long-double range may be infinite. Callers validate finite input coordinates. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses long-double differences, scaled projection and hypot rather than squaring raw coordinates. If initial differences overflow, halves operands before subtraction and restores the factor afterward. Handles coincident endpoints and projections beyond either endpoint. Returns nonnegative distance; a distance outside the platform long-double range may be infinite. Callers validate finite input coordinates. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -329,7 +281,7 @@ Uses long-double differences, scaled projection and hypot rather than squaring r
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Nonnegative point-to-segment distance; may overflow the platform long-double range. </p>
+<dd class="field-even"><p>Nonnegative point-to-segment distance; may overflow the platform long-double range.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -339,17 +291,13 @@ Uses long-double differences, scaled projection and hypot rather than squaring r
 <span class="target" id="group__vector__storage__private_1ga85636be6848283570df642c77fa31fc0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SimplifyDeleted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorNotify" title="Rbc_VectorNotify"><span class="n"><span class="pre">Rbc_VectorNotify</span></span></a><span class="w"> </span><span class="n"><span class="pre">notify</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SimplifyDeleted" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invalidate a temporary destination ID on vector destruction. </p>
 <p>
-clientData addresses a live caller-owned ID slot. Destruction clears the slot before the server frees remaining client records; update notifications leave it unchanged. Does not free the ID itself or access a destroyed vector. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+clientData addresses a live caller-owned ID slot. Destruction clears the slot before the server frees remaining client records; update notifications leave it unchanged. Does not free the ID itself or access a destroyed vector. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>interp</strong> – <strong>[in]</strong> Owning notification interpreter, unused here. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> Owning notification interpreter, unused here. See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>clientData</strong> – <strong>[inout]</strong> Caller-owned <a class="reference internal" href="vector-reference.html#rbc_vector_8h_1af00ee250213139f9049fda52db682fcf"><span class="std std-ref">Rbc_VectorId</span></a> slot, valid for the observer’s lifetime. </p></li>
-<li><p><strong>notify</strong> – <strong>[in]</strong> Notification kind; DESTROY clears the slot without freeing the server-owned client record. </p></li>
+<li><p><strong>notify</strong> – <strong>[in]</strong> Notification kind; DESTROY clears the slot without freeing the server-owned client record.</p></li>
 </ul>
 </dd>
 </dl>
@@ -360,15 +308,11 @@ clientData addresses a live caller-owned ID slot. Destruction clears the slot be
 <span class="target" id="group__vector__storage__private_1ga42bf0213bf5a28afa86e6ede876488d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SimplifyFlush</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SimplifyFlush" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh a simplified destination mapped array after commit. </p>
 <p>
-Uses a temporary observer ID whose deletion callback clears the caller slot. Copies the array name before unsetting and re-fetches the server after unset and sentinel write, restoring the trace only while the server survives with the same name. Skips absent IDs, disabled flushing and unmapped vectors. Trace side effects are not rolled back. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses a temporary observer ID whose deletion callback clears the caller slot. Copies the array name before unsetting and re-fetches the server after unset and sentinel write, restoring the trace only while the server survives with the same name. Skips absent IDs, disabled flushing and unmapped vectors. Trace side effects are not rolled back. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>idPtr</strong> – <strong>[inout]</strong> Required caller-owned observer-ID slot, possibly containing NULL; destruction callbacks clear it. </p></li>
+<li><p><strong>idPtr</strong> – <strong>[inout]</strong> Required caller-owned observer-ID slot, possibly containing NULL; destruction callbacks clear it.</p></li>
 </ul>
 </dd>
 </dl>
@@ -382,10 +326,6 @@ Uses a temporary observer ID whose deletion callback clears the caller slot. Cop
 Requires finite coordinates, finite nonnegative tolerance, equal input lengths and distinct writable existing destinations. Inputs may alias outputs. Iterative closed-segment Douglas-Peucker subdivision computes both outputs before mutation. Validation/allocation failures leave destinations unchanged. Commit installs both arrays before releasing old storage, flushing arrays or notifying observers. Temporary IDs track destination deletion during callbacks. Preserves identity and offsets, returns retained count, and does not roll back post-commit callback side effects. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
 </div>
 </p>
 <dl class="field-list simple">
@@ -412,10 +352,6 @@ Borrows arguments and removes the ensemble command word by shifting the vector a
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
 </div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -441,10 +377,6 @@ Uses the typed command table to check name and arity before calling the selected
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
 </div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -466,11 +398,7 @@ Uses the typed command table to check name and arity before calling the selected
 <span class="target" id="group__vector__storage__private_1ga48cd74b0d3e6f1f51eb9ffc77183baf7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseBool</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseBool" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Consume one boolean creation-option argument. </p>
 <p>
-Returns one consumed argument or minus one with a diagnostic. Uses the borrowed clientData option name for a missing-value error. Writes the destination integer only after successful conversion; does not retain the Tcl object. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns one consumed argument or minus one with a diagnostic. Uses the borrowed clientData option name for a missing-value error. Writes the destination integer only after successful conversion; does not retain the Tcl object. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -482,7 +410,7 @@ Returns one consumed argument or minus one with a diagnostic. Uses the borrowed 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code. </p>
+<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -492,11 +420,7 @@ Returns one consumed argument or minus one with a diagnostic. Uses the borrowed 
 <span class="target" id="group__vector__storage__private_1gaf519c068998b6ce0723aac98c6ac3c28"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseVectorLength</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseVectorLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Consume one Tcl_Size creation-option argument. </p>
 <p>
-Returns one on success or minus one on missing/invalid input. Writes only after conversion. This parses a size integer, not the full vector length policy; caller checks allowed ranges and allocation limits. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns one on success or minus one on missing/invalid input. Writes only after conversion. This parses a size integer, not the full vector length policy; caller checks allowed ranges and allocation limits. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -508,7 +432,7 @@ Returns one on success or minus one on missing/invalid input. Writes only after 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code. </p>
+<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -518,11 +442,7 @@ Returns one on success or minus one on missing/invalid input. Writes only after 
 <span class="target" id="group__vector__storage__private_1ga03bc39b397395680164527440dda854e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSizeFromString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetSizeFromString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a NUL-terminated string to Tcl_Size. </p>
 <p>
-Owns a temporary retained Tcl object for conversion and releases it on either outcome. Returns the conversion status; does not evaluate an expression or validate vector-specific length limits. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Owns a temporary retained Tcl object for conversion and releases it on either outcome. Returns the conversion status; does not evaluate an expression or validate vector-specific length limits. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -532,7 +452,7 @@ Owns a temporary retained Tcl object for conversion and releases it on either ou
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK or TCL_ERROR from Tcl integer conversion. </p>
+<dd class="field-even"><p>TCL_OK or TCL_ERROR from Tcl integer conversion.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -542,11 +462,7 @@ Owns a temporary retained Tcl object for conversion and releases it on either ou
 <span class="target" id="group__vector__storage__private_1ga639752cd445d810cd667b6b9f89427a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseVectorType</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseVectorType" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Consume an explicit real or complex creation type. </p>
 <p>
-Accepts exact lowercase names only. On success stores type and marks specified, distinguishing explicit selection from the caller default. Returns one consumed argument, or minus one without changing option state on error. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Accepts exact lowercase names only. On success stores type and marks specified, distinguishing explicit selection from the caller default. Returns one consumed argument, or minus one without changing option state on error. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -558,7 +474,7 @@ Accepts exact lowercase names only. On success stores type and marks specified, 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code. </p>
+<dd class="field-even"><p>One consumed value, or -1 on error; this is not a Tcl status code.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -571,10 +487,6 @@ Accepts exact lowercase names only. On success stores type and marks specified, 
 Borrows ensemble arguments and owns the parsed name array, work string and result object. Prechecks existing candidate vectors for read-only state before processing names. Exact registered names take precedence over legacy numeric size/range suffixes; -literal disables suffix interpretation. Explicit type changes are rejected. Real names without parentheses receive default array mappings; complex or parenthesized names do not. Positive requested lengths resize storage; zero does not truncate an existing vector. Retains each returned vector and interpreter across resize and publication, checks liveness, and returns the last qualified name. Later failures do not roll back earlier creations, reconfiguration or callback effects. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
 </div>
 </p>
 <dl class="field-list simple">
@@ -601,10 +513,6 @@ Uses the range-aware lookup helper, then destroys the entire returned vector, no
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
 </div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -626,11 +534,7 @@ Uses the range-aware lookup helper, then destroys the entire returned vector, no
 <span class="target" id="group__vector__storage__private_1ga9d9e44aba952e2c08f24e9e11afe0fe7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorExprObjCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorExprObjCmd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Evaluate an expression as Tcl values or a newly named vector. </p>
 <p>
-Without -name delegates directly to Rbc_ExprVector. Named output resolves an existing destination namespace and rejects vector or command collisions before evaluation and again afterward. Evaluates once into an owned temporary, creates an unmapped vector of the resulting type, and transfers its storage without Tcl-list conversion. A final <code class="docutils literal notranslate"><span class="pre">#auto</span></code> component requests generated naming. Returns the qualified new name; never overwrites an existing vector. Frees the temporary and work strings on every exit. Expression callback side effects are not rolled back. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Without -name delegates directly to Rbc_ExprVector. Named output resolves an existing destination namespace and rejects vector or command collisions before evaluation and again afterward. Evaluates once into an owned temporary, creates an unmapped vector of the resulting type, and transfers its storage without Tcl-list conversion. A final <code class="docutils literal notranslate"><span class="pre">#auto</span></code> component requests generated naming. Returns the qualified new name; never overwrites an existing vector. Frees the temporary and work strings on every exit. Expression callback side effects are not rolled back. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -641,7 +545,7 @@ Without -name delegates directly to Rbc_ExprVector. Named output resolves an exi
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK with copied values or the new qualified name, otherwise TCL_ERROR; evaluation side effects remain. </p>
+<dd class="field-even"><p>TCL_OK with copied values or the new qualified name, otherwise TCL_ERROR; evaluation side effects remain.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -654,10 +558,6 @@ Without -name delegates directly to Rbc_ExprVector. Named output resolves an exi
 Walks the interpreter vector hash table, appending fully qualified keys to a new Tcl list. Matching uses Tcl_StringMatch on the full name. Order follows hash traversal and is not sorted. Does not enumerate Tcl aliases, instance command spellings or mapped arrays, and does not invoke vector observers. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_command_arguments"><span class="std std-ref">Tcl command arguments</span></a></p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
 </div>
 </p>
 <dl class="field-list simple">
@@ -680,11 +580,7 @@ Walks the interpreter vector hash table, appending fully qualified keys to a new
 <span class="target" id="group__vector__storage__private_1ga9af08f7d8b460419b71a7041d3154764"></span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetInterpData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetInterpData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Obtain or lazily initialize an interpreter-local vector registry. </p>
 <p>
-Returns borrowed associated data. First access allocates the vector, math and special-index tables, installs built-in functions and registers interpreter cleanup. Does not create Tcl commands or establish thread-shared storage. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Returns borrowed associated data. First access allocates the vector, math and special-index tables, installs built-in functions and registers interpreter cleanup. Does not create Tcl commands or establish thread-shared storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -692,7 +588,7 @@ Returns borrowed associated data. First access allocates the vector, math and sp
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Borrowed interpreter-associated registry; no ownership transfer. </p>
+<dd class="field-even"><p>Borrowed interpreter-associated registry; no ownership transfer.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -702,16 +598,12 @@ Returns borrowed associated data. First access allocates the vector, math and sp
 <span class="target" id="group__vector__storage__private_1ga97ff4d9c292f2161a61d342462b2625e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorInterpDeleteProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorInterpDeleteProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy registered vectors and release interpreter-local tables. </p>
 <p>
-Repeatedly takes the first remaining registry entry because destruction mutates the table and invokes callbacks. Deletes the math/index table containers and associated data, then frees the registry record. This is interpreter teardown, not a general-purpose registry reset API. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Repeatedly takes the first remaining registry entry because destruction mutates the table and invokes callbacks. Deletes the math/index table containers and associated data, then frees the registry record. This is interpreter teardown, not a general-purpose registry reset API. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>clientData</strong> – <strong>[in]</strong> Owned VectorInterpData associated with the interpreter; released here. </p></li>
-<li><p><strong>interp</strong> – <strong>[in]</strong> See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. Interpreter undergoing teardown. </p></li>
+<li><p><strong>interp</strong> – <strong>[in]</strong> See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. Interpreter undergoing teardown.</p></li>
 </ul>
 </dd>
 </dl>
@@ -722,11 +614,7 @@ Repeatedly takes the first remaining registry entry because destruction mutates 
 <span class="target" id="group__vector__storage__private_1gaa97f25caf076bf6e4654013ba08959a5"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorNew</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorNew" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an unregistered empty real vector record. </p>
 <p>
-Initializes static NULL storage, zero length/capacity, an empty observer chain, idle notifications, invalid extrema and no array flushing. The caller owns the record and may register it or use it as a temporary; release with Rbc_VectorFree. Does not create a name, Tcl command, mapped array or numeric allocation. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Initializes static NULL storage, zero length/capacity, an empty observer chain, idle notifications, invalid extrema and no array flushing. The caller owns the record and may register it or use it as a temporary; release with Rbc_VectorFree. Does not create a name, Tcl command, mapped array or numeric allocation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -734,7 +622,7 @@ Initializes static NULL storage, zero length/capacity, an empty observer chain, 
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Owned empty record, released with Rbc_VectorFree. </p>
+<dd class="field-even"><p>Owned empty record, released with Rbc_VectorFree.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -744,11 +632,7 @@ Initializes static NULL storage, zero length/capacity, an empty observer chain, 
 <span class="target" id="group__vector__storage__private_1ga4d9513b27cd54918de53c1ac460f09ae"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorCreate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cmdName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">varName</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorCreate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create or reuse a registered vector and configure its access surfaces. </p>
 <p>
-Qualifies the name in the current namespace; #auto selects an unused registry and command name. Existing vectors must be writable and have the requested type. Checks command collisions, replaces an existing instance command, and optionally maps an array. NULL command/variable arguments suppress that setup. Returns a borrowed record and writes newPtr on success, or NULL on error. Failure frees a newly created record, but does not roll back existing-object changes. Retains the record and interpreter across command deletion and mapping, and rejects destruction, new protection or replacement commands before continuing. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Qualifies the name in the current namespace; #auto selects an unused registry and command name. Existing vectors must be writable and have the requested type. Checks command collisions, replaces an existing instance command, and optionally maps an array. NULL command/variable arguments suppress that setup. Returns a borrowed record and writes newPtr on success, or NULL on error. Failure frees a newly created record, but does not roll back existing-object changes. Retains the record and interpreter across command deletion and mapping, and rejects destruction, new protection or replacement commands before continuing. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -761,7 +645,7 @@ Qualifies the name in the current namespace; #auto selects an unused registry an
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Borrowed registered identity on success, or NULL with a diagnostic. </p>
+<dd class="field-even"><p>Borrowed registered identity on success, or NULL with a diagnostic.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -778,15 +662,11 @@ Qualifies the name in the current namespace; #auto selects an unused registry an
 <span class="target" id="group__vector__storage__private_1ga0c83158065c10911ac9758ce500c62c3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeVectorRecord</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">DestroyData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeVectorRecord" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a record after Tcl preservation references have drained. </p>
 <p>
-Calls ckfree on the supplied allocation. Used for deferred vector and client record reclamation; resources must already have been detached. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Calls ckfree on the supplied allocation. Used for deferred vector and client record reclamation; resources must already have been detached. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> – <strong>[in]</strong> Owned vector or client record whose resources are already detached; freed here. </p></li>
+<li><p><strong>data</strong> – <strong>[in]</strong> Owned vector or client record whose resources are already detached; freed here.</p></li>
 </ul>
 </dd>
 </dl>
@@ -797,15 +677,11 @@ Calls ckfree on the supplied allocation. Used for deferred vector and client rec
 <span class="target" id="group__vector__storage__private_1ga2da4593c69a92f1830b46ef6537ceed7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorFree" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy a vector identity, its observers and owned resources. </p>
 <p>
-Ignores recursive destruction while the retained record is marked destroying. Preserves record/interpreter, deletes the command and mapping, unregisters the name, cancels pending idle work and delivers synchronous DESTROY with length zero. A temporary name copy remains valid during observer delivery. Detaches remaining clients, releases non-static storage, then defers record reclamation. Callbacks can run during command deletion, unmapping, notification and custom storage release. Preservation delays record reclamation, not logical destruction or storage cleanup. Requires a live non-NULL record; ignores read-only state. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Ignores recursive destruction while the retained record is marked destroying. Preserves record/interpreter, deletes the command and mapping, unregisters the name, cancels pending idle work and delivers synchronous DESTROY with length zero. A temporary name copy remains valid during observer delivery. Detaches remaining clients, releases non-static storage, then defers record reclamation. Callbacks can run during command deletion, unmapping, notification and custom storage release. Preservation delays record reclamation, not logical destruction or storage cleanup. Requires a live non-NULL record; ignores read-only state. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vPtr</strong> – <strong>[in]</strong> Valid non-NULL identity to destroy; may already be marked destroying during recursive cleanup. </p></li>
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Valid non-NULL identity to destroy; may already be marked destroying during recursive cleanup.</p></li>
 </ul>
 </dd>
 </dl>
@@ -816,11 +692,7 @@ Ignores recursive destruction while the retained record is marked destroying. Pr
 <span class="target" id="group__vector__storage__private_1ga3cfbe47e41eb765769c1aa9f03357b29"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorDuplicate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorDuplicate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resize an existing destination and copy the selected source values. </p>
 <p>
-Requires matching numeric types; selected length is last-first+1. Checks byte arithmetic and writability, copies with memmove and copies the source offset. Completes copying before releasing old storage, including same-object slices. Invalidates extrema but does not create a vector, flush or notify. Retains the destination through custom release and rejects destruction, protection or storage/selection changes before returning success. Callback effects remain. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires matching numeric types; selected length is last-first+1. Checks byte arithmetic and writability, copies with memmove and copies the source offset. Completes copying before releasing old storage, including same-object slices. Invalidates extrema but does not create a vector, flush or notify. Retains the destination through custom release and rejects destruction, protection or storage/selection changes before returning success. Callback effects remain. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -829,7 +701,7 @@ Requires matching numeric types; selected length is last-first+1. Checks byte ar
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on successful copy and post-callback checks; TCL_ERROR otherwise. </p>
+<dd class="field-even"><p>TCL_OK on successful copy and post-callback checks; TCL_ERROR otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -840,11 +712,7 @@ Requires matching numeric types; selected length is last-first+1. Checks byte ar
 <dd><p><span class="target" id="group__vector__storage__private_1rbc_vector_reset_storage_contract"></span></p>
 <p>Validate and replace the complete storage ownership contract.</p>
 <p>
-Checks writability, nonnegative length/capacity, length&lt;=capacity and byte counts. NULL data or zero capacity installs empty static storage. TCL_VOLATILE copies used values into capacity-sized owned storage, even for the same input address. Otherwise adopts/borrows the supplied pointer under freeProc. Releases the old owned allocation only when its address differs, after installing the completed metadata. Retains the record and interpreter through release and publication, skipping publication after destruction. Returns TCL_OK once the buffer ownership contract is accepted, even if callbacks destroy the vector; callers must not free an adopted buffer again. Precommit errors leave ownership with the caller. Does not reset the shared first/last selection. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Checks writability, nonnegative length/capacity, length&lt;=capacity and byte counts. NULL data or zero capacity installs empty static storage. TCL_VOLATILE copies used values into capacity-sized owned storage, even for the same input address. Otherwise adopts/borrows the supplied pointer under freeProc. Releases the old owned allocation only when its address differs, after installing the completed metadata. Retains the record and interpreter through release and publication, skipping publication after destruction. Returns TCL_OK once the buffer ownership contract is accepted, even if callbacks destroy the vector; callers must not free an adopted buffer again. Precommit errors leave ownership with the caller. Does not reset the shared first/last selection. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -856,7 +724,7 @@ Checks writability, nonnegative length/capacity, length&lt;=capacity and byte co
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK once the storage contract is accepted, even if later callbacks destroy the vector; TCL_ERROR before acceptance. </p>
+<dd class="field-even"><p>TCL_OK once the storage contract is accepted, even if later callbacks destroy the vector; TCL_ERROR before acceptance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -866,11 +734,7 @@ Checks writability, nonnegative length/capacity, length&lt;=capacity and byte co
 <span class="target" id="group__vector__storage__private_1ga10aac13fe50f6fb4ffcc6c7902333544"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorReset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valueArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorReset" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Apply a real storage reset after checking the vector type. </p>
 <p>
-Rejects a complex vector with a Tcl error; otherwise delegates to ResetVectorStorage, including its ownership and callback restrictions. Does not convert types or make a separate numeric result. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Rejects a complex vector with a Tcl error; otherwise delegates to ResetVectorStorage, including its ownership and callback restrictions. Does not convert types or make a separate numeric result. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -882,7 +746,7 @@ Rejects a complex vector with a Tcl error; otherwise delegates to ResetVectorSto
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Tcl status with the shared reset ownership-acceptance semantics. </p>
+<dd class="field-even"><p>Tcl status with the shared reset ownership-acceptance semantics.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -892,15 +756,11 @@ Rejects a complex vector with a Tcl error; otherwise delegates to ResetVectorSto
 <span class="target" id="group__vector__storage__private_1ga13bcc650910a8730d1e491f5f92d6837"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorNotifyClients</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorNotifyClients" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Deliver a snapshot of vector observers with stable update metadata. </p>
 <p>
-Preserves vector, interpreter and snapshotted client IDs, not chain links. Clears pending update state before invoking callbacks. New clients wait for a later notification; detached or reassigned IDs are skipped and destruction stops remaining update callbacks. Temporarily installs the event interval on each client and restores its outer interval after nested delivery. Releases every retained ID even when delivery stops early. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Preserves vector, interpreter and snapshotted client IDs, not chain links. Clears pending update state before invoking callbacks. New clients wait for a later notification; detached or reassigned IDs are skipped and destruction stops remaining update callbacks. Temporarily installs the event interval on each client and restores its outer interval after nested delivery. Releases every retained ID even when delivery stops early. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Valid VectorObject for this delivery, including destruction delivery; retained internally, but not owned by the callback. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Valid VectorObject for this delivery, including destruction delivery; retained internally, but not owned by the callback.</p></li>
 </ul>
 </dd>
 </dl>
@@ -911,11 +771,7 @@ Preserves vector, interpreter and snapshotted client IDs, not chain links. Clear
 <span class="target" id="group__vector__storage__private_1ga8bf46aba1ddb536dc8e1396ed596d029"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorChangeLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorChangeLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resize typed storage without publishing a change to clients. </p>
 <p>
-Checks writability and a nonnegative length. Chooses a capacity starting at DEF_ARRAY_SIZE and doubling to fit, with overflow protection. Reuses an equal capacity allocation; otherwise copies the retained prefix into new storage. Zeros added values and installs length/capacity, selection 0..length-1 and invalid extrema before releasing old owned storage. Zero length releases storage. Does not flush or notify. Retains the record and interpreter across custom release; returns TCL_ERROR if it destroys, protects or changes the installed storage/selection. Such errors do not roll back the commit or callback effects. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Checks writability and a nonnegative length. Chooses a capacity starting at DEF_ARRAY_SIZE and doubling to fit, with overflow protection. Reuses an equal capacity allocation; otherwise copies the retained prefix into new storage. Zeros added values and installs length/capacity, selection 0..length-1 and invalid extrema before releasing old owned storage. Zero length releases storage. Does not flush or notify. Retains the record and interpreter across custom release; returns TCL_ERROR if it destroys, protects or changes the installed storage/selection. Such errors do not roll back the commit or callback effects. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -924,7 +780,7 @@ Checks writability and a nonnegative length. Chooses a capacity starting at DEF_
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>TCL_OK on success; TCL_ERROR for protection, size or post-callback failures. </p>
+<dd class="field-even"><p>TCL_OK on success; TCL_ERROR for protection, size or post-callback failures.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -937,10 +793,6 @@ Checks writability and a nonnegative length. Chooses a capacity starting at DEF_
 Delegates to Rbc_VectorParseElement with current/global namespace search and rejects trailing unconsumed characters. Returns TCL_OK and writes a borrowed vector pointer only on success, otherwise TCL_ERROR with an interpreter diagnostic. Parsing may update the selection and evaluate index expressions; this is not a literal-name lookup or a lifetime-retaining API. Callers needing to survive subsequent callbacks must retain and revalidate the object separately. <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p>Rbc_VectorParseElement</p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
 </div>
 </p>
 <dl class="field-list simple">
@@ -966,10 +818,6 @@ Requires start and end in one readable buffer with end not before start. Copies 
 <p class="admonition-title">See also</p>
 <p>Rbc_VectorGetIndex</p>
 </div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -993,18 +841,14 @@ Requires start and end in one readable buffer with end not before start. Copies 
 <span class="target" id="group__vector__storage__private_1ga6724e7adf326832994fbd857e2c9d1be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScheduleVectorUpdate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">all</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ScheduleVectorUpdate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Coalesce changed intervals and apply the notification policy. </p>
 <p>
-Destroyed vectors are ignored. Increments dirty even when notifications are disabled. A full update supersedes interval metadata; ranged updates merge inclusive endpoints. Immediate mode can invoke callbacks before return; idle mode queues at most one pending callback. Does not itself invalidate or recompute extrema. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Destroyed vectors are ignored. Increments dirty even when notifications are disabled. A full update supersedes interval metadata; ranged updates merge inclusive endpoints. Immediate mode can invoke callbacks before return; idle mode queues at most one pending callback. Does not itself invalidate or recompute extrema. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vPtr</strong> – <strong>[inout]</strong> Valid vector record; logically destroyed records are ignored. </p></li>
 <li><p><strong>all</strong> – <strong>[in]</strong> Nonzero supersedes ranged metadata with a full update. </p></li>
 <li><p><strong>first</strong> – <strong>[in]</strong> Validated inclusive first changed storage index; ignored when all is nonzero. </p></li>
-<li><p><strong>last</strong> – <strong>[in]</strong> Validated inclusive last changed storage index; ignored when all is nonzero. </p></li>
+<li><p><strong>last</strong> – <strong>[in]</strong> Validated inclusive last changed storage index; ignored when all is nonzero.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1015,15 +859,11 @@ Destroyed vectors are ignored. Increments dirty even when notifications are disa
 <span class="target" id="group__vector__storage__private_1gab07ade781d883c8a8ed5a68e640339d4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvalidateVectorRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InvalidateVectorRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Mark cached extrema as requiring recomputation. </p>
 <p>
-Stores NaN bounds and negative indices, then sets UPDATE_RANGE. Does not inspect numeric data, increment dirty or schedule observers; callers separately publish the change. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Stores NaN bounds and negative indices, then sets UPDATE_RANGE. Does not inspect numeric data, increment dirty or schedule observers; callers separately publish the change. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Valid record whose extrema cache is invalidated; storage is not examined. </p></li>
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Valid record whose extrema cache is invalidated; storage is not examined.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1034,11 +874,7 @@ Stores NaN bounds and negative indices, then sets UPDATE_RANGE. Does not inspect
 <span class="target" id="group__vector__storage__private_1ga181ccd619ea53e4cef82906ae68b7012"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UpdateVectorRangeForChangedRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.UpdateVectorRangeForChangedRange" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Maintain exact real-vector extrema after a bounded modification. </p>
 <p>
-Requires a real vector whose caller has already changed only the stated inclusive interval. Returns FALSE without committing when the cache is invalid, bounds are invalid, an old extremum was touched or cache state is inconsistent. Otherwise scans only changed finite values, retaining the earliest index on equal extrema, and commits the exact cache. TRUE also covers a vector with no finite values. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Requires a real vector whose caller has already changed only the stated inclusive interval. Returns FALSE without committing when the cache is invalid, bounds are invalid, an old extremum was touched or cache state is inconsistent. Otherwise scans only changed finite values, retaining the earliest index on equal extrema, and commits the exact cache. TRUE also covers a vector with no finite values. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1048,7 +884,7 @@ Requires a real vector whose caller has already changed only the stated inclusiv
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Nonzero if the extrema cache was updated; zero requests full recomputation later. </p>
+<dd class="field-even"><p>Nonzero if the extrema cache was updated; zero requests full recomputation later.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1100,11 +936,7 @@ Requires a real vector whose caller has already changed only the stated inclusiv
 <span class="target" id="group__vector__storage__private_1ga6adeb844112431cce83748fa2e86b9b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FindVectorInNamespace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Namespace</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindVectorInNamespace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find a literal vector in one namespace registry scope. </p>
 <p>
-Builds a temporary qualified key, queries the interpreter-local vector table and frees the key. Returns a borrowed record or NULL. Does not resolve Tcl command aliases or acquire a vector client ID. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Builds a temporary qualified key, queries the interpreter-local vector table and frees the key. Returns a borrowed record or NULL. Does not resolve Tcl command aliases or acquire a vector client ID. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1114,7 +946,7 @@ Builds a temporary qualified key, queries the interpreter-local vector table and
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Borrowed registry record, or NULL if the qualified key does not exist. </p>
+<dd class="field-even"><p>Borrowed registry record, or NULL if the qualified key does not exist.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1124,15 +956,11 @@ Builds a temporary qualified key, queries the interpreter-local vector table and
 <span class="target" id="group__vector__storage__private_1ga3de0cdb94a4b9234e11b020e66638625"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteCommand</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DeleteCommand" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Remove the instance command without recursively destroying its vector. </p>
 <p>
-Clears the stored command token first, disables the vector command deletion callback and deletes by token rather than caller-relative name. Other command traces may still run. Caller owns record/interpreter lifetime across deletion; this helper does not remove the registry entry or mapped variable. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Clears the stored command token first, disables the vector command deletion callback and deletes by token rather than caller-relative name. Other command traces may still run. Caller owns record/interpreter lifetime across deletion; this helper does not remove the registry entry or mapped variable. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Vector whose instance command is detached and deleted; caller retains its lifetime. </p></li>
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Vector whose instance command is detached and deleted; caller retains its lifetime.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1143,15 +971,11 @@ Clears the stored command token first, disables the vector command deletion call
 <span class="target" id="group__vector__storage__private_1ga5854c1d3eb10b71818829177c9bd6e29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UnmapVariable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.UnmapVariable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach and unset the vector mapped-array access surface. </p>
 <p>
-Captures the owned name and flags, clears arrayName before removing the RBC trace and unsetting the variable, then frees the captured name. User unset traces may destroy or remap the vector. No vector fields are accessed after unset; caller owns surrounding lifetime and continuation checks. <div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Captures the owned name and flags, clears arrayName before removing the RBC trace and unsetting the variable, then frees the captured name. User unset traces may destroy or remap the vector. No vector fields are accessed after unset; caller owns surrounding lifetime and continuation checks. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Vector whose owned array name is detached and released; caller retains its lifetime. </p></li>
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Vector whose owned array name is detached and released; caller retains its lifetime.</p></li>
 </ul>
 </dd>
 </dl>

@@ -665,8 +665,6 @@ int Rbc_CreateGrid(Graph *graphPtr);
  * Uses the owning track's full world extent when the axis has a track;
  * otherwise uses the graph offset and range. Does not clip, round, update
  * layout, or execute Tcl. Descending direction is applied after normalization.
- *
- * @see @ref rbc_calling_conventions
  */
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 /**
@@ -680,8 +678,6 @@ double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
  * Uses the owning track's full world extent when the axis has a track;
  * otherwise uses the graph offset and range. Does not clip, round, update
  * layout, or execute Tcl. Descending direction is applied after normalization.
- *
- * @see @ref rbc_calling_conventions
  */
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
 
@@ -699,8 +695,6 @@ int Rbc_PointInLegend(Graph *graphPtr, int x, int y);
  * conversion returns NAN outside the supported DBL_MIN to DBL_MAX interval.
  * The caller must check results for finiteness. Does not update layout or
  * execute Tcl, and does not acquire ownership of graph or axes.
- *
- * @see @ref rbc_calling_conventions
  */
 Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 /**
@@ -714,8 +708,6 @@ Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
  * Inversion swaps which screen direction receives each logical axis. Axis
  * ownership selects track geometry without entering a temporary track scope.
  * Does not update layout, round coordinates, or execute Tcl.
- *
- * @see @ref rbc_calling_conventions
  */
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);

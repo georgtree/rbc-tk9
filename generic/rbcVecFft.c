@@ -23,7 +23,6 @@
  * @param[in] count Positive number of elements; zero and negative counts are rejected.
  * @param[in] elementSize Nonzero byte width of one element, guaranteed by the caller.
  * @return Owned uninitialized Tcl allocation to release with ckfree, or NULL on failure.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup fft_internals
  *
@@ -51,7 +50,6 @@ static void *FftAllocate(Tcl_Interp *interp, Tcl_Size count, size_t elementSize)
  * @param[in,out] data Array of length complex values, overwritten by the transform.
  * @param[in] roots Read-only length/2 twiddle factors with the transform's sign; NULL is allowed for length one.
  * @param[in] length Positive power-of-two count, already validated by the caller.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup fft_internals
  *
@@ -115,7 +113,6 @@ static void FftTransform(Rbc_Complex *data, const Rbc_Complex *roots, Tcl_Size l
  * @param[out] vPtrPtr Required borrowed-record output, unchanged on failure; no preservation reference is
  *     acquired.
  * @return TCL_OK for a complete-vector selection, otherwise TCL_ERROR.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup fft_internals
  *
@@ -147,7 +144,6 @@ static int FftVector(VectorInterpData *dataPtr, Tcl_Obj *nameObj, VectorObject *
  * @param[out] oldDataPtr Required output receiving detached old storage; caller releases it according to
  *     oldFreeProcPtr.
  * @param[out] oldFreeProcPtr Required output receiving the detached storage's release policy.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup fft_internals
  *
@@ -180,7 +176,6 @@ static void FftInstall(VectorObject *vPtr, void *data, Tcl_Size length,
  * @param[in] count Exactly one or two outputs, matching the fixed local bookkeeping arrays.
  * @param[in] length Common used count and capacity in values for every output buffer.
  * @return TCL_OK with name snapshots in the interpreter result; callback changes are not rolled back.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup fft_internals
  *
@@ -456,7 +451,6 @@ error:
  * @param[in] data Completed independent Tcl-allocated real buffer, consumed by the commit.
  * @param[in] length Number of valid finite values in data and resulting destination capacity.
  * @return TCL_OK with the destination name captured before commit callbacks.
- * @see @ref rbc_calling_conventions
  *
  * @ingroup fft_internals
  *

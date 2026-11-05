@@ -57,12 +57,7 @@ in <a class="reference internal" href="axis-reference.html"><span class="doc">Ax
 <span class="target" id="rbc_graph_8h_1a8065b6b87dd14dea8df1a2709c0dc446"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_HMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_HMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a data value to a horizontal widget coordinate. </p>
 <p>
-Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -82,12 +77,7 @@ Uses the owning track’s full world extent when the axis has a track; otherwise
 <span class="target" id="rbc_graph_8h_1af2a90839ca45b465bee79c1a78972183"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VMap" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a data value to a vertical widget coordinate. </p>
 <p>
-Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -107,12 +97,7 @@ Uses the owning track’s full world extent when the axis has a track; otherwise
 <span class="target" id="rbc_graph_8h_1a61a32fddd6eb3758265a637296b2ce80"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Map2D</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Map2D" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a data-coordinate pair to widget pixels without clipping. </p>
 <p>
-Inversion swaps which screen direction receives each logical axis. Axis ownership selects track geometry without entering a temporary track scope. Does not update layout, round coordinates, or execute Tcl.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Inversion swaps which screen direction receives each logical axis. Axis ownership selects track geometry without entering a temporary track scope. Does not update layout, round coordinates, or execute Tcl. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -133,12 +118,7 @@ Inversion swaps which screen direction receives each logical axis. Axis ownershi
 <span class="target" id="rbc_graph_8h_1a170f8ac33216c3bab39f182295c10766"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InvMap2D</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InvMap2D" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map widget pixels back to logical data coordinates. </p>
 <p>
-Coordinates outside the plot are extrapolated rather than clipped. Log conversion returns NAN outside the supported DBL_MIN to DBL_MAX interval. The caller must check results for finiteness. Does not update layout or execute Tcl, and does not acquire ownership of graph or axes.</p>
-<p><div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="calling-conventions.html#rbc_calling_conventions"><span class="std std-ref">Shared C argument and lifetime conventions</span></a></p>
-</div>
-</p>
+Coordinates outside the plot are extrapolated rather than clipped. Log conversion returns NAN outside the supported DBL_MIN to DBL_MAX interval. The caller must check results for finiteness. Does not update layout or execute Tcl, and does not acquire ownership of graph or axes. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
