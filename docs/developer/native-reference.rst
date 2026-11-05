@@ -1,5 +1,5 @@
-Native backend C reference
-==========================
+Shared and X11 native backend C reference
+=========================================
 
 These declarations in ``rbcRenderNative.h`` are private backend services.
 Components use ``rbcRender.h`` instead. See :doc:`native-rendering` for platform

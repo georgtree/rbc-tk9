@@ -1029,11 +1029,16 @@ void Rbc_NativeArcStroke(Graph *graphPtr, Drawable drawable, GC gc, const Segmen
  * is owned until stack destruction. Platform state follows the allocation.
  */
 typedef struct NativeClipFrame {
-    struct NativeClipFrame *previous, *next;
-    Drawable parent, drawable;
-    Pixmap scratch;
-    int left, top, right, bottom;
-    int platformActive;
+    struct NativeClipFrame *previous; /**< Previous cached clip frame; NULL at the base depth. */
+    struct NativeClipFrame *next; /**< Next cached clip frame; owned by the clip stack. */
+    Drawable parent; /**< Borrowed parent target before entering this clip. */
+    Drawable drawable; /**< Selected output target; None denotes an empty output. */
+    Pixmap scratch; /**< Owned reusable offscreen pixmap, or None for direct clipping. */
+    int left; /**< Absolute left clip bound in widget pixels. */
+    int top; /**< Absolute top clip bound in widget pixels. */
+    int right; /**< Absolute right clip bound in widget pixels. */
+    int bottom; /**< Absolute bottom clip bound in widget pixels. */
+    int platformActive; /**< Nonzero requires platform unclip, including partial initialization. */
 } NativeClipFrame;
 
 /** @brief Native clip stack borrowing a graph and base drawable.
@@ -1041,11 +1046,13 @@ typedef struct NativeClipFrame {
  * current depth; dimensions and borrowed resources stay valid until destruction.
  */
 struct Rbc_NativeClip {
-    Graph *graphPtr;
-    Drawable drawable;
-    GC copyGC;
-    int ownGC, useDC;
-    NativeClipFrame *first, *active;
+    Graph *graphPtr; /**< Borrowed graph whose dimensions and display remain valid. */
+    Drawable drawable; /**< Borrowed base target when no clip frame is active. */
+    GC copyGC; /**< Borrowed caller GC, or lazily allocated GC when ownGC is set. */
+    int ownGC; /**< Nonzero when the clip stack owns copyGC. */
+    int useDC; /**< Nonzero permits direct platform clipping. */
+    NativeClipFrame *first; /**< First frame in the owned reusable depth chain. */
+    NativeClipFrame *active; /**< Current depth; NULL when no clip is active. */
 };
 
 Rbc_NativeClip *Rbc_NativeCreateClip(Graph *graphPtr, Drawable drawable, GC copyGC, int useDC) {

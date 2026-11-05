@@ -7,10 +7,12 @@
  */
 #include "rbcRenderExportInt.h"
 
+/** @brief SVG context borrowing a document builder; owns only its context allocation. */
 typedef struct {
-    Rbc_RenderExportState exportState;
-    unsigned int bitmapId;
-    int bitmapWidth, bitmapHeight;
+    Rbc_RenderExportState exportState; /**< Shared document prefix; must remain first. */
+    unsigned int bitmapId; /**< Document identifier for the bitmap symbol definition. */
+    int bitmapWidth; /**< Bitmap/pattern width in pixels. */
+    int bitmapHeight; /**< Bitmap/pattern height in pixels. */
 } SvgRenderContext;
 
 #define SVG(ctx) ((SvgRenderContext *)(ctx))

@@ -470,7 +470,7 @@ Accepts exact lowercase names only. On success stores type and marks specified, 
 <li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Number of remaining option-value arguments. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed value slice, with the option value at index zero. </p></li>
-<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Required VectorTypeOption receiving the type and specified flag, changed only on success. </p></li>
+<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Required <a class="reference internal" href="#struct_vector_type_option"><span class="std std-ref">VectorTypeOption</span></a> receiving the type and specified flag, changed only on success. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1068,6 +1068,27 @@ Captures the owned name and flags, clears arrayName before removing the RBC trac
 </dd></dl>
 
 </div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.VectorTypeOption">
+<span class="target" id="struct_vector_type_option"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorTypeOption</span></span></span><a class="headerlink" href="#c.VectorTypeOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Explicit vector creation type parsed before allocating storage. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorTypeOption.type">
+<span class="target" id="struct_vector_type_option_1a518999a7df61a3c55ba80677e4127760"></span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><a class="headerlink" href="#c.VectorTypeOption.type" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested real or complex storage type. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorTypeOption.specified">
+<span class="target" id="struct_vector_type_option_1a8cc5d457a9732f043e216559ca892406"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">specified</span></span></span><a class="headerlink" href="#c.VectorTypeOption.specified" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the caller explicitly supplied a type option. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <section id="parameter-and-ownership-conventions">
@@ -1143,6 +1164,11 @@ initialized on failure. The individual contract defines each case; see
 <li><a class="reference internal" href="#c.DeleteCommand"><code class="docutils literal notranslate"><span class="pre">DeleteCommand()</span></code></a></li>
 <li><a class="reference internal" href="#c.UnmapVariable"><code class="docutils literal notranslate"><span class="pre">UnmapVariable()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_CreateVector2"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector2()</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorTypeOption"><code class="docutils literal notranslate"><span class="pre">VectorTypeOption</span></code></a><ul>
+<li><a class="reference internal" href="#c.VectorTypeOption.type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorTypeOption.specified"><code class="docutils literal notranslate"><span class="pre">specified</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#parameter-and-ownership-conventions">Parameter and ownership conventions</a></li>
 </ul>
 </li>

@@ -25,3 +25,12 @@ PostScript drawing callbacks
 
 .. doxygengroup:: postscript_backend
    :members:
+
+Context storage
+---------------
+
+.. doxygenstruct:: Rbc_RenderExportState
+   :members:
+
+.. doxygenstruct:: PostscriptRenderContext
+   :members:

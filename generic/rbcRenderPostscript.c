@@ -7,11 +7,12 @@
  */
 #include "rbcRenderExportInt.h"
 
+/** @brief PostScript context borrowing the token and prolog; does not own document output. */
 typedef struct {
-    Rbc_RenderExportState exportState;
-    PsToken psToken;
-    int postScriptDashed;
-    const char *symbolMacro;
+    Rbc_RenderExportState exportState; /**< Shared document prefix; must remain first. */
+    PsToken psToken; /**< Borrowed PostScript token used for legacy primitive emission. */
+    int postScriptDashed; /**< Nonzero when the current stroke has a dash pattern. */
+    const char *symbolMacro; /**< Borrowed static prolog macro name selected for symbol emission. */
 } PostscriptRenderContext;
 
 #define POSTSCRIPT(ctx) ((PostscriptRenderContext *)(ctx))

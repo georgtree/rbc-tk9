@@ -450,6 +450,257 @@ Validates RGB offsets. A distinct valid alpha offset selects alpha; otherwise pi
 </div>
 </dd></dl>
 
+<section id="context-storage">
+<h2>Context storage<a class="headerlink" href="#context-storage" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.CairoRenderContext">
+<span class="target" id="struct_cairo_render_context"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoRenderContext</span></span></span><a class="headerlink" href="#c.CairoRenderContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Cairo paint context owning graphics resources; input graph and style resources remain borrowed. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.core">
+<span class="target" id="struct_cairo_render_context_1a6679a3b7a7a4fe5255f169adbb31fa79"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">core</span></span></span><a class="headerlink" href="#c.CairoRenderContext.core" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common dispatch prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.fillStyle">
+<span class="target" id="struct_cairo_render_context_1a0ba48c421d10d9ee3cf0c6f993c1c28a"></span><a class="reference internal" href="reference.html#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillStyle</span></span></span><a class="headerlink" href="#c.CairoRenderContext.fillStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied fill policy with borrowed color and stipple resources. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.surface">
+<span class="target" id="struct_cairo_render_context_1a9d32c37693119f0a612542c4e82838e6"></span><span class="n"><span class="pre">cairo_surface_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">surface</span></span></span><a class="headerlink" href="#c.CairoRenderContext.surface" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned surface reference released during context cleanup. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.cr">
+<span class="target" id="struct_cairo_render_context_1a888d2e32c82b8bffb2738241a8521eb0"></span><span class="n"><span class="pre">cairo_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">cr</span></span></span><a class="headerlink" href="#c.CairoRenderContext.cr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned Cairo drawing state, destroyed before the surface. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.bitmapPattern">
+<span class="target" id="struct_cairo_render_context_1a4283a594f7c658127bde9c381db2f91b"></span><span class="n"><span class="pre">cairo_pattern_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bitmapPattern</span></span></span><a class="headerlink" href="#c.CairoRenderContext.bitmapPattern" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned optional bitmap/stipple pattern. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.bitmapWidth">
+<span class="target" id="struct_cairo_render_context_1a8ee091ad03fc78acdb481546d3488da7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmapWidth</span></span></span><a class="headerlink" href="#c.CairoRenderContext.bitmapWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bitmap/pattern width in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.bitmapHeight">
+<span class="target" id="struct_cairo_render_context_1a6c4d61c62b2181701d9ff89a98f89f04"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmapHeight</span></span></span><a class="headerlink" href="#c.CairoRenderContext.bitmapHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bitmap/pattern height in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.foreground">
+<span class="target" id="struct_cairo_render_context_1a9f33ed6c386ffd5cd8cd9e76a00d030d"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">foreground</span></span></span><a class="headerlink" href="#c.CairoRenderContext.foreground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied stroke foreground. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.offColor">
+<span class="target" id="struct_cairo_render_context_1ac03a39abecfca1a9f1698c662c6cb8b7"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offColor</span></span></span><a class="headerlink" href="#c.CairoRenderContext.offColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied off-dash underlay color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.doubleDash">
+<span class="target" id="struct_cairo_render_context_1a1b5f6685dfcd12cd6943b9c6534de9a7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">doubleDash</span></span></span><a class="headerlink" href="#c.CairoRenderContext.doubleDash" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero enables the off-dash underlay. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.nDashes">
+<span class="target" id="struct_cairo_render_context_1a091fed5ae6570bc9525c2f3dd4950a1e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nDashes</span></span></span><a class="headerlink" href="#c.CairoRenderContext.nDashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of initialized entries in dashes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.dashes">
+<span class="target" id="struct_cairo_render_context_1a558bc5cabd84d789e635d289526948b6"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dashes</span></span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">RBC_MAX_DASH_VALUES</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.CairoRenderContext.dashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied dash lengths in Cairo user-space units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CairoRenderContext.dashOffset">
+<span class="target" id="struct_cairo_render_context_1aaefa18511aca2181aa07fbcaa11bb1db"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dashOffset</span></span></span><a class="headerlink" href="#c.CairoRenderContext.dashOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dash phase in Cairo user-space units. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="windows-context-and-marker-pass-target">
+<h2>Windows context and marker-pass target<a class="headerlink" href="#windows-context-and-marker-pass-target" title="Link to this heading">¶</a></h2>
+<p>The target owns the shared DIB and borrows the graph and destination. Its image
+surface and DC are views of that DIB, not independently owned objects.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext">
+<span class="target" id="id13"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoRenderContext</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Cairo paint context owning graphics resources; input graph and style resources remain borrowed. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.core">
+<span class="target" id="id0"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">core</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.core" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common dispatch prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.fillStyle">
+<span class="target" id="id1"></span><a class="reference internal" href="reference.html#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillStyle</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.fillStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied fill policy with borrowed color and stipple resources. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.surface">
+<span class="target" id="id2"></span><span class="n"><span class="pre">cairo_surface_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">surface</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.surface" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned surface reference released during context cleanup. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.cr">
+<span class="target" id="id3"></span><span class="n"><span class="pre">cairo_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">cr</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.cr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned Cairo drawing state, destroyed before the surface. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.bitmapPattern">
+<span class="target" id="id4"></span><span class="n"><span class="pre">cairo_pattern_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bitmapPattern</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.bitmapPattern" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned optional bitmap/stipple pattern. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.bitmapWidth">
+<span class="target" id="id5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmapWidth</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.bitmapWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bitmap/pattern width in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.bitmapHeight">
+<span class="target" id="id6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmapHeight</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.bitmapHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bitmap/pattern height in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.foreground">
+<span class="target" id="id7"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">foreground</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.foreground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied stroke foreground. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.offColor">
+<span class="target" id="id8"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offColor</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.offColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied off-dash underlay color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.doubleDash">
+<span class="target" id="id9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">doubleDash</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.doubleDash" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero enables the off-dash underlay. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.nDashes">
+<span class="target" id="id10"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nDashes</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.nDashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of initialized entries in dashes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.dashes">
+<span class="target" id="id11"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dashes</span></span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">RBC_MAX_DASH_VALUES</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.dashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied dash lengths in Cairo user-space units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.dashOffset">
+<span class="target" id="id12"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dashOffset</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.dashOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dash phase in Cairo user-space units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.dcState">
+<span class="target" id="struct_cairo_render_context_1af4d89975add27d0ef6270b50358cdf4d"></span><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">dcState</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.dcState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned Windows DC acquisition record, or NULL. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.dc">
+<span class="target" id="struct_cairo_render_context_1a69178ca93f4caa5de624f0064962f8f3"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dc</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.dc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>DC borrowed from dcState while the context is live. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext.savedDC">
+<span class="target" id="struct_cairo_render_context_1a992af309480aefad7753482438778913"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">savedDC</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext.savedDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>SaveDC restoration token; zero means no saved state. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget">
+<span class="target" id="struct_rbc___render_target"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTarget</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Windows Cairo marker-pass target; EndMarkerPass copies back and releases owned resources. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget.graphPtr">
+<span class="target" id="struct_rbc___render_target_1a3a7ca331700b25e197028b2748be9282"></span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">graphPtr</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget.graphPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed graph whose renderTarget points at this active marker pass. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget.surface">
+<span class="target" id="struct_rbc___render_target_1a62569aaaf826b4b43cb5dc0178552930"></span><span class="n"><span class="pre">cairo_surface_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">surface</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget.surface" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned Windows DIB surface for the complete marker pass. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget.image">
+<span class="target" id="struct_rbc___render_target_1a5047ea980d466bcf9c7644c0c4902d72"></span><span class="n"><span class="pre">cairo_surface_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">image</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget.image" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed image surface obtained from surface; not destroyed separately. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget.destinationState">
+<span class="target" id="struct_rbc___render_target_1aef5e35839bd534a039342901b64c0723"></span><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">destinationState</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget.destinationState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned acquisition record for the original destination. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget.destinationDC">
+<span class="target" id="struct_rbc___render_target_1a3136eb040c535e7d49189f6685f77de7"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">destinationDC</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget.destinationDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Original destination DC borrowed from destinationState. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget.dc">
+<span class="target" id="struct_rbc___render_target_1abf7d036436fb7f9e7c5e453d0cbe529e"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dc</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget.dc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>DIB DC borrowed from surface. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcCairoWindows.Rbc_RenderTarget.drawable">
+<span class="target" id="struct_rbc___render_target_1a90268be8ea1d5987f1bee265299faab0"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">drawable</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.Rbc_RenderTarget.drawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned Tk-compatible wrapper around the DIB DC. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -486,6 +737,57 @@ Validates RGB offsets. A distinct valid alpha offset selects alpha; otherwise pi
 <li><a class="reference internal" href="#c.CairoFillPolygon"><code class="docutils literal notranslate"><span class="pre">CairoFillPolygon()</span></code></a></li>
 <li><a class="reference internal" href="#c.CreateRenderPhoto"><code class="docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a></li>
 <li><a class="reference internal" href="#c.CairoEnd"><code class="docutils literal notranslate"><span class="pre">CairoEnd()</span></code></a></li>
+<li><a class="reference internal" href="#context-storage">Context storage</a><ul>
+<li><a class="reference internal" href="#c.CairoRenderContext"><code class="docutils literal notranslate"><span class="pre">CairoRenderContext</span></code></a><ul>
+<li><a class="reference internal" href="#c.CairoRenderContext.core"><code class="docutils literal notranslate"><span class="pre">core</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.fillStyle"><code class="docutils literal notranslate"><span class="pre">fillStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.surface"><code class="docutils literal notranslate"><span class="pre">surface</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.cr"><code class="docutils literal notranslate"><span class="pre">cr</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.bitmapPattern"><code class="docutils literal notranslate"><span class="pre">bitmapPattern</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.bitmapWidth"><code class="docutils literal notranslate"><span class="pre">bitmapWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.bitmapHeight"><code class="docutils literal notranslate"><span class="pre">bitmapHeight</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.foreground"><code class="docutils literal notranslate"><span class="pre">foreground</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.offColor"><code class="docutils literal notranslate"><span class="pre">offColor</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.doubleDash"><code class="docutils literal notranslate"><span class="pre">doubleDash</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.nDashes"><code class="docutils literal notranslate"><span class="pre">nDashes</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.dashes"><code class="docutils literal notranslate"><span class="pre">dashes</span></code></a></li>
+<li><a class="reference internal" href="#c.CairoRenderContext.dashOffset"><code class="docutils literal notranslate"><span class="pre">dashOffset</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-context-and-marker-pass-target">Windows context and marker-pass target</a><ul>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext"><code class="docutils literal notranslate"><span class="pre">CairoRenderContext</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.core"><code class="docutils literal notranslate"><span class="pre">core</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.fillStyle"><code class="docutils literal notranslate"><span class="pre">fillStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.surface"><code class="docutils literal notranslate"><span class="pre">surface</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.cr"><code class="docutils literal notranslate"><span class="pre">cr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.bitmapPattern"><code class="docutils literal notranslate"><span class="pre">bitmapPattern</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.bitmapWidth"><code class="docutils literal notranslate"><span class="pre">bitmapWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.bitmapHeight"><code class="docutils literal notranslate"><span class="pre">bitmapHeight</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.foreground"><code class="docutils literal notranslate"><span class="pre">foreground</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.offColor"><code class="docutils literal notranslate"><span class="pre">offColor</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.doubleDash"><code class="docutils literal notranslate"><span class="pre">doubleDash</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.nDashes"><code class="docutils literal notranslate"><span class="pre">nDashes</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.dashes"><code class="docutils literal notranslate"><span class="pre">dashes</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.dashOffset"><code class="docutils literal notranslate"><span class="pre">dashOffset</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.dcState"><code class="docutils literal notranslate"><span class="pre">dcState</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.dc"><code class="docutils literal notranslate"><span class="pre">dc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.CairoRenderContext.savedDC"><code class="docutils literal notranslate"><span class="pre">savedDC</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderTarget</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget.graphPtr"><code class="docutils literal notranslate"><span class="pre">graphPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget.surface"><code class="docutils literal notranslate"><span class="pre">surface</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget.image"><code class="docutils literal notranslate"><span class="pre">image</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget.destinationState"><code class="docutils literal notranslate"><span class="pre">destinationState</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget.destinationDC"><code class="docutils literal notranslate"><span class="pre">destinationDC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget.dc"><code class="docutils literal notranslate"><span class="pre">dc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcCairoWindows.Rbc_RenderTarget.drawable"><code class="docutils literal notranslate"><span class="pre">drawable</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

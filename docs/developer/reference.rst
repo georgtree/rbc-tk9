@@ -21,10 +21,34 @@ Component-facing interface
 --------------------------
 
 .. doxygenfile:: rbcRender.h
-   :sections: briefdescription detaileddescription innerclass define enum func
+   :sections: briefdescription detaileddescription define enum func
 
 Auxiliary types
 ---------------
+
+.. doxygenstruct:: Rbc_RenderRectangle
+   :members:
+
+.. doxygenstruct:: Rbc_RenderBitmapStyle
+   :members:
+
+.. doxygenstruct:: Rbc_RenderFillStyle
+   :members:
+
+.. doxygenstruct:: Rbc_RenderArcGeometry
+   :members:
+
+.. doxygenstruct:: Rbc_RenderSymbolStyle
+   :members:
+
+.. doxygenstruct:: Rbc_RenderNativeSymbolStyle
+   :members:
+
+.. doxygenstruct:: Rbc_RenderBarStyle
+   :members:
+
+.. doxygenstruct:: Rbc_RenderShape
+   :members:
 
 .. doxygentypedef:: Rbc_RenderPosition
 

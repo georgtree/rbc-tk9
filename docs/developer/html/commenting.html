@@ -138,6 +138,20 @@ require a separate compatibility review.</p>
 visible even when the configured platform has native replacements. This selector
 is for extraction only and is not enabled in ordinary compilation.</p>
 </section>
+<section id="contract-and-member-comment-placement">
+<h2>Contract and member comment placement<a class="headerlink" href="#contract-and-member-comment-placement" title="Link to this heading">¶</a></h2>
+<p>Keep one authoritative function contract: normally the declaring header for
+shared interfaces, and the definition for file-local helpers. Remove obsolete
+implementation banners when the header already describes the contract. Keep
+implementation comments that explain an algorithm, platform distinction or
+resource transition; do not copy the header contract into a second location.</p>
+<p>Document each structure’s purpose and ownership, then attach field descriptions
+using Doxygen member comments (<code class="docutils literal notranslate"><span class="pre">/**&lt;</span> <span class="pre">...</span> <span class="pre">*/</span></code> or a preceding documentation
+block). Include units, valid counts, optional/sentinel values and borrowed versus
+owned resources where relevant. Ordinary adjacent comments do not automatically
+become member documentation. Check that the structure is actually included in
+the reference and that its members appear in the rendered output.</p>
+</section>
 </section>
 
 
@@ -156,6 +170,7 @@ is for extraction only and is not enabled in ordinary compilation.</p>
 <li><a class="reference internal" href="#migration-and-review">Migration and review</a></li>
 <li><a class="reference internal" href="#navigation-and-groups">Navigation and groups</a></li>
 <li><a class="reference internal" href="#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
+<li><a class="reference internal" href="#contract-and-member-comment-placement">Contract and member comment placement</a></li>
 </ul>
 </li>
 </ul>

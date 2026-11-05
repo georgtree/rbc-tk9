@@ -604,26 +604,7 @@ int Rbc_GetTilePhoto(TileClient *clientPtr, Tk_PhotoImageBlock *blockPtr) {
     return (photo != NULL) && Tk_PhotoGetImage(photo, blockPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_SizeOfTile
- *
- *      Returns the width and height of the tile.
- *
- * Parameters:
- *      TileClient *clientPtr - Tile to query
- *      int *widthPtr - -
- *      int *heightPtr - Returned dimensions of the tile (out) 
- *
- * Results:
- *      The width and height of the tile are returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcTile.h. */
 void Rbc_SizeOfTile(TileClient *clientPtr, int *widthPtr, int *heightPtr) {
     if ((clientPtr == NULL) || (clientPtr->magic != TILE_MAGIC)) {
         *widthPtr = *heightPtr = 0;
@@ -640,32 +621,7 @@ void Rbc_SetTileChangedProc(TileClient *clientPtr, Rbc_TileChangedProc *notifyPr
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_SetTileOrigin --
- *
- *      Set the pattern origin of the tile to a common point (i.e. the
- *      origin (0,0) of the top level window) so that tiles from two
- *      different widgets will match up.  This done by setting the
- *      GCTileStipOrigin field is set to the translated origin of the
- *      toplevel window in the hierarchy.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      TileClient *clientPtr
- *      int x
- *      int y
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The GCTileStipOrigin is reset in the GC.  This will cause the
- *      tile origin to change when the GC is used for drawing.
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcTile.h. */
 void Rbc_SetTileOrigin(Tk_Window tkwin, TileClient *clientPtr, int x, int y) {
     while (!Tk_IsTopLevel(tkwin)) {
         x += Tk_X(tkwin) + Tk_Changes(tkwin)->border_width;

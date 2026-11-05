@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Cairo renderer" href="manual-cairo.html" />
-    <link rel="prev" title="Native backend C reference" href="native-reference.html" /> 
+    <link rel="prev" title="Shared and X11 native backend C reference" href="native-reference.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
@@ -28,7 +28,7 @@
           <a href="manual-cairo.html" title="Cairo renderer"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="native-reference.html" title="Native backend C reference"
+          <a href="native-reference.html" title="Shared and X11 native backend C reference"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="manual-rendering.html" >Rendering and document export</a> &#187;</li>
@@ -534,6 +534,63 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 <span class="target" id="struct_rbc___native_trace"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Windows trace allocation with trailing POINT workspace. </p>
 <p>Borrows graph/GC/target, owns DC acquisition and selected pen/brush, and retains prior selections for restoration by EndTrace. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.graphPtr">
+<span class="target" id="struct_rbc___native_trace_1a8314281941a599fb571077cece5df209"></span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">graphPtr</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.graphPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owning graph; outlives the batch. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativeDrawable">
+<span class="target" id="struct_rbc___native_trace_1a79503b3ed2c3b6101c28e965ef28c364"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeDrawable</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeDrawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed destination drawable. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativeGC">
+<span class="target" id="struct_rbc___native_trace_1a862af3771d9b528dae3bc2c19cd1eb6e"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeGC</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed configured graphics context. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativePoints">
+<span class="target" id="struct_rbc___native_trace_1a2b615d846e5712ac8a8c3f9b1400935d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativePoints</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativePoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Point workspace stored after this record in the same allocation. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativeMaxPoints">
+<span class="target" id="struct_rbc___native_trace_1a9051861479e9d4bd90aa8e50b7f4774f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeMaxPoints</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeMaxPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Maximum vertices per chunk, excluding the continuation slot. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativeDCState">
+<span class="target" id="struct_rbc___native_trace_1ad1acf3efa5017adedba55852668a25a7"></span><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativeDCState</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeDCState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned DC acquisition record. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativeDC">
+<span class="target" id="struct_rbc___native_trace_1a81f5df8b3e1878ea4a97b945541ddd8f"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeDC</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>DC borrowed from the acquisition record. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativeOldPen">
+<span class="target" id="struct_rbc___native_trace_1a4d306a56726d90f1653ebe7c91c071b5"></span><span class="n"><span class="pre">HPEN</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeOldPen</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeOldPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous selected pen, restored when ending the batch. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeTrace.nativeOldBrush">
+<span class="target" id="struct_rbc___native_trace_1ac19ab699d58de167fae7dd184bb0998b"></span><span class="n"><span class="pre">HBRUSH</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeOldBrush</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeOldBrush" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous selected brush, restored when ending the batch. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -541,6 +598,57 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 <span class="target" id="struct_rbc___native_polygon_batch"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill-only polygon context owning point workspace, brush and DC state. </p>
 <p>Retains prior brush, pen and fill mode for restoration. Component callers remain responsible for style grouping and painter order. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.dcState">
+<span class="target" id="struct_rbc___native_polygon_batch_1a778c03b004ac6529106b362454c9938f"></span><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">dcState</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.dcState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned DC acquisition record. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.dc">
+<span class="target" id="struct_rbc___native_polygon_batch_1a836775ea0ff047b0166bce2e88cfa42a"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dc</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.dc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>DC borrowed from dcState. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.oldBrush">
+<span class="target" id="struct_rbc___native_polygon_batch_1a37253173f604f17b2a0f9f081ee39703"></span><span class="n"><span class="pre">HBRUSH</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">oldBrush</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.oldBrush" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous brush restored before deleting the batch brush. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.oldPen">
+<span class="target" id="struct_rbc___native_polygon_batch_1a3c13d507d985c18f0328a240e8015530"></span><span class="n"><span class="pre">HPEN</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">oldPen</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.oldPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous pen restored on release. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.points">
+<span class="target" id="struct_rbc___native_polygon_batch_1a52fd149b06084f3004eff764619a6051"></span><span class="n"><span class="pre">POINT</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">points</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.points" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned point workspace with capacity entries. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.oldFillMode">
+<span class="target" id="struct_rbc___native_polygon_batch_1ab4c01e5842647978ab15dc3b35415a66"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">oldFillMode</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.oldFillMode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous GDI polygon fill rule restored on release. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.capacity">
+<span class="target" id="struct_rbc___native_polygon_batch_1aed515eb37e35aa3c5da773f9db983df3"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">capacity</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.capacity" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocated workspace capacity in POINT entries. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolygonBatch.display">
+<span class="target" id="struct_rbc___native_polygon_batch_1a95ca0d1ea20514cd6ac61f8a9961b390"></span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">display</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.display" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed Tk display used by native services. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -548,6 +656,27 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 <span class="target" id="struct_native_d_c_clip"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeDCClip</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.NativeDCClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Windows clip payload stored after the shared clip frame. </p>
 <p>Owns the acquisition record and tracks a SaveDC token. The parent drawable remains borrowed; PlatformUnclip handles partial initialization. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.NativeDCClip.dcState">
+<span class="target" id="struct_native_d_c_clip_1a554943bf351703270f78166957d8b919"></span><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">dcState</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.NativeDCClip.dcState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned acquisition record; NULL during incomplete setup. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.NativeDCClip.dc">
+<span class="target" id="struct_native_d_c_clip_1ad7dbf16be3d428d139e9ff63f6b6df9d"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dc</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.NativeDCClip.dc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>DC borrowed from dcState. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeWindows.NativeDCClip.saved">
+<span class="target" id="struct_native_d_c_clip_1a94680ce622d2ca346124bee6cc7e8e87"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">saved</span></span></span><a class="headerlink" href="#c.rbcNativeWindows.NativeDCClip.saved" title="Link to this definition">¶</a><br /></dt>
+<dd><p>SaveDC token; zero means restoration is unnecessary. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <section id="tk-windows-resource-boundary">
@@ -1342,9 +1471,35 @@ source offsets must agree across cropped copies; see <a class="reference interna
 <li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePlatformUnclip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformUnclip()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeRun()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeOpaqueBitmapRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeOpaqueBitmapRun()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeTrace</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonBatch</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcNativeWindows.NativeDCClip"><code class="docutils literal notranslate"><span class="pre">NativeDCClip</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeTrace</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.graphPtr"><code class="docutils literal notranslate"><span class="pre">graphPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeDrawable"><code class="docutils literal notranslate"><span class="pre">nativeDrawable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeGC"><code class="docutils literal notranslate"><span class="pre">nativeGC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativePoints"><code class="docutils literal notranslate"><span class="pre">nativePoints</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeMaxPoints"><code class="docutils literal notranslate"><span class="pre">nativeMaxPoints</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeDCState"><code class="docutils literal notranslate"><span class="pre">nativeDCState</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeDC"><code class="docutils literal notranslate"><span class="pre">nativeDC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeOldPen"><code class="docutils literal notranslate"><span class="pre">nativeOldPen</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace.nativeOldBrush"><code class="docutils literal notranslate"><span class="pre">nativeOldBrush</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonBatch</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.dcState"><code class="docutils literal notranslate"><span class="pre">dcState</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.dc"><code class="docutils literal notranslate"><span class="pre">dc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.oldBrush"><code class="docutils literal notranslate"><span class="pre">oldBrush</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.oldPen"><code class="docutils literal notranslate"><span class="pre">oldPen</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.points"><code class="docutils literal notranslate"><span class="pre">points</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.oldFillMode"><code class="docutils literal notranslate"><span class="pre">oldFillMode</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.capacity"><code class="docutils literal notranslate"><span class="pre">capacity</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch.display"><code class="docutils literal notranslate"><span class="pre">display</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.NativeDCClip"><code class="docutils literal notranslate"><span class="pre">NativeDCClip</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcNativeWindows.NativeDCClip.dcState"><code class="docutils literal notranslate"><span class="pre">dcState</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.NativeDCClip.dc"><code class="docutils literal notranslate"><span class="pre">dc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeWindows.NativeDCClip.saved"><code class="docutils literal notranslate"><span class="pre">saved</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#tk-windows-resource-boundary">Tk Windows resource boundary</a><ul>
 <li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCreateDrawableFromDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinCreateDrawableFromDC()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinFreeDrawableFromDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinFreeDrawableFromDC()</span></code></a></li>
@@ -1410,7 +1565,7 @@ source offsets must agree across cropped copies; see <a class="reference interna
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="native-reference.html"
-                          title="previous chapter">Native backend C reference</a></p>
+                          title="previous chapter">Shared and X11 native backend C reference</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -1441,7 +1596,7 @@ source offsets must agree across cropped copies; see <a class="reference interna
           <a href="manual-cairo.html" title="Cairo renderer"
              >next</a> |</li>
         <li class="right" >
-          <a href="native-reference.html" title="Native backend C reference"
+          <a href="native-reference.html" title="Shared and X11 native backend C reference"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="manual-rendering.html" >Rendering and document export</a> &#187;</li>

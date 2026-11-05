@@ -39,7 +39,7 @@ void Rbc_RenderSetFillTile(Rbc_RenderContext *ctx, Rbc_Tile tile) {
     }
 }
 
-/* Retain the legacy prolog shapes and size corrections, including bitmap masks. */
+/* Constructor contracts are in rbcRender.h; each backend selects its symbol policy. */
 Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                const Rbc_RenderSymbolStyle *style) {
     Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
@@ -51,7 +51,7 @@ Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContex
     return ctx;
 }
 
-/* Legend bar swatches use the unscaled square prolog shape. */
+/* Bar-symbol policy is backend-specific; see the contract in rbcRender.h. */
 Rbc_RenderContext *Rbc_RenderBeginExportBarSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                   const Rbc_RenderFillStyle *style, int size) {
     Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, style);

@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Native backend C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <title>Shared and X11 native backend C reference &#8212; RBC 0.8.5 Developer Manual</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
@@ -33,7 +33,7 @@
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="manual-rendering.html" >Rendering and document export</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="manual-native.html" accesskey="U">Native renderers</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Native backend C reference</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Shared and X11 native backend C reference</a></li> 
       </ul>
     </div>  
 
@@ -42,8 +42,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="native-backend-c-reference">
-<h1>Native backend C reference<a class="headerlink" href="#native-backend-c-reference" title="Link to this heading">¶</a></h1>
+  <section id="shared-and-x11-native-backend-c-reference">
+<h1>Shared and X11 native backend C reference<a class="headerlink" href="#shared-and-x11-native-backend-c-reference" title="Link to this heading">¶</a></h1>
 <p>These declarations in <code class="docutils literal notranslate"><span class="pre">rbcRenderNative.h</span></code> are private backend services.
 Components use <code class="docutils literal notranslate"><span class="pre">rbcRender.h</span></code> instead. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for platform
 behavior and ownership that cannot be inferred from a function signature.</p>
@@ -617,6 +617,69 @@ component resources or perform graph layout.</p>
 <span class="target" id="struct_native_clip_frame"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeClipFrame</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reusable clip depth with absolute bounds and optional scratch target. </p>
 <p>Previous/next link owned frames. Parent/drawable are borrowed targets; scratch is owned until stack destruction. Platform state follows the allocation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.previous">
+<span class="target" id="struct_native_clip_frame_1a57948362ba3cbc323d66876611dfa437"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame" title="NativeClipFrame"><span class="n"><span class="pre">NativeClipFrame</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">previous</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.previous" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous cached clip frame; NULL at the base depth. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.next">
+<span class="target" id="struct_native_clip_frame_1a1a0d2329818887aaeaece40f9759ea8a"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame" title="NativeClipFrame"><span class="n"><span class="pre">NativeClipFrame</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">next</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.next" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next cached clip frame; owned by the clip stack. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.parent">
+<span class="target" id="struct_native_clip_frame_1a25b6f8d3fb6e625b1e8e5687b4466a41"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">parent</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.parent" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed parent target before entering this clip. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.drawable">
+<span class="target" id="struct_native_clip_frame_1a5a1972108b7231a81edaa342abf6c241"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">drawable</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.drawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Selected output target; None denotes an empty output. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.scratch">
+<span class="target" id="struct_native_clip_frame_1a86067e68a48bd539f89e487dd8c1b641"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scratch</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.scratch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned reusable offscreen pixmap, or None for direct clipping. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.left">
+<span class="target" id="struct_native_clip_frame_1a82649d285835425ffd89e95a7d22ac70"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.left" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Absolute left clip bound in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.top">
+<span class="target" id="struct_native_clip_frame_1af84ea0582242bd1b76bebeccf4221097"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">top</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.top" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Absolute top clip bound in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.right">
+<span class="target" id="struct_native_clip_frame_1a6a265dfc9ba45d39b1f930862c7c01d9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.right" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Absolute right clip bound in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.bottom">
+<span class="target" id="struct_native_clip_frame_1a0bf75a1ac7e53131b3155a4f3792b123"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bottom</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.bottom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Absolute bottom clip bound in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.NativeClipFrame.platformActive">
+<span class="target" id="struct_native_clip_frame_1a85ddd712cddfde1e4b436b1a95d6fff4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">platformActive</span></span></span><a class="headerlink" href="#c.rbcNativeShared.NativeClipFrame.platformActive" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero requires platform unclip, including partial initialization. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -624,6 +687,51 @@ component resources or perform graph layout.</p>
 <span class="target" id="struct_rbc___native_clip"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeClip</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Native clip stack borrowing a graph and base drawable. </p>
 <p>Owns cached frames and only a lazily acquired copy GC. Active identifies the current depth; dimensions and borrowed resources stay valid until destruction. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClip.graphPtr">
+<span class="target" id="struct_rbc___native_clip_1a6b22c47ab5917cb81074d0ae8fc6e6b2"></span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">graphPtr</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip.graphPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed graph whose dimensions and display remain valid. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClip.drawable">
+<span class="target" id="struct_rbc___native_clip_1a51dbc870bf48c44208a4836d86de0ecb"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">drawable</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip.drawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed base target when no clip frame is active. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClip.copyGC">
+<span class="target" id="struct_rbc___native_clip_1ad108c807cede4d3e623b9dc70d20fc79"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">copyGC</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip.copyGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed caller GC, or lazily allocated GC when ownGC is set. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClip.ownGC">
+<span class="target" id="struct_rbc___native_clip_1a5d53c9824d2d3d7b2222418ce1d3c191"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ownGC</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip.ownGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the clip stack owns copyGC. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClip.useDC">
+<span class="target" id="struct_rbc___native_clip_1a689825140f0412227625362bffa553d3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">useDC</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip.useDC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero permits direct platform clipping. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClip.first">
+<span class="target" id="struct_rbc___native_clip_1aece79140f4f6d89b4c01d1e27cd060e2"></span><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame" title="NativeClipFrame"><span class="n"><span class="pre">NativeClipFrame</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">first</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip.first" title="Link to this definition">¶</a><br /></dt>
+<dd><p>First frame in the owned reusable depth chain. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeShared.Rbc_NativeClip.active">
+<span class="target" id="struct_rbc___native_clip_1aa3a6429c801c0e860adcc9ff7c25c478"></span><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame" title="NativeClipFrame"><span class="n"><span class="pre">NativeClipFrame</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">active</span></span></span><a class="headerlink" href="#c.rbcNativeShared.Rbc_NativeClip.active" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Current depth; NULL when no clip is active. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
@@ -987,6 +1095,39 @@ Free the X11 trace allocation.</p>
 <span class="target" id="struct_rbc___native_trace"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeTrace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Owned X11 trace context with trailing point workspace. </p>
 <p>Borrows graph, target and GC; nativeMaxPoints excludes the extra slot used for a repeated continuation endpoint. One allocation owns state and points. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeTrace.graphPtr">
+<span class="target" id="struct_rbc___native_trace_1a8314281941a599fb571077cece5df209"></span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">graphPtr</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeTrace.graphPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owning graph; outlives the batch. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeTrace.nativeDrawable">
+<span class="target" id="struct_rbc___native_trace_1a79503b3ed2c3b6101c28e965ef28c364"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeDrawable</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeTrace.nativeDrawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed destination drawable. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeTrace.nativeGC">
+<span class="target" id="struct_rbc___native_trace_1a862af3771d9b528dae3bc2c19cd1eb6e"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeGC</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeTrace.nativeGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed configured graphics context. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeTrace.nativePoints">
+<span class="target" id="struct_rbc___native_trace_1a2b615d846e5712ac8a8c3f9b1400935d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativePoints</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeTrace.nativePoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Point workspace stored after this record in the same allocation. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativeTrace.nativeMaxPoints">
+<span class="target" id="struct_rbc___native_trace_1a9051861479e9d4bd90aa8e50b7f4774f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeMaxPoints</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativeTrace.nativeMaxPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Maximum vertices per chunk, excluding the continuation slot. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -994,6 +1135,15 @@ Free the X11 trace allocation.</p>
 <span class="target" id="struct_rbc___native_polygon_batch"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePolygonBatch" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Placeholder for the unsupported X11 polygon-batch optimization. </p>
 <p>No instance is created by this backend. This is not a Windows DC owner. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcNativeX11.Rbc_NativePolygonBatch.display">
+<span class="target" id="struct_rbc___native_polygon_batch_1a95ca0d1ea20514cd6ac61f8a9961b390"></span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">display</span></span></span><a class="headerlink" href="#c.rbcNativeX11.Rbc_NativePolygonBatch.display" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unused placeholder; this backend never allocates a polygon batch. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <p>See <a class="reference internal" href="native-windows-reference.html"><span class="doc">Windows native backend C reference</span></a> for the separate Windows implementation.</p>
@@ -1010,7 +1160,7 @@ Free the X11 trace allocation.</p>
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Native backend C reference</a><ul>
+<li><a class="reference internal" href="#">Shared and X11 native backend C reference</a><ul>
 <li><a class="reference internal" href="#trace-batches">Trace batches</a></li>
 <li><a class="reference internal" href="#clip-stacks">Clip stacks</a><ul>
 <li><a class="reference internal" href="#c.Rbc_NativeCreateClip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeCreateClip()</span></code></a></li>
@@ -1045,8 +1195,29 @@ Free the X11 trace allocation.</p>
 <li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeLegendLine"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeLegendLine()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeLegendBar"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeLegendBar()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeBitmapRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBitmapRun()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame"><code class="docutils literal notranslate"><span class="pre">NativeClipFrame</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeClip</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame"><code class="docutils literal notranslate"><span class="pre">NativeClipFrame</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.previous"><code class="docutils literal notranslate"><span class="pre">previous</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.next"><code class="docutils literal notranslate"><span class="pre">next</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.parent"><code class="docutils literal notranslate"><span class="pre">parent</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.drawable"><code class="docutils literal notranslate"><span class="pre">drawable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.scratch"><code class="docutils literal notranslate"><span class="pre">scratch</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.left"><code class="docutils literal notranslate"><span class="pre">left</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.top"><code class="docutils literal notranslate"><span class="pre">top</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.right"><code class="docutils literal notranslate"><span class="pre">right</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.bottom"><code class="docutils literal notranslate"><span class="pre">bottom</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.NativeClipFrame.platformActive"><code class="docutils literal notranslate"><span class="pre">platformActive</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeClip</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip.graphPtr"><code class="docutils literal notranslate"><span class="pre">graphPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip.drawable"><code class="docutils literal notranslate"><span class="pre">drawable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip.copyGC"><code class="docutils literal notranslate"><span class="pre">copyGC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip.ownGC"><code class="docutils literal notranslate"><span class="pre">ownGC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip.useDC"><code class="docutils literal notranslate"><span class="pre">useDC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip.first"><code class="docutils literal notranslate"><span class="pre">first</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeShared.Rbc_NativeClip.active"><code class="docutils literal notranslate"><span class="pre">active</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#x11-platform-implementation">X11 platform implementation</a><ul>
@@ -1070,8 +1241,18 @@ Free the X11 trace allocation.</p>
 <li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePlatformUnclip"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformUnclip()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeRun()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeOpaqueBitmapRun"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeOpaqueBitmapRun()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeTrace</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonBatch</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace"><code class="docutils literal notranslate"><span class="pre">Rbc_NativeTrace</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace.graphPtr"><code class="docutils literal notranslate"><span class="pre">graphPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace.nativeDrawable"><code class="docutils literal notranslate"><span class="pre">nativeDrawable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace.nativeGC"><code class="docutils literal notranslate"><span class="pre">nativeGC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace.nativePoints"><code class="docutils literal notranslate"><span class="pre">nativePoints</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativeTrace.nativeMaxPoints"><code class="docutils literal notranslate"><span class="pre">nativeMaxPoints</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonBatch</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcNativeX11.Rbc_NativePolygonBatch.display"><code class="docutils literal notranslate"><span class="pre">display</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1118,7 +1299,7 @@ Free the X11 trace allocation.</p>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="manual-rendering.html" >Rendering and document export</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="manual-native.html" >Native renderers</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Native backend C reference</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Shared and X11 native backend C reference</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

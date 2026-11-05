@@ -467,29 +467,7 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     return bitmap;
 }
 
-/*
- * -----------------------------------------------------------------
- *
- * Rbc_RotateBitmap --
- *
- *    Creates a new bitmap containing the rotated image of the given
- *    bitmap.  We also need a special GC of depth 1, so that we do
- *    not need to rotate more than one plane of the bitmap.
- *
- * Parameters:
- *      Tk_Window tkwin - Window for which border was allocated.
- *      Pixmap srcBitmap - Source bitmap to be rotated
- *      int srcWidth - Width of the source bitmap
- *      int srcHeight - Height of the source bitmap
- *      double theta - Right angle rotation to perform
- *      int *destWidthPtr
- *      int *destHeightPtr
- *
- * Results:
- *    Returns a new bitmap containing the rotated image.
- *
- * -----------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcImage.h. */
 Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, double theta, int *destWidthPtr,
                         int *destHeightPtr) {
     Display *display; /* X display */
@@ -646,34 +624,7 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     return destBitmap;
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_ScaleBitmap --
- *
- *    Creates a new scaled bitmap from another bitmap. The new bitmap
- *    is bounded by a specified region. Only this portion of the bitmap
- *    is scaled from the original bitmap.
- *
- *    By bounding scaling to a region we can generate a new bitmap
- *    which is no bigger than the specified viewport.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Pixmap srcBitmap
- *      int srcWidth
- *      int srcHeight
- *      int destWidth
- *      int destHeight
- *
- * Results:
- *    The new scaled bitmap is returned.
- *
- * Side Effects:
- *    A new pixmap is allocated. The caller must release this.
- *
- * -----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcImage.h. */
 Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int destWidth, int destHeight) {
     Display *display;
     GC bitmapGC;
@@ -731,45 +682,10 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     return destBitmap;
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_RotateScaleBitmapRegion --
- *
- *    Creates a scaled and rotated bitmap from a given bitmap.  The
- *    caller also provides (offsets and dimensions) the region of
- *    interest in the destination bitmap.  This saves having to
- *    process the entire destination bitmap is only part of it is
- *    showing in the viewport.
- *
- *    This uses a simple rotation/scaling of each pixel in the
- *    destination image.  For each pixel, the corresponding
- *    pixel in the source bitmap is used.  This means that
- *    destination coordinates are first scaled to the size of
- *    the rotated source bitmap.  These coordinates are then
- *    rotated back to their original orientation in the source.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Pixmap srcBitmap - Source bitmap.
- *      int srcWidth - -
- *      int srcHeight - Size of source bitmap
- *      int regionX - -
- *      int regionY - - Offset of region in virtual destination bitmap.
- *      int regionWidth - -
- *      int regionHeight - Desire size of bitmap region.
- *      int virtWidth - -
- *      int virtHeight - Virtual size of destination bitmap.
- *      double theta - Angle to rotate bitmap.
- *
- * Results:
- *    The new rotated and scaled bitmap is returned.
- *
- * Side Effects:
- *    A new pixmap is allocated. The caller must release this.
- *
- * -----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcImage.h.
+ * Inverse-map only the visible destination region: scale each destination
+ * coordinate into the rotated source bounds, then rotate back to sample the
+ * source bitmap. This avoids allocating the complete virtual destination. */
 Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int regionX,
                                    int regionY, int regionWidth, int regionHeight, int virtWidth, int virtHeight,
                                    double theta) {

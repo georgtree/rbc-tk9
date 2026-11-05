@@ -12,3 +12,9 @@ separate from a helper's return value.
 
 .. doxygengroup:: svg_backend
    :members:
+
+Context storage
+---------------
+
+.. doxygenstruct:: SvgRenderContext
+   :members:

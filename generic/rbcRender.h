@@ -181,19 +181,27 @@ void Rbc_RenderTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *s
 
 /** Keep bar geometry in full-width widget coordinates. */
 typedef struct {
-    int x, y, width, height;
+    int x; /**< Rectangle origin X in widget pixels. */
+    int y; /**< Rectangle origin Y in widget pixels. */
+    int width; /**< Rectangle width in pixels. */
+    int height; /**< Rectangle height in pixels. */
 } Rbc_RenderRectangle;
 
-/** Mapped bitmap presentation borrows the marker's private GCs and resources.
- * A rotated opaque background is already clipped/mapped by the component;
- * mask then refers to the bitmap itself, as in the legacy drawing path. */
+/** Maximum vertices in a mapped bitmap background outline. */
 #define RBC_RENDER_BITMAP_OUTLINE_POINTS 12
+/** @brief Mapped bitmap paint policy; all referenced resources remain component-owned.
+ * A rotated opaque background is already clipped/mapped by the component;
+ * mask then refers to the bitmap itself, as in the legacy drawing path.
+ */
 typedef struct {
-    Pixmap bitmap, mask;
-    GC gc, fillGC;
-    const XColor *foreground, *background;
-    const Point2D *backgroundPoints;
-    Tcl_Size backgroundCount; /**< At most RBC_RENDER_BITMAP_OUTLINE_POINTS. */
+    Pixmap bitmap; /**< Borrowed one-bit source bitmap; None means absent. */
+    Pixmap mask; /**< Borrowed optional bitmap mask; None means absent. */
+    GC gc; /**< Borrowed foreground GC. */
+    GC fillGC; /**< Borrowed fill/background GC; absent means no fill. */
+    const XColor *foreground; /**< Borrowed foreground color; NULL means absent. */
+    const XColor *background; /**< Borrowed background color; NULL means absent. */
+    const Point2D *backgroundPoints; /**< Borrowed mapped polygon for a rotated opaque background. */
+    Tcl_Size backgroundCount; /**< Number of backgroundPoints entries; at most RBC_RENDER_BITMAP_OUTLINE_POINTS. */
 } Rbc_RenderBitmapStyle;
 
 /**
@@ -306,10 +314,11 @@ void Rbc_RenderScreenFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width)
 /** Fill policy shared by screen and export. backgroundOnly preserves the
  * legacy PostScript fallback for image-tiled areas. */
 typedef struct {
-    const XColor *foreground, *background;
-    Pixmap stipple;
+    const XColor *foreground; /**< Borrowed foreground color; NULL means absent. */
+    const XColor *background; /**< Borrowed background color; NULL means absent. */
+    Pixmap stipple; /**< Borrowed one-bit stipple; None selects a solid fill. */
     double opacity; /**< Solid polygon opacity; PostScript ignores it. */
-    int backgroundOnly;
+    int backgroundOnly; /**< Nonzero requests the legacy background-only fill fallback. */
 } Rbc_RenderFillStyle;
 
 /**
@@ -366,10 +375,15 @@ void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
  * scale stroke width, dashes, or fill patterns. This is a private C interface. */
 typedef enum { RBC_RENDER_ARC_OPEN, RBC_RENDER_ARC_CHORD, RBC_RENDER_ARC_PIESLICE } Rbc_RenderArcStyle;
 
+/** @brief Value-only ellipse geometry; dispatch normalizes a copy and rejects non-finite or degenerate input. */
 typedef struct {
-    double cx, cy, rx, ry;
-    double start, extent;
-    Rbc_RenderArcStyle style;
+    double cx; /**< Ellipse center X in mapped display coordinates. */
+    double cy; /**< Ellipse center Y in mapped display coordinates. */
+    double rx; /**< Positive horizontal radius in display units. */
+    double ry; /**< Positive vertical radius in display units. */
+    double start; /**< Start angle in degrees, measured counterclockwise from the rightward direction. */
+    double extent; /**< Signed sweep in degrees; absolute values of at least 360 select a full ellipse. */
+    Rbc_RenderArcStyle style; /**< Open curve, endpoint chord or center-connected sector. */
 } Rbc_RenderArcGeometry;
 
 /**
@@ -406,30 +420,39 @@ typedef enum {
     RBC_RENDER_SYMBOL_NONE
 } Rbc_RenderSymbolType;
 
+/** @brief Export symbol policy copied into a context; referenced colors and pixmaps remain borrowed. */
 typedef struct {
-    Rbc_RenderSymbolType type;
-    int size, outlineWidth;
-    const XColor *outlineColor, *fillColor;
-    Pixmap bitmap, mask;
+    Rbc_RenderSymbolType type; /**< Semantic symbol shape. */
+    int size; /**< Symbol size in display pixels. */
+    int outlineWidth; /**< Outline width in display pixels. */
+    const XColor *outlineColor; /**< Borrowed outline color; NULL suppresses the outline. */
+    const XColor *fillColor; /**< Borrowed fill color; NULL suppresses the fill. */
+    Pixmap bitmap; /**< Borrowed one-bit source bitmap; None means absent. */
+    Pixmap mask; /**< Borrowed optional bitmap mask; None means absent. */
 } Rbc_RenderSymbolStyle;
 
 /** Borrowed native symbol resources. Sampling state is returned through counter;
  * preserve it across batches belonging to the same element. */
 typedef struct {
-    Rbc_RenderSymbolType type;
-    int outlineWidth;
-    GC outlineGC, fillGC;
-    Pixmap bitmap, mask;
-    Tcl_Size interval, counter;
+    Rbc_RenderSymbolType type; /**< Semantic symbol shape. */
+    int outlineWidth; /**< Outline width in pixels. */
+    GC outlineGC; /**< Borrowed outline GC; absent means no outline. */
+    GC fillGC; /**< Borrowed fill/background GC; absent means no fill. */
+    Pixmap bitmap; /**< Borrowed one-bit source bitmap; None means absent. */
+    Pixmap mask; /**< Borrowed optional bitmap mask; None means absent. */
+    Tcl_Size interval; /**< Positive values enable interval sampling; nonpositive values draw every supplied center. */
+    Tcl_Size counter; /**< Mutable point counter; preserve across batches of the same element. */
 } Rbc_RenderNativeSymbolStyle;
 
+/** @brief Copied bar paint policy; the element retains ownership of all Tk resources. */
 typedef struct {
-    Tk_3DBorder border;
-    XColor *fgColor;
-    GC gc;
-    Pixmap stipple;
-    int borderWidth, relief;
-    double fillOpacity;
+    Tk_3DBorder border; /**< Borrowed Tk border supplying fill and relief colors. */
+    XColor *fgColor; /**< Borrowed resolved foreground color. */
+    GC gc; /**< Borrowed fill GC, including stipple and raster state. */
+    Pixmap stipple; /**< Borrowed fill stipple; None means no stipple. */
+    int borderWidth; /**< Border thickness in pixels. */
+    int relief; /**< Tk relief selector. */
+    double fillOpacity; /**< Fill alpha used by capable backends; native fallback retains its opaque behavior. */
 } Rbc_RenderBarStyle;
 
 /**
@@ -725,11 +748,12 @@ void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
 /** Screen-space symbol template; segment vertices are endpoint pairs. */
 typedef enum { RBC_RENDER_CIRCLE, RBC_RENDER_POLYGON, RBC_RENDER_SEGMENTS } Rbc_RenderShapeType;
 
+/** @brief Small value-only symbol geometry record shared by drawing backends. */
 typedef struct {
-    Rbc_RenderShapeType type;
-    double radius;
-    int nPoints;
-    Point2D points[12];
+    Rbc_RenderShapeType type; /**< Circle, polygon or independent-segment geometry selector. */
+    double radius; /**< Circle radius in display units, used for circle shapes. */
+    int nPoints; /**< Number of initialized entries in points, bounded by twelve. */
+    Point2D points[12]; /**< Symbol-local vertex offsets; segment endpoints are stored in pairs. */
 } Rbc_RenderShape;
 
 /** Native/Cairo element strokes. The GC is borrowed, including its existing

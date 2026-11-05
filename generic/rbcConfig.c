@@ -521,26 +521,7 @@ int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPt
     return GetStringList(interp, string, listPtrPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * FindChild --
- *
- *      Search for the named child window in a given parent window.
- *
- * Parameters:
- *      Tk_Window parent
- *      const char *name
- *
- * Results:
- *      The child Tk_Window. If the named child can't be found, NULL
- *      is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcInt.h. */
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     Tcl_Obj *pathNamePtr;
     Tk_Window result;

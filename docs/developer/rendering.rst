@@ -63,7 +63,7 @@ callback directly.
    * - :c:func:`Rbc_RenderBeginFill` / :c:func:`Rbc_RenderBeginExportFill`
      - FillPolygon, FillRectangles, FillArc, End
      - Screen creation can return NULL; export creation is Cairo-independent.
-   * - BeginNativeFill / BeginBars
+   * - :c:func:`Rbc_RenderBeginNativeFill` / :c:func:`Rbc_RenderBeginBars`
      - FillPolygon / FillRectangles respectively; End
      - Native bar relief and tile behavior remain intact.
    * - :c:func:`Rbc_RenderBeginScreenText`

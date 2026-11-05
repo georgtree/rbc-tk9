@@ -29,15 +29,15 @@ Tcl_Size Rbc_NativePolygonPointLimit(Graph *graphPtr) {
  * retains prior selections for restoration by EndTrace.
  */
 struct Rbc_NativeTrace {
-    Graph *graphPtr;
-    Drawable nativeDrawable;
-    GC nativeGC;
-    void *nativePoints;
-    int nativeMaxPoints;
-    Rbc_WinDrawableDC *nativeDCState;
-    HDC nativeDC;
-    HPEN nativeOldPen;
-    HBRUSH nativeOldBrush;
+    Graph *graphPtr; /**< Borrowed owning graph; outlives the batch. */
+    Drawable nativeDrawable; /**< Borrowed destination drawable. */
+    GC nativeGC; /**< Borrowed configured graphics context. */
+    void *nativePoints; /**< Point workspace stored after this record in the same allocation. */
+    int nativeMaxPoints; /**< Maximum vertices per chunk, excluding the continuation slot. */
+    Rbc_WinDrawableDC *nativeDCState; /**< Owned DC acquisition record. */
+    HDC nativeDC; /**< DC borrowed from the acquisition record. */
+    HPEN nativeOldPen; /**< Previous selected pen, restored when ending the batch. */
+    HBRUSH nativeOldBrush; /**< Previous selected brush, restored when ending the batch. */
 };
 
 /**
@@ -1393,14 +1393,14 @@ void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_Rende
  * remain responsible for style grouping and painter order.
  */
 struct Rbc_NativePolygonBatch {
-    Rbc_WinDrawableDC *dcState;
-    HDC dc;
-    HBRUSH oldBrush;
-    HPEN oldPen;
-    POINT *points;
-    int oldFillMode;
-    Tcl_Size capacity;
-    Display *display;
+    Rbc_WinDrawableDC *dcState; /**< Owned DC acquisition record. */
+    HDC dc; /**< DC borrowed from dcState. */
+    HBRUSH oldBrush; /**< Previous brush restored before deleting the batch brush. */
+    HPEN oldPen; /**< Previous pen restored on release. */
+    POINT *points; /**< Owned point workspace with capacity entries. */
+    int oldFillMode; /**< Previous GDI polygon fill rule restored on release. */
+    Tcl_Size capacity; /**< Allocated workspace capacity in POINT entries. */
+    Display *display; /**< Borrowed Tk display used by native services. */
 };
 
 /**
@@ -1498,9 +1498,9 @@ void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
  * remains borrowed; PlatformUnclip handles partial initialization.
  */
 typedef struct NativeDCClip {
-    Rbc_WinDrawableDC *dcState;
-    HDC dc;
-    int saved;
+    Rbc_WinDrawableDC *dcState; /**< Owned acquisition record; NULL during incomplete setup. */
+    HDC dc; /**< DC borrowed from dcState. */
+    int saved; /**< SaveDC token; zero means restoration is unnecessary. */
 } NativeDCClip;
 
 /**

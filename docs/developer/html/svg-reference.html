@@ -666,6 +666,42 @@ The cache is context-local and assumes an unchanged style. Tiles use photo pixel
 </div>
 </dd></dl>
 
+<section id="context-storage">
+<h2>Context storage<a class="headerlink" href="#context-storage" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.SvgRenderContext">
+<span class="target" id="struct_svg_render_context"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SvgRenderContext</span></span></span><a class="headerlink" href="#c.SvgRenderContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>SVG context borrowing a document builder; owns only its context allocation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.SvgRenderContext.exportState">
+<span class="target" id="struct_svg_render_context_1a7d5ad038aeb99cf3fe2820cb914db42e"></span><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportState" title="Rbc_RenderExportState"><span class="n"><span class="pre">Rbc_RenderExportState</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">exportState</span></span></span><a class="headerlink" href="#c.SvgRenderContext.exportState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared document prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.SvgRenderContext.bitmapId">
+<span class="target" id="struct_svg_render_context_1abb57ee9ccffe378834585a1eeee55bbb"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmapId</span></span></span><a class="headerlink" href="#c.SvgRenderContext.bitmapId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Document identifier for the bitmap symbol definition. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.SvgRenderContext.bitmapWidth">
+<span class="target" id="struct_svg_render_context_1a9c5fbf11d268ee2b32b6b52aa190e4a4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmapWidth</span></span></span><a class="headerlink" href="#c.SvgRenderContext.bitmapWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bitmap/pattern width in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.SvgRenderContext.bitmapHeight">
+<span class="target" id="struct_svg_render_context_1ac543f9c0935c989409b8d27d1bbe9d4a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmapHeight</span></span></span><a class="headerlink" href="#c.SvgRenderContext.bitmapHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bitmap/pattern height in pixels. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -715,6 +751,16 @@ The cache is context-local and assumes an unchanged style. Tiles use photo pixel
 <li><a class="reference internal" href="#c.SvgBackgroundRectangles"><code class="docutils literal notranslate"><span class="pre">SvgBackgroundRectangles()</span></code></a></li>
 <li><a class="reference internal" href="#c.SvgPlotBegin"><code class="docutils literal notranslate"><span class="pre">SvgPlotBegin()</span></code></a></li>
 <li><a class="reference internal" href="#c.SvgPlotEnd"><code class="docutils literal notranslate"><span class="pre">SvgPlotEnd()</span></code></a></li>
+<li><a class="reference internal" href="#context-storage">Context storage</a><ul>
+<li><a class="reference internal" href="#c.SvgRenderContext"><code class="docutils literal notranslate"><span class="pre">SvgRenderContext</span></code></a><ul>
+<li><a class="reference internal" href="#c.SvgRenderContext.exportState"><code class="docutils literal notranslate"><span class="pre">exportState</span></code></a></li>
+<li><a class="reference internal" href="#c.SvgRenderContext.bitmapId"><code class="docutils literal notranslate"><span class="pre">bitmapId</span></code></a></li>
+<li><a class="reference internal" href="#c.SvgRenderContext.bitmapWidth"><code class="docutils literal notranslate"><span class="pre">bitmapWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.SvgRenderContext.bitmapHeight"><code class="docutils literal notranslate"><span class="pre">bitmapHeight</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

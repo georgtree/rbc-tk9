@@ -16,3 +16,27 @@ the interface in :doc:`reference` instead of calling these static functions.
 
 .. doxygengroup:: cairo_backend
    :members:
+
+Context storage
+---------------
+
+.. doxygenstruct:: CairoRenderContext
+   :members:
+
+Windows context and marker-pass target
+--------------------------------------
+
+The target owns the shared DIB and borrows the graph and destination. Its image
+surface and DC are views of that DIB, not independently owned objects.
+
+.. c:namespace:: rbcCairoWindows
+
+.. doxygenstruct:: CairoRenderContext
+   :project: rbc-win
+   :members:
+
+.. doxygenstruct:: Rbc_RenderTarget
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::

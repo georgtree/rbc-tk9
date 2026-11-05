@@ -107,3 +107,19 @@ require a separate compatibility review.
 The byte-comparison fallbacks use an RBC_DOXYGEN branch so their contracts remain
 visible even when the configured platform has native replacements. This selector
 is for extraction only and is not enabled in ordinary compilation.
+
+Contract and member comment placement
+-------------------------------------
+
+Keep one authoritative function contract: normally the declaring header for
+shared interfaces, and the definition for file-local helpers. Remove obsolete
+implementation banners when the header already describes the contract. Keep
+implementation comments that explain an algorithm, platform distinction or
+resource transition; do not copy the header contract into a second location.
+
+Document each structure's purpose and ownership, then attach field descriptions
+using Doxygen member comments (``/**< ... */`` or a preceding documentation
+block). Include units, valid counts, optional/sentinel values and borrowed versus
+owned resources where relevant. Ordinary adjacent comments do not automatically
+become member documentation. Check that the structure is actually included in
+the reference and that its members appear in the rendered output.

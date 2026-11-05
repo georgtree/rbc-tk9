@@ -930,37 +930,12 @@ static int GetSizeFromString(Tcl_Interp *interp, const char *string, Tcl_Size *v
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * VectorCreateObjCmd --
- *
- *      Processes Tcl vector creation. Existing literal names take precedence;
- *      otherwise a numeric final group specifies the legacy size/range.
- *      -literal disables suffix parsing. Parenthesized names have no automatic
- *      array mapping; -variable may specify a separate array name.
- *
- *        vector create a
- *        vector create b(20)
- *        vector create c(-5:14)
- *
- * Parameters:
- *      ClientData clientData - Vector interp data
- *      Tcl_Interp *interp - Interp to return results to
- *      int objc - argument count
- *      Tcl_Obj * const objv[] - arguments to the command
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- *----------------------------------------------------------------------
+/** @brief Explicit vector creation type parsed before allocating storage.
+ * @ingroup vector_storage_private
  */
 typedef struct {
-    Rbc_VectorType type;
-    int specified;
+    Rbc_VectorType type; /**< Requested real or complex storage type. */
+    int specified; /**< Nonzero when the caller explicitly supplied a type option. */
 } VectorTypeOption;
 
 /**

@@ -26,23 +26,22 @@ Tcl_Size Rbc_RenderPolygonPointLimit(Graph *graphPtr) {
  * place this record on the stack and must never pass it to Rbc_RenderEnd.
  */
 typedef struct {
-    Rbc_RenderContext core;
-    double symbolSize;
-    Rbc_NativeClip *nativeClip;
-    /* Borrowed native GC; trace scratch storage and DC live until End. */
-    Tk_Window nativeWindow; /* Borrowed text target, including external legends. */
-    Drawable nativeDrawable;
-    GC nativeGC;
-    Rbc_NativeTrace *nativeTrace;
-    Rbc_RenderNativeSymbolStyle *nativeSymbolStyle;
-    Rbc_RenderBarStyle nativeBarStyle;
-    Rbc_Tile nativeTile;
-    Pixmap nativeStipple;
-    const Point2D *nativeFillPoints;
-    Tcl_Size nativeFillCount;
-    const Segment2D *nativeArcSegments;
-    Tcl_Size nativeArcCount;
-    Rbc_NativePolygonBatch *nativePolygonBatch;
+    Rbc_RenderContext core; /**< Common dispatch prefix; must remain first. */
+    double symbolSize; /**< Mapped symbol size in pixels. */
+    Rbc_NativeClip *nativeClip; /**< Owned reusable clip stack, or NULL outside clip contexts. */
+    Tk_Window nativeWindow; /**< Borrowed text target, including external legends. */
+    Drawable nativeDrawable; /**< Borrowed destination in widget coordinates. */
+    GC nativeGC; /**< Borrowed GC retaining caller-selected raster, dash and clip state. */
+    Rbc_NativeTrace *nativeTrace; /**< Owned trace batch; released at context end. */
+    Rbc_RenderNativeSymbolStyle *nativeSymbolStyle; /**< Borrowed symbol policy; drawing updates its sampling counter. */
+    Rbc_RenderBarStyle nativeBarStyle; /**< Copied bar policy; referenced Tk resources remain borrowed. */
+    Rbc_Tile nativeTile; /**< Borrowed fill tile, or NULL for an untiled fill. */
+    Pixmap nativeStipple; /**< Borrowed stipple selector; None selects no stipple. */
+    const Point2D *nativeFillPoints; /**< Borrowed mapped arc-fill polygon retained until context end. */
+    Tcl_Size nativeFillCount; /**< Number of retained arc-fill vertices. */
+    const Segment2D *nativeArcSegments; /**< Borrowed mapped arc outline retained until context end. */
+    Tcl_Size nativeArcCount; /**< Number of retained arc-outline segments. */
+    Rbc_NativePolygonBatch *nativePolygonBatch; /**< Owned optional platform polygon batch, or NULL for ordinary drawing. */
 } NativeRenderContext;
 
 #define NATIVE(ctx) ((NativeRenderContext *)(ctx))
@@ -822,7 +821,7 @@ void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
     ctx->ops->output->bitmapMask(ctx, display, bitmap, x, y, width, height, color, background);
 }
 
-/* SVG writes mapped geometry directly; it is independent of the screen backend. */
+/* Dispatch clips for the selected backend; contracts are in rbcRender.h. */
 void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     ++ctx->clipDepth;
     ctx->ops->clipBegin(ctx, x, y, width, height);

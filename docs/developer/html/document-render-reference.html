@@ -1188,6 +1188,148 @@ ownership of the source image, font or mapped point array.</p>
 </dd></dl>
 
 </section>
+<section id="context-storage">
+<h2>Context storage<a class="headerlink" href="#context-storage" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState">
+<span class="target" id="struct_rbc___render_export_state"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderExportState</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared document-renderer prefix and copied paint state. </p>
+<p>The core must be first so backend callbacks can downcast. Styles are shallow copies: colors, bitmaps and tiles remain borrowed unless stored as XColor values. Pattern IDs belong to the document builder, not this context. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.core">
+<span class="target" id="struct_rbc___render_export_state_1aa9e61e55b7c6456ca0f906ed1605a479"></span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">core</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.core" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common dispatch prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.exportPtr">
+<span class="target" id="struct_rbc___render_export_state_1a491916f54366a8b2f5091b3bc37f2426"></span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">exportPtr</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.exportPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed document builder; outlives this context. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.fillStyle">
+<span class="target" id="struct_rbc___render_export_state_1a6a02e667e88af2629f1019a944bd52c3"></span><a class="reference internal" href="reference.html#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.fillStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied fill policy with borrowed Tk resources. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.symbolSize">
+<span class="target" id="struct_rbc___render_export_state_1a17626555f40e333a6c3b8ceaba242bd8"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">symbolSize</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.symbolSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Backend-adjusted symbol size in mapped display units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorColor">
+<span class="target" id="struct_rbc___render_export_state_1ad1475ac54f5898e1e4d8174dda873b30"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorColor</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Value copy of the foreground color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorOffColor">
+<span class="target" id="struct_rbc___render_export_state_1ae94167371e24f8f012693d7814adcaf7"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorOffColor</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorOffColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Value copy of the off-dash underlay color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorHasColor">
+<span class="target" id="struct_rbc___render_export_state_1a79a51af8693363bbd53a6501fddbe2dc"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorHasColor</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorHasColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when vectorColor is present. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorHasOffColor">
+<span class="target" id="struct_rbc___render_export_state_1af9477572c86b7726e4ce94c676bd4d29"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorHasOffColor</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorHasOffColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when vectorOffColor is present. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorWidth">
+<span class="target" id="struct_rbc___render_export_state_1a05d88be23abb21b0ccb892041dcb392c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorWidth</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stroke width in display pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorCap">
+<span class="target" id="struct_rbc___render_export_state_1a0429f6f8b8bd5fb623c5620da4121147"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorCap</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorCap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X cap-style selector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorJoin">
+<span class="target" id="struct_rbc___render_export_state_1aae58215037061c4bd451a603921756c9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorJoin</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorJoin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X join-style selector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorDashes">
+<span class="target" id="struct_rbc___render_export_state_1ac5c5b06984de62d8de892e9a74b6d04b"></span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorDashes</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorDashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied dash lengths and offset. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorSymbol">
+<span class="target" id="struct_rbc___render_export_state_1aa468905dfc7e631e22d88a69cc424e1d"></span><a class="reference internal" href="reference.html#c.Rbc_RenderSymbolStyle" title="Rbc_RenderSymbolStyle"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorSymbol</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorSymbol" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied export symbol policy with borrowed bitmap and color resources. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorBarSymbol">
+<span class="target" id="struct_rbc___render_export_state_1addc73a914139e112b6ffa33ab75f78f3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorBarSymbol</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorBarSymbol" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero selects the bar-legend square convention. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorPatternId">
+<span class="target" id="struct_rbc___render_export_state_1afb554e51ad37ae90336a0a4a1ebc2a95"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorPatternId</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorPatternId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Document-owned pattern identifier; the context does not free the definition. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderExportState.vectorTile">
+<span class="target" id="struct_rbc___render_export_state_1a818c9c8813749bef7ee41172155e5d9f"></span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorTile</span></span></span><a class="headerlink" href="#c.Rbc_RenderExportState.vectorTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed tile used by SVG/PDF fills. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.PostscriptRenderContext">
+<span class="target" id="struct_postscript_render_context"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostscriptRenderContext</span></span></span><a class="headerlink" href="#c.PostscriptRenderContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>PostScript context borrowing the token and prolog; does not own document output. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostscriptRenderContext.exportState">
+<span class="target" id="struct_postscript_render_context_1a1cc8dbe7b828938e9341c185860c13d5"></span><a class="reference internal" href="#c.Rbc_RenderExportState" title="Rbc_RenderExportState"><span class="n"><span class="pre">Rbc_RenderExportState</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">exportState</span></span></span><a class="headerlink" href="#c.PostscriptRenderContext.exportState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared document prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostscriptRenderContext.psToken">
+<span class="target" id="struct_postscript_render_context_1a7bf08fbd322ce3913645169f8b1450ba"></span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">psToken</span></span></span><a class="headerlink" href="#c.PostscriptRenderContext.psToken" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed PostScript token used for legacy primitive emission. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostscriptRenderContext.postScriptDashed">
+<span class="target" id="struct_postscript_render_context_1a2d3ae1f772f5997a0b720491444bb659"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">postScriptDashed</span></span></span><a class="headerlink" href="#c.PostscriptRenderContext.postScriptDashed" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the current stroke has a dash pattern. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PostscriptRenderContext.symbolMacro">
+<span class="target" id="struct_postscript_render_context_1a966f6374a22b2b18213e29b40c3f04ff"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">symbolMacro</span></span></span><a class="headerlink" href="#c.PostscriptRenderContext.symbolMacro" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed static prolog macro name selected for symbol emission. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1275,6 +1417,35 @@ ownership of the source image, font or mapped point array.</p>
 <li><a class="reference internal" href="#c.PostScriptPlotBegin"><code class="docutils literal notranslate"><span class="pre">PostScriptPlotBegin()</span></code></a></li>
 <li><a class="reference internal" href="#c.PostScriptPlotEnd"><code class="docutils literal notranslate"><span class="pre">PostScriptPlotEnd()</span></code></a></li>
 <li><a class="reference internal" href="#c.PostScriptBitmapMask"><code class="docutils literal notranslate"><span class="pre">PostScriptBitmapMask()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#context-storage">Context storage</a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderExportState</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.core"><code class="docutils literal notranslate"><span class="pre">core</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.exportPtr"><code class="docutils literal notranslate"><span class="pre">exportPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.fillStyle"><code class="docutils literal notranslate"><span class="pre">fillStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.symbolSize"><code class="docutils literal notranslate"><span class="pre">symbolSize</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorColor"><code class="docutils literal notranslate"><span class="pre">vectorColor</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorOffColor"><code class="docutils literal notranslate"><span class="pre">vectorOffColor</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorHasColor"><code class="docutils literal notranslate"><span class="pre">vectorHasColor</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorHasOffColor"><code class="docutils literal notranslate"><span class="pre">vectorHasOffColor</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorWidth"><code class="docutils literal notranslate"><span class="pre">vectorWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorCap"><code class="docutils literal notranslate"><span class="pre">vectorCap</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorJoin"><code class="docutils literal notranslate"><span class="pre">vectorJoin</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorDashes"><code class="docutils literal notranslate"><span class="pre">vectorDashes</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorSymbol"><code class="docutils literal notranslate"><span class="pre">vectorSymbol</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorBarSymbol"><code class="docutils literal notranslate"><span class="pre">vectorBarSymbol</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorPatternId"><code class="docutils literal notranslate"><span class="pre">vectorPatternId</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderExportState.vectorTile"><code class="docutils literal notranslate"><span class="pre">vectorTile</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.PostscriptRenderContext"><code class="docutils literal notranslate"><span class="pre">PostscriptRenderContext</span></code></a><ul>
+<li><a class="reference internal" href="#c.PostscriptRenderContext.exportState"><code class="docutils literal notranslate"><span class="pre">exportState</span></code></a></li>
+<li><a class="reference internal" href="#c.PostscriptRenderContext.psToken"><code class="docutils literal notranslate"><span class="pre">psToken</span></code></a></li>
+<li><a class="reference internal" href="#c.PostscriptRenderContext.postScriptDashed"><code class="docutils literal notranslate"><span class="pre">postScriptDashed</span></code></a></li>
+<li><a class="reference internal" href="#c.PostscriptRenderContext.symbolMacro"><code class="docutils literal notranslate"><span class="pre">symbolMacro</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

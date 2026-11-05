@@ -23,23 +23,25 @@
 #endif /* RBC_HAVE_CAIRO: headers */
 
 #ifdef RBC_HAVE_CAIRO
+/** @brief Cairo paint context owning graphics resources; input graph and style resources remain borrowed. */
 typedef struct {
-    Rbc_RenderContext core;
-    Rbc_RenderFillStyle fillStyle;
-    cairo_surface_t *surface;
-    cairo_t *cr;
-    cairo_pattern_t *bitmapPattern;
-    int bitmapWidth, bitmapHeight;
-    XColor foreground;
-    XColor offColor;
-    int doubleDash;
-    int nDashes;
-    double dashes[RBC_MAX_DASH_VALUES];
-    double dashOffset;
+    Rbc_RenderContext core; /**< Common dispatch prefix; must remain first. */
+    Rbc_RenderFillStyle fillStyle; /**< Copied fill policy with borrowed color and stipple resources. */
+    cairo_surface_t *surface; /**< Owned surface reference released during context cleanup. */
+    cairo_t *cr; /**< Owned Cairo drawing state, destroyed before the surface. */
+    cairo_pattern_t *bitmapPattern; /**< Owned optional bitmap/stipple pattern. */
+    int bitmapWidth; /**< Bitmap/pattern width in pixels. */
+    int bitmapHeight; /**< Bitmap/pattern height in pixels. */
+    XColor foreground; /**< Copied stroke foreground. */
+    XColor offColor; /**< Copied off-dash underlay color. */
+    int doubleDash; /**< Nonzero enables the off-dash underlay. */
+    int nDashes; /**< Number of initialized entries in dashes. */
+    double dashes[RBC_MAX_DASH_VALUES]; /**< Copied dash lengths in Cairo user-space units. */
+    double dashOffset; /**< Dash phase in Cairo user-space units. */
 #ifdef WIN32
-    Rbc_WinDrawableDC *dcState;
-    HDC dc;
-    int savedDC;
+    Rbc_WinDrawableDC *dcState; /**< Owned Windows DC acquisition record, or NULL. */
+    HDC dc; /**< DC borrowed from dcState while the context is live. */
+    int savedDC; /**< SaveDC restoration token; zero means no saved state. */
 #endif
 } CairoRenderContext;
 
@@ -88,13 +90,15 @@ static const Rbc_RenderOps cairoOps = {
     NULL,          CairoEnd,      CairoArc,       CairoFillArc,        CairoClipBegin,   CairoClipEnd};
 
 #ifdef WIN32
+/** @brief Windows Cairo marker-pass target; EndMarkerPass copies back and releases owned resources. */
 struct Rbc_RenderTarget {
-    Graph *graphPtr;
-    cairo_surface_t *surface;
-    cairo_surface_t *image;
-    Rbc_WinDrawableDC *destinationState;
-    HDC destinationDC, dc;
-    Drawable drawable;
+    Graph *graphPtr; /**< Borrowed graph whose renderTarget points at this active marker pass. */
+    cairo_surface_t *surface; /**< Owned Windows DIB surface for the complete marker pass. */
+    cairo_surface_t *image; /**< Borrowed image surface obtained from surface; not destroyed separately. */
+    Rbc_WinDrawableDC *destinationState; /**< Owned acquisition record for the original destination. */
+    HDC destinationDC; /**< Original destination DC borrowed from destinationState. */
+    HDC dc; /**< DIB DC borrowed from surface. */
+    Drawable drawable; /**< Owned Tk-compatible wrapper around the DIB DC. */
 };
 
 /* One DIB for the marker pass avoids per-marker DDB readback. */

@@ -61,57 +61,6 @@ coordinate conventions.</p>
 <p>Private graph rendering interface used by mapped components. </p>
 <p>Geometry is in mapped widget/display coordinates, not axis data coordinates. Contexts and their borrowed resources must stay on the owning Tk thread. A constructor defines the supported operations; unsupported callbacks are not automatic fallbacks. Check nullable constructor results before drawing. End each allocated context exactly once with <a class="reference internal" href="#rbc_render_8h_1a3132ac7662b342ff0ff4f71e0c1a03d1"><span class="std std-ref">Rbc_RenderEnd()</span></a>. Document tokens, drawables, GCs and component-owned resources remain borrowed.</p>
 <p>This header is not installed and does not define the public vector ABI. See license.terms for redistribution terms. </p>
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderRectangle">
-<span class="target" id="struct_rbc___render_rectangle"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></span><a class="headerlink" href="#c.Rbc_RenderRectangle" title="Link to this definition">¶</a><br /></dt>
-<dd><div class="docutils container">
-<em>#include &lt;rbcRender.h&gt;</em></div>
-<p>Keep bar geometry in full-width widget coordinates. </p>
-</dd></dl>
-
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle">
-<span class="target" id="struct_rbc___render_bitmap_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmapStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle">
-<span class="target" id="struct_rbc___render_fill_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle" title="Link to this definition">¶</a><br /></dt>
-<dd><div class="docutils container">
-<em>#include &lt;rbcRender.h&gt;</em></div>
-<p>Fill policy shared by screen and export. </p>
-<p>backgroundOnly preserves the legacy PostScript fallback for image-tiled areas. </p>
-</dd></dl>
-
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry">
-<span class="target" id="struct_rbc___render_arc_geometry"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle">
-<span class="target" id="struct_rbc___render_symbol_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle">
-<span class="target" id="struct_rbc___render_native_symbol_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle" title="Link to this definition">¶</a><br /></dt>
-<dd><div class="docutils container">
-<em>#include &lt;rbcRender.h&gt;</em></div>
-<p>Borrowed native symbol resources. </p>
-<p>Sampling state is returned through counter; preserve it across batches belonging to the same element. </p>
-</dd></dl>
-
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle">
-<span class="target" id="struct_rbc___render_bar_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="c struct">
-<dt class="sig sig-object c" id="c.Rbc_RenderShape">
-<span class="target" id="struct_rbc___render_shape"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderShape</span></span></span><a class="headerlink" href="#c.Rbc_RenderShape" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-defines">Defines</p>
 <dl class="c macro">
@@ -124,8 +73,7 @@ coordinate conventions.</p>
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.RBC_RENDER_BITMAP_OUTLINE_POINTS">
 <span class="target" id="rbc_render_8h_1a0c11f6d812f322b0f69a5888dda42fe2"></span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_BITMAP_OUTLINE_POINTS</span></span></span><a class="headerlink" href="#c.RBC_RENDER_BITMAP_OUTLINE_POINTS" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Mapped bitmap presentation borrows the marker’s private GCs and resources. </p>
-<p>A rotated opaque background is already clipped/mapped by the component; mask then refers to the bitmap itself, as in the legacy drawing path. </p>
+<dd><p>Maximum vertices in a mapped bitmap background outline. </p>
 </dd></dl>
 
 </div>
@@ -1606,6 +1554,381 @@ Converts each center to int before subtracting half the bitmap size. Does not re
 </section>
 <section id="auxiliary-types">
 <h2>Auxiliary types<a class="headerlink" href="#auxiliary-types" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderRectangle">
+<span class="target" id="struct_rbc___render_rectangle"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></span><a class="headerlink" href="#c.Rbc_RenderRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Keep bar geometry in full-width widget coordinates. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderRectangle.x">
+<span class="target" id="struct_rbc___render_rectangle_1a0518b9826287d695911a7b181a1951b6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x</span></span></span><a class="headerlink" href="#c.Rbc_RenderRectangle.x" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rectangle origin X in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderRectangle.y">
+<span class="target" id="struct_rbc___render_rectangle_1a54b601066a9486d259c87c1fa7c7406b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">y</span></span></span><a class="headerlink" href="#c.Rbc_RenderRectangle.y" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rectangle origin Y in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderRectangle.width">
+<span class="target" id="struct_rbc___render_rectangle_1ae5ca4df4d5c3cc5d5e612dd6f2c79a5d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.Rbc_RenderRectangle.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rectangle width in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderRectangle.height">
+<span class="target" id="struct_rbc___render_rectangle_1ad428f8acd5f000b7da74dd4d17fa9887"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.Rbc_RenderRectangle.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rectangle height in pixels. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle">
+<span class="target" id="struct_rbc___render_bitmap_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmapStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mapped bitmap paint policy; all referenced resources remain component-owned. </p>
+<p>A rotated opaque background is already clipped/mapped by the component; mask then refers to the bitmap itself, as in the legacy drawing path. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.bitmap">
+<span class="target" id="struct_rbc___render_bitmap_style_1ae7d41fa8f2cd2ad1ceae40b6c415213a"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmap</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.bitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed one-bit source bitmap; None means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.mask">
+<span class="target" id="struct_rbc___render_bitmap_style_1afaee59af33d001dd69b208b956cca87c"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.mask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed optional bitmap mask; None means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.gc">
+<span class="target" id="struct_rbc___render_bitmap_style_1a20b2c8dede24250f34c9288e8ba92625"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gc</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.gc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed foreground GC. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.fillGC">
+<span class="target" id="struct_rbc___render_bitmap_style_1a9a6c80da077eb917649e55a7b57fa9a3"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillGC</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.fillGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed fill/background GC; absent means no fill. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.foreground">
+<span class="target" id="struct_rbc___render_bitmap_style_1a8e2a01ab667809ee0232ba75747c2842"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">foreground</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.foreground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed foreground color; NULL means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.background">
+<span class="target" id="struct_rbc___render_bitmap_style_1a771eef2558369b9dd67da7d55d7b9b25"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">background</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.background" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed background color; NULL means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.backgroundPoints">
+<span class="target" id="struct_rbc___render_bitmap_style_1a839c3a96bbaa26b5a3a9691e4d417435"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">backgroundPoints</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.backgroundPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed mapped polygon for a rotated opaque background. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle.backgroundCount">
+<span class="target" id="struct_rbc___render_bitmap_style_1a8042adf15f5bcc9b8ee004c1a269b375"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">backgroundCount</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle.backgroundCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of backgroundPoints entries; at most RBC_RENDER_BITMAP_OUTLINE_POINTS. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle">
+<span class="target" id="struct_rbc___render_fill_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill policy shared by screen and export. </p>
+<p>backgroundOnly preserves the legacy PostScript fallback for image-tiled areas. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle.foreground">
+<span class="target" id="struct_rbc___render_fill_style_1a656a6c5452d157fb8da7e42ac9e1dd87"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">foreground</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle.foreground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed foreground color; NULL means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle.background">
+<span class="target" id="struct_rbc___render_fill_style_1a6f90bb6c1243418ee974818f562ccfda"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">background</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle.background" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed background color; NULL means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle.stipple">
+<span class="target" id="struct_rbc___render_fill_style_1a258266c947d660f30a7f2acd1410d364"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stipple</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle.stipple" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed one-bit stipple; None selects a solid fill. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle.opacity">
+<span class="target" id="struct_rbc___render_fill_style_1acf7df7d3e2e1fa0c31dd2fa10f556358"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">opacity</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle.opacity" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Solid polygon opacity; PostScript ignores it. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle.backgroundOnly">
+<span class="target" id="struct_rbc___render_fill_style_1abeba10c93ae09780635d006ace6e27c4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">backgroundOnly</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle.backgroundOnly" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero requests the legacy background-only fill fallback. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry">
+<span class="target" id="struct_rbc___render_arc_geometry"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Value-only ellipse geometry; dispatch normalizes a copy and rejects non-finite or degenerate input. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry.cx">
+<span class="target" id="struct_rbc___render_arc_geometry_1a78371445d9756b9ff36fc0b1ccf1764f"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cx</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry.cx" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Ellipse center X in mapped display coordinates. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry.cy">
+<span class="target" id="struct_rbc___render_arc_geometry_1aece272ee5ed5ba899e79a21d43c2e56c"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cy</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry.cy" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Ellipse center Y in mapped display coordinates. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry.rx">
+<span class="target" id="struct_rbc___render_arc_geometry_1aab27f17a9e35d81b9153b1d93b6db641"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rx</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry.rx" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Positive horizontal radius in display units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry.ry">
+<span class="target" id="struct_rbc___render_arc_geometry_1a9e33709d431d0d69417caf25d6823258"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ry</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry.ry" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Positive vertical radius in display units. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry.start">
+<span class="target" id="struct_rbc___render_arc_geometry_1afbfb0658b3c64bbf3bb72d39edc21f9e"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">start</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry.start" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Start angle in degrees, measured counterclockwise from the rightward direction. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry.extent">
+<span class="target" id="struct_rbc___render_arc_geometry_1a9d43a8bf0ab4fd6ea3a27fe78c0c46b9"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">extent</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry.extent" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Signed sweep in degrees; absolute values of at least 360 select a full ellipse. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry.style">
+<span class="target" id="struct_rbc___render_arc_geometry_1a1620d01dfbe1396a7a488026505a7ec5"></span><a class="reference internal" href="#c.Rbc_RenderArcStyle" title="Rbc_RenderArcStyle"><span class="n"><span class="pre">Rbc_RenderArcStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">style</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry.style" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Open curve, endpoint chord or center-connected sector. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle">
+<span class="target" id="struct_rbc___render_symbol_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export symbol policy copied into a context; referenced colors and pixmaps remain borrowed. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle.type">
+<span class="target" id="struct_rbc___render_symbol_style_1a1f815db0e98291560952409d1a302aa7"></span><a class="reference internal" href="#c.Rbc_RenderSymbolType" title="Rbc_RenderSymbolType"><span class="n"><span class="pre">Rbc_RenderSymbolType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle.type" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Semantic symbol shape. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle.size">
+<span class="target" id="struct_rbc___render_symbol_style_1a53f75cdf3f14867b38f1c7f6c4dc32cd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle.size" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Symbol size in display pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle.outlineWidth">
+<span class="target" id="struct_rbc___render_symbol_style_1a363e4fdad1aa7f6f452fd0bb10d59306"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">outlineWidth</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle.outlineWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Outline width in display pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle.outlineColor">
+<span class="target" id="struct_rbc___render_symbol_style_1a7acd1c2e4fd83397452a5a4853a7cc31"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">outlineColor</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle.outlineColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed outline color; NULL suppresses the outline. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle.fillColor">
+<span class="target" id="struct_rbc___render_symbol_style_1a62194f94e6340eff1dda1999eec2298e"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fillColor</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle.fillColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed fill color; NULL suppresses the fill. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle.bitmap">
+<span class="target" id="struct_rbc___render_symbol_style_1a5b224e793f9c579562117491317e461b"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmap</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle.bitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed one-bit source bitmap; None means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle.mask">
+<span class="target" id="struct_rbc___render_symbol_style_1a78fe7e45a581e2e77e8441abeb15d29d"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle.mask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed optional bitmap mask; None means absent. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle">
+<span class="target" id="struct_rbc___render_native_symbol_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed native symbol resources. </p>
+<p>Sampling state is returned through counter; preserve it across batches belonging to the same element. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.type">
+<span class="target" id="struct_rbc___render_native_symbol_style_1a5c9dfbf39aa2bb3c2f09393acc01592c"></span><a class="reference internal" href="#c.Rbc_RenderSymbolType" title="Rbc_RenderSymbolType"><span class="n"><span class="pre">Rbc_RenderSymbolType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.type" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Semantic symbol shape. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.outlineWidth">
+<span class="target" id="struct_rbc___render_native_symbol_style_1a6fe8404a4a1073870a472aaf084e0d5d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">outlineWidth</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.outlineWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Outline width in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.outlineGC">
+<span class="target" id="struct_rbc___render_native_symbol_style_1a7164cc7e9aabc2cb22279e616510c13e"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">outlineGC</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.outlineGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed outline GC; absent means no outline. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.fillGC">
+<span class="target" id="struct_rbc___render_native_symbol_style_1a3fa6f612c293a1dcb1da8140748da294"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillGC</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.fillGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed fill/background GC; absent means no fill. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.bitmap">
+<span class="target" id="struct_rbc___render_native_symbol_style_1a3a45016f2467fa9e5cc44f504130357f"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bitmap</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.bitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed one-bit source bitmap; None means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.mask">
+<span class="target" id="struct_rbc___render_native_symbol_style_1ae308c8d11b794a5635142afe90086e39"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.mask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed optional bitmap mask; None means absent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.interval">
+<span class="target" id="struct_rbc___render_native_symbol_style_1a77b711a6731c3af785d4943cbbbfd704"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">interval</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.interval" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Positive values enable interval sampling; nonpositive values draw every supplied center. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle.counter">
+<span class="target" id="struct_rbc___render_native_symbol_style_1ac1bcb5eda92c26308dd8bd16a9e47f53"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">counter</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle.counter" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mutable point counter; preserve across batches of the same element. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle">
+<span class="target" id="struct_rbc___render_bar_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied bar paint policy; the element retains ownership of all Tk resources. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle.border">
+<span class="target" id="struct_rbc___render_bar_style_1acb62d162c59a20d9cc7e8a7b479c21b3"></span><span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">border</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle.border" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed Tk border supplying fill and relief colors. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle.fgColor">
+<span class="target" id="struct_rbc___render_bar_style_1aa1736c0a89f7afebf6794d3dd034650a"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fgColor</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle.fgColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed resolved foreground color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle.gc">
+<span class="target" id="struct_rbc___render_bar_style_1aa94753285fb148abe451983e650a5e75"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gc</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle.gc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed fill GC, including stipple and raster state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle.stipple">
+<span class="target" id="struct_rbc___render_bar_style_1aafc2ba65303f49dcc3a224cbb01cf187"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stipple</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle.stipple" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed fill stipple; None means no stipple. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle.borderWidth">
+<span class="target" id="struct_rbc___render_bar_style_1ace5c05a37a7d2379314dd93d81ea3075"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">borderWidth</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle.borderWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Border thickness in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle.relief">
+<span class="target" id="struct_rbc___render_bar_style_1a152dc8815c023fa2a9aa3a93b63fe3e9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">relief</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle.relief" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk relief selector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle.fillOpacity">
+<span class="target" id="struct_rbc___render_bar_style_1aa8845f35daad6c4a1999006725317b03"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillOpacity</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle.fillOpacity" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill alpha used by capable backends; native fallback retains its opaque behavior. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderShape">
+<span class="target" id="struct_rbc___render_shape"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderShape</span></span></span><a class="headerlink" href="#c.Rbc_RenderShape" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Small value-only symbol geometry record shared by drawing backends. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderShape.type">
+<span class="target" id="struct_rbc___render_shape_1a0c1992c9220053ceb6ce48af7dd43f61"></span><a class="reference internal" href="#c.Rbc_RenderShapeType" title="Rbc_RenderShapeType"><span class="n"><span class="pre">Rbc_RenderShapeType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><a class="headerlink" href="#c.Rbc_RenderShape.type" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Circle, polygon or independent-segment geometry selector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderShape.radius">
+<span class="target" id="struct_rbc___render_shape_1a764a069b925b6081b9d80f3b49ef4ff4"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">radius</span></span></span><a class="headerlink" href="#c.Rbc_RenderShape.radius" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Circle radius in display units, used for circle shapes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderShape.nPoints">
+<span class="target" id="struct_rbc___render_shape_1a53700f63c93be2b6e85883737727adfa"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nPoints</span></span></span><a class="headerlink" href="#c.Rbc_RenderShape.nPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of initialized entries in points, bounded by twelve. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderShape.points">
+<span class="target" id="struct_rbc___render_shape_1ad82b294f7f1536990dbd72257e2424aa"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">points</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">12</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_RenderShape.points" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Symbol-local vertex offsets; segment endpoints are stored in pairs. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
 <dl class="c type">
 <dt class="sig sig-object c" id="c.Rbc_RenderPosition">
 <span class="target" id="rbc_render_8h_1ab452782025c927017b4dcb6d6ef61e5a"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_RenderPosition" title="Link to this definition">¶</a><br /></dt>
@@ -2341,6 +2664,105 @@ call relationships.</p>
 <span class="target" id="struct_native_render_context"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeRenderContext</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Shared storage for native screen adapter families. </p>
 <p>core is the dispatch prefix. Trace, clip and polygon-batch records are owned; window, drawable, GC, symbol style, tile, stipple and mapped arrays are borrowed. nativeBarStyle is a shallow value copy, not ownership of its referenced resources. Only the selected constructor’s fields are meaningful. Some one-shot callers place this record on the stack and must never pass it to Rbc_RenderEnd. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.core">
+<span class="target" id="struct_native_render_context_1a42a856df47c863410bea07e989769e59"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">core</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.core" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common dispatch prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.symbolSize">
+<span class="target" id="struct_native_render_context_1a5fb45115201c0a6e79a9a304e385898e"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">symbolSize</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.symbolSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mapped symbol size in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeClip">
+<span class="target" id="struct_native_render_context_1a2292bc7683ede0a6e71ccc4b76e41cb9"></span><span class="n"><span class="pre">Rbc_NativeClip</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativeClip</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeClip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned reusable clip stack, or NULL outside clip contexts. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeWindow">
+<span class="target" id="struct_native_render_context_1aa12e77ab61495dd38370c421beb9944f"></span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeWindow</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeWindow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed text target, including external legends. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeDrawable">
+<span class="target" id="struct_native_render_context_1a822f3c68b93abc5c29261e7c74591c3f"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeDrawable</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeDrawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed destination in widget coordinates. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeGC">
+<span class="target" id="struct_native_render_context_1a5fc104b92f275d86e1fbbfd070155cf3"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeGC</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed GC retaining caller-selected raster, dash and clip state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeTrace">
+<span class="target" id="struct_native_render_context_1a98cb7eed088307c11db9b128b0ad1505"></span><span class="n"><span class="pre">Rbc_NativeTrace</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativeTrace</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeTrace" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned trace batch; released at context end. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeSymbolStyle">
+<span class="target" id="struct_native_render_context_1acc17731e88d2143f2499c135e982cc06"></span><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativeSymbolStyle</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeSymbolStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed symbol policy; drawing updates its sampling counter. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeBarStyle">
+<span class="target" id="struct_native_render_context_1a3f5b18cc52979847449b1751dca79d67"></span><a class="reference internal" href="#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeBarStyle</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeBarStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copied bar policy; referenced Tk resources remain borrowed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeTile">
+<span class="target" id="struct_native_render_context_1adb4df1d0bed9edadc7e2b5feb3a76f6a"></span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeTile</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed fill tile, or NULL for an untiled fill. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeStipple">
+<span class="target" id="struct_native_render_context_1a24dc341e067e6b3d3856fefa4336f87f"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeStipple</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeStipple" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed stipple selector; None selects no stipple. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeFillPoints">
+<span class="target" id="struct_native_render_context_1a78470aeae75374091801bd4699c10390"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativeFillPoints</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeFillPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed mapped arc-fill polygon retained until context end. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeFillCount">
+<span class="target" id="struct_native_render_context_1a0479246864770cc802b88158d4622eab"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeFillCount</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeFillCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of retained arc-fill vertices. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeArcSegments">
+<span class="target" id="struct_native_render_context_1a6d31a0a2c6b8c9c9500a61dcff84c0c7"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativeArcSegments</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeArcSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed mapped arc outline retained until context end. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativeArcCount">
+<span class="target" id="struct_native_render_context_1ade63c333fbc2f7c7cd5a31fae7ca3ce1"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nativeArcCount</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativeArcCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of retained arc-outline segments. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcRenderDispatch.NativeRenderContext.nativePolygonBatch">
+<span class="target" id="struct_native_render_context_1a836b99659764278e310f79bf22fb412a"></span><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nativePolygonBatch</span></span></span><a class="headerlink" href="#c.rbcRenderDispatch.NativeRenderContext.nativePolygonBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned optional platform polygon batch, or NULL for ordinary drawing. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -2360,14 +2782,6 @@ call relationships.</p>
     <ul>
 <li><a class="reference internal" href="#">Renderer C reference</a><ul>
 <li><a class="reference internal" href="#component-facing-interface">Component-facing interface</a><ul>
-<li><a class="reference internal" href="#c.Rbc_RenderRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderRectangle</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBitmapStyle</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RenderFillStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillStyle</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderArcGeometry</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSymbolStyle</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderNativeSymbolStyle</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RenderBarStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBarStyle</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RenderShape"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderShape</span></code></a></li>
 <li><a class="reference internal" href="#c.RBC_RENDER_ARROW_POINTS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_ARROW_POINTS</span></code></a></li>
 <li><a class="reference internal" href="#c.RBC_RENDER_BITMAP_OUTLINE_POINTS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_BITMAP_OUTLINE_POINTS</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_RenderArcStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderArcStyle</span></code></a><ul>
@@ -2478,6 +2892,80 @@ call relationships.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#auxiliary-types">Auxiliary types</a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderRectangle</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderRectangle.x"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderRectangle.y"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderRectangle.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderRectangle.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBitmapStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.bitmap"><code class="docutils literal notranslate"><span class="pre">bitmap</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.mask"><code class="docutils literal notranslate"><span class="pre">mask</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.gc"><code class="docutils literal notranslate"><span class="pre">gc</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.fillGC"><code class="docutils literal notranslate"><span class="pre">fillGC</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.foreground"><code class="docutils literal notranslate"><span class="pre">foreground</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.background"><code class="docutils literal notranslate"><span class="pre">background</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.backgroundPoints"><code class="docutils literal notranslate"><span class="pre">backgroundPoints</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle.backgroundCount"><code class="docutils literal notranslate"><span class="pre">backgroundCount</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderFillStyle.foreground"><code class="docutils literal notranslate"><span class="pre">foreground</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillStyle.background"><code class="docutils literal notranslate"><span class="pre">background</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillStyle.stipple"><code class="docutils literal notranslate"><span class="pre">stipple</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillStyle.opacity"><code class="docutils literal notranslate"><span class="pre">opacity</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillStyle.backgroundOnly"><code class="docutils literal notranslate"><span class="pre">backgroundOnly</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderArcGeometry</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry.cx"><code class="docutils literal notranslate"><span class="pre">cx</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry.cy"><code class="docutils literal notranslate"><span class="pre">cy</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry.rx"><code class="docutils literal notranslate"><span class="pre">rx</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry.ry"><code class="docutils literal notranslate"><span class="pre">ry</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry.start"><code class="docutils literal notranslate"><span class="pre">start</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry.extent"><code class="docutils literal notranslate"><span class="pre">extent</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry.style"><code class="docutils literal notranslate"><span class="pre">style</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSymbolStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle.type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle.size"><code class="docutils literal notranslate"><span class="pre">size</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle.outlineWidth"><code class="docutils literal notranslate"><span class="pre">outlineWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle.outlineColor"><code class="docutils literal notranslate"><span class="pre">outlineColor</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle.fillColor"><code class="docutils literal notranslate"><span class="pre">fillColor</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle.bitmap"><code class="docutils literal notranslate"><span class="pre">bitmap</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle.mask"><code class="docutils literal notranslate"><span class="pre">mask</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderNativeSymbolStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.outlineWidth"><code class="docutils literal notranslate"><span class="pre">outlineWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.outlineGC"><code class="docutils literal notranslate"><span class="pre">outlineGC</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.fillGC"><code class="docutils literal notranslate"><span class="pre">fillGC</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.bitmap"><code class="docutils literal notranslate"><span class="pre">bitmap</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.mask"><code class="docutils literal notranslate"><span class="pre">mask</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.interval"><code class="docutils literal notranslate"><span class="pre">interval</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle.counter"><code class="docutils literal notranslate"><span class="pre">counter</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBarStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle.border"><code class="docutils literal notranslate"><span class="pre">border</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle.fgColor"><code class="docutils literal notranslate"><span class="pre">fgColor</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle.gc"><code class="docutils literal notranslate"><span class="pre">gc</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle.stipple"><code class="docutils literal notranslate"><span class="pre">stipple</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle.borderWidth"><code class="docutils literal notranslate"><span class="pre">borderWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle.relief"><code class="docutils literal notranslate"><span class="pre">relief</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle.fillOpacity"><code class="docutils literal notranslate"><span class="pre">fillOpacity</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderShape"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderShape</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderShape.type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderShape.radius"><code class="docutils literal notranslate"><span class="pre">radius</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderShape.nPoints"><code class="docutils literal notranslate"><span class="pre">nPoints</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderShape.points"><code class="docutils literal notranslate"><span class="pre">points</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#c.Rbc_RenderPosition"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPosition</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_RenderRunProc"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderRunProc</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_RenderTarget"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderTarget</span></code></a></li>
@@ -2529,7 +3017,25 @@ call relationships.</p>
 <li><a class="reference internal" href="#c.rbcRenderDispatch.ScreenLegendBar"><code class="docutils literal notranslate"><span class="pre">ScreenLegendBar()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcRenderDispatch.ScreenRun"><code class="docutils literal notranslate"><span class="pre">ScreenRun()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcRenderDispatch.ScreenBitmapRun"><code class="docutils literal notranslate"><span class="pre">ScreenBitmapRun()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext"><code class="docutils literal notranslate"><span class="pre">NativeRenderContext</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext"><code class="docutils literal notranslate"><span class="pre">NativeRenderContext</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.core"><code class="docutils literal notranslate"><span class="pre">core</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.symbolSize"><code class="docutils literal notranslate"><span class="pre">symbolSize</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeClip"><code class="docutils literal notranslate"><span class="pre">nativeClip</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeWindow"><code class="docutils literal notranslate"><span class="pre">nativeWindow</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeDrawable"><code class="docutils literal notranslate"><span class="pre">nativeDrawable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeGC"><code class="docutils literal notranslate"><span class="pre">nativeGC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeTrace"><code class="docutils literal notranslate"><span class="pre">nativeTrace</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeSymbolStyle"><code class="docutils literal notranslate"><span class="pre">nativeSymbolStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeBarStyle"><code class="docutils literal notranslate"><span class="pre">nativeBarStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeTile"><code class="docutils literal notranslate"><span class="pre">nativeTile</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeStipple"><code class="docutils literal notranslate"><span class="pre">nativeStipple</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeFillPoints"><code class="docutils literal notranslate"><span class="pre">nativeFillPoints</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeFillCount"><code class="docutils literal notranslate"><span class="pre">nativeFillCount</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeArcSegments"><code class="docutils literal notranslate"><span class="pre">nativeArcSegments</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativeArcCount"><code class="docutils literal notranslate"><span class="pre">nativeArcCount</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcRenderDispatch.NativeRenderContext.nativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">nativePolygonBatch</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

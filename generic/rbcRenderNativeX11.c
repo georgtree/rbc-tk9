@@ -29,11 +29,11 @@ Tcl_Size Rbc_NativePolygonPointLimit(Graph *graphPtr) {
  * for a repeated continuation endpoint. One allocation owns state and points.
  */
 struct Rbc_NativeTrace {
-    Graph *graphPtr;
-    Drawable nativeDrawable;
-    GC nativeGC;
-    void *nativePoints;
-    int nativeMaxPoints;
+    Graph *graphPtr; /**< Borrowed owning graph; outlives the batch. */
+    Drawable nativeDrawable; /**< Borrowed destination drawable. */
+    GC nativeGC; /**< Borrowed configured graphics context. */
+    void *nativePoints; /**< Point workspace stored after this record in the same allocation. */
+    int nativeMaxPoints; /**< Maximum vertices per chunk, excluding the continuation slot. */
 };
 
 /**
@@ -405,7 +405,7 @@ void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_Rende
  * No instance is created by this backend. This is not a Windows DC owner.
  */
 struct Rbc_NativePolygonBatch {
-    Display *display;
+    Display *display; /**< Unused placeholder; this backend never allocates a polygon batch. */
 };
 
 /**

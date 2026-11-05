@@ -12,22 +12,29 @@
 #include "rbcFont.h"
 #include <stdint.h>
 
-/* The core must be first so backend callbacks can downcast. Styles are shallow
- * copies: colors/bitmaps/tiles remain borrowed unless stored as XColor values.
- * Pattern IDs belong to the export builder, not to this short-lived context. */
+/** @brief Shared document-renderer prefix and copied paint state.
+ * The core must be first so backend callbacks can downcast. Styles are shallow
+ * copies: colors, bitmaps and tiles remain borrowed unless stored as XColor
+ * values. Pattern IDs belong to the document builder, not this context.
+ */
 typedef struct {
-    Rbc_RenderContext core;
-    Rbc_ExportContext *exportPtr;
-    Rbc_RenderFillStyle fillStyle;
-    double symbolSize;
+    Rbc_RenderContext core; /**< Common dispatch prefix; must remain first. */
+    Rbc_ExportContext *exportPtr; /**< Borrowed document builder; outlives this context. */
+    Rbc_RenderFillStyle fillStyle; /**< Copied fill policy with borrowed Tk resources. */
+    double symbolSize; /**< Backend-adjusted symbol size in mapped display units. */
     /* Shared style state for the direct SVG and PDF exporters. */
-    XColor vectorColor, vectorOffColor;
-    int vectorHasColor, vectorHasOffColor, vectorWidth, vectorCap, vectorJoin;
-    Rbc_Dashes vectorDashes;
-    Rbc_RenderSymbolStyle vectorSymbol;
-    int vectorBarSymbol;
-    unsigned int vectorPatternId;
-    Rbc_Tile vectorTile;
+    XColor vectorColor; /**< Value copy of the foreground color. */
+    XColor vectorOffColor; /**< Value copy of the off-dash underlay color. */
+    int vectorHasColor; /**< Nonzero when vectorColor is present. */
+    int vectorHasOffColor; /**< Nonzero when vectorOffColor is present. */
+    int vectorWidth; /**< Stroke width in display pixels. */
+    int vectorCap; /**< X cap-style selector. */
+    int vectorJoin; /**< X join-style selector. */
+    Rbc_Dashes vectorDashes; /**< Copied dash lengths and offset. */
+    Rbc_RenderSymbolStyle vectorSymbol; /**< Copied export symbol policy with borrowed bitmap and color resources. */
+    int vectorBarSymbol; /**< Nonzero selects the bar-legend square convention. */
+    unsigned int vectorPatternId; /**< Document-owned pattern identifier; the context does not free the definition. */
+    Rbc_Tile vectorTile; /**< Borrowed tile used by SVG/PDF fills. */
 } Rbc_RenderExportState;
 
 #define RENDER_EXPORT(ctx) ((Rbc_RenderExportState *)(ctx))
