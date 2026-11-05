@@ -454,6 +454,32 @@ These are private implementation interfaces.</p>
 </div>
 </dd></dl>
 
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.WinopOpSpec">
+<span class="target" id="struct_winop_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WinopOpSpec</span></span></span><a class="headerlink" href="#c.WinopOpSpec" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command dispatch entry with shared argument validation metadata. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.WinopOpSpec.header">
+<span class="target" id="struct_winop_op_spec_1a3c80ed695bfbf639f0b6b24e62475508"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.WinopOpSpec.header" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.WinopOpSpec.proc">
+<span class="target" id="struct_winop_op_spec_1a0aeb4530a77fb56b18449a34e940ad8a"></span><span class="n"><span class="pre">RbcWinOp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.WinopOpSpec.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command handler for this operation. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -491,6 +517,14 @@ These are private implementation interfaces.</p>
 <li><a class="reference internal" href="#c.ImageOp"><code class="docutils literal notranslate"><span class="pre">ImageOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.WinopCmd"><code class="docutils literal notranslate"><span class="pre">WinopCmd()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_WinopInit"><code class="docutils literal notranslate"><span class="pre">Rbc_WinopInit()</span></code></a></li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.WinopOpSpec"><code class="docutils literal notranslate"><span class="pre">WinopOpSpec</span></code></a><ul>
+<li><a class="reference internal" href="#c.WinopOpSpec.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li><a class="reference internal" href="#c.WinopOpSpec.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

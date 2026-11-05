@@ -6,27 +6,42 @@
 #define RBC_FONT_H
 #include "rbcRender.h"
 
+/** @brief Borrowed byte view into a font program; invalidated when its owner releases the program. */
 typedef struct {
-    const unsigned char *bytes;
-    size_t length;
+    const unsigned char *bytes; /**< First table byte, or NULL for an absent table. */
+    size_t length; /**< Number of available bytes. */
 } Rbc_FontTable;
 
+/**
+ * @brief Document-owned font program, parsed table views and character mapping. Table views borrow bytes;
+ * export-font cleanup releases the program and auxiliary arrays.
+ */
 typedef struct Rbc_ExportFont {
-    struct Rbc_ExportFont *next;
-    char *key;
-    unsigned char *bytes;
-    size_t length;
-    Rbc_FontTable head, hhea, hmtx, cmap, maxp;
-    int id, units, glyphCount, metricsCount, count, capacity;
-    int isCff;
-    int fontIds[258]; /* Backend resource IDs; zero until the PDF writer reserves them. */
-    Rbc_FontTable cff, cffStrings;
-    unsigned short *sids;
-    int *glyphs;
-    Tcl_UniChar *characters;
-    Tcl_HashTable codes;
-    Tcl_Encoding symbolEncoding;
-    char name[128];
+    struct Rbc_ExportFont *next; /**< Next font in the document cache, or NULL. */
+    char *key; /**< Owned native-face cache key. */
+    unsigned char *bytes; /**< Owned sfnt font program. */
+    size_t length; /**< Font program length in bytes. */
+    Rbc_FontTable head; /**< Borrowed font-header table. */
+    Rbc_FontTable hhea; /**< Borrowed horizontal-header table. */
+    Rbc_FontTable hmtx; /**< Borrowed horizontal-metrics table. */
+    Rbc_FontTable cmap; /**< Borrowed character-map table. */
+    Rbc_FontTable maxp; /**< Borrowed maximum-profile table. */
+    int id; /**< Document-local font identifier. */
+    int units; /**< Font design units per em. */
+    int glyphCount; /**< Number of glyphs in the source program. */
+    int metricsCount; /**< Number of long horizontal metrics. */
+    int count; /**< Number of assigned document character IDs. */
+    int capacity; /**< Allocated capacity of character/glyph mapping arrays. */
+    int isCff; /**< Nonzero for CFF outlines instead of TrueType outlines. */
+    int fontIds[258]; /**< Backend resource IDs; zero until the PDF writer reserves them. */
+    Rbc_FontTable cff; /**< Borrowed CFF table. */
+    Rbc_FontTable cffStrings; /**< Borrowed CFF string INDEX. */
+    unsigned short *sids; /**< Owned CFF glyph-name string-ID array. */
+    int *glyphs; /**< Owned native-glyph array indexed by document character ID minus one. */
+    Tcl_UniChar *characters; /**< Owned Unicode array indexed by document character ID minus one. */
+    Tcl_HashTable codes; /**< Unicode-to-document-character-ID cache. */
+    Tcl_Encoding symbolEncoding; /**< Retained Tcl encoding for symbol-font mappings, or NULL. */
+    char name[128]; /**< NUL-terminated export font name. */
 } Rbc_ExportFont;
 
 unsigned int Rbc_FontU16(const unsigned char *p);

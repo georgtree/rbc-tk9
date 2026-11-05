@@ -26,3 +26,36 @@ Implementation helpers
 
 .. doxygengroup:: geometry_internals
    :members:
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: Dim2D
+   :members:
+
+.. doxygenstruct:: Extents2D
+   :members:
+
+.. doxygenstruct:: Extents3D
+   :members:
+
+.. doxygenstruct:: Point2D
+   :members:
+
+.. doxygenstruct:: Point3D
+   :members:
+
+.. doxygenstruct:: Rbc_Dashes
+   :members:
+
+.. doxygenstruct:: Rbc_Pad
+   :members:
+
+.. doxygenstruct:: Region2D
+   :members:
+
+.. doxygenstruct:: Segment2D
+   :members:

@@ -1042,13 +1042,21 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
  * Encoding and translation select Tcl channel policy for file delivery.
  */
 typedef struct {
-    const char *name, *className, *label, *optionLabel, *operationLabel;
-    const Tk_OptionSpec *options;
-    Rbc_ExportBackend backend;
-    int widthOffset, heightOffset, decorationsOffset, embedFontsOffset;
-    const char *encoding, *translation;
-    int (*documentProc)(Graph *, Rbc_ExportContext *, Tcl_Obj **);
-    void (*freeProc)(Rbc_ExportContext *);
+    const char *name; /**< Lowercase component and subcommand name. */
+    const char *className; /**< Option-database resource class. */
+    const char *label; /**< Human-readable format label. */
+    const char *optionLabel; /**< Label used in option diagnostics. */
+    const char *operationLabel; /**< Label used in operation diagnostics. */
+    const Tk_OptionSpec *options; /**< Borrowed immutable Tk option specifications. */
+    Rbc_ExportBackend backend; /**< Document backend selector. */
+    int widthOffset; /**< Byte offset of export width in Graph. */
+    int heightOffset; /**< Byte offset of export height in Graph. */
+    int decorationsOffset; /**< Byte offset of the decoration flag in Graph. */
+    int embedFontsOffset; /**< Byte offset of the font-embedding flag in Graph. */
+    const char *encoding; /**< Tcl channel encoding for file output. */
+    const char *translation; /**< Tcl channel newline translation for file output. */
+    int (*documentProc)(Graph *, Rbc_ExportContext *, Tcl_Obj **); /**< Synchronous serializer; borrows the graph and appends to its output buffer. */
+    void (*freeProc)(Rbc_ExportContext *); /**< Format-specific resource cleanup callback. */
 } Rbc_GraphExportFormat;
 
 int Rbc_InitGraphExportOptions(Graph *graphPtr, const Rbc_GraphExportFormat *format);

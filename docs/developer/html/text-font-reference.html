@@ -48,7 +48,7 @@
 <h2>Layout measurement<a class="headerlink" href="#layout-measurement" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetTextLayout">
-<span class="target" id="rbc_text_8h_1a48a22902e4b249a4057b7afba5256aa1"></span><span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTextLayout</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTextLayout" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_text_8h_1a48a22902e4b249a4057b7afba5256aa1"></span><a class="reference internal" href="#c.TextLayout" title="TextLayout"><span class="n"><span class="pre">TextLayout</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTextLayout</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTextLayout" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an unrotated multiline layout using a borrowed style and font. </p>
 <p>Fragment text pointers borrow the input string; keep it alive and unchanged until the layout is no longer used. NULL is treated as an empty string. The caller frees the single allocation with ckfree. Counts are UTF byte counts, not character counts. Rotation and anchoring are drawing operations.</p>
 <dl class="field-list simple">
@@ -63,7 +63,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetTextExtents">
-<span class="target" id="rbc_text_8h_1a597901849a8d75c9d9c7246466dff9df"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTextExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">heightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTextExtents" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_text_8h_1a597901849a8d75c9d9c7246466dff9df"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTextExtents</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">heightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTextExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Measure unrotated text without allocating a fragment array. </p>
 <p>Borrow the style and font. NULL returns zero dimensions, ignoring padding. The height includes leader spacing for every line; unlike GetTextLayout it does not remove the final leader. Do not substitute it blindly for layout dimensions when nonzero leader spacing is used.</p>
 <dl class="field-list simple">
@@ -83,7 +83,7 @@
 <h2>Style initialization and GC ownership<a class="headerlink" href="#style-initialization-and-gc-ownership" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_InitTextStyle">
-<span class="target" id="rbc_text_8h_1a84bf58830000d4de5ab3b535137abb80"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InitTextStyle" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_text_8h_1a84bf58830000d4de5ab3b535137abb80"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitTextStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InitTextStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize style defaults without acquiring or releasing resources. </p>
 <p>This is not a full memset: gc, border, width and height are not initialized. A caller using those fields must initialize them separately. In particular, set gc to NULL or a valid owned Tk GC before ResetTextStyle or FreeTextStyle.</p>
 <dl class="field-list simple">
@@ -97,7 +97,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ResetTextStyle">
-<span class="target" id="rbc_text_8h_1ae87f835198d61565984ae2cc15a5cb46"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResetTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResetTextStyle" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_text_8h_1ae87f835198d61565984ae2cc15a5cb46"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResetTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResetTextStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace the style GC using its current font and optional foreground. </p>
 <p>Requires a live window, valid font, and gc either NULL or an owned Tk GC. Acquires the replacement before releasing the old GC. Font and colors are borrowed; their ownership is unchanged.</p>
 <dl class="field-list simple">
@@ -112,7 +112,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreeTextStyle">
-<span class="target" id="rbc_text_8h_1a2571815108d226828b14776a6a0f5250"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeTextStyle" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_text_8h_1a2571815108d226828b14776a6a0f5250"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeTextStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a non-NULL style GC with Tk_FreeGC. </p>
 <p>Does not release font, colors, border or the style record, and does not clear the gc field. Do not call twice without resetting that field or installing another owned GC. A borrowed GC must not be released through this helper.</p>
 <dl class="field-list simple">
@@ -130,7 +130,7 @@
 <h2>Document font cache<a class="headerlink" href="#document-font-cache" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FirstExportFont">
-<span class="target" id="rbc_font_8h_1a79c6e8bd1247e8bf482ca132b0a4f94f"></span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FirstExportFont</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FirstExportFont" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_font_8h_1a79c6e8bd1247e8bf482ca132b0a4f94f"></span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FirstExportFont</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FirstExportFont" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the borrowed head of the document font list, or NULL. </p>
 <p>Follow next pointers only while the document font cache remains alive. This does not initialize a cache or transfer ownership.</p>
 <dl class="field-list simple">
@@ -144,7 +144,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ExportFontCharacter">
-<span class="target" id="rbc_font_8h_1aab5330259daffe63ead95924c9996d53"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportFontCharacter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">tkfont</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fontPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cidPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">advancePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportFontCharacter" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_font_8h_1aab5330259daffe63ead95924c9996d53"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportFontCharacter</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">tkfont</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fontPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cidPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">advancePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportFontCharacter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a Unicode scalar into a document-local font and character ID. </p>
 <p>Borrow token and tkfont. Requires a live Tk window and interpreter. May call the global Tcl font command to resolve Tk’s per-character fallback face; this helper does not itself preserve graph lifetime. On TCL_OK, return a borrowed font, a one-based character ID, pixel size and horizontal advance. The ID is not a native glyph index. Outputs are valid only on success; the font remains owned by token until ExportFontsFree. On TCL_ERROR, retain the first static export diagnostic. Partial cache allocations remain valid for cleanup; do not continue serialization.</p>
 <dl class="field-list simple">
@@ -164,7 +164,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ExportFontsFree">
-<span class="target" id="rbc_font_8h_1aee8a9452c4ce58412723099b75069fb3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportFontsFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportFontsFree" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_font_8h_1aee8a9452c4ce58412723099b75069fb3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportFontsFree</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportFontsFree" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release all document-local font programs and character cache entries. </p>
 <p>Clears token-&gt;fontData; an empty cache is harmless. Invalidates all borrowed font records and table views. Does not free backend PDF resources, the document buffer, the export context or any borrowed Tk font.</p>
 <dl class="field-list simple">
@@ -178,7 +178,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FontUnicodeProgram">
-<span class="target" id="rbc_font_8h_1aad05a6ba01285b47a0d8bd49da194fd6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontUnicodeProgram</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">program</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontUnicodeProgram" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_font_8h_1aad05a6ba01285b47a0d8bd49da194fd6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontUnicodeProgram</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">program</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontUnicodeProgram" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an SVG font program with Unicode mappings for used characters. </p>
 <p>Borrow token and a populated export font. The caller initializes program and owns its DString storage. Rebuilds a temporary sfnt with replacement cmap; retains outlines rather than subsetting them, and leaves font unchanged. Returns TCL_OK after appending, or TCL_ERROR with an export diagnostic. Temporary program allocations are released on both paths.</p>
 <dl class="field-list simple">
@@ -239,7 +239,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>nFrags</strong> – <strong>[in]</strong> Nonnegative number of TextFragment records; zero requires only the layout header. </p></li>
+<li><p><strong>nFrags</strong> – <strong>[in]</strong> Nonnegative number of <a class="reference internal" href="#struct_text_fragment"><span class="std std-ref">TextFragment</span></a> records; zero requires only the layout header. </p></li>
 </ul>
 </dd>
 </dl>
@@ -275,7 +275,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.DrawTextLayout">
-<span class="target" id="group__text__drawing_1ga8637195db94e08651fa117b0a5924198"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTextLayout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.DrawTextLayout" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1ga8637195db94e08651fa117b0a5924198"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTextLayout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <a class="reference internal" href="#c.TextLayout" title="TextLayout"><span class="n"><span class="pre">TextLayout</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.DrawTextLayout" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw borrowed fragments relative to an already anchored box origin. </p>
 <p>For zero theta, add fragment baselines with saturated integer arithmetic and call Tk_DrawChars. Otherwise rotate each baseline about the unrotated box center, translate to the rounded rotated box, and call TkDrawAngledChars. theta is in degrees and must satisfy the bounding-box helper preconditions. The caller supplies a live drawable, compatible GC and font. This helper neither selects foreground colors nor retains or frees layout resources.</p>
 <dl class="field-list simple">
@@ -296,9 +296,9 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_GetBoundingBox">
-<span class="target" id="group__text__drawing_1ga7f0b32b209bdf6d6b0ba0c12affdab9f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBoundingBox</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rotWidthPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rotHeightPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bbox</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_GetBoundingBox" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1ga7f0b32b209bdf6d6b0ba0c12affdab9f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBoundingBox</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rotWidthPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rotHeightPtr</span></span>, <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bbox</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_GetBoundingBox" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the centered bounding box of a rotated rectangle. </p>
-<p>width and height describe the unrotated rectangle. theta is in degrees; callers supply a finite, normalized angle in [0, 360). Both dimension outputs are required; bbox may be NULL or point to four Point2D entries. Corners retain the original NW, NE, SE, SW indexing around the origin. Positive angles rotate visually counterclockwise in screen coordinates. Exact quadrants avoid trigonometric rounding. Other angles rotate each corner and double the maximum positive coordinates. No resources are owned.</p>
+<p>width and height describe the unrotated rectangle. theta is in degrees; callers supply a finite, normalized angle in [0, 360). Both dimension outputs are required; bbox may be NULL or point to four <a class="reference internal" href="geometry-reference.html#struct_point2_d"><span class="std std-ref">Point2D</span></a> entries. Corners retain the original NW, NE, SE, SW indexing around the origin. Positive angles rotate visually counterclockwise in screen coordinates. Exact quadrants avoid trigonometric rounding. Other angles rotate each corner and double the maximum positive coordinates. No resources are owned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -335,7 +335,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_TranslatePoint">
-<span class="target" id="group__text__drawing_1ga9eaf87124d3f609e7465390e3976306a"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TranslatePoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_TranslatePoint" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1ga9eaf87124d3f609e7465390e3976306a"></span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TranslatePoint</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_TranslatePoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a floating upper-left position from a borrowed anchor point. </p>
 <p>Does not modify pointPtr. Center offsets retain half-pixel fractions, unlike Rbc_TranslateAnchor; no integer saturation is applied. NULL and NW anchors return the original position.</p>
 <dl class="field-list simple">
@@ -352,7 +352,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_SetDrawTextStyle">
-<span class="target" id="group__text__drawing_1ga99b3b4cd2bf62803b6efdbda37aa74f9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetDrawTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">normalColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">activeColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowColor</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span>, <span class="n"><span class="pre">Tk_Justify</span></span><span class="w"> </span><span class="n"><span class="pre">justify</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">leader</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">shadowOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1ga99b3b4cd2bf62803b6efdbda37aa74f9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetDrawTextStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">normalColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">activeColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowColor</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span>, <span class="n"><span class="pre">Tk_Justify</span></span><span class="w"> </span><span class="n"><span class="pre">justify</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">leader</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">shadowOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Set drawing attributes using borrowed font, colors and GC. </p>
 <p>Applies Rbc_InitTextStyle defaults, then installs supplied attributes. No resource is acquired or released, including a previously installed GC. border, width and height remain untouched. A supplied borrowed GC must not subsequently be released through Rbc_FreeTextStyle.</p>
 <dl class="field-list simple">
@@ -368,7 +368,7 @@
 <li><p><strong>anchor</strong> – <strong>[in]</strong> Tk anchor locating the rotated box relative to the requested position. </p></li>
 <li><p><strong>justify</strong> – <strong>[in]</strong> Horizontal justification of fragments within the unrotated layout. </p></li>
 <li><p><strong>leader</strong> – <strong>[in]</strong> Extra interline spacing in display pixels. </p></li>
-<li><p><strong>shadowOffset</strong> – <strong>[in]</strong> Shadow displacement in pixels; positive values enable a pass when a shadow color is present. </p></li>
+<li><p><strong>shadowOffset</strong> – <strong>[in]</strong> <a class="reference internal" href="#struct_shadow"><span class="std std-ref">Shadow</span></a> displacement in pixels; positive values enable a pass when a shadow color is present. </p></li>
 </ul>
 </dd>
 </dl>
@@ -376,7 +376,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_SetPrintTextStyle">
-<span class="target" id="group__text__drawing_1ga4d830019251c862c1400b2cb4aa6bf73"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetPrintTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fgColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">activeColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowColor</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span>, <span class="n"><span class="pre">Tk_Justify</span></span><span class="w"> </span><span class="n"><span class="pre">justify</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">leader</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">shadowOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1ga4d830019251c862c1400b2cb4aa6bf73"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetPrintTextStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fgColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">activeColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowColor</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span>, <span class="n"><span class="pre">Tk_Justify</span></span><span class="w"> </span><span class="n"><span class="pre">justify</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">leader</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">shadowOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Set print attributes without acquiring native drawing resources. </p>
 <p>Applies Rbc_InitTextStyle defaults, then borrows the supplied font and colors. gc, border, width and height remain untouched; this does not prepare an uninitialized style for native drawing or GC cleanup.</p>
 <dl class="field-list simple">
@@ -391,7 +391,7 @@
 <li><p><strong>anchor</strong> – <strong>[in]</strong> Tk anchor locating the rotated box relative to the requested position. </p></li>
 <li><p><strong>justify</strong> – <strong>[in]</strong> Horizontal justification of fragments within the unrotated layout. </p></li>
 <li><p><strong>leader</strong> – <strong>[in]</strong> Extra interline spacing in display pixels. </p></li>
-<li><p><strong>shadowOffset</strong> – <strong>[in]</strong> Shadow displacement in pixels; positive values enable a pass when a shadow color is present. </p></li>
+<li><p><strong>shadowOffset</strong> – <strong>[in]</strong> <a class="reference internal" href="#struct_shadow"><span class="std std-ref">Shadow</span></a> displacement in pixels; positive values enable a pass when a shadow color is present. </p></li>
 </ul>
 </dd>
 </dl>
@@ -399,7 +399,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_DrawTextLayout">
-<span class="target" id="group__text__drawing_1gae9244565553d910ca8d42f3041c91b94"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawTextLayout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawTextLayout" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1gae9244565553d910ca8d42f3041c91b94"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawTextLayout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="#c.TextLayout" title="TextLayout"><span class="n"><span class="pre">TextLayout</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span>, <a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawTextLayout" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a borrowed layout with anchor, rotation and style-state effects. </p>
 <p>Requires a valid font and drawable-compatible GC. Normal color is needed by color-restoration paths, activeColor for active text, and border for disabled or emphasis text. Normalizes theta in place; callers must supply a finite angle whose quotient by 360 is representable as int. Disabled/emphasis rendering takes precedence over shadow and active text, drawing two border-colored passes one pixel apart. Otherwise an optional shadow precedes the normal or active pass. Changed foreground is reset to the normal color, not the GC foreground on entry. The GC must permit this mutation. Rotation uses Tk angled text, not a temporary bitmap. The layout and style resources remain owned by the caller.</p>
 <dl class="field-list simple">
@@ -418,7 +418,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_DrawText2">
-<span class="target" id="group__text__drawing_1gab599c8055991a9e640185095e8eb1cfa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawText2</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Dim2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">areaPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawText2" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1gab599c8055991a9e640185095e8eb1cfa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawText2</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <a class="reference internal" href="geometry-reference.html#c.Dim2D" title="Dim2D"><span class="n"><span class="pre">Dim2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">areaPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawText2" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a temporary layout and optionally return its rotated dimensions. </p>
 <p>NULL or empty text draws nothing and sets a supplied areaPtr to zero. Nonempty text uses Rbc_DrawTextLayout, inheriting its style requirements and theta mutation. areaPtr may be NULL; dimensions use rounded rotated extents and exclude anchor position. Frees only the temporary layout.</p>
 <dl class="field-list simple">
@@ -438,7 +438,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_DrawText">
-<span class="target" id="group__text__drawing_1ga009de008c7dddf76a280881f210435bf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawText</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawText" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__text__drawing_1ga009de008c7dddf76a280881f210435bf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawText</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <a class="reference internal" href="#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawText" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw nonempty text using a temporary borrowed-string layout. </p>
 <p>NULL or empty text is a no-op. Otherwise delegates to Rbc_DrawTextLayout and frees the layout, retaining the caller-owned string, font and colors. Inherits the drawing helper requirements and theta/GC side effects.</p>
 <dl class="field-list simple">
@@ -533,7 +533,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>p</strong> – <strong>[out]</strong> Start of at least two writable bytes. </p></li>
-<li><p><strong>n</strong> – <strong>[in]</strong> Value whose low 16 bits are stored; higher bits are discarded. </p></li>
+<li><p><strong>n</strong> – <strong>[in]</strong> <a class="reference internal" href="vector-storage-private-reference.html#struct_value"><span class="std std-ref">Value</span></a> whose low 16 bits are stored; higher bits are discarded. </p></li>
 </ul>
 </dd>
 </dl>
@@ -556,7 +556,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontSourceFree">
-<span class="target" id="group__export__font__internals_1ga1bb19a3007a41a3af16f294b72d26087"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSourceFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FontSource</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontSourceFree" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1ga1bb19a3007a41a3af16f294b72d26087"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSourceFree</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.FontSource" title="FontSource"><span class="n"><span class="pre">FontSource</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontSourceFree" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a partially or fully initialized native font source. </p>
 <p>Requires a zero-initialized source before acquisition. Frees byte storage and, on Windows, restores the selected font before releasing the DC and created font. Does not free the source record or clear fields; do not call twice.</p>
 <dl class="field-list simple">
@@ -570,9 +570,9 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontSourceOpen">
-<span class="target" id="group__export__font__internals_1gad56cfc5de68310200c5561ac0f69a790"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSourceOpen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">family</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">bold</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">italic</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="n"><span class="pre">FontSource</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontSourceOpen" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1gad56cfc5de68310200c5561ac0f69a790"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSourceOpen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">family</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">bold</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">italic</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <a class="reference internal" href="#c.FontSource" title="FontSource"><span class="n"><span class="pre">FontSource</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontSourceOpen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a native scalable face for a selected family, style and character. </p>
-<p>Caller supplies a zeroed FontSource and must call FontSourceFree on success and failure. Windows creates a GDI font/DC and reads the sfnt directory; individual tables remain available through that DC. X11 matches character coverage through Fontconfig, reads at most 64 MiB through Tcl channels and selects a collection face. Returns TCL_ERROR with an export diagnostic on failure; partial source ownership remains with the caller. Does not build the independent export program or validate all its tables.</p>
+<p>Caller supplies a zeroed <a class="reference internal" href="#struct_font_source"><span class="std std-ref">FontSource</span></a> and must call FontSourceFree on success and failure. Windows creates a GDI font/DC and reads the sfnt directory; individual tables remain available through that DC. X11 matches character coverage through Fontconfig, reads at most 64 MiB through Tcl channels and selects a collection face. Returns TCL_ERROR with an export diagnostic on failure; partial source ownership remains with the caller. Does not build the independent export program or validate all its tables.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -590,9 +590,9 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontProgram">
-<span class="target" id="group__export__font__internals_1ga6a09ff381fdb3ca0dbde8a1b7eb5495b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontProgram</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">FontSource</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontProgram" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1ga6a09ff381fdb3ca0dbde8a1b7eb5495b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontProgram</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <a class="reference internal" href="#c.FontSource" title="FontSource"><span class="n"><span class="pre">FontSource</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span>, <a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontProgram" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rebuild an independent sfnt with fresh offsets and checksums. </p>
-<p>Borrows an acquired FontSource; requires a fresh destination font record. Drops DSIG, rejects fvar, bounds directory and table sizes and copies full tables into a zero-padded allocation. Windows reads tables by GDI tag; other sources use checked file-relative offsets. Installs bytes/length before all validation finishes, so the caller must free the partial font on TCL_ERROR. Recomputes table checksums and head adjustment, but does not validate every outline instruction, table relationship or semantic field.</p>
+<p>Borrows an acquired <a class="reference internal" href="#struct_font_source"><span class="std std-ref">FontSource</span></a>; requires a fresh destination font record. Drops DSIG, rejects fvar, bounds directory and table sizes and copies full tables into a zero-padded allocation. Windows reads tables by GDI tag; other sources use checked file-relative offsets. Installs bytes/length before all validation finishes, so the caller must free the partial font on TCL_ERROR. Recomputes table checksums and head adjustment, but does not validate every outline instruction, table relationship or semantic field.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -606,7 +606,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FontGetTable">
-<span class="target" id="group__export__font__internals_1ga9784721893fb91b95cc9e3385739b4b4"></span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontGetTable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tag</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontGetTable" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1ga9784721893fb91b95cc9e3385739b4b4"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontGetTable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tag</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontGetTable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find a borrowed table slice in a rebuilt export font. </p>
 <p>Requires a FontProgram-validated directory and a readable four-byte tag. Returns {NULL,0} when absent. Does not revalidate bounds or retain the owning font; the returned view expires when its program storage is released.</p>
 <dl class="field-list simple">
@@ -636,7 +636,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CffIndex">
-<span class="target" id="group__export__font__internals_1gada3a8b79a120dc11b3e892734de4daa8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CffIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">position</span></span>, <span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CffIndex" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1gada3a8b79a120dc11b3e892734de4daa8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CffIndex</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">position</span></span>, <a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CffIndex" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a CFF INDEX and advance a caller-owned cursor. </p>
 <p>Checks count, offset width, one-based initial offset, monotonic offsets and final data bounds. Empty INDEX records occupy two bytes. On success returns one and a borrowed complete INDEX slice, advancing position past it. On failure returns zero without advancing position; the output slice may be partially written and must not be used. Does not validate item contents.</p>
 <dl class="field-list simple">
@@ -652,7 +652,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.CffItem">
-<span class="target" id="group__export__font__internals_1ga3ad8731a6cd013ff0d2b565a4f5bcbe0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CffItem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">item</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CffItem" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1ga3ad8731a6cd013ff0d2b565a4f5bcbe0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CffItem</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">item</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CffItem" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow one item from an already validated CFF INDEX. </p>
 <p>Requires the complete slice returned by successful CffIndex, even for an empty INDEX. Out-of-range item indices return {NULL,0}; an in-range item may have zero length. No allocation, ownership transfer or repeated validation.</p>
 <dl class="field-list simple">
@@ -667,7 +667,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FontGlyphName">
-<span class="target" id="group__export__font__internals_1ga0ba65e6c4775ed67846b7bfae9bbadde"></span><span class="n"><span class="pre">Rbc_FontTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontGlyphName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">glyph</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontGlyphName" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1ga0ba65e6c4775ed67846b7bfae9bbadde"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontGlyphName</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">glyph</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FontGlyphName" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a validated name-keyed CFF glyph to its name bytes. </p>
 <p>Requires an in-range glyph and initialized SID array. Standard SIDs borrow static names; custom SIDs borrow the validated String INDEX. The returned slice is not necessarily NUL-terminated. FontCffInit validates name lengths before consumers serialize them; this helper does not validate glyph bounds.</p>
 <dl class="field-list simple">
@@ -682,7 +682,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontCffInit">
-<span class="target" id="group__export__font__internals_1gac408a148b935dc6cc2368c8a95938069"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontCffInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontCffInit" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1gac408a148b935dc6cc2368c8a95938069"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontCffInit</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontCffInit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize glyph-name SIDs for a name-keyed CFF 1 font. </p>
 <p>Requires a validated sfnt font, CFF table and positive glyph count. Parses Name/Top DICT/String INDEX data, relevant charset and CharStrings offsets, and predefined or explicit charset forms. Rejects CID-keyed CFF and malformed metadata. Allocates font-&gt;sids, retained for FontFree even on later failure. Only the metadata required by export is interpreted; charstring programs and unused DICT operands are not a complete CFF validation target.</p>
 <dl class="field-list simple">
@@ -697,7 +697,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontTables">
-<span class="target" id="group__export__font__internals_1gadcffcc72900045a958f486b73f137390"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontTables</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontTables" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1gadcffcc72900045a958f486b73f137390"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontTables</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontTables" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate and cache the table views needed by document text export. </p>
 <p>Requires a rebuilt sfnt. Checks metrics, cmap directory bounds, outline type, color-table exclusions and embedding permission bits. Derives a safe export name or falls back to RBCFont plus the serial ID. Cached views borrow font bytes; no table is copied. Returns TCL_ERROR through the export context; partial metadata remains attached for cleanup. CFF charset initialization and per-character cmap lookup are separate stages.</p>
 <dl class="field-list simple">
@@ -712,9 +712,9 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontGlyph">
-<span class="target" id="group__export__font__internals_1gab13933a15fa92dc3d84a42fbac1af1a9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontGlyph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontGlyph" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1gab13933a15fa92dc3d84a42fbac1af1a9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontGlyph</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontGlyph" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a Unicode scalar to a native glyph index. </p>
-<p>Requires FontTables-validated metadata. Tries Unicode format 12, Unicode format 4, then Windows Symbol format 4 with F000 and legacy byte mappings. Uses the retained named Tcl encoding when available. Subtable bounds and resulting glyph indices are checked; malformed/unsupported candidates are skipped. Returns zero for no usable nonzero glyph. Format-12 binary search assumes sorted groups; this is not a complete cmap conformance validator.</p>
+<p>Requires FontTables-validated metadata. Tries Unicode format 12, Unicode format 4, then Windows <a class="reference internal" href="mapping-reference.html#struct_symbol"><span class="std std-ref">Symbol</span></a> format 4 with F000 and legacy byte mappings. Uses the retained named Tcl encoding when available. Subtable bounds and resulting glyph indices are checked; malformed/unsupported candidates are skipped. Returns zero for no usable nonzero glyph. Format-12 binary search assumes sorted groups; this is not a complete cmap conformance validator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -727,7 +727,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontFree">
-<span class="target" id="group__export__font__internals_1ga1164b8d808ea3bc70df3428d5a8c601f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontFree" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1ga1164b8d808ea3bc70df3428d5a8c601f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontFree</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontFree" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release one export font record and all its owned allocations. </p>
 <p>Requires initialized codes hash storage, including for failed acquisition. Releases program bytes, key, glyph/character/SID arrays and optional Tcl encoding, then the record. Does not unlink it or free following list nodes. All borrowed table/name views become invalid; Tk_Font handles are not owned.</p>
 <dl class="field-list simple">
@@ -741,7 +741,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontActual">
-<span class="target" id="group__export__font__internals_1ga636fd97b13bf6f37e79fb5dafad16806"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FontActual</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontActual" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__export__font__internals_1ga636fd97b13bf6f37e79fb5dafad16806"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FontActual</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontActual" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Query Tk 9 for the actual per-character font attributes. </p>
 <p>Evaluates global ::font actual with display window and the Unicode character. Returns a retained result object on success; caller decrements it. Restores interpreter state on both paths and records an export error on failure. Requires live Tk font/window/interpreter. This Tcl boundary does not itself preserve graph resources or guard reentrant replacement of the font command.</p>
 <dl class="field-list simple">
@@ -774,12 +774,12 @@
 <dt class="sig sig-object c" id="c.FontUnicodeCompare">
 <span class="target" id="group__export__font__internals_1gad1743b667071d64a89f46f28ce9ed8e4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontUnicodeCompare</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">a</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontUnicodeCompare" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Order temporary Unicode-to-glyph pairs by scalar value. </p>
-<p>qsort comparator for FontUnicodePair records; ignores glyph values and uses relational comparisons rather than subtraction that could overflow.</p>
+<p>qsort comparator for <a class="reference internal" href="#struct_font_unicode_pair"><span class="std std-ref">FontUnicodePair</span></a> records; ignores glyph values and uses relational comparisons rather than subtraction that could overflow.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>a</strong> – <strong>[in]</strong> Borrowed first FontUnicodePair supplied by qsort. </p></li>
-<li><p><strong>b</strong> – <strong>[in]</strong> Borrowed second FontUnicodePair supplied by qsort. </p></li>
+<li><p><strong>a</strong> – <strong>[in]</strong> Borrowed first <a class="reference internal" href="#struct_font_unicode_pair"><span class="std std-ref">FontUnicodePair</span></a> supplied by qsort. </p></li>
+<li><p><strong>b</strong> – <strong>[in]</strong> Borrowed second <a class="reference internal" href="#struct_font_unicode_pair"><span class="std std-ref">FontUnicodePair</span></a> supplied by qsort. </p></li>
 </ul>
 </dd>
 </dl>
@@ -800,7 +800,7 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfStandardCharacter">
-<span class="target" id="group__pdf__font__internals_1gafec4a6138ea089c02e06a036639b6360"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfStandardCharacter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">codePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfStandardCharacter" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pdf__font__internals_1gafec4a6138ea089c02e06a036639b6360"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfStandardCharacter</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">codePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfStandardCharacter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a nonembedded character to a standard PDF font and WinAnsi code. </p>
 <p>Accepts printable ASCII, Latin-1 and the defined Windows-1252 extension characters. Unsupported text sets an export error. Derives Courier/Times/ Helvetica style from Tk <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> naming, reserves a deduplicated Type1 resource and returns pixel size/code/id. Borrows the Tk font; no native font program is acquired. Outputs are only usable on TCL_OK.</p>
 <dl class="field-list simple">
@@ -819,7 +819,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfFontCharacter">
-<span class="target" id="group__pdf__font__internals_1ga1966e9d7afa23da3572cc38e3bc71441"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFontCharacter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">tkfont</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cidPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">digitsPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">advancePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFontCharacter" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pdf__font__internals_1ga1966e9d7afa23da3572cc38e3bc71441"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFontCharacter</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">tkfont</span></span>, <span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="n"><span class="pre">ch</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">idPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cidPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">digitsPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">advancePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFontCharacter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a character and reserve its PDF font resource. </p>
 <p>With embedding disabled uses WinAnsi and two hex digits. Otherwise borrows the shared font cache and its native advance; TrueType uses four-digit CIDs, CFF uses two-digit codes in 255-character blocks. Resource placeholders are replaced by Rbc_PdfFontsFinish. Requires initialized PDF export state; caller must not serialize the document before successful finalization. Returns TCL_ERROR for existing or newly recorded export errors.</p>
 <dl class="field-list simple">
@@ -840,7 +840,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FontCffResources">
-<span class="target" id="group__pdf__font__internals_1ga009f03480f3eb804b142809bdb648e83"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontCffResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ExportFont</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">descriptor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontCffResources" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pdf__font__internals_1ga009f03480f3eb804b142809bdb648e83"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontCffResources</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">descriptor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FontCffResources" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Finalize simple Type1C resources in blocks of 255 characters. </p>
 <p>Requires a collected name-keyed CFF font, reserved block IDs and a shared descriptor object. Builds per-block widths, escaped glyph-name Differences and ToUnicode maps, sharing the embedded CFF program through the descriptor. Temporarily redirects token-&gt;buffer and restores it before releasing local DString storage. Does not release the font or serialize the final PDF file.</p>
 <dl class="field-list simple">
@@ -856,7 +856,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfFontsFinish">
-<span class="target" id="group__pdf__font__internals_1gae8e5475888ec2bc35363c529a20f6ec5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFontsFinish</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFontsFinish" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__pdf__font__internals_1gae8e5475888ec2bc35363c529a20f6ec5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFontsFinish</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFontsFinish" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace collected font placeholders with complete PDF font dictionaries. </p>
 <p>Requires completed character collection and initialized PDF resources. Embeds full TrueType programs or CFF tables, descriptors, widths and Unicode maps. TrueType adds CIDToGIDMap and Identity-H descendant resources; CFF delegates block encodings to FontCffResources. Borrows all cached fonts and restores token-&gt;buffer after temporary serialization. Returns TCL_ERROR for a pre-existing export error. Finalize once before document serialization; this operation does not freeze the cache or enforce one-shot use.</p>
 <dl class="field-list simple">
@@ -866,6 +866,511 @@
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.ExportCharacter">
+<span class="target" id="struct_export_character"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ExportCharacter</span></span></span><a class="headerlink" href="#c.ExportCharacter" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Cached resolved character within a document font. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ExportCharacter.font">
+<span class="target" id="struct_export_character_1a80817b9a06dc5e7a87b916398289339f"></span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">font</span></span></span><a class="headerlink" href="#c.ExportCharacter.font" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed document-owned font. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ExportCharacter.cid">
+<span class="target" id="struct_export_character_1aa245a7ab458565e03b5dad4e7819f96f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cid</span></span></span><a class="headerlink" href="#c.ExportCharacter.cid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>One-based document character ID, not a native glyph index. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ExportCharacter.size">
+<span class="target" id="struct_export_character_1a277c3802724ce7d00c15ea8bc5d8da9d"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><a class="headerlink" href="#c.ExportCharacter.size" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolved font size in display pixels. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.ExportFontCache">
+<span class="target" id="struct_export_font_cache"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ExportFontCache</span></span></span><a class="headerlink" href="#c.ExportFontCache" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Document-owned font list and character lookup cache. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ExportFontCache.fonts">
+<span class="target" id="struct_export_font_cache_1a9f2cccb68cc11fa7a3608158432b5b90"></span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fonts</span></span></span><a class="headerlink" href="#c.ExportFontCache.fonts" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned list of font programs. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ExportFontCache.serial">
+<span class="target" id="struct_export_font_cache_1ab903e9bdbffe4ef2cff51f79facfaf94"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">serial</span></span></span><a class="headerlink" href="#c.ExportFontCache.serial" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last allocated document-local font identifier. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ExportFontCache.characters">
+<span class="target" id="struct_export_font_cache_1a85dec4817ac9f3bd3967e0fcd978a887"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">characters</span></span></span><a class="headerlink" href="#c.ExportFontCache.characters" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Cache of resolved font/character pairs; entries own <a class="reference internal" href="#struct_export_character"><span class="std std-ref">ExportCharacter</span></a> records. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.FontSource">
+<span class="target" id="struct_font_source"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSource</span></span></span><a class="headerlink" href="#c.FontSource" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporary native font source; cleanup releases bytes and platform handles. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.FontSource.bytes">
+<span class="target" id="struct_font_source_1a7b3fef7b37ed3d6f1181bc47ab905e9c"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bytes</span></span></span><a class="headerlink" href="#c.FontSource.bytes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned retrieved font-program bytes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.FontSource.length">
+<span class="target" id="struct_font_source_1ab5cb76bc45e7bd54b153566b6a518232"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">length</span></span></span><a class="headerlink" href="#c.FontSource.length" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of retrieved bytes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.FontSource.offset">
+<span class="target" id="struct_font_source_1aa1e78d677091646e4de707f2e3a4fca8"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><a class="headerlink" href="#c.FontSource.offset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Face offset within a font collection. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.FontUnicodePair">
+<span class="target" id="struct_font_unicode_pair"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontUnicodePair</span></span></span><a class="headerlink" href="#c.FontUnicodePair" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unicode scalar to source-glyph mapping used to build a cmap. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.FontUnicodePair.character">
+<span class="target" id="struct_font_unicode_pair_1a3053f6f3b4ced1f46e56b65620d18c8a"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">character</span></span></span><a class="headerlink" href="#c.FontUnicodePair.character" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unicode scalar. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.FontUnicodePair.glyph">
+<span class="target" id="struct_font_unicode_pair_1a8fba822021af305edfdadff101281e8e"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">glyph</span></span></span><a class="headerlink" href="#c.FontUnicodePair.glyph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native glyph index. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont">
+<span class="target" id="struct_rbc___export_font"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportFont</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Document-owned font program, parsed table views and character mapping. </p>
+<p>Table views borrow bytes; export-font cleanup releases the program and auxiliary arrays. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.next">
+<span class="target" id="struct_rbc___export_font_1acf44d45b455e261d9b87996d97ce5752"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ExportFont" title="Rbc_ExportFont"><span class="n"><span class="pre">Rbc_ExportFont</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">next</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.next" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next font in the document cache, or NULL. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.key">
+<span class="target" id="struct_rbc___export_font_1ae13d5f5ca025359399b54fdadd72b1b1"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">key</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.key" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned native-face cache key. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.bytes">
+<span class="target" id="struct_rbc___export_font_1a3c60fcbd4ff1caa32a556008b5c8e46e"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bytes</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.bytes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned sfnt font program. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.length">
+<span class="target" id="struct_rbc___export_font_1a1e005bea4c464895725ec53b792b3fc3"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">length</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.length" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Font program length in bytes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.head">
+<span class="target" id="struct_rbc___export_font_1ad5bd686046a516bc55dc353b497b5c02"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">head</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.head" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed font-header table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.hhea">
+<span class="target" id="struct_rbc___export_font_1af0982a6bcf7954d3d9f68121a9e5369c"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hhea</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.hhea" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed horizontal-header table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.hmtx">
+<span class="target" id="struct_rbc___export_font_1a9eb6a34444a0b27ca755c0591a5ea90d"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hmtx</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.hmtx" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed horizontal-metrics table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.cmap">
+<span class="target" id="struct_rbc___export_font_1a7c7167a0aaeca40793e46aaa2788e7c9"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cmap</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.cmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed character-map table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.maxp">
+<span class="target" id="struct_rbc___export_font_1a8e7aab93f7afb8540dcb5694b112a48a"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">maxp</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.maxp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed maximum-profile table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.id">
+<span class="target" id="struct_rbc___export_font_1a5dd0af164f25182a75db551639c4be03"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">id</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.id" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Document-local font identifier. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.units">
+<span class="target" id="struct_rbc___export_font_1a960ecfbbc7d71f7354e778e47364ddf3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">units</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.units" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Font design units per em. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.glyphCount">
+<span class="target" id="struct_rbc___export_font_1a81cc0ee03613a66cfc5b34dc7538061f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">glyphCount</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.glyphCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of glyphs in the source program. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.metricsCount">
+<span class="target" id="struct_rbc___export_font_1a22f8cb0dbcf3c10cbc37057b1df2d9c7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">metricsCount</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.metricsCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of long horizontal metrics. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.count">
+<span class="target" id="struct_rbc___export_font_1a0649c4c00e27affa5d3261e252f7e7b5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">count</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.count" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of assigned document character IDs. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.capacity">
+<span class="target" id="struct_rbc___export_font_1a40a218d15213c67909e036d260703640"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">capacity</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.capacity" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocated capacity of character/glyph mapping arrays. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.isCff">
+<span class="target" id="struct_rbc___export_font_1a95e63b6f1a6ff5193e98b62c01951bb6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isCff</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.isCff" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero for CFF outlines instead of TrueType outlines. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.fontIds">
+<span class="target" id="struct_rbc___export_font_1a2911ddb019cf9079f5ae4b0a3e30ba74"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fontIds</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">258</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_ExportFont.fontIds" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Backend resource IDs; zero until the PDF writer reserves them. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.cff">
+<span class="target" id="struct_rbc___export_font_1a6b5090c21d9fa45d60154aa16ab68844"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cff</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.cff" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed CFF table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.cffStrings">
+<span class="target" id="struct_rbc___export_font_1ab9f4e15068757837e2c2e76dacaec6e2"></span><a class="reference internal" href="#c.Rbc_FontTable" title="Rbc_FontTable"><span class="n"><span class="pre">Rbc_FontTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cffStrings</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.cffStrings" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed CFF string INDEX. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.sids">
+<span class="target" id="struct_rbc___export_font_1aeab626ee51ff09843e318ee529efa31e"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">short</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">sids</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.sids" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned CFF glyph-name string-ID array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.glyphs">
+<span class="target" id="struct_rbc___export_font_1a7a2e27f67aceb045792f40153ae6d320"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">glyphs</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.glyphs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned native-glyph array indexed by document character ID minus one. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.characters">
+<span class="target" id="struct_rbc___export_font_1a4bbdb50add86134837721d64aa5e9927"></span><span class="n"><span class="pre">Tcl_UniChar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">characters</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.characters" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned Unicode array indexed by document character ID minus one. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.codes">
+<span class="target" id="struct_rbc___export_font_1ae48202c64913e4da73e980029de82f3e"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">codes</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.codes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unicode-to-document-character-ID cache. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.symbolEncoding">
+<span class="target" id="struct_rbc___export_font_1abc4d0145304997c15e36c00f1f484a05"></span><span class="n"><span class="pre">Tcl_Encoding</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">symbolEncoding</span></span></span><a class="headerlink" href="#c.Rbc_ExportFont.symbolEncoding" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Retained Tcl encoding for symbol-font mappings, or NULL. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ExportFont.name">
+<span class="target" id="struct_rbc___export_font_1a49824e103b0ce52b3f556f72f058faa5"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">128</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_ExportFont.name" title="Link to this definition">¶</a><br /></dt>
+<dd><p>NUL-terminated export font name. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_FontTable">
+<span class="target" id="struct_rbc___font_table"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontTable</span></span></span><a class="headerlink" href="#c.Rbc_FontTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed byte view into a font program; invalidated when its owner releases the program. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_FontTable.bytes">
+<span class="target" id="struct_rbc___font_table_1ad70415cb1ae8f5b0653974404eb55c3c"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bytes</span></span></span><a class="headerlink" href="#c.Rbc_FontTable.bytes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>First table byte, or NULL for an absent table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_FontTable.length">
+<span class="target" id="struct_rbc___font_table_1ac9d8f5a89e5ac989bf8e1df03f3c6539"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">length</span></span></span><a class="headerlink" href="#c.Rbc_FontTable.length" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of available bytes. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Shadow">
+<span class="target" id="struct_shadow"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Shadow</span></span></span><a class="headerlink" href="#c.Shadow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Text shadow color and pixel displacement. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Shadow.color">
+<span class="target" id="struct_shadow_1a8b69d5334c80d6ea63f9ad622656a005"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">color</span></span></span><a class="headerlink" href="#c.Shadow.color" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed shadow color, or NULL to omit the shadow. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Shadow.offset">
+<span class="target" id="struct_shadow_1a6c8230668c9a9ffa3b6dd1c69673777f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><a class="headerlink" href="#c.Shadow.offset" title="Link to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#struct_shadow"><span class="std std-ref">Shadow</span></a> displacement in pixels. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TextFragment">
+<span class="target" id="struct_text_fragment"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextFragment</span></span></span><a class="headerlink" href="#c.TextFragment" title="Link to this definition">¶</a><br /></dt>
+<dd><p>One line of a multiline layout. </p>
+<p>Text is borrowed from the original string. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextFragment.text">
+<span class="target" id="struct_text_fragment_1acd16a40b59f07e717044572c545d8e89"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">text</span></span></span><a class="headerlink" href="#c.TextFragment.text" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed UTF byte span; count gives its length and it need not be NUL-terminated. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextFragment.x">
+<span class="target" id="struct_text_fragment_1a2ce7294bef17451a4f6c8554a3e67753"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x</span></span></span><a class="headerlink" href="#c.TextFragment.x" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X-Y offset of the baseline from the upper-left corner of the bounding box. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextFragment.y">
+<span class="target" id="struct_text_fragment_1a5b4f947a5c1ebe966fcb8ffea7b0e9e2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">y</span></span></span><a class="headerlink" href="#c.TextFragment.y" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X-Y offset of the baseline from the upper-left corner of the bounding box. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextFragment.sx">
+<span class="target" id="struct_text_fragment_1ad3303408ca1d2173cd90131dbab7cf6b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sx</span></span></span><a class="headerlink" href="#c.TextFragment.sx" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reserved screen-coordinate fields. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextFragment.sy">
+<span class="target" id="struct_text_fragment_1ab819bb66fbef3fb2d4317df668d18dde"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sy</span></span></span><a class="headerlink" href="#c.TextFragment.sy" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reserved screen-coordinate fields. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextFragment.count">
+<span class="target" id="struct_text_fragment_1a65776845d96ec7abbce9b24f513cc187"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">count</span></span></span><a class="headerlink" href="#c.TextFragment.count" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of bytes in text. </p>
+<p>The actual character count may differ because of multi-byte UTF encodings. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextFragment.width">
+<span class="target" id="struct_text_fragment_1ad6dbffe747b42e58877ac6a551f727a0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.TextFragment.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Width of segment in pixels. </p>
+<p>This is used to draw <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> strings at the same width as the screen representation. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TextLayout">
+<span class="target" id="struct_text_layout"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextLayout</span></span></span><a class="headerlink" href="#c.TextLayout" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Single variable-size allocation of measured text fragments. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextLayout.nFrags">
+<span class="target" id="struct_text_layout_1ae403b5a7b9261b5f8888712f2520558b"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nFrags</span></span></span><a class="headerlink" href="#c.TextLayout.nFrags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of text fragments. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextLayout.width">
+<span class="target" id="struct_text_layout_1a7c614a890e0377f169ab3f2787d8ce6a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.TextLayout.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of text bounding box. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextLayout.height">
+<span class="target" id="struct_text_layout_1a082e02e80567a602e03d28e0d27c64ef"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.TextLayout.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of text bounding box. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextLayout.fragArr">
+<span class="target" id="struct_text_layout_1a9e16cbff335edfd3d27b3424b1028086"></span><a class="reference internal" href="#c.TextFragment" title="TextFragment"><span class="n"><span class="pre">TextFragment</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fragArr</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.TextLayout.fragArr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Inline fragment records; allocation extends to nFrags entries. </p>
+<p>Fragment strings remain borrowed. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TextStyle">
+<span class="target" id="struct_text_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextStyle</span></span></span><a class="headerlink" href="#c.TextStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared text attributes. </p>
+<p>Font, colors and border are borrowed; the GC is released by <a class="reference internal" href="#rbc_text_8h_1a2571815108d226828b14776a6a0f5250"><span class="std std-ref">Rbc_FreeTextStyle()</span></a>. Initialization does not initialize every field. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.state">
+<span class="target" id="struct_text_style_1a94bb3ff78778c323b4534fcfa168cad8"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">state</span></span></span><a class="headerlink" href="#c.TextStyle.state" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, indicates to draw text in the active color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.width">
+<span class="target" id="struct_text_style_1a638fda818eaddcf14ee056ae394141f7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.TextStyle.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Extents of text. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.height">
+<span class="target" id="struct_text_style_1ad65b2bd69ab67296f6a100f44641ecbe"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.TextStyle.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Extents of text. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.color">
+<span class="target" id="struct_text_style_1ab977c4f7179c8ec908d918cbfc4d88f3"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">color</span></span></span><a class="headerlink" href="#c.TextStyle.color" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Normal color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.activeColor">
+<span class="target" id="struct_text_style_1a7161c311972c22dcd1381a65182bc569"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">activeColor</span></span></span><a class="headerlink" href="#c.TextStyle.activeColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Active color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.font">
+<span class="target" id="struct_text_style_1aba88b102a743b67228c319c5c09e0e3b"></span><span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">font</span></span></span><a class="headerlink" href="#c.TextStyle.font" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Font to use to draw text. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.border">
+<span class="target" id="struct_text_style_1ad286cbc8329a23f74b3274b08fce99f3"></span><span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">border</span></span></span><a class="headerlink" href="#c.TextStyle.border" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Background color of text. </p>
+<p>This is also used for drawing disabled text. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.shadow">
+<span class="target" id="struct_text_style_1af2cc6067ef17a3cbc81155a3af96c8b3"></span><a class="reference internal" href="#c.Shadow" title="Shadow"><span class="n"><span class="pre">Shadow</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">shadow</span></span></span><a class="headerlink" href="#c.TextStyle.shadow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Drop shadow color and offset. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.justify">
+<span class="target" id="struct_text_style_1abb8656a9bbb62c6c2ae4e27b79aaecc0"></span><span class="n"><span class="pre">Tk_Justify</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">justify</span></span></span><a class="headerlink" href="#c.TextStyle.justify" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Justification of the text string. </p>
+<p>This only matters if the text is composed of multiple lines. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.gc">
+<span class="target" id="struct_text_style_1a82b487998b44a56b4ce4e09ff851ed1b"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gc</span></span></span><a class="headerlink" href="#c.TextStyle.gc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>GC used to draw the text. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.theta">
+<span class="target" id="struct_text_style_1ace90e27e954c2862360768ac10f71dbc"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">theta</span></span></span><a class="headerlink" href="#c.TextStyle.theta" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rotation of text in degrees. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.anchor">
+<span class="target" id="struct_text_style_1a8143240c6ae543498f26e51518343eae"></span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anchor</span></span></span><a class="headerlink" href="#c.TextStyle.anchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Indicates how the text is anchored around its x and y coordinates. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.padX">
+<span class="target" id="struct_text_style_1af7c564bb11a3fabf0b9f7df6b0eba209"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><span class="n"><span class="pre">Rbc_Pad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">padX</span></span></span><a class="headerlink" href="#c.TextStyle.padX" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_text_style_1autotoc_md1">
+<h3>pixels padding of around text region<a class="headerlink" href="#struct_text_style_1autotoc_md1" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_text_style_1autotoc_md1"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.padY">
+<span class="target" id="struct_text_style_1a2b64c0beae7e828f064c50b0e3ee4342"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><span class="n"><span class="pre">Rbc_Pad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">padY</span></span></span><a class="headerlink" href="#c.TextStyle.padY" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_text_style_1autotoc_md2">
+<h3>pixels padding of around text region<a class="headerlink" href="#struct_text_style_1autotoc_md2" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_text_style_1autotoc_md2"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TextStyle.leader">
+<span class="target" id="struct_text_style_1aa5828f02e53992e52e38c4d4b9b9763b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">leader</span></span></span><a class="headerlink" href="#c.TextStyle.leader" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_text_style_1autotoc_md3">
+<h3>pixels spacing between lines of text<a class="headerlink" href="#struct_text_style_1autotoc_md3" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_text_style_1autotoc_md3"></span></section>
 </dd></dl>
 
 </div>
@@ -949,6 +1454,105 @@
 <li><a class="reference internal" href="#c.Rbc_PdfFontCharacter"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfFontCharacter()</span></code></a></li>
 <li><a class="reference internal" href="#c.FontCffResources"><code class="docutils literal notranslate"><span class="pre">FontCffResources()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PdfFontsFinish"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfFontsFinish()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.ExportCharacter"><code class="docutils literal notranslate"><span class="pre">ExportCharacter</span></code></a><ul>
+<li><a class="reference internal" href="#c.ExportCharacter.font"><code class="docutils literal notranslate"><span class="pre">font</span></code></a></li>
+<li><a class="reference internal" href="#c.ExportCharacter.cid"><code class="docutils literal notranslate"><span class="pre">cid</span></code></a></li>
+<li><a class="reference internal" href="#c.ExportCharacter.size"><code class="docutils literal notranslate"><span class="pre">size</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.ExportFontCache"><code class="docutils literal notranslate"><span class="pre">ExportFontCache</span></code></a><ul>
+<li><a class="reference internal" href="#c.ExportFontCache.fonts"><code class="docutils literal notranslate"><span class="pre">fonts</span></code></a></li>
+<li><a class="reference internal" href="#c.ExportFontCache.serial"><code class="docutils literal notranslate"><span class="pre">serial</span></code></a></li>
+<li><a class="reference internal" href="#c.ExportFontCache.characters"><code class="docutils literal notranslate"><span class="pre">characters</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.FontSource"><code class="docutils literal notranslate"><span class="pre">FontSource</span></code></a><ul>
+<li><a class="reference internal" href="#c.FontSource.bytes"><code class="docutils literal notranslate"><span class="pre">bytes</span></code></a></li>
+<li><a class="reference internal" href="#c.FontSource.length"><code class="docutils literal notranslate"><span class="pre">length</span></code></a></li>
+<li><a class="reference internal" href="#c.FontSource.offset"><code class="docutils literal notranslate"><span class="pre">offset</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.FontUnicodePair"><code class="docutils literal notranslate"><span class="pre">FontUnicodePair</span></code></a><ul>
+<li><a class="reference internal" href="#c.FontUnicodePair.character"><code class="docutils literal notranslate"><span class="pre">character</span></code></a></li>
+<li><a class="reference internal" href="#c.FontUnicodePair.glyph"><code class="docutils literal notranslate"><span class="pre">glyph</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportFont</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.next"><code class="docutils literal notranslate"><span class="pre">next</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.key"><code class="docutils literal notranslate"><span class="pre">key</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.bytes"><code class="docutils literal notranslate"><span class="pre">bytes</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.length"><code class="docutils literal notranslate"><span class="pre">length</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.head"><code class="docutils literal notranslate"><span class="pre">head</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.hhea"><code class="docutils literal notranslate"><span class="pre">hhea</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.hmtx"><code class="docutils literal notranslate"><span class="pre">hmtx</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.cmap"><code class="docutils literal notranslate"><span class="pre">cmap</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.maxp"><code class="docutils literal notranslate"><span class="pre">maxp</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.id"><code class="docutils literal notranslate"><span class="pre">id</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.units"><code class="docutils literal notranslate"><span class="pre">units</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.glyphCount"><code class="docutils literal notranslate"><span class="pre">glyphCount</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.metricsCount"><code class="docutils literal notranslate"><span class="pre">metricsCount</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.count"><code class="docutils literal notranslate"><span class="pre">count</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.capacity"><code class="docutils literal notranslate"><span class="pre">capacity</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.isCff"><code class="docutils literal notranslate"><span class="pre">isCff</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.fontIds"><code class="docutils literal notranslate"><span class="pre">fontIds</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.cff"><code class="docutils literal notranslate"><span class="pre">cff</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.cffStrings"><code class="docutils literal notranslate"><span class="pre">cffStrings</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.sids"><code class="docutils literal notranslate"><span class="pre">sids</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.glyphs"><code class="docutils literal notranslate"><span class="pre">glyphs</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.characters"><code class="docutils literal notranslate"><span class="pre">characters</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.codes"><code class="docutils literal notranslate"><span class="pre">codes</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.symbolEncoding"><code class="docutils literal notranslate"><span class="pre">symbolEncoding</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFont.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_FontTable"><code class="docutils literal notranslate"><span class="pre">Rbc_FontTable</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_FontTable.bytes"><code class="docutils literal notranslate"><span class="pre">bytes</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FontTable.length"><code class="docutils literal notranslate"><span class="pre">length</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Shadow"><code class="docutils literal notranslate"><span class="pre">Shadow</span></code></a><ul>
+<li><a class="reference internal" href="#c.Shadow.color"><code class="docutils literal notranslate"><span class="pre">color</span></code></a></li>
+<li><a class="reference internal" href="#c.Shadow.offset"><code class="docutils literal notranslate"><span class="pre">offset</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.TextFragment"><code class="docutils literal notranslate"><span class="pre">TextFragment</span></code></a><ul>
+<li><a class="reference internal" href="#c.TextFragment.text"><code class="docutils literal notranslate"><span class="pre">text</span></code></a></li>
+<li><a class="reference internal" href="#c.TextFragment.x"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li><a class="reference internal" href="#c.TextFragment.y"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+<li><a class="reference internal" href="#c.TextFragment.sx"><code class="docutils literal notranslate"><span class="pre">sx</span></code></a></li>
+<li><a class="reference internal" href="#c.TextFragment.sy"><code class="docutils literal notranslate"><span class="pre">sy</span></code></a></li>
+<li><a class="reference internal" href="#c.TextFragment.count"><code class="docutils literal notranslate"><span class="pre">count</span></code></a></li>
+<li><a class="reference internal" href="#c.TextFragment.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.TextLayout"><code class="docutils literal notranslate"><span class="pre">TextLayout</span></code></a><ul>
+<li><a class="reference internal" href="#c.TextLayout.nFrags"><code class="docutils literal notranslate"><span class="pre">nFrags</span></code></a></li>
+<li><a class="reference internal" href="#c.TextLayout.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.TextLayout.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.TextLayout.fragArr"><code class="docutils literal notranslate"><span class="pre">fragArr</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.TextStyle"><code class="docutils literal notranslate"><span class="pre">TextStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.TextStyle.state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.color"><code class="docutils literal notranslate"><span class="pre">color</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.activeColor"><code class="docutils literal notranslate"><span class="pre">activeColor</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.font"><code class="docutils literal notranslate"><span class="pre">font</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.border"><code class="docutils literal notranslate"><span class="pre">border</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.shadow"><code class="docutils literal notranslate"><span class="pre">shadow</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.justify"><code class="docutils literal notranslate"><span class="pre">justify</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.gc"><code class="docutils literal notranslate"><span class="pre">gc</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.theta"><code class="docutils literal notranslate"><span class="pre">theta</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.anchor"><code class="docutils literal notranslate"><span class="pre">anchor</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.padX"><code class="docutils literal notranslate"><span class="pre">padX</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.padY"><code class="docutils literal notranslate"><span class="pre">padY</span></code></a></li>
+<li><a class="reference internal" href="#c.TextStyle.leader"><code class="docutils literal notranslate"><span class="pre">leader</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

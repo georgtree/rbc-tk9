@@ -194,6 +194,53 @@ Resolves synonyms through their clientData canonical name. Use the same specific
 </dd></dl>
 
 </section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.ColorPair">
+<span class="target" id="struct_color_pair"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ColorPair</span></span></span><a class="headerlink" href="#c.ColorPair" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Foreground/background color pair; ownership belongs to the option or drawing owner. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ColorPair.fgColor">
+<span class="target" id="struct_color_pair_1a766aee46e25799e52c83661e349a6e30"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fgColor</span></span></span><a class="headerlink" href="#c.ColorPair.fgColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Foreground color, possibly a component-specific sentinel. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ColorPair.bgColor">
+<span class="target" id="struct_color_pair_1aa9496d59e22704fed430ded65ae8a310"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bgColor</span></span></span><a class="headerlink" href="#c.ColorPair.bgColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Background color, or NULL when no background is requested. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_ScrollRequest">
+<span class="target" id="struct_rbc___scroll_request"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScrollRequest</span></span></span><a class="headerlink" href="#c.Rbc_ScrollRequest" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parsed scrollbar request, independent of axis application. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ScrollRequest.kind">
+<span class="target" id="struct_rbc___scroll_request_1a56555f315ae1a7e57d4c8c25eb053d68"></span><span class="n"><span class="pre">Rbc_ScrollKind</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">kind</span></span></span><a class="headerlink" href="#c.Rbc_ScrollRequest.kind" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Request kind: absolute fraction, unit increment or page increment. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ScrollRequest.value">
+<span class="target" id="struct_rbc___scroll_request_1afef0cd75ed69ef8f88dcf3a92db3db65"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">value</span></span></span><a class="headerlink" href="#c.Rbc_ScrollRequest.value" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fraction for moveto, or signed count for scrolling. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -224,6 +271,19 @@ Resolves synonyms through their clientData canonical name. Use the same specific
 </li>
 <li><a class="reference internal" href="#relative-child-lookup">Relative child lookup</a><ul>
 <li><a class="reference internal" href="#c.Rbc_FindChild"><code class="docutils literal notranslate"><span class="pre">Rbc_FindChild()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.ColorPair"><code class="docutils literal notranslate"><span class="pre">ColorPair</span></code></a><ul>
+<li><a class="reference internal" href="#c.ColorPair.fgColor"><code class="docutils literal notranslate"><span class="pre">fgColor</span></code></a></li>
+<li><a class="reference internal" href="#c.ColorPair.bgColor"><code class="docutils literal notranslate"><span class="pre">bgColor</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_ScrollRequest"><code class="docutils literal notranslate"><span class="pre">Rbc_ScrollRequest</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_ScrollRequest.kind"><code class="docutils literal notranslate"><span class="pre">kind</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ScrollRequest.value"><code class="docutils literal notranslate"><span class="pre">value</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

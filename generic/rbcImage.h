@@ -32,44 +32,26 @@
 #define ROTATE_180 2
 #define ROTATE_270 3
 
-/*
- *----------------------------------------------------------------------
- *
- * Pix32 --
- *
- *      A union representing either a pixel as a RGB triplet or a
- *    single word value.
- *
- *----------------------------------------------------------------------
- */
+/** @brief Four-channel pixel with packed and byte-array views. */
 typedef union {
-    unsigned int value; /* Lookup table address */
+    unsigned int value; /**< Packed pixel word; byte interpretation is shared with rgba. */
+    /** @brief Pixel channel bytes; alpha represents opacity. */
     struct RGBA {
-        unsigned char red;   /* Red intensity 0..255 */
-        unsigned char green; /* Green intensity 0.255 */
-        unsigned char blue;  /* Blue intensity 0..255 */
-        unsigned char alpha; /* Alpha-channel for compositing. 0..255 */
-    } rgba;
-    unsigned char channel[4];
+        unsigned char red; /**< Red intensity 0..255 */
+        unsigned char green; /**< Green intensity 0..255 */
+        unsigned char blue; /**< Blue intensity 0..255 */
+        unsigned char alpha; /**< Alpha-channel for compositing. 0..255 */
+    } rgba; /**< Named channel view of this pixel. */
+    unsigned char channel[4]; /**< Channel-byte array sharing storage with rgba and value; byte order follows RGBA member order. */
 } Pix32;
 
 
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ColorImage --
- *
- *      The structure below represents a color image.  Each pixel
- *    occupies a 32-bit word of memory: one byte for each of the
- *    red, green, and blue color intensities, and another for
- *    alpha-channel image compositing (e.g. transparency).
- *
- *----------------------------------------------------------------------
- */
+/** @brief Owned packed pixel array and its dimensions. */
 typedef struct ColorImage {
-    int width, height; /* Dimensions of the image */
-    Pix32 *bits;       /* Array of pixels representing the image. */
+    int width; /**< Dimensions of the image */
+    int height; /**< Dimensions of the image */
+    Pix32 *bits; /**< Array of pixels representing the image. */
 } *Rbc_ColorImage;
 
 /*
@@ -92,39 +74,21 @@ typedef struct ColorImage {
  */
 typedef double(ResampleFilterProc)(double value);
 
-/*
- *----------------------------------------------------------------------
- *
- * ResampleFilter --
- *
- *      Contains information about a 1-D filter (its support and
- *    the procedure implementing the filter).
- *
- *----------------------------------------------------------------------
- */
+/** @brief Named separable reconstruction filter and support radius. */
 typedef struct {
-    const char *name;         /* Name of the filter */
-    ResampleFilterProc *proc; /* 1-D filter procedure. */
-    double support;           /* Width of 1-D filter */
+    const char *name; /**< Name of the filter */
+    ResampleFilterProc *proc; /**< 1-D filter procedure. */
+    double support; /**< Width of 1-D filter */
 } ResampleFilter;
 
 extern ResampleFilter *rbcBoxFilterPtr; /* The ubiquitous box filter */
 
-/*
- *----------------------------------------------------------------------
- *
- * Filter2D --
- *
- *      Defines a convolution mask for a 2-D filter.  Used to smooth or
- *    enhance images.
- *
- *----------------------------------------------------------------------
- */
+/** @brief Two-dimensional convolution kernel and normalization state. */
 typedef struct {
-    double support;    /* Radius of filter */
-    double sum, scale; /* Sum of kernel */
-    double *kernel;    /* Array of values (malloc-ed) representing
-                        * the discrete 2-D filter. */
+    double support; /**< Radius of filter */
+    double sum; /**< Sum of kernel */
+    double scale; /**< Sum of kernel */
+    double *kernel; /**< Array of values (allocated) representing the discrete 2-D filter. */
 } Filter2D;
 
 /* Prototypes of image routines */

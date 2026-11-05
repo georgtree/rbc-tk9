@@ -161,6 +161,220 @@
 </dl>
 </dd></dl>
 
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct">
+<span class="target" id="struct_tk_image_master_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TkImageMasterStruct</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compatibility view of Tk image master internals; RBC does not own these fields. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct.typePtr">
+<span class="target" id="struct_tk_image_master_struct_1ac4ed89d264e55c57bb7d5205dba9900d"></span><span class="n"><span class="pre">Tk_ImageType</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">typePtr</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct.typePtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Information about image type. </p>
+<p>NULL means that no image manager owns this image: the image was deleted. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct.masterData">
+<span class="target" id="struct_tk_image_master_struct_1a06f6160a793ca2d7b128d451d0145fec"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">masterData</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct.masterData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>One-word argument to pass to image mgr when dealing with the master, as opposed to instances. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct.width">
+<span class="target" id="struct_tk_image_master_struct_1a0b4a76ec19ac7efa294f8517c7c50056"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last known dimensions for image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct.height">
+<span class="target" id="struct_tk_image_master_struct_1ae94a0f27be3e55685885c99f016607b7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last known dimensions for image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct.tablePtr">
+<span class="target" id="struct_tk_image_master_struct_1a4e2672e36d93f8c493bf4df115bcd37d"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">tablePtr</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct.tablePtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to hash table containing image (the imageTable field in some TkMainInfo structure). </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct.hPtr">
+<span class="target" id="struct_tk_image_master_struct_1a62e6c04d5e09f076db72a391d00b8558"></span><span class="n"><span class="pre">Tcl_HashEntry</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hPtr</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct.hPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Hash entry in mainPtr-&gt;imageTable for this structure (used to delete the hash entry). </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageMasterStruct.instancePtr">
+<span class="target" id="struct_tk_image_master_struct_1add8601f485bbca14f02cd8ba62bc8e4c"></span><span class="n"><span class="pre">TkImage</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">instancePtr</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct.instancePtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to first in list of instances derived from this name. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TkImageStruct">
+<span class="target" id="struct_tk_image_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TkImageStruct</span></span></span><a class="headerlink" href="#c.TkImageStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compatibility view of Tk image instance internals; layout must match the supported Tk version. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageStruct.tkwin">
+<span class="target" id="struct_tk_image_struct_1a660e3d36ffb9a715c26a26631aab1909"></span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tkwin</span></span></span><a class="headerlink" href="#c.TkImageStruct.tkwin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Window passed to Tk_GetImage (needed to “re-get” the image later if the manager changes). </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageStruct.display">
+<span class="target" id="struct_tk_image_struct_1acbe05ee6cadf59cb9fd02855fb05cfe5"></span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">display</span></span></span><a class="headerlink" href="#c.TkImageStruct.display" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Display for tkwin. </p>
+<p>Needed because when the image is eventually freed tkwin may not exist anymore. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageStruct.masterPtr">
+<span class="target" id="struct_tk_image_struct_1a1a24667eaeac52c815dda9dba67cf85a"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.TkImageMasterStruct" title="TkImageMasterStruct"><span class="n"><span class="pre">TkImageMasterStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">masterPtr</span></span></span><a class="headerlink" href="#c.TkImageStruct.masterPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed Tk image master. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageStruct.instanceData">
+<span class="target" id="struct_tk_image_struct_1ae94228a8b2bf9eda6941758202d5e5d2"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">instanceData</span></span></span><a class="headerlink" href="#c.TkImageStruct.instanceData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk image-type instance payload. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageStruct.changeProc">
+<span class="target" id="struct_tk_image_struct_1ad813ec95e547697c6da32175a796c614"></span><span class="n"><span class="pre">Tk_ImageChangedProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">changeProc</span></span></span><a class="headerlink" href="#c.TkImageStruct.changeProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk image-change callback. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageStruct.widgetClientData">
+<span class="target" id="struct_tk_image_struct_1a83ee3cb099735a90792b0c509e1fc4d0"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">widgetClientData</span></span></span><a class="headerlink" href="#c.TkImageStruct.widgetClientData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed callback data supplied by the image consumer. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkImageStruct.nextPtr">
+<span class="target" id="struct_tk_image_struct_1a399148662d298840e82813baa168ceee"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nextPtr</span></span></span><a class="headerlink" href="#c.TkImageStruct.nextPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next in list of all image instances associated with the same name. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct">
+<span class="target" id="struct_tk_photo_instance_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TkPhotoInstanceStruct</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compatibility view of Tk photo instance internals; RBC does not own these fields. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.masterPtr">
+<span class="target" id="struct_tk_photo_instance_struct_1abefe4641a69a1489d42b8e251d7e4836"></span><span class="n"><span class="pre">TkPhotoMaster</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">masterPtr</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.masterPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to master for image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.display">
+<span class="target" id="struct_tk_photo_instance_struct_1a22dcda2b6d2ac78c1fe137db0c3f876c"></span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">display</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.display" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Display for windows using this instance. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.colormap">
+<span class="target" id="struct_tk_photo_instance_struct_1a7e6842e71585334e74c6909f6a3a5aea"></span><span class="n"><span class="pre">Colormap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">colormap</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.colormap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The image may only be used in windows with this particular colormap. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.nextPtr">
+<span class="target" id="struct_tk_photo_instance_struct_1a222cb946e0fbe57d9b6feb9e5fb341b6"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.TkPhotoInstanceStruct" title="TkPhotoInstanceStruct"><span class="n"><span class="pre">TkPhotoInstanceStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nextPtr</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.nextPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next Tk-managed instance of the same photo master. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.refCount">
+<span class="target" id="struct_tk_photo_instance_struct_1a46d4b00a1fa987b6d542c4aabab43555"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">refCount</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.refCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of instances using this structure. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.palette">
+<span class="target" id="struct_tk_photo_instance_struct_1af6e2365b9eacbac66c8bf3a195354cbc"></span><span class="n"><span class="pre">Tk_Uid</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">palette</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.palette" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Palette for these particular instances. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.outputGamma">
+<span class="target" id="struct_tk_photo_instance_struct_1a5c9e1f4e0b078af827fe87306e2b903e"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">outputGamma</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.outputGamma" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Gamma value for these instances. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.defaultPalette">
+<span class="target" id="struct_tk_photo_instance_struct_1a2219c2db2b85fef4c502390726772aa9"></span><span class="n"><span class="pre">Tk_Uid</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">defaultPalette</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.defaultPalette" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Default palette to use if a palette is not specified for the master. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.colorTablePtr">
+<span class="target" id="struct_tk_photo_instance_struct_1ad74ddafd3cf0780c5d1882551713acc7"></span><span class="n"><span class="pre">TkColorTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">colorTablePtr</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.colorTablePtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to information about colors allocated for image display in windows like this one. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.pixels">
+<span class="target" id="struct_tk_photo_instance_struct_1ae2df012444321f432d05f9c271370cb2"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pixels</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.pixels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X pixmap containing dithered image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.width">
+<span class="target" id="struct_tk_photo_instance_struct_1aa616cabb0cc3c1357359d6e5e2b73179"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of the pixmap. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.height">
+<span class="target" id="struct_tk_photo_instance_struct_1ab3195119bfa682d23923bf9dd174de98"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of the pixmap. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.error">
+<span class="target" id="struct_tk_photo_instance_struct_1a0c385b335f6e61a9cc215fcab43639ad"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">error</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.error" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Error image, used in dithering. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.imagePtr">
+<span class="target" id="struct_tk_photo_instance_struct_1afcfaf5fc5e64bfdba9199d608ca3a5a6"></span><span class="n"><span class="pre">XImage</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">imagePtr</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.imagePtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Image structure for converted pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.visualInfo">
+<span class="target" id="struct_tk_photo_instance_struct_1a71e21052520135d6579628e123521c0d"></span><span class="n"><span class="pre">XVisualInfo</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">visualInfo</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.visualInfo" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Information about the visual that these windows are using. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TkPhotoInstanceStruct.gc">
+<span class="target" id="struct_tk_photo_instance_struct_1ac85c6ba0093071d72e15d4dce222db15"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gc</span></span></span><a class="headerlink" href="#c.TkPhotoInstanceStruct.gc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graphics context for writing images to the pixmap. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -182,6 +396,48 @@
 <li><a class="reference internal" href="#c.Rbc_NameOfImage"><code class="docutils literal notranslate"><span class="pre">Rbc_NameOfImage()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_CreateTemporaryImage"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateTemporaryImage()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_DestroyTemporaryImage"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage()</span></code></a></li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.TkImageMasterStruct"><code class="docutils literal notranslate"><span class="pre">TkImageMasterStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.TkImageMasterStruct.typePtr"><code class="docutils literal notranslate"><span class="pre">typePtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageMasterStruct.masterData"><code class="docutils literal notranslate"><span class="pre">masterData</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageMasterStruct.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageMasterStruct.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageMasterStruct.tablePtr"><code class="docutils literal notranslate"><span class="pre">tablePtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageMasterStruct.hPtr"><code class="docutils literal notranslate"><span class="pre">hPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageMasterStruct.instancePtr"><code class="docutils literal notranslate"><span class="pre">instancePtr</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.TkImageStruct"><code class="docutils literal notranslate"><span class="pre">TkImageStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.TkImageStruct.tkwin"><code class="docutils literal notranslate"><span class="pre">tkwin</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageStruct.display"><code class="docutils literal notranslate"><span class="pre">display</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageStruct.masterPtr"><code class="docutils literal notranslate"><span class="pre">masterPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageStruct.instanceData"><code class="docutils literal notranslate"><span class="pre">instanceData</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageStruct.changeProc"><code class="docutils literal notranslate"><span class="pre">changeProc</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageStruct.widgetClientData"><code class="docutils literal notranslate"><span class="pre">widgetClientData</span></code></a></li>
+<li><a class="reference internal" href="#c.TkImageStruct.nextPtr"><code class="docutils literal notranslate"><span class="pre">nextPtr</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct"><code class="docutils literal notranslate"><span class="pre">TkPhotoInstanceStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.masterPtr"><code class="docutils literal notranslate"><span class="pre">masterPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.display"><code class="docutils literal notranslate"><span class="pre">display</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.colormap"><code class="docutils literal notranslate"><span class="pre">colormap</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.nextPtr"><code class="docutils literal notranslate"><span class="pre">nextPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.refCount"><code class="docutils literal notranslate"><span class="pre">refCount</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.palette"><code class="docutils literal notranslate"><span class="pre">palette</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.outputGamma"><code class="docutils literal notranslate"><span class="pre">outputGamma</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.defaultPalette"><code class="docutils literal notranslate"><span class="pre">defaultPalette</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.colorTablePtr"><code class="docutils literal notranslate"><span class="pre">colorTablePtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.pixels"><code class="docutils literal notranslate"><span class="pre">pixels</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.error"><code class="docutils literal notranslate"><span class="pre">error</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.imagePtr"><code class="docutils literal notranslate"><span class="pre">imagePtr</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.visualInfo"><code class="docutils literal notranslate"><span class="pre">visualInfo</span></code></a></li>
+<li><a class="reference internal" href="#c.TkPhotoInstanceStruct.gc"><code class="docutils literal notranslate"><span class="pre">gc</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

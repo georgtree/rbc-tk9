@@ -56,79 +56,66 @@
 
 extern double rbcNaN;
 
+/** @brief Interpreter-associated vector registry and expression/index dispatch tables. */
 typedef struct {
-    Tcl_HashTable vectorTable;   /* Table of vectors */
-    Tcl_HashTable mathProcTable; /* Table of vector math functions */
-    Tcl_HashTable indexProcTable;
-    Tcl_Interp *interp;
-    unsigned int nextId;
+    Tcl_HashTable vectorTable; /**< Table of vectors */
+    Tcl_HashTable mathProcTable; /**< Table of vector math functions */
+    Tcl_HashTable indexProcTable; /**< Registered special-index callbacks indexed by name. */
+    Tcl_Interp *interp; /**< Borrowed owning interpreter. */
+    unsigned int nextId; /**< Next candidate suffix for automatic vector names. */
 } VectorInterpData;
 
+/** @brief Typed views of one vector storage allocation; type is stored in the owning vector. */
 typedef union {
-    double *real;
-    Rbc_Complex *complex;
-    void *raw;
+    double *real; /**< Real-value view when the vector type is real. */
+    Rbc_Complex *complex; /**< Complex-value view when the vector type is complex. */
+    void *raw; /**< Untyped storage view used for allocation and release. */
 } VectorData;
 
-/*
- * Vector storage starts empty (NULL, length and capacity zero); growth allocates
- * an array, not an inline/static buffer. freeProc controls ownership of the
- * current array. Data pointers can change on growth or reset.
- *
- * The interpreter registry owns named vectors. The client chain observes the
- * same record without copying data or preserving its lifetime. On destruction,
- * callbacks run before storage and remaining client IDs are freed.
+/**
+ * @brief Vector storage and command state. Named vectors belong to the interpreter registry; client tokens
+ * observe without preserving vector lifetime.
  */
 struct Rbc_Vector_s {
-    Rbc_VectorType type;
-    int readOnly; /* Protect values, length and index offset; not vector lifetime. */
-    VectorData data;
-    Tcl_Size length; /* Current number of values in the array. */
-    Tcl_Size size;   /* Maximum number of values that can be stored
-                      * in the value array. */
-    double min, max; /* Minimum and maximum values in the vector */
+    Rbc_VectorType type; /**< Real or complex storage discriminator; data must agree with it. */
+    int readOnly; /**< Protect values, length and index offset; not vector lifetime. */
+    VectorData data; /**< Storage allocation governed by freeProc; growth or reset can invalidate borrowed pointers. */
+    Tcl_Size length; /**< Current number of values in the array. */
+    Tcl_Size size; /**< Maximum number of values that can be stored in the value array. */
+    double min; /**< Minimum and maximum values in the vector */
+    double max; /**< Minimum and maximum values in the vector */
     /*
      * Source indices of the cached finite extrema.
      *
      * -1 means that no finite extremum is currently cached.
      */
-    Tcl_Size minIndex;
-    Tcl_Size maxIndex;
-    int dirty;       /* Indicates if the vector has been updated */
+    Tcl_Size minIndex; /**< Source index of cached finite minimum, or -1 when unavailable. */
+    Tcl_Size maxIndex; /**< Source index of cached finite maximum, or -1 when unavailable. */
+    int dirty; /**< Indicates if the vector has been updated */
     /* The following fields are local to this module  */
-    char *name; /* The namespace-qualified name of the vector command.
-                 * It points to the hash key allocated for the
-                 * entry in the vector hash table; destruction keeps a temporary
-                 * copy while callbacks run after removing the registration. */
-    VectorInterpData *dataPtr;
-    Tcl_Interp *interp;     /* Interpreter associated with the vector */
-    Tcl_HashEntry *hashPtr; /* If non-NULL, pointer in a hash table to
-                             * track the vectors in use. */
-    Tcl_FreeProc *freeProc; /* Address of procedure to call to
-                             * release storage for the value
-                             * array, Optionally can be one of the
-                             * following: TCL_STATIC, TCL_DYNAMIC,
-                             * or TCL_VOLATILE. */
-    char *arrayName;        /* The namespace-qualified name of the
-                             * Tcl array variable
-                             * mapped to the vector
-                             * (malloc'ed). If NULL, indicates
-                             * that the vector isn't mapped to any variable */
-    Tcl_Size offset;        /* Offset from zero of the vector's
-                             * starting index */
-    Tcl_Command cmdToken;   /* Token for vector's Tcl command. */
-    Rbc_Chain *chainPtr;    /* List of clients using this vector */
-    int destroying;        /* Destruction started; reject recursive deletion and new clients. */
-    int notifyFlags;        /* Notification flags. See definitions
-                             * below */
-    int varFlags;           /* Indicate if the variable is global,
-                             * namespace, or local */
-    int freeOnUnset;        /* For backward compatibility only: If
-                             * non-zero, free the vector when its
-                             * variable is unset. */
-    int flush;
-    Tcl_Size first, last; /* Selected region of vector. This is used
-                           * mostly for the math routines */
+    char *name; /**< The namespace-qualified name of the vector command. It points to the hash key allocated for the
+     * entry in the vector hash table; destruction keeps a temporary copy while callbacks run after
+     * removing the registration.
+     */
+    VectorInterpData *dataPtr; /**< Borrowed interpreter-associated vector registry. */
+    Tcl_Interp *interp; /**< Interpreter associated with the vector */
+    Tcl_HashEntry *hashPtr; /**< If non-NULL, pointer in a hash table to track the vectors in use. */
+    Tcl_FreeProc *freeProc; /**< Address of procedure to call to release storage for the value array, Optionally can be one of
+     * the following: TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE.
+     */
+    char *arrayName; /**< The namespace-qualified name of the Tcl array variable mapped to the vector (allocated). If
+     * NULL, indicates that the vector isn't mapped to any variable
+     */
+    Tcl_Size offset; /**< Offset from zero of the vector's starting index */
+    Tcl_Command cmdToken; /**< Token for vector's Tcl command. */
+    Rbc_Chain *chainPtr; /**< List of clients using this vector */
+    int destroying; /**< Destruction started; reject recursive deletion and new clients. */
+    int notifyFlags; /**< Notification flags. See definitions below */
+    int varFlags; /**< Indicate if the variable is global, namespace, or local */
+    int freeOnUnset; /**< For backward compatibility only: If non-zero, free the vector when its variable is unset. */
+    int flush; /**< Nonzero flushes mapped-array cached entries when values change. */
+    Tcl_Size first; /**< Selected region of vector. This is used mostly for the math routines */
+    Tcl_Size last; /**< Selected region of vector. This is used mostly for the math routines */
     /*
      * Coalesced source range modified since the previous client
      * notification.
@@ -136,39 +123,32 @@ struct Rbc_Vector_s {
      * updateAll means that the modified range is unknown or that the
      * complete vector should be considered changed.
      */
-    int updateAll;
-    int updateRangeValid;
-    Tcl_Size updateFirst;
-    Tcl_Size updateLast;
+    int updateAll; /**< Nonzero means the entire vector, or an unknown range, changed. */
+    int updateRangeValid; /**< Nonzero when updateFirst and updateLast specify a modified range. */
+    Tcl_Size updateFirst; /**< First changed source index, inclusive; meaningful only when updateRangeValid is set. */
+    Tcl_Size updateLast; /**< Last changed source index, inclusive; meaningful only when updateRangeValid is set. */
 };
 
 typedef Rbc_Vector VectorObject;
 
-/*
- * One observer of a vector. This is not a lifetime-preserving reference.
- * update* fields are a notification-local snapshot, restored after nested
- * delivery. Detaching invalidates the token immediately; active snapshots defer
- * reclamation. Rbc_VectorFree detaches remaining IDs after DESTROY delivery.
+/**
+ * @brief Observer token for a vector. Detaching invalidates the token; notification snapshots defer
+ * reclamation during callbacks.
  */
 struct Rbc_VectorIdStruct {
-    unsigned int magic;          /* Magic value designating whether this
-                                  * really is a vector token or not */
-    VectorObject *serverPtr;     /* Borrowed vector; cleared when the ID is detached. */
-    Rbc_VectorChangedProc *proc; /* Routine to call when the contents
-                                  * of the vector change or the vector
-                                  * is deleted. */
-    ClientData clientData;       /* Data passed whenever the vector
-                                  * change procedure is called. */
-    Rbc_ChainLink *linkPtr;      /* Used to quickly remove this entry from
-                                  * its server's client chain. */
+    unsigned int magic; /**< Magic value designating whether this really is a vector token or not */
+    VectorObject *serverPtr; /**< Borrowed vector; cleared when the ID is detached. */
+    Rbc_VectorChangedProc *proc; /**< Routine to call when the contents of the vector change or the vector is deleted. */
+    ClientData clientData; /**< Data passed whenever the vector change procedure is called. */
+    Rbc_ChainLink *linkPtr; /**< Used to quickly remove this entry from its server's client chain. */
     /*
      * Snapshot of the range associated with the notification currently
      * being delivered to this client.
      */
-    int updateAll;
-    int updateRangeValid;
-    Tcl_Size updateFirst;
-    Tcl_Size updateLast;    
+    int updateAll; /**< Nonzero means the entire vector, or an unknown range, changed. */
+    int updateRangeValid; /**< Nonzero when updateFirst and updateLast specify a modified range. */
+    Tcl_Size updateFirst; /**< First changed source index, inclusive; meaningful only when updateRangeValid is set. */
+    Tcl_Size updateLast; /**< Last changed source index, inclusive; meaningful only when updateRangeValid is set. */
 };
 
 typedef struct Rbc_VectorIdStruct VectorClient;
@@ -216,25 +196,18 @@ enum Tokens {
     OLD_BIT_NOT
 };
 
+/** @brief Temporary expression value owning its result vector. */
 typedef struct {
-    VectorObject *vPtr;
+    VectorObject *vPtr; /**< Temporary result vector used by the expression parser. */
 } Value;
 
-/*
- *    The data structure below describes the state of parsing an
- *    expression.  It's passed among the routines in this module.
- */
+/** @brief Expression scan position and current token. */
 typedef struct {
-    char *expr;        /* The entire right-hand side of the
-                        * expression, as originally passed to
-                        * Rbc_ExprVector. */
-    char *nextPtr;     /* Position of the next character to
-                        * be scanned from the expression
-                        * string. */
-    enum Tokens token; /* Type of the last token to be parsed
-                        * from nextPtr.  See below for
-                        * definitions.  Corresponds to the
-                        * characters just before nextPtr. */
+    char *expr; /**< The entire right-hand side of the expression, as originally passed to Rbc_ExprVector. */
+    char *nextPtr; /**< Position of the next character to be scanned from the expression string. */
+    enum Tokens token; /**< Type of the last token to be parsed from nextPtr. See below for definitions. Corresponds to the
+     * characters just before nextPtr.
+     */
 } ParseInfo;
 
 /* Vector Operators Definitions (rbcVector.c) */

@@ -49,7 +49,7 @@
 numbering conventions. They are independent of Cairo.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfBegin">
-<span class="target" id="rbc_export_8h_1aeabc6d439064df0cf3e6df42a0981a55"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfBegin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scale</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfBegin" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1aeabc6d439064df0cf3e6df42a0981a55"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scale</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfBegin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Attach a fresh single-page PDF builder and begin its content transform. </p>
 <p>
 Allocates backendData and appends a graphics-state save and transform to the current buffer. Does not clear earlier content or free an earlier backend. The owner must call Rbc_PdfFree, including after rendering failure. </p>
@@ -66,7 +66,7 @@ Allocates backendData and appends a graphics-state save and transform to the cur
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfScale">
-<span class="target" id="rbc_export_8h_1a0ab14b76e0067f5d8ad1db054b78c67a"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfScale</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfScale" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1a0ab14b76e0067f5d8ad1db054b78c67a"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfScale</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfScale" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read a stored PDF page metric without changing builder state. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -82,7 +82,7 @@ Allocates backendData and appends a graphics-state save and transform to the cur
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfHeight">
-<span class="target" id="rbc_export_8h_1a4a2cf63f0c0da64eee7c120721126f08"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfHeight</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfHeight" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1a4a2cf63f0c0da64eee7c120721126f08"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfHeight</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfHeight" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read a stored PDF page metric without changing builder state. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -98,7 +98,7 @@ Allocates backendData and appends a graphics-state save and transform to the cur
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfResource">
-<span class="target" id="rbc_export_8h_1a740cc43bc1bfb6d5e8cb9a699ea6523f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfResource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">body</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfResource" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1a740cc43bc1bfb6d5e8cb9a699ea6523f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfResource</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">body</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfResource" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intern a copied PDF object body within the current document. </p>
 <p>
 Does not parse or validate PDF syntax. Binary bodies require explicit lengths. Resource numbers are meaningful only within this builder. Allocation uses Tcl’s non-recoverable allocation functions rather than an error return. </p>
@@ -119,7 +119,7 @@ Does not parse or validate PDF syntax. Binary bodies require explicit lengths. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfSetResource">
-<span class="target" id="rbc_export_8h_1a8dce3283019d243ffac84f4a072ab4a5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfSetResource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">body</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfSetResource" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1a8dce3283019d243ffac84f4a072ab4a5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfSetResource</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">body</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfSetResource" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace a reserved object’s body without changing its ID or category. </p>
 <p>
 Used to resolve font placeholders after character collection. Copies the new body and discards the previous one; does not validate id or re-intern the result. An ID shared through earlier interning names the same object for every reference, so placeholders intended to differ must be distinct. </p>
@@ -137,7 +137,7 @@ Used to resolve font placeholders after character collection. Copies the new bod
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfStream">
-<span class="target" id="rbc_export_8h_1a3f7b011b5e5b2ad592827536d183a750"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfStream</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dictionary</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bytes</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfStream" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1a3f7b011b5e5b2ad592827536d183a750"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfStream</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dictionary</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bytes</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfStream" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Wrap binary payload bytes in a PDF stream and intern the object. </p>
 <p>
 Temporarily redirects buffer, emits Length, copies the payload, restores buffer and frees temporary storage. Adds no compression or encoding; supplied dictionary filters must match the supplied bytes. The returned ID does not imply that the context has no previously recorded export error. </p>
@@ -159,7 +159,7 @@ Temporarily redirects buffer, emits Length, copies the payload, restores buffer 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfDocument">
-<span class="target" id="rbc_export_8h_1ae7a7b4aea69ed902d36151b6c0194394"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfDocument</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfDocument" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1ae7a7b4aea69ed902d36151b6c0194394"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfDocument</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfDocument" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Finalize fonts and serialize one PDF document into a binary Tcl object. </p>
 <p>
 Appends the final graphics-state restore to content and serializes PDF 1.4 objects, classic xref and trailer. Restores the original buffer pointer and frees temporary serialization storage. Resources/content remain owned by the context. This is a single-use finalizer, not an idempotent query or retry API. No file is opened. The caller checks export diagnostics and owns result delivery/reference management. </p>
@@ -179,7 +179,7 @@ Appends the final graphics-state restore to content and serializes PDF 1.4 objec
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfFree">
-<span class="target" id="rbc_export_8h_1a6f4e305866a01a231d2be023de6ee4d2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFree" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_export_8h_1a6f4e305866a01a231d2be023de6ee4d2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFree</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFree" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release PDF resources and clear backendData; an absent builder is safe. </p>
 <p>
 Frees copied resource bodies, the resource array and builder. Does not free fontData, content storage, an alternate buffer or the token itself. Finish all renderer/font operations before releasing their builder. </p>
@@ -192,6 +192,71 @@ Frees copied resource bodies, the resource array and builder. Does not free font
 </dl>
 </dd></dl>
 
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.PdfResource">
+<span class="target" id="struct_pdf_resource"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfResource</span></span></span><a class="headerlink" href="#c.PdfResource" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned PDF resource body; document skeleton objects reserve IDs 1 through 5. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PdfResource.kind">
+<span class="target" id="struct_pdf_resource_1ad2d0c312a9ab91c5c26c0da6bbda1ab0"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">kind</span></span></span><a class="headerlink" href="#c.PdfResource.kind" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resource category used for lookup and serialization. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PdfResource.body">
+<span class="target" id="struct_pdf_resource_1a8b4774bf75e38945863f5dac1aaa17f5"></span><span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">body</span></span></span><a class="headerlink" href="#c.PdfResource.body" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned serialized resource bytes. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.PdfDocument">
+<span class="target" id="struct_pdf_document"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfDocument</span></span></span><a class="headerlink" href="#c.PdfDocument" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Document-owned PDF resource registry and page coordinate conversion. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PdfDocument.resources">
+<span class="target" id="struct_pdf_document_1a44dde3bb3165b2f114fe43ef42965b32"></span><a class="reference internal" href="#c.PdfResource" title="PdfResource"><span class="n"><span class="pre">PdfResource</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">resources</span></span></span><a class="headerlink" href="#c.PdfDocument.resources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned array of owned resource records. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PdfDocument.count">
+<span class="target" id="struct_pdf_document_1a2f1bda0e979038c3c8fa45894fd47a88"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">count</span></span></span><a class="headerlink" href="#c.PdfDocument.count" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of initialized resources. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PdfDocument.capacity">
+<span class="target" id="struct_pdf_document_1a63d3ff0ea01be94b9be1a580bf5ec472"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">capacity</span></span></span><a class="headerlink" href="#c.PdfDocument.capacity" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocated resource-pointer capacity. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PdfDocument.height">
+<span class="target" id="struct_pdf_document_1a4436bf73a77fbb1d651d9b943095460b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.PdfDocument.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Page height in unscaled display pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PdfDocument.scale">
+<span class="target" id="struct_pdf_document_1ad6044e134907be38d774f50ab6ddae03"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scale</span></span></span><a class="headerlink" href="#c.PdfDocument.scale" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Display-pixel to PDF-point scale. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -213,6 +278,22 @@ Frees copied resource bodies, the resource array and builder. Does not free font
 <li><a class="reference internal" href="#c.Rbc_PdfStream"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfStream()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PdfDocument"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfDocument()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PdfFree"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfFree()</span></code></a></li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.PdfResource"><code class="docutils literal notranslate"><span class="pre">PdfResource</span></code></a><ul>
+<li><a class="reference internal" href="#c.PdfResource.kind"><code class="docutils literal notranslate"><span class="pre">kind</span></code></a></li>
+<li><a class="reference internal" href="#c.PdfResource.body"><code class="docutils literal notranslate"><span class="pre">body</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.PdfDocument"><code class="docutils literal notranslate"><span class="pre">PdfDocument</span></code></a><ul>
+<li><a class="reference internal" href="#c.PdfDocument.resources"><code class="docutils literal notranslate"><span class="pre">resources</span></code></a></li>
+<li><a class="reference internal" href="#c.PdfDocument.count"><code class="docutils literal notranslate"><span class="pre">count</span></code></a></li>
+<li><a class="reference internal" href="#c.PdfDocument.capacity"><code class="docutils literal notranslate"><span class="pre">capacity</span></code></a></li>
+<li><a class="reference internal" href="#c.PdfDocument.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.PdfDocument.scale"><code class="docutils literal notranslate"><span class="pre">scale</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

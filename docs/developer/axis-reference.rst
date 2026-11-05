@@ -75,3 +75,36 @@ Layout, queries, scrolling and notifications
    :members:
 
 .. c:namespace-pop::
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: AxisInfo
+   :members:
+
+.. doxygenstruct:: AxisOpSpec
+   :members:
+
+.. doxygenstruct:: AxisVirtualOpSpec
+   :members:
+
+.. doxygenstruct:: Axis
+   :members:
+
+.. doxygenstruct:: Axis2D
+   :members:
+
+.. doxygenstruct:: AxisRange
+   :members:
+
+.. doxygenstruct:: TickLabel
+   :members:
+
+.. doxygenstruct:: TickSweep
+   :members:
+
+.. doxygenstruct:: Ticks
+   :members:

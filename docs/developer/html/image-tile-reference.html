@@ -151,7 +151,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FreeColorImage">
-<span class="target" id="group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeColorImage</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">ColorImage</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imagePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeColorImage" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeColorImage</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="image-transform-reference.html#c.ColorImage" title="ColorImage"><span class="n"><span class="pre">ColorImage</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imagePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release both the pixel array and its owning image record. </p>
 <p>Requires a valid non-NULL owned image. All borrowed pixel pointers become invalid. This does not delete or modify any Tk photo used to create it.</p>
 <dl class="field-list simple">
@@ -437,6 +437,21 @@
 <span class="target" id="struct_tile_interp_data"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TileInterpData</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.TileInterpData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Interpreter-owned registry of shared tile servers. </p>
 <p>Owns tileTable and its servers; interp is borrowed. The associated-data deletion callback destroys all registered servers before freeing this record. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.TileInterpData.tileTable">
+<span class="target" id="struct_tile_interp_data_1adfdaf1aed6ab489358ea94227a7fd4f9"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tileTable</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.TileInterpData.tileTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Hash table of tile structures keyed by the name of the image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.TileInterpData.interp">
+<span class="target" id="struct_tile_interp_data_1a5f41899aa0a26bfa57a5a454e7297a32"></span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">interp</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.TileInterpData.interp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owning interpreter. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -444,6 +459,93 @@
 <span class="target" id="struct_tile"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tile</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Shared image cache and notification state for one tile key. </p>
 <p>Owns name, Tk image, pixmap, mask, GC and client chain. Registry links are borrowed. Destruction releases resources immediately; Tcl preservation can defer only final record reclamation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.name">
+<span class="target" id="struct_tile_1a76b17cb75edce809399e1d91b5cb8d9b"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.name" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Name of image used to generate the pixmap. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.display">
+<span class="target" id="struct_tile_1ac488a07ede779254e576719c143bb690"></span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">display</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.display" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Display where pixmap was created. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.flags">
+<span class="target" id="struct_tile_1af20362a433e66fd3eb6673543382c55e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">flags</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.flags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>See definitions below. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.destroying">
+<span class="target" id="struct_tile_1a487319cfebdf15618577df1edb90d54f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">destroying</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.destroying" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resources released; record may be preserved by notification. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.interp">
+<span class="target" id="struct_tile_1ad4606c325d68182b1677a304f64a6032"></span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">interp</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.interp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owning interpreter. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.hashPtr">
+<span class="target" id="struct_tile_1a9d71761668e0662051e429875eafaefc"></span><span class="n"><span class="pre">Tcl_HashEntry</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hashPtr</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.hashPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to hash table location. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.tablePtr">
+<span class="target" id="struct_tile_1aa508f8ec3be40f0922929ef20c0fee0f"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">tablePtr</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.tablePtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owning tile-cache table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.pixmap">
+<span class="target" id="struct_tile_1a49712498d04d17af661a7e7008af2033"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pixmap</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.pixmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pixmap generated from image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.mask">
+<span class="target" id="struct_tile_1a8b520c188ab78a364793daa0125044d0"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.mask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Monochrome pixmap used as transparency mask. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.gc">
+<span class="target" id="struct_tile_1ae9e9e18eba2ca8c803c89ee45fa6908c"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gc</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.gc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>GC. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.tkImage">
+<span class="target" id="struct_tile_1ad0b39cf4c5a850e6e8e7650f4153a92b"></span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tkImage</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.tkImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk image token. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.clients">
+<span class="target" id="struct_tile_1a3b00e255f9d580463c012f6a4cc12a8e"></span><a class="reference internal" href="container-reference.html#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">clients</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.clients" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Chain of clients sharing this tile. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.width">
+<span class="target" id="struct_tile_1adbb086e3041864b3079bd5088dc571fb"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Cached image width in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Tile.height">
+<span class="target" id="struct_tile_1a1ceee2a6a986af91980d62c039ffe792"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Tile.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Cached image height in pixels. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -451,6 +553,58 @@
 <span class="target" id="struct_rbc___tile_client_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TileClientStruct</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Individual tile token with borrowed window and callback data. </p>
 <p>The server chain owns membership. Origin is client-local, while native resources are shared. A detached preserved token has its magic, server, link and callback cleared before eventual reclamation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.magic">
+<span class="target" id="struct_rbc___tile_client_struct_1a78f94283f78379bbcf61334e5e719df3"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">magic</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.magic" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validation marker for a live tile client token. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.tkwin">
+<span class="target" id="struct_rbc___tile_client_struct_1a41fd205512e586334fa3c5e4b18af91d"></span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tkwin</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.tkwin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Client window. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.xOrigin">
+<span class="target" id="struct_rbc___tile_client_struct_1afaca4fb7887df59774d1942fdbfa3c0a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">xOrigin</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.xOrigin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tiling origin in relation to the client window. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.yOrigin">
+<span class="target" id="struct_rbc___tile_client_struct_1ac544f98df9db43cfcfbcbca122f1ce6b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">yOrigin</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.yOrigin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tiling origin in relation to the client window. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.notifyProc">
+<span class="target" id="struct_rbc___tile_client_struct_1a429ffe36bb454b67bf68602f239629b2"></span><span class="n"><span class="pre">Rbc_TileChangedProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">notifyProc</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.notifyProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-NULL, routine to call to when tile image changes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.clientData">
+<span class="target" id="struct_rbc___tile_client_struct_1a32375be722d545d6db3151d492a0545c"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clientData</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.clientData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Data to pass to when calling the above routine. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.tilePtr">
+<span class="target" id="struct_rbc___tile_client_struct_1a0fda2ca2409f8461649f10ac68f1f88f"></span><a class="reference internal" href="#c.rbcTileLifecycle.Tile" title="Tile"><span class="n"><span class="pre">Tile</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">tilePtr</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.tilePtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to actual tile information. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.Rbc_TileClientStruct.linkPtr">
+<span class="target" id="struct_rbc___tile_client_struct_1aed68acf2526a7c49f3e86030e5870f4d"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">linkPtr</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.linkPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to client entry in the server’s client list. </p>
+<p>Used to delete the client </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -458,6 +612,27 @@
 <span class="target" id="struct_tile_key"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TileKey</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.TileKey" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Composite key for interpreter-local tile sharing. </p>
 <p>Borrows the display and interned image-name UID and records screen depth. The whole structure is zeroed before hashing because padding participates in the fixed-size multiword key. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.TileKey.display">
+<span class="target" id="struct_tile_key_1a98578d205d0f8d1737641ced070b91d2"></span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">display</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.TileKey.display" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed display identity. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.TileKey.nameId">
+<span class="target" id="struct_tile_key_1a257b4669262edb4243bd185c824ea8a2"></span><span class="n"><span class="pre">Tk_Uid</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nameId</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.TileKey.nameId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Interned image-name identity. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcTileLifecycle.TileKey.depth">
+<span class="target" id="struct_tile_key_1a6d06974d05f7c1740e5a732d9dcaac80"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">depth</span></span></span><a class="headerlink" href="#c.rbcTileLifecycle.TileKey.depth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destination drawable depth in bits. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
@@ -543,7 +718,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcTileMasks.PolygonMask">
-<span class="target" id="group__tile__native__masks_1gae17db453d2aa8827dc1909971fd34b3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolygonMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="n"><span class="pre">Region2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">regionPtr</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xOrigin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">yOrigin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileMasks.PolygonMask" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__tile__native__masks_1gae17db453d2aa8827dc1909971fd34b3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolygonMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <a class="reference internal" href="geometry-reference.html#c.Region2D" title="Region2D"><span class="n"><span class="pre">Region2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">regionPtr</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xOrigin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">yOrigin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileMasks.PolygonMask" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build an X11 polygon-shaped repeating transparency mask. </p>
 <p>Uses the supplied inclusive bounding box to allocate a depth-one pixmap. Copies and translates XPoint coordinates, clears the mask with the default GC foreground, then draws a Complex polygon using FillStippled and the translated client origin. Frees temporary points and GC; returns an owned pixmap for Tk_FreePixmap. Requires a valid nonempty point array and bounds; translated coordinates are still stored as XPoint shorts.</p>
 <dl class="field-list simple">
@@ -679,7 +854,7 @@ rules.</p>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageStorage.Rbc_SetRegion">
-<span class="target" id="group__image__storage__internals_1ga16e3b0facc84f1e0b8526f9ae8b6d1a8"></span><span class="n"><span class="pre">Region2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetRegion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Region2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">regionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.Rbc_SetRegion" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__image__storage__internals_1ga16e3b0facc84f1e0b8526f9ae8b6d1a8"></span><a class="reference internal" href="geometry-reference.html#c.Region2D" title="Region2D"><span class="n"><span class="pre">Region2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetRegion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <a class="reference internal" href="geometry-reference.html#c.Region2D" title="Region2D"><span class="n"><span class="pre">Region2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">regionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageStorage.Rbc_SetRegion" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Set inclusive integer bounds from an origin and size. </p>
 <p>Computes endpoints in wide arithmetic and panics if either cannot fit int. Does not normalize nonpositive sizes or allocate a region. </p>
 <dl class="field-list simple">
@@ -788,10 +963,45 @@ rules.</p>
 <li><a class="reference internal" href="#c.rbcTileLifecycle.CreateClient"><code class="docutils literal notranslate"><span class="pre">CreateClient()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcTileLifecycle.TileInterpDeleteProc"><code class="docutils literal notranslate"><span class="pre">TileInterpDeleteProc()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcTileLifecycle.GetTileInterpData"><code class="docutils literal notranslate"><span class="pre">GetTileInterpData()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcTileLifecycle.TileInterpData"><code class="docutils literal notranslate"><span class="pre">TileInterpData</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile"><code class="docutils literal notranslate"><span class="pre">Tile</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_TileClientStruct</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcTileLifecycle.TileKey"><code class="docutils literal notranslate"><span class="pre">TileKey</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.TileInterpData"><code class="docutils literal notranslate"><span class="pre">TileInterpData</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.TileInterpData.tileTable"><code class="docutils literal notranslate"><span class="pre">tileTable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.TileInterpData.interp"><code class="docutils literal notranslate"><span class="pre">interp</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile"><code class="docutils literal notranslate"><span class="pre">Tile</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.display"><code class="docutils literal notranslate"><span class="pre">display</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.flags"><code class="docutils literal notranslate"><span class="pre">flags</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.destroying"><code class="docutils literal notranslate"><span class="pre">destroying</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.interp"><code class="docutils literal notranslate"><span class="pre">interp</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.hashPtr"><code class="docutils literal notranslate"><span class="pre">hashPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.tablePtr"><code class="docutils literal notranslate"><span class="pre">tablePtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.pixmap"><code class="docutils literal notranslate"><span class="pre">pixmap</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.mask"><code class="docutils literal notranslate"><span class="pre">mask</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.gc"><code class="docutils literal notranslate"><span class="pre">gc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.tkImage"><code class="docutils literal notranslate"><span class="pre">tkImage</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.clients"><code class="docutils literal notranslate"><span class="pre">clients</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Tile.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_TileClientStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.magic"><code class="docutils literal notranslate"><span class="pre">magic</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.tkwin"><code class="docutils literal notranslate"><span class="pre">tkwin</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.xOrigin"><code class="docutils literal notranslate"><span class="pre">xOrigin</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.yOrigin"><code class="docutils literal notranslate"><span class="pre">yOrigin</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.notifyProc"><code class="docutils literal notranslate"><span class="pre">notifyProc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.clientData"><code class="docutils literal notranslate"><span class="pre">clientData</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.tilePtr"><code class="docutils literal notranslate"><span class="pre">tilePtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct.linkPtr"><code class="docutils literal notranslate"><span class="pre">linkPtr</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.TileKey"><code class="docutils literal notranslate"><span class="pre">TileKey</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.TileKey.display"><code class="docutils literal notranslate"><span class="pre">display</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.TileKey.nameId"><code class="docutils literal notranslate"><span class="pre">nameId</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileLifecycle.TileKey.depth"><code class="docutils literal notranslate"><span class="pre">depth</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#native-tiled-shapes">Native tiled shapes</a><ul>

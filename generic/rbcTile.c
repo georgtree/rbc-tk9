@@ -32,9 +32,8 @@
  * deletion callback destroys all registered servers before freeing this record.
  */
 typedef struct {
-    Tcl_HashTable tileTable; /* Hash table of tile structures keyed by
-                              * the name of the image. */
-    Tcl_Interp *interp;
+    Tcl_HashTable tileTable; /**< Hash table of tile structures keyed by the name of the image. */
+    Tcl_Interp *interp; /**< Borrowed owning interpreter. */
 } TileInterpData;
 
 /**
@@ -45,20 +44,20 @@ typedef struct {
  * can defer only final record reclamation.
  */
 typedef struct {
-    char *name;       /* Name of image used to generate the pixmap.*/
-    Display *display; /* Display where pixmap was created. */
-    int flags;        /* See definitions below. */
-    int destroying;   /* Resources released; record may be preserved by notification. */
-    Tcl_Interp *interp;
-    Tcl_HashEntry *hashPtr; /* Pointer to hash table location */
-    Tcl_HashTable *tablePtr;
-    Pixmap pixmap;      /* Pixmap generated from image. */
-    Pixmap mask;        /* Monochrome pixmap used as
-                         * transparency mask. */
-    GC gc;              /* GC */
-    Tk_Image tkImage;   /* Tk image token. */
-    Rbc_Chain *clients; /* Chain of clients sharing this tile. */
-    int width, height;
+    char *name; /**< Name of image used to generate the pixmap. */
+    Display *display; /**< Display where pixmap was created. */
+    int flags; /**< See definitions below. */
+    int destroying; /**< Resources released; record may be preserved by notification. */
+    Tcl_Interp *interp; /**< Borrowed owning interpreter. */
+    Tcl_HashEntry *hashPtr; /**< Pointer to hash table location */
+    Tcl_HashTable *tablePtr; /**< Borrowed owning tile-cache table. */
+    Pixmap pixmap; /**< Pixmap generated from image. */
+    Pixmap mask; /**< Monochrome pixmap used as transparency mask. */
+    GC gc; /**< GC */
+    Tk_Image tkImage; /**< Tk image token. */
+    Rbc_Chain *clients; /**< Chain of clients sharing this tile. */
+    int width; /**< Cached image width in pixels. */
+    int height; /**< Cached image height in pixels. */
 } Tile;
 
 /* If set, indicates that the image
@@ -77,17 +76,14 @@ typedef struct {
  * link and callback cleared before eventual reclamation.
  */
 typedef struct Rbc_TileClientStruct {
-    unsigned int magic;
-    Tk_Window tkwin;                 /* Client window. */
-    int xOrigin, yOrigin;            /* Tiling origin in relation to the
-                                      * client window. */
-    Rbc_TileChangedProc *notifyProc; /* If non-NULL, routine to
-                                      * call to when tile image changes. */
-    ClientData clientData;           /* Data to pass to when calling the above
-                                      * routine. */
-    Tile *tilePtr;                   /* Pointer to actual tile information */
-    Rbc_ChainLink *linkPtr;          /* Pointer to client entry in the server's
-                                      * client list.  Used to delete the client */
+    unsigned int magic; /**< Validation marker for a live tile client token. */
+    Tk_Window tkwin; /**< Client window. */
+    int xOrigin; /**< Tiling origin in relation to the client window. */
+    int yOrigin; /**< Tiling origin in relation to the client window. */
+    Rbc_TileChangedProc *notifyProc; /**< If non-NULL, routine to call to when tile image changes. */
+    ClientData clientData; /**< Data to pass to when calling the above routine. */
+    Tile *tilePtr; /**< Pointer to actual tile information */
+    Rbc_ChainLink *linkPtr; /**< Pointer to client entry in the server's client list. Used to delete the client */
 } TileClient;
 
 /**
@@ -98,9 +94,9 @@ typedef struct Rbc_TileClientStruct {
  * in the fixed-size multiword key.
  */
 typedef struct {
-    Display *display;
-    Tk_Uid nameId;
-    int depth;
+    Display *display; /**< Borrowed display identity. */
+    Tk_Uid nameId; /**< Interned image-name identity. */
+    int depth; /**< Destination drawable depth in bits. */
 } TileKey;
 
 static Tcl_IdleProc UpdateTile;

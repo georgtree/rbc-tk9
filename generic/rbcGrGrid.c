@@ -58,12 +58,12 @@
  * The record must not be copied as an independent owner while buffers exist.
  */
 typedef struct {
-    int majorStaged;
-    double *majorTicks;
-    Tcl_Size nMajorTicks;
-    int minorStaged;
-    double *minorTicks;
-    Tcl_Size nMinorTicks;
+    int majorStaged; /**< Nonzero when the corresponding tick array has a staged replacement. */
+    double *majorTicks; /**< Owned staged tick values; transferred on commit or freed on abort. */
+    Tcl_Size nMajorTicks; /**< Number of values in the staged tick array. */
+    int minorStaged; /**< Nonzero when the corresponding tick array has a staged replacement. */
+    double *minorTicks; /**< Owned staged tick values; transferred on commit or freed on abort. */
+    Tcl_Size nMinorTicks; /**< Number of values in the staged tick array. */
 } GridPolarAngleTicksTransaction;
 
 /**
@@ -76,18 +76,18 @@ typedef struct {
  * This storage is separate from Tk_SavedOptions and owns no Tcl objects.
  */
 typedef struct {
-    int realMajorStaged;
-    double *realMajorTicks;
-    Tcl_Size nRealMajorTicks;
-    int realMinorStaged;
-    double *realMinorTicks;
-    Tcl_Size nRealMinorTicks;
-    int imagMajorStaged;
-    double *imagMajorTicks;
-    Tcl_Size nImagMajorTicks;
-    int imagMinorStaged;
-    double *imagMinorTicks;
-    Tcl_Size nImagMinorTicks;
+    int realMajorStaged; /**< Nonzero when the corresponding tick array has a staged replacement. */
+    double *realMajorTicks; /**< Owned staged tick values; transferred on commit or freed on abort. */
+    Tcl_Size nRealMajorTicks; /**< Number of values in the staged tick array. */
+    int realMinorStaged; /**< Nonzero when the corresponding tick array has a staged replacement. */
+    double *realMinorTicks; /**< Owned staged tick values; transferred on commit or freed on abort. */
+    Tcl_Size nRealMinorTicks; /**< Number of values in the staged tick array. */
+    int imagMajorStaged; /**< Nonzero when the corresponding tick array has a staged replacement. */
+    double *imagMajorTicks; /**< Owned staged tick values; transferred on commit or freed on abort. */
+    Tcl_Size nImagMajorTicks; /**< Number of values in the staged tick array. */
+    int imagMinorStaged; /**< Nonzero when the corresponding tick array has a staged replacement. */
+    double *imagMinorTicks; /**< Owned staged tick values; transferred on commit or freed on abort. */
+    Tcl_Size nImagMinorTicks; /**< Number of values in the staged tick array. */
 } GridSmithTicksTransaction;
 
 static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
@@ -970,9 +970,10 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask);
 
 typedef int RbcGrGridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrGridOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrGridOp *proc; /**< Typed command handler for this operation. */
 } GridOpSpec;
 
 static RbcGrGridOp CgetOp;

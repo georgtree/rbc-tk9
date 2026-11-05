@@ -46,7 +46,7 @@
 <p>These declarations remain in <code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. See <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a> for conventions.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetClosestPointOnSegment">
-<span class="target" id="rbc_int_8h_1ae3ee65cc23aaf85a96649b3e61414c57"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetClosestPointOnSegment</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">closestPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetClosestPointOnSegment" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1ae3ee65cc23aaf85a96649b3e61414c57"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetClosestPointOnSegment</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">closestPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetClosestPointOnSegment" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the clamped nearest point on a finite segment and return distance. </p>
 <p>
 Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of length at most DBL_EPSILON use p. Invalid inputs or rejected intermediate arithmetic return DBL_MAX without writing the result. The final hypot may still overflow for extreme finite coordinates; this is not a Tcl error API. </p>
@@ -64,7 +64,7 @@ Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of len
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_LineRectClip">
-<span class="target" id="rbc_int_8h_1a1511c89b7d6bb72ef57d004e710f8b6f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clippedPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_LineRectClip" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1a1511c89b7d6bb72ef57d004e710f8b6f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Extents2D" title="Extents2D"><span class="n"><span class="pre">Extents2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <a class="reference internal" href="#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clippedPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_LineRectClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clip a segment to inclusive extents using Liang-Barsky parameters. </p>
 <p>
 Requires finite, ordered extents and finite endpoints. Returns false for invalid/disjoint input, leaving output untouched. On success, writes the clipped segment if clippedPtr is non-NULL; NULL requests visibility only. Input endpoints are not modified when output storage is separate. </p>
@@ -82,10 +82,10 @@ Requires finite, ordered extents and finite endpoints. Returns false for invalid
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PolyRectClip">
-<span class="target" id="rbc_int_8h_1a5bdb410a00134922673d1a220c7ff34e"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PolyRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">inputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nInputPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">outputCapacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PolyRectClip" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1a5bdb410a00134922673d1a220c7ff34e"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PolyRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Extents2D" title="Extents2D"><span class="n"><span class="pre">Extents2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">inputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nInputPts</span></span>, <a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">outputCapacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PolyRectClip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clip a polygon into a separate caller-owned output array. </p>
 <p>
-Input contains exactly nInputPts vertices; the closing edge is implicit. Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is explicitly closed by repeating its first vertex. outputCapacity counts all available Point2D entries, including closure. Returns the output count, or zero for empty/invalid input or insufficient capacity. Capacity failure can leave partial output; discard it. Input and output must not overlap. </p>
+Input contains exactly nInputPts vertices; the closing edge is implicit. Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is explicitly closed by repeating its first vertex. outputCapacity counts all available <a class="reference internal" href="#struct_point2_d"><span class="std std-ref">Point2D</span></a> entries, including closure. Returns the output count, or zero for empty/invalid input or insufficient capacity. Capacity failure can leave partial output; discard it. Input and output must not overlap. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -93,7 +93,7 @@ Input contains exactly nInputPts vertices; the closing edge is implicit. Uses le
 <li><p><strong>inputPts</strong> – <strong>[in]</strong> Borrowed source vertices, disjoint from output; no repeated closing vertex is required. </p></li>
 <li><p><strong>nInputPts</strong> – <strong>[in]</strong> Number of accessible source vertices, positive for nonempty output. </p></li>
 <li><p><strong>outputPts</strong> – <strong>[out]</strong> Caller-owned output buffer; failure may leave a prefix that must be discarded. </p></li>
-<li><p><strong>outputCapacity</strong> – <strong>[in]</strong> Number of available Point2D slots including the repeated closing vertex.</p></li>
+<li><p><strong>outputCapacity</strong> – <strong>[in]</strong> Number of available <a class="reference internal" href="#struct_point2_d"><span class="std std-ref">Point2D</span></a> slots including the repeated closing vertex.</p></li>
 </ul>
 </dd>
 </dl>
@@ -101,7 +101,7 @@ Input contains exactly nInputPts vertices; the closing edge is implicit. Uses le
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PointInPolygon">
-<span class="target" id="rbc_int_8h_1a7a8fb13b3169d12bd06f01db14829e49"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInPolygon" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1a7a8fb13b3169d12bd06f01db14829e49"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test polygon membership by an even-odd horizontal ray crossing. </p>
 <p>
 Requires at least three finite vertices and a finite sample; invalid input returns false. The closing edge is implicit. Half-open crossing comparisons do not promise that every point on an edge is inside. Does not modify input. </p>
@@ -118,7 +118,7 @@ Requires at least three finite vertices and a finite sample; invalid input retur
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RegionInPolygon">
-<span class="target" id="rbc_int_8h_1ad4388d434f0ddc9a267b255b3698fd9c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RegionInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RegionInPolygon" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1ad4388d434f0ddc9a267b255b3698fd9c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RegionInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Extents2D" title="Extents2D"><span class="n"><span class="pre">Extents2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RegionInPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test polygon enclosure by, or overlap with, a rectangle. </p>
 <p>
 With enclosed nonzero, every polygon vertex must be inside inclusive extents; this means the rectangle encloses the polygon, not the reverse. Otherwise test edge intersection and then rectangle-inside-polygon containment. Invalid extents or fewer than three finite vertices return false. </p>
@@ -136,7 +136,7 @@ With enclosed nonzero, every polygon vertex must be inside inclusive extents; th
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PointInSegments">
-<span class="target" id="rbc_int_8h_1ad3b0785a3149d16d69209a8b69e3ca65"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInSegments</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">halo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInSegments" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1ad3b0785a3149d16d69209a8b69e3ca65"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInSegments</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">halo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return true if any segment is strictly closer than halo to the sample. </p>
 <p>
 Requires a finite positive halo; zero or invalid halo, no segments or an invalid sample returns false. Uses clamped segment distance, including degenerate segments. Does not acquire or modify the borrowed arrays. </p>
@@ -154,7 +154,7 @@ Requires a finite positive halo; zero or invalid halo, no segments or an invalid
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_SimplifyLine">
-<span class="target" id="rbc_int_8h_1a453a31f16f9ffb4bc05e962caae197b7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SimplifyLine</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">low</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">high</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">tolerance</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SimplifyLine" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_int_8h_1a453a31f16f9ffb4bc05e962caae197b7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SimplifyLine</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">low</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">high</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">tolerance</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SimplifyLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return retained original indices for an inclusive input interval. </p>
 <p>
 Caller supplies valid finite points through high and space for high-low+1 indices; no array lengths are supplied or checked here. Use a finite, nonnegative tolerance in the same coordinate units as input. The algorithm measures distance to the infinite endpoint line, or to the endpoint when endpoints coincide. Retains interval endpoints in input order, splitting only when squared distance exceeds squared tolerance. Returns zero on rejected bounds/allocation failure; discard any partial output. Input is borrowed and unchanged; temporary stack storage is released before return. </p>
@@ -184,7 +184,7 @@ completion conventions, summarized in <a class="reference internal" href="geomet
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.IsFinitePoint">
-<span class="target" id="group__geometry__internals_1gad7ef01e31d78aa6ba2fedfaa4f884055"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsFinitePoint</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsFinitePoint" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__geometry__internals_1gad7ef01e31d78aa6ba2fedfaa4f884055"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsFinitePoint</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsFinitePoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test a point pointer and both coordinates. </p>
 <p>
 Returns FALSE for NULL or either non-finite coordinate; otherwise TRUE. No allocation, mutation or coordinate transformation. </p>
@@ -199,7 +199,7 @@ Returns FALSE for NULL or either non-finite coordinate; otherwise TRUE. No alloc
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.IsValidExtents">
-<span class="target" id="group__geometry__internals_1gac361265550a8ce6655f627e144f6b8c1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsValidExtents</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsValidExtents" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__geometry__internals_1gac361265550a8ce6655f627e144f6b8c1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsValidExtents</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Extents2D" title="Extents2D"><span class="n"><span class="pre">Extents2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsValidExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test finite ordered rectangular extents. </p>
 <p>
 Requires left &lt;= right and top &lt;= bottom after checking all coordinates. NULL or non-finite bounds return FALSE; zero width/height is accepted. Does not normalize reversed bounds or apply pixel-area expansion. </p>
@@ -232,7 +232,7 @@ Caller supplies initialized t1/t2, normally 0/1. Negative ds can raise the entry
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.AppendClipVertex">
-<span class="target" id="group__geometry__internals_1ga44deaa9fc4fec698228031deeaca816b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendClipVertex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">capacity</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">countPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendClipVertex" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__geometry__internals_1ga44deaa9fc4fec698228031deeaca816b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendClipVertex</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">capacity</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">countPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendClipVertex" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append one vertex when the caller-provided buffer has room. </p>
 <p>
 Requires a valid countPtr; rejects NULL points, negative count or count at or above capacity without changing storage/count. On success writes X/Y and increments count. Does not test coordinate finiteness or suppress duplicates. The clipper must discard the whole polygon on a failed append. </p>
@@ -240,7 +240,7 @@ Requires a valid countPtr; rejects NULL points, negative count or count at or ab
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> – <strong>[out]</strong> Caller-owned output buffer; only the entry at the old count is written on success. </p></li>
-<li><p><strong>capacity</strong> – <strong>[in]</strong> Number of available Point2D slots, not bytes. </p></li>
+<li><p><strong>capacity</strong> – <strong>[in]</strong> Number of available <a class="reference internal" href="#struct_point2_d"><span class="std std-ref">Point2D</span></a> slots, not bytes. </p></li>
 <li><p><strong>countPtr</strong> – <strong>[inout]</strong> Required current vertex count; incremented once on success and retained on failure. </p></li>
 <li><p><strong>x</strong> – <strong>[in]</strong> X coordinate to append without finite validation. </p></li>
 <li><p><strong>y</strong> – <strong>[in]</strong> Y coordinate to append without finite validation.</p></li>
@@ -251,7 +251,7 @@ Requires a valid countPtr; rejects NULL points, negative count or count at or ab
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindSplit">
-<span class="target" id="group__geometry__internals_1gaacf3858388b533684b93e04a0a15dcb1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindSplit</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">i</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">j</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">split</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindSplit" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__geometry__internals_1gaacf3858388b533684b93e04a0a15dcb1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindSplit</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">i</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">j</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">split</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindSplit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first farthest interior point for line simplification. </p>
 <p>
 Requires valid source indices and caller storage for split. Returns maximum squared distance and writes its original source index; ties keep the first. Uses distance to the infinite endpoint line, not the bounded segment. If the endpoint distance is at most DBL_EPSILON, measures from the first endpoint.</p>
@@ -266,6 +266,254 @@ Requires valid source indices and caller storage for split. Returns maximum squa
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Dim2D">
+<span class="target" id="struct_dim2_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Dim2D</span></span></span><a class="headerlink" href="#c.Dim2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Integer dimensions in pixels. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Dim2D.width">
+<span class="target" id="struct_dim2_d_1a6e074164a470c748de85e20c3b38f6c5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.Dim2D.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Horizontal extent. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Dim2D.height">
+<span class="target" id="struct_dim2_d_1a6296308d45a48414162949f34b5ee8e4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.Dim2D.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Vertical extent. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Extents2D">
+<span class="target" id="struct_extents2_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Extents2D</span></span></span><a class="headerlink" href="#c.Extents2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coordinate bounds; units and axis direction follow the caller. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents2D.left">
+<span class="target" id="struct_extents2_d_1ac388af7e75ee39287520fdada29ba8db"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left</span></span></span><a class="headerlink" href="#c.Extents2D.left" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Left boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents2D.right">
+<span class="target" id="struct_extents2_d_1a61cf33963d75362ff9568ba4519c5b53"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right</span></span></span><a class="headerlink" href="#c.Extents2D.right" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Right boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents2D.top">
+<span class="target" id="struct_extents2_d_1ad8481009cb0a83b9436696cb1a42ff9f"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">top</span></span></span><a class="headerlink" href="#c.Extents2D.top" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Top boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents2D.bottom">
+<span class="target" id="struct_extents2_d_1a6e7da28312d22ab333d0121345ca91e3"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bottom</span></span></span><a class="headerlink" href="#c.Extents2D.bottom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bottom boundary. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Extents3D">
+<span class="target" id="struct_extents3_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Extents3D</span></span></span><a class="headerlink" href="#c.Extents3D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coordinate bounds; units and axis direction follow the caller. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents3D.left">
+<span class="target" id="struct_extents3_d_1adf8047f12e33ce63878df19f46206a1f"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left</span></span></span><a class="headerlink" href="#c.Extents3D.left" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Left boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents3D.right">
+<span class="target" id="struct_extents3_d_1a4e8add1efc1853734740f9cfe763aa5d"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right</span></span></span><a class="headerlink" href="#c.Extents3D.right" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Right boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents3D.top">
+<span class="target" id="struct_extents3_d_1ac43658eacd9d3b8ff187e7fab93ed385"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">top</span></span></span><a class="headerlink" href="#c.Extents3D.top" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Top boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents3D.bottom">
+<span class="target" id="struct_extents3_d_1ad395e8d3a07f2bde1516710f3d96e6a7"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bottom</span></span></span><a class="headerlink" href="#c.Extents3D.bottom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bottom boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents3D.front">
+<span class="target" id="struct_extents3_d_1a21a31a50a79fbff1c41244e39b79eb27"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">front</span></span></span><a class="headerlink" href="#c.Extents3D.front" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Front boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Extents3D.back">
+<span class="target" id="struct_extents3_d_1a758dafa8a37535e0a801fce522260687"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">back</span></span></span><a class="headerlink" href="#c.Extents3D.back" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Back boundary. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Point2D">
+<span class="target" id="struct_point2_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Point2D</span></span></span><a class="headerlink" href="#c.Point2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coordinate value; the containing operation determines units. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Point2D.x">
+<span class="target" id="struct_point2_d_1a42fcad8b63853b1136e6207ace6d555e"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x</span></span></span><a class="headerlink" href="#c.Point2D.x" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X coordinate. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Point2D.y">
+<span class="target" id="struct_point2_d_1a55747be726950fdcba27c1ad032bfdf1"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">y</span></span></span><a class="headerlink" href="#c.Point2D.y" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Y coordinate. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Point3D">
+<span class="target" id="struct_point3_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Point3D</span></span></span><a class="headerlink" href="#c.Point3D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coordinate value; the containing operation determines units. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Point3D.x">
+<span class="target" id="struct_point3_d_1abf9d1f564d599503cdb114934c7044b7"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x</span></span></span><a class="headerlink" href="#c.Point3D.x" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X coordinate. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Point3D.y">
+<span class="target" id="struct_point3_d_1abcb44b06e310b076fa9d65dec8541dd4"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">y</span></span></span><a class="headerlink" href="#c.Point3D.y" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Y coordinate. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Point3D.z">
+<span class="target" id="struct_point3_d_1a9f4a32e3afccb3c9fe9b5cd88e179c3d"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">z</span></span></span><a class="headerlink" href="#c.Point3D.z" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Z coordinate. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_Dashes">
+<span class="target" id="struct_rbc___dashes"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Dashes</span></span></span><a class="headerlink" href="#c.Rbc_Dashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native dash pattern with a zero terminator and phase. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Dashes.values">
+<span class="target" id="struct_rbc___dashes_1a8a965df8d2a637767780335e3e1e3144"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">values</span></span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">RBC_MAX_DASH_VALUES</span></span><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_Dashes.values" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dash lengths in pixels followed by zero; first zero selects a solid line. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Dashes.offset">
+<span class="target" id="struct_rbc___dashes_1a7a11c27db1b7f5dd6456cb0069f75e09"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><a class="headerlink" href="#c.Rbc_Dashes.offset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dash phase offset in pixels. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_Pad">
+<span class="target" id="struct_rbc___pad"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Pad</span></span></span><a class="headerlink" href="#c.Rbc_Pad" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Opposite-side padding in pixels. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Pad.side1">
+<span class="target" id="struct_rbc___pad_1a67db6364f4ccd92e3445bfc3a17ff27b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">side1</span></span></span><a class="headerlink" href="#c.Rbc_Pad.side1" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Left padding for X, top padding for Y. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Pad.side2">
+<span class="target" id="struct_rbc___pad_1a4da2f1c3b0e4e188c921d288b3153499"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">side2</span></span></span><a class="headerlink" href="#c.Rbc_Pad.side2" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Right padding for X, bottom padding for Y. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Region2D">
+<span class="target" id="struct_region2_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Region2D</span></span></span><a class="headerlink" href="#c.Region2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rectangle with inclusive integer pixel edges. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Region2D.left">
+<span class="target" id="struct_region2_d_1a960f21b9a902548a92f3799ae28d18e6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left</span></span></span><a class="headerlink" href="#c.Region2D.left" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Left boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Region2D.right">
+<span class="target" id="struct_region2_d_1a404814e41e03f453d3abdcd12b2f36e4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right</span></span></span><a class="headerlink" href="#c.Region2D.right" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Right boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Region2D.top">
+<span class="target" id="struct_region2_d_1a619bfd270058af8d256917293469a2fd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">top</span></span></span><a class="headerlink" href="#c.Region2D.top" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Top boundary. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Region2D.bottom">
+<span class="target" id="struct_region2_d_1ac0ab15230829ca95d4fff0a49207605f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bottom</span></span></span><a class="headerlink" href="#c.Region2D.bottom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bottom boundary. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Segment2D">
+<span class="target" id="struct_segment2_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Segment2D</span></span></span><a class="headerlink" href="#c.Segment2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Two endpoints of a line segment in the caller coordinate system. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Segment2D.p">
+<span class="target" id="struct_segment2_d_1a465714ab96e0797236abe834f85a11aa"></span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">p</span></span></span><a class="headerlink" href="#c.Segment2D.p" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The two end points of the segment. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Segment2D.q">
+<span class="target" id="struct_segment2_d_1adcc224c7dc22dc41dc7b9a1a75d15369"></span><a class="reference internal" href="#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">q</span></span></span><a class="headerlink" href="#c.Segment2D.q" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The two end points of the segment. </p>
 </dd></dl>
 
 </div>
@@ -298,6 +546,63 @@ Requires valid source indices and caller storage for split. Returns maximum squa
 <li><a class="reference internal" href="#c.ClipTest"><code class="docutils literal notranslate"><span class="pre">ClipTest()</span></code></a></li>
 <li><a class="reference internal" href="#c.AppendClipVertex"><code class="docutils literal notranslate"><span class="pre">AppendClipVertex()</span></code></a></li>
 <li><a class="reference internal" href="#c.FindSplit"><code class="docutils literal notranslate"><span class="pre">FindSplit()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.Dim2D"><code class="docutils literal notranslate"><span class="pre">Dim2D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Dim2D.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.Dim2D.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Extents2D"><code class="docutils literal notranslate"><span class="pre">Extents2D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Extents2D.left"><code class="docutils literal notranslate"><span class="pre">left</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents2D.right"><code class="docutils literal notranslate"><span class="pre">right</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents2D.top"><code class="docutils literal notranslate"><span class="pre">top</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents2D.bottom"><code class="docutils literal notranslate"><span class="pre">bottom</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Extents3D"><code class="docutils literal notranslate"><span class="pre">Extents3D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Extents3D.left"><code class="docutils literal notranslate"><span class="pre">left</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents3D.right"><code class="docutils literal notranslate"><span class="pre">right</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents3D.top"><code class="docutils literal notranslate"><span class="pre">top</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents3D.bottom"><code class="docutils literal notranslate"><span class="pre">bottom</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents3D.front"><code class="docutils literal notranslate"><span class="pre">front</span></code></a></li>
+<li><a class="reference internal" href="#c.Extents3D.back"><code class="docutils literal notranslate"><span class="pre">back</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Point2D"><code class="docutils literal notranslate"><span class="pre">Point2D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Point2D.x"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li><a class="reference internal" href="#c.Point2D.y"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Point3D"><code class="docutils literal notranslate"><span class="pre">Point3D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Point3D.x"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li><a class="reference internal" href="#c.Point3D.y"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+<li><a class="reference internal" href="#c.Point3D.z"><code class="docutils literal notranslate"><span class="pre">z</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_Dashes"><code class="docutils literal notranslate"><span class="pre">Rbc_Dashes</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_Dashes.values"><code class="docutils literal notranslate"><span class="pre">values</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Dashes.offset"><code class="docutils literal notranslate"><span class="pre">offset</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_Pad"><code class="docutils literal notranslate"><span class="pre">Rbc_Pad</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_Pad.side1"><code class="docutils literal notranslate"><span class="pre">side1</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Pad.side2"><code class="docutils literal notranslate"><span class="pre">side2</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Region2D"><code class="docutils literal notranslate"><span class="pre">Region2D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Region2D.left"><code class="docutils literal notranslate"><span class="pre">left</span></code></a></li>
+<li><a class="reference internal" href="#c.Region2D.right"><code class="docutils literal notranslate"><span class="pre">right</span></code></a></li>
+<li><a class="reference internal" href="#c.Region2D.top"><code class="docutils literal notranslate"><span class="pre">top</span></code></a></li>
+<li><a class="reference internal" href="#c.Region2D.bottom"><code class="docutils literal notranslate"><span class="pre">bottom</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Segment2D"><code class="docutils literal notranslate"><span class="pre">Segment2D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Segment2D.p"><code class="docutils literal notranslate"><span class="pre">p</span></code></a></li>
+<li><a class="reference internal" href="#c.Segment2D.q"><code class="docutils literal notranslate"><span class="pre">q</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

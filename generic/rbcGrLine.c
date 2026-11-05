@@ -98,9 +98,10 @@ typedef enum {
     PEN_SMOOTH_LAST       /* Sentinel */
 } Smoothing;
 
+/** @brief Static mapping from smoothing option name to selector. */
 typedef struct {
-    char *name;
-    Smoothing value;
+    char *name; /**< Borrowed option name. */
+    Smoothing value; /**< Smoothing selector. */
 } SmoothingInfo;
 
 static SmoothingInfo smoothingInfo[] = {{"linear", PEN_SMOOTH_NONE},         {"step", PEN_SMOOTH_STEP},
@@ -112,10 +113,11 @@ typedef enum { LINE_DECIMATE_NONE, LINE_DECIMATE_AUTO } LineDecimation;
 
 static const char *const lineDecimateNames[] = {"none", "auto", NULL};
 
+/** @brief Temporary mapped points and source indices for a trace pass. */
 typedef struct {
-    Point2D *screenPts;  /* Array of transformed coordinates */
-    Tcl_Size nScreenPts; /* Number of coordinates */
-    Tcl_Size *indices;   /* Maps segments/traces to data points */
+    Point2D *screenPts; /**< Array of transformed coordinates */
+    Tcl_Size nScreenPts; /**< Number of coordinates */
+    Tcl_Size *indices; /**< Maps segments/traces to data points */
     /*
      * Optional parallel array.  A non-zero entry at i means that no
      * line segment may be drawn from screenPts[i - 1] to
@@ -123,35 +125,40 @@ typedef struct {
      *
      * NULL means that the entire mapped point array is continuous.
      */
-    unsigned char *breakBefore;
+    unsigned char *breakBefore; /**< Optional break flags parallel to screenPts; nonzero starts a new trace. */
 } MapInfo;
 
 #define LINE_DECIMATE_BLOCK_SIZE 64
 #define LINE_DECIMATE_NATIVE_POINTS_PER_PIXEL 8
 #define LINE_DECIMATE_CAIRO_POINTS_PER_PIXEL 4
 
+/** @brief Source-index extrema and log-eligibility summary for one decimation block. */
 typedef struct {
-    Tcl_Size minIndex;
-    Tcl_Size maxIndex;
+    Tcl_Size minIndex; /**< Source index of the block minimum Y. */
+    Tcl_Size maxIndex; /**< Source index of the block maximum Y. */
     /*
      * Needed so an incremental Y-block rebuild can update the cache's
      * global logarithmic-domain eligibility without rescanning all Y.
      */
-    Tcl_Size nonPositiveYCount;
+    Tcl_Size nonPositiveYCount; /**< Number of nonpositive Y values in this block. */
 } LineDecimateBlock;
 
+/**
+ * @brief Owned extrema-block cache; source pointers are borrowed identities used to detect replacement, not
+ * retained storage.
+ */
 typedef struct {
-    LineDecimateBlock *blocks;
-    Tcl_Size nBlocks;
-    Tcl_Size nPoints;
+    LineDecimateBlock *blocks; /**< Owned block-summary array. */
+    Tcl_Size nBlocks; /**< Number of block summaries. */
+    Tcl_Size nPoints; /**< Source point count represented by the cache. */
     /*
      * Retained only for detecting an unexpected data-array replacement.
      * Cache entries themselves contain source indices, not pointers.
      */
-    const double *xValues;
-    const double *yValues;
-    int built;
-    int supported;
+    const double *xValues; /**< Borrowed source X-array identity at build time. */
+    const double *yValues; /**< Borrowed source Y-array identity at build time. */
+    int built; /**< Nonzero after cache construction. */
+    int supported; /**< Nonzero when source ordering/data permit cached decimation. */
     /*
      * Source X ordering:
      *
@@ -159,13 +166,13 @@ typedef struct {
      *    0  all X values equal
      *   +1  increasing
      */
-    int xDirection;
+    int xDirection; /**< X ordering: -1 decreasing, 0 constant, +1 increasing. */
     /*
      * These allow the same cache to survive axis linear/log changes.
      */
-    int allPositiveX;
-    int allPositiveY;
-    Tcl_Size nonPositiveYCount;
+    int allPositiveX; /**< Nonzero when all cached X values are positive. */
+    int allPositiveY; /**< Nonzero when all cached Y values are positive. */
+    Tcl_Size nonPositiveYCount; /**< Total number of nonpositive source Y values. */
 } LineDecimateCache;
 
 /*
@@ -185,25 +192,25 @@ typedef enum {
     SYMBOL_BITMAP
 } SymbolType;
 
+/** @brief Line-symbol shape, dimensions and native drawing resources. */
 typedef struct {
-    SymbolType type;      /* Type of symbol to be drawn/printed */
-    int size;             /* Requested size of symbol in pixels */
-    XColor *outlineColor; /* Outline color */
-    int outlineWidth;     /* Width of the outline */
-    GC outlineGC;         /* Outline graphics context */
-    XColor *fillColor;    /* Normal fill color */
-    GC fillGC;            /* Fill graphics context */
+    SymbolType type; /**< Type of symbol to be drawn/printed */
+    int size; /**< Requested size of symbol in pixels */
+    XColor *outlineColor; /**< Outline color */
+    int outlineWidth; /**< Width of the outline */
+    GC outlineGC; /**< Outline graphics context */
+    XColor *fillColor; /**< Normal fill color */
+    GC fillGC; /**< Fill graphics context */
     /* The last two fields are used only for bitmap symbols. */
-    Pixmap bitmap; /* Bitmap to determine foreground/background
-                    * pixels of the symbol */
-    Pixmap mask;   /* Bitmap representing the transparent
-                    * pixels of the symbol */
+    Pixmap bitmap; /**< Bitmap to determine foreground/background pixels of the symbol */
+    Pixmap mask; /**< Bitmap representing the transparent pixels of the symbol */
 } Symbol;
 
+/** @brief Temporary parsed symbol resources before option commit. */
 typedef struct {
-    SymbolType type;
-    Pixmap bitmap;
-    Pixmap mask;
+    SymbolType type; /**< Symbol selector. */
+    Pixmap bitmap; /**< Acquired symbol bitmap, or None. */
+    Pixmap mask; /**< Acquired symbol mask, or None. */
 } ParsedSymbol;
 
 typedef enum { LINE_DATA_XY, LINE_DATA_COMPLEX } LineDataMode;
@@ -217,24 +224,27 @@ typedef enum { LINE_COORDINATES_CARTESIAN, LINE_COORDINATES_POLAR } LineDataCoor
 
 static const char *lineDataCoordinateNames[] = {"cartesian", "polar", NULL};
 
+/** @brief Complex element data from an owned list allocation or a borrowed RBC vector. */
 typedef struct {
-    Rbc_Vector *vecPtr;
-    Rbc_Complex *valueArr;
-    Tcl_Size nValues;
-    Tcl_Size arraySize;
-    Rbc_VectorId clientId;
-    Element *elemPtr;
+    Rbc_Vector *vecPtr; /**< Borrowed source vector, or NULL for list-owned storage. */
+    Rbc_Complex *valueArr; /**< Complex values; borrowed from vecPtr or owned for list input. */
+    Tcl_Size nValues; /**< Number of valid complex values. */
+    Tcl_Size arraySize; /**< Allocated capacity for list-owned storage. */
+    Rbc_VectorId clientId; /**< Owned observer token for vector input; does not preserve vector lifetime. */
+    Element *elemPtr; /**< Borrowed owning element receiving data-change notifications. */
 } ElemComplexVector;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    ElemComplexVector z;
-    LineDataMode mode;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    ElemComplexVector z; /**< Replacement complex-data descriptor staged for commit or abort. */
+    LineDataMode mode; /**< Validated mode selector staged for commit or abort. */
 } LineComplexDataTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    ElemVector param;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    ElemVector param; /**< Replacement interpolation-parameter data staged for commit or abort. */
 } LineParamTransaction;
 
 typedef enum {
@@ -245,206 +255,181 @@ typedef enum {
 
 static const char *const lineComplexDataFormatNames[] = {"gamma", "impedance", "admittance", NULL};
 
+/** @brief One mapped contiguous trace with source-index correspondence. */
 typedef struct {
-    Tcl_Size start;         /* Index into the X-Y coordinate
-                             * arrays indicating where trace
-                             * starts. */
-    Tcl_Size nScreenPts;    /* Number of points in the continuous
-                             * trace */
-    Point2D *screenPts;     /* Array of screen coordinates
-                             * (malloc-ed) representing the
-                             * trace. */
-    Tcl_Size *symbolToData; /* Reverse mapping of screen
-                             * coordinate indices back to their
-                             * data coordinates */
+    Tcl_Size start; /**< Index into the X-Y coordinate arrays indicating where trace starts. */
+    Tcl_Size nScreenPts; /**< Number of points in the continuous trace */
+    Point2D *screenPts; /**< Array of screen coordinates (allocated) representing the trace. */
+    Tcl_Size *symbolToData; /**< Reverse mapping of screen coordinate indices back to their data coordinates */
 } LineTrace;
 
+/** @brief Concrete line/strip pen with symbol, trace, error-stroke and label resources. */
 typedef struct {
     /*
      * Common pen state. This must remain the first member.
      */
-    Pen core;
+    Pen core; /**< Common Pen prefix; must remain first. */
     /*
      * Original Tcl representations for manually derived values.
      */
-    Tcl_Obj *dashesObjPtr;
-    Tcl_Obj *errorBarColorObjPtr;
-    Tcl_Obj *errorBarWidthObjPtr;
-    Tcl_Obj *errorBarCapObjPtr;
-    Tcl_Obj *fillObjPtr;
-    Tcl_Obj *lineWidthObjPtr;
-    Tcl_Obj *offDashObjPtr;
-    Tcl_Obj *outlineObjPtr;
-    Tcl_Obj *outlineWidthObjPtr;
-    Tcl_Obj *pixelsObjPtr;
-    Tcl_Obj *showErrorBarsObjPtr;
-    Tcl_Obj *showValuesObjPtr;
-    Tcl_Obj *symbolObjPtr;
-    Tcl_Obj *valueRotateObjPtr;
-    Tcl_Obj *valueShadowObjPtr;
-    Symbol symbol;
-    int traceWidth;
-    Rbc_Dashes traceDashes;
-    XColor *traceColor;
-    XColor *traceOffColor;
-    GC traceGC;
-    int errorBarShow;
-    int errorBarLineWidth;
-    int errorBarCapWidth;
-    XColor *errorBarColor;
-    GC errorBarGC;
-    int valueShow;
-    char *valueFormat;
-    Tcl_Obj *valueCommandObjPtr; /* Optional value-label command prefix. */
-    Tcl_Obj *valueOffsetObjPtr; /* Pixel offset of the value-label anchor. */
-    Point2D valueOffset;
-    TextStyle valueStyle;
+    Tcl_Obj *dashesObjPtr; /**< Tk option-managed Tcl representation for dashes; released with the owning option state. */
+    Tcl_Obj *errorBarColorObjPtr; /**< Tk option-managed Tcl representation for error bar color; released with the owning option state. */
+    Tcl_Obj *errorBarWidthObjPtr; /**< Tk option-managed Tcl representation for error bar width; released with the owning option state. */
+    Tcl_Obj *errorBarCapObjPtr; /**< Tk option-managed Tcl representation for error bar cap; released with the owning option state. */
+    Tcl_Obj *fillObjPtr; /**< Tk option-managed Tcl representation for fill; released with the owning option state. */
+    Tcl_Obj *lineWidthObjPtr; /**< Tk option-managed Tcl representation for line width; released with the owning option state. */
+    Tcl_Obj *offDashObjPtr; /**< Tk option-managed Tcl representation for off dash; released with the owning option state. */
+    Tcl_Obj *outlineObjPtr; /**< Tk option-managed Tcl representation for outline; released with the owning option state. */
+    Tcl_Obj *outlineWidthObjPtr; /**< Tk option-managed Tcl representation for outline width; released with the owning option state. */
+    Tcl_Obj *pixelsObjPtr; /**< Tk option-managed Tcl representation for pixels; released with the owning option state. */
+    Tcl_Obj *showErrorBarsObjPtr; /**< Tk option-managed Tcl representation for show error bars; released with the owning option state. */
+    Tcl_Obj *showValuesObjPtr; /**< Tk option-managed Tcl representation for show values; released with the owning option state. */
+    Tcl_Obj *symbolObjPtr; /**< Tk option-managed Tcl representation for symbol; released with the owning option state. */
+    Tcl_Obj *valueRotateObjPtr; /**< Tk option-managed Tcl representation for value rotate; released with the owning option state. */
+    Tcl_Obj *valueShadowObjPtr; /**< Tk option-managed Tcl representation for value shadow; released with the owning option state. */
+    Symbol symbol; /**< Embedded symbol appearance and drawing resources. */
+    int traceWidth; /**< Trace stroke width in pixels. */
+    Rbc_Dashes traceDashes; /**< Trace dash lengths and phase. */
+    XColor *traceColor; /**< Trace foreground color. */
+    XColor *traceOffColor; /**< Off-dash background color, or NULL. */
+    GC traceGC; /**< Owned native trace GC. */
+    int errorBarShow; /**< Bit mask selecting X and Y error bars. */
+    int errorBarLineWidth; /**< Error stroke width in pixels. */
+    int errorBarCapWidth; /**< Requested error cap width in pixels; mapping resolves automatic widths. */
+    XColor *errorBarColor; /**< Configured error color; COLOR_DEFAULT requests the element fallback. */
+    GC errorBarGC; /**< Owned GC for native error strokes. */
+    int valueShow; /**< Bit mask selecting X and Y coordinates in labels. */
+    char *valueFormat; /**< Option-managed numeric format string. */
+    Tcl_Obj *valueCommandObjPtr; /**< Tk option-managed Tcl representation for value command; released with the owning option state. */
+    Tcl_Obj *valueOffsetObjPtr; /**< Tk option-managed Tcl representation for value offset; released with the owning option state. */
+    Point2D valueOffset; /**< Label anchor displacement in pixels. */
+    TextStyle valueStyle; /**< Label text style; its GC belongs to the pen. */
 } LinePen;
 
 #define LINE_PEN_FROM_CORE(penPtr) ((LinePen *)((char *)(penPtr) - offsetof(LinePen, core)))
 #define LINE_PEN_CORE_OFFSET(member) (offsetof(LinePen, core) + offsetof(Pen, member))
 
+/** @brief Mapped per-style line/strip geometry and error strokes. */
 typedef struct {
-    Weight weight; /* Weight range where this pen is valid. */
-    LinePen *penPtr; /* Pen used to draw symbols, traces, error
-                      * bars, segments, etc. */
-    Segment2D *xErrorBars; /* Point to start of this pen's X-error bar
-                            * segments in the element's array. */
-    Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
-                            * segments in the element's array. */
-    Tcl_Size xErrorBarCnt;      /* # of error bars for this pen. */
-    Tcl_Size yErrorBarCnt;      /* # of error bars for this pen. */
-    int errorBarCapWidth; /* Length of the cap ends on each
-                           * error bar. */
-    int symbolSize; /* Size of the pen's symbol scaled to the
-                     * current graph size. */
+    Weight weight; /**< Weight range where this pen is valid. */
+    LinePen *penPtr; /**< Pen used to draw symbols, traces, error bars, segments, etc. */
+    Segment2D *xErrorBars; /**< Point to start of this pen's X-error bar segments in the element's array. */
+    Segment2D *yErrorBars; /**< Point to start of this pen's Y-error bar segments in the element's array. */
+    Tcl_Size xErrorBarCnt; /**< # of error bars for this pen. */
+    Tcl_Size yErrorBarCnt; /**< # of error bars for this pen. */
+    int errorBarCapWidth; /**< Length of the cap ends on each error bar. */
+    int symbolSize; /**< Size of the pen's symbol scaled to the current graph size. */
     /* Graph specific data. */
-    Point2D *symbolPts; /* Points to start of array for this pen. */
-    Tcl_Size nSymbolPts; /* # of points for this pen. */
+    Point2D *symbolPts; /**< Points to start of array for this pen. */
+    Tcl_Size nSymbolPts; /**< # of points for this pen. */
     /* The last two fields are used only for stripcharts. */
-    Segment2D *strips; /* Points to start of the line segments
-                        * for this pen. */
-    Tcl_Size nStrips; /* # of line segments for this pen. */
+    Segment2D *strips; /**< Points to start of the line segments for this pen. */
+    Tcl_Size nStrips; /**< # of line segments for this pen. */
 } LinePenStyle;
 
-/* Separate polygons keep missing-data runs disconnected. */
+/** @brief Owned linked polygon for a mapped error-band region. */
 typedef struct LineBandPolygon {
-    Point2D *points;
-    Tcl_Size count;
-    struct LineBandPolygon *nextPtr;
+    Point2D *points; /**< Owned polygon vertices in display pixels. */
+    Tcl_Size count; /**< Number of vertices. */
+    struct LineBandPolygon *nextPtr; /**< Next owned polygon, or NULL. */
 } LineBandPolygon;
 
+/** @brief Error-band options and owned mapped polygons. */
 typedef struct {
-    int mode;
-    Tcl_Obj *patternObjPtr;
-    Tcl_Obj *tileObjPtr;
-    XColor *foreground;
-    XColor *background;
-    double opacity;
-    Pixmap stipple;
-    Rbc_Tile tile;
-    GC gc;
-    LineBandPolygon *polygons;
+    int mode; /**< Band display/axis mode selector. */
+    Tcl_Obj *patternObjPtr; /**< Tk option-managed Tcl representation for pattern; released with the owning option state. */
+    Tcl_Obj *tileObjPtr; /**< Tk option-managed Tcl representation for tile; released with the owning option state. */
+    XColor *foreground; /**< Configured band foreground color. */
+    XColor *background; /**< Configured band background color. */
+    double opacity; /**< Fill opacity from zero to one. */
+    Pixmap stipple; /**< Retained stipple bitmap, or None. */
+    Rbc_Tile tile; /**< Retained image tile token, or NULL. */
+    GC gc; /**< Owned native band fill GC. */
+    LineBandPolygon *polygons; /**< Owned linked mapped polygons. */
 } LineErrorBand;
 
 typedef enum { LINE_BAND_NONE, LINE_BAND_Y, LINE_BAND_X } LineBandMode;
 
 static const char *lineErrorBandNames[] = {"none", "y", "x", NULL};
 
+/** @brief Line/strip/polar element with data sources, mapping caches and presentation state. */
 typedef struct {
-    Element core;
+    Element core; /**< Common Element prefix; must remain first. */
     /*
      * Line specific configurable attributes
      */
-    LinePen builtinPen;
-    LineErrorBand errorBand;
+    LinePen builtinPen; /**< Embedded default line pen owned by this element. */
+    LineErrorBand errorBand; /**< Embedded band options, resources and polygon cache. */
     /*
      * Original Tcl representations for line-element options that
      * require validation or conversion after Tk_SetOptions.
      */
-    Tcl_Obj *areaPatternObjPtr;
-    Tcl_Obj *areaTileObjPtr;
-    Tcl_Obj *maxSymbolsObjPtr;
-    Tcl_Obj *smoothObjPtr;
-    Tcl_Obj *traceObjPtr;
-    Tcl_Obj *cDataObjPtr;
-    Tcl_Obj *paramObjPtr;
-    ElemComplexVector z;
-    ElemVector param;
-    LineDataMode dataMode;
-    LineComplexDataFormat cDataFormat;
-    LineDataCoordinates dataCoordinates; /* Interpretation of real input pairs. */
-    double z0;
+    Tcl_Obj *areaPatternObjPtr; /**< Tk option-managed Tcl representation for area pattern; released with the owning option state. */
+    Tcl_Obj *areaTileObjPtr; /**< Tk option-managed Tcl representation for area tile; released with the owning option state. */
+    Tcl_Obj *maxSymbolsObjPtr; /**< Tk option-managed Tcl representation for max symbols; released with the owning option state. */
+    Tcl_Obj *smoothObjPtr; /**< Tk option-managed Tcl representation for smooth; released with the owning option state. */
+    Tcl_Obj *traceObjPtr; /**< Tk option-managed Tcl representation for trace; released with the owning option state. */
+    Tcl_Obj *cDataObjPtr; /**< Tk option-managed Tcl representation for c data; released with the owning option state. */
+    Tcl_Obj *paramObjPtr; /**< Tk option-managed Tcl representation for param; released with the owning option state. */
+    ElemComplexVector z; /**< Complex data source and observer state. */
+    ElemVector param; /**< Parameter-vector source used for complex interpolation. */
+    LineDataMode dataMode; /**< Real-pair or complex-input mode. */
+    LineComplexDataFormat cDataFormat; /**< Interpretation of complex input values. */
+    LineDataCoordinates dataCoordinates; /**< Interpretation of real input pairs. */
+    double z0; /**< Reference impedance for Smith transformations. */
     /* Line smoothing */
-    Smoothing reqSmooth; /* Requested smoothing function to use
-                          * for connecting the data points */
-    Smoothing smooth; /* Smoothing function used. */
-    double rTolerance; /* Tolerance to reduce the number of
-                        * points displayed. */
-    LineSymbolPoints symbolPoints; /* Source samples eligible for normal symbols. */
-    LineDecimation decimate;
-    LineDecimateCache decimateCache;
+    Smoothing reqSmooth; /**< Requested smoothing function to use for connecting the data points */
+    Smoothing smooth; /**< Smoothing function used. */
+    double rTolerance; /**< Tolerance to reduce the number of points displayed. */
+    LineSymbolPoints symbolPoints; /**< Source samples eligible for normal symbols. */
+    LineDecimation decimate; /**< Requested screen decimation policy. */
+    LineDecimateCache decimateCache; /**< Owned source-block summaries for screen decimation. */
     /*
      * True when the current screen mapping intentionally omitted the
      * full symbolPts/symbolToData arrays because the trace was reduced
      * before world-to-screen mapping or -symbolpoints selected a subset.
      */
-    int pointMapOmitted;
+    int pointMapOmitted; /**< Nonzero when screen mapping intentionally omits complete symbol/source maps. */
     /*
      * Drawing related data structures.
      */
     /* Area-under-curve fill attributes. */
-    XColor *fillFgColor;
-    XColor *fillBgColor;
-    GC fillGC;
-    LineAreaClose areaClose; /* Closure of the mapped fill polygon. */
-    double areaOpacity; /* Cairo solid fill opacity, from zero to one. */
-    Rbc_Tile fillTile;  /* Tile for fill area. */
-    Pixmap fillStipple; /* Stipple for fill area. */
-    Tcl_Size nFillPts;
-    Point2D *fillPts; /* Array of points used to draw
-                       * polygon to fill area under the
-                       * curve */
+    XColor *fillFgColor; /**< Area-fill foreground color. */
+    XColor *fillBgColor; /**< Area-fill background color. */
+    GC fillGC; /**< Owned native area-fill GC. */
+    LineAreaClose areaClose; /**< Closure of the mapped fill polygon. */
+    double areaOpacity; /**< Cairo solid fill opacity, from zero to one. */
+    Rbc_Tile fillTile; /**< Tile for fill area. */
+    Pixmap fillStipple; /**< Stipple for fill area. */
+    Tcl_Size nFillPts; /**< Number of area-fill polygon vertices. */
+    Point2D *fillPts; /**< Array of points used to draw polygon to fill area under the curve */
     /* Symbol points */
-    Point2D *symbolPts; /* Holds the screen coordinates of all
-                         * the data points for the element. */
-    Tcl_Size nSymbolPts;     /* Number of points */
-    Tcl_Size *symbolToData; /* Contains indices of data points.
-                        * It's first used to map pens to the
-                        * visible points to sort them by pen
-                        * style, and later to find data
-                        * points from the index of a visible
-                        * point. */
+    Point2D *symbolPts; /**< Holds the screen coordinates of all the data points for the element. */
+    Tcl_Size nSymbolPts; /**< Number of points */
+    Tcl_Size *symbolToData; /**< Contains indices of data points. It's first used to map pens to the visible points to sort them
+     * by pen style, and later to find data points from the index of a visible point.
+     */
     /* Active symbol points */
-    Point2D *activePts; /* Array of indices representing the
-                         * "active" points. */
-    Tcl_Size nActivePts;     /* Number of indices in the above array. */
-    Tcl_Size *activeToData; /* Contains indices of data points.
-                        * It's first used to map pens to the
-                        * visible points to sort them by pen
-                        * style, and later to find data
-                        * points from the index of a visible
-                        * point. */
-    int reqMaxSymbols;
-    Tcl_Size symbolInterval;
-    Tcl_Size symbolCounter;
+    Point2D *activePts; /**< Owned mapped active-symbol positions in display pixels. */
+    Tcl_Size nActivePts; /**< Number of mapped active-symbol positions. */
+    Tcl_Size *activeToData; /**< Contains indices of data points. It's first used to map pens to the visible points to sort them
+     * by pen style, and later to find data points from the index of a visible point.
+     */
+    int reqMaxSymbols; /**< Requested maximum normal-symbol count. */
+    Tcl_Size symbolInterval; /**< Sampling interval used to limit normal symbols. */
+    Tcl_Size symbolCounter; /**< Running point counter for symbol sampling. */
     /* X-Y graph-specific fields */
-    int penDir; /* Indicates if a change in the pen
-                 * direction should be considered a
-                 * retrace (line segment is not
-                 * drawn). */
-    Rbc_Chain *traces; /* List of traces (a trace is a series
-                        * of contiguous line segments).  New
-                        * traces are generated when either
-                        * the next segment changes the pen
-                        * direction, or the end point is
-                        * clipped by the plotting area. */
+    int penDir; /**< Indicates if a change in the pen direction should be considered a retrace (line segment is not
+     * drawn).
+     */
+    Rbc_Chain *traces; /**< List of traces (a trace is a series of contiguous line segments). New traces are generated when
+     * either the next segment changes the pen direction, or the end point is clipped by the plotting
+     * area.
+     */
     /* Stripchart-specific fields */
-    Segment2D *strips; /* Holds the the line segments of the
-                        * element trace. The segments are
-                        * grouped by pen style. */
-    Tcl_Size nStrips;       /* Number of line segments to be drawn. */
-    Tcl_Size *stripToData;  /* Pen to visible line segment mapping. */
+    Segment2D *strips; /**< Holds the the line segments of the element trace. The segments are grouped by pen style. */
+    Tcl_Size nStrips; /**< Number of line segments to be drawn. */
+    Tcl_Size *stripToData; /**< Pen to visible line segment mapping. */
 } Line;
 
 _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line member");
@@ -557,11 +542,12 @@ typedef enum {
 
 #define LINE_SCALAR_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    unsigned int stagedMask;
-    int maxSymbols;
-    Smoothing smooth;
-    int penDir;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    int maxSymbols; /**< Requested normal-symbol limit staged for commit or abort. */
+    Smoothing smooth; /**< Validated smoothing selector staged for commit or abort. */
+    int penDir; /**< Validated trace direction selector staged for commit or abort. */
 } LineScalarTransaction;
 
 typedef enum {
@@ -572,11 +558,12 @@ typedef enum {
 
 #define LINE_AREA_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    unsigned int stagedMask;
-    Pixmap stipple;
-    Rbc_Tile tile;
-    GC gc;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    Pixmap stipple; /**< Retained replacement stipple bitmap staged for commit or abort. */
+    Rbc_Tile tile; /**< Retained replacement tile token staged for commit or abort. */
+    GC gc; /**< New native fill GC staged for commit or abort. */
 } LineAreaTransaction;
 
 /*

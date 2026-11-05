@@ -43,9 +43,9 @@
  * leaves this allocated record owned by the acquiring caller.
  */
 struct Rbc_WinDrawableDC {
-    TkWinDCState state;
-    Drawable drawable;
-    HDC dc;
+    TkWinDCState state; /**< Tk drawable DC state restored on release. */
+    Drawable drawable; /**< Borrowed source drawable. */
+    HDC dc; /**< Acquired device context; released by the paired helper. */
 };
 
 #define WINDEBUG 0

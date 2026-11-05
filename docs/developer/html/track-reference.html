@@ -49,7 +49,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 <a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a> for scroll notification.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FindTrack">
-<span class="target" id="rbc_gr_track_8h_1ad0dad7686a4153f63c294649138f5703"></span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FindTrack</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FindTrack" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_gr_track_8h_1ad0dad7686a4153f63c294649138f5703"></span><a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FindTrack</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FindTrack" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a borrowed track by exact, case-sensitive name, or NULL. </p>
 <p>Searches the owning graph list without creating or retaining an object. Reordering preserves the pointer; deletion or graph teardown invalidates it.</p>
 <dl class="field-list simple">
@@ -127,7 +127,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FreeTrack">
-<span class="target" id="group__track__ownership_1ga51d1de224742cfd3c527b538c47a345e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeTrack</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeTrack" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1ga51d1de224742cfd3c527b538c47a345e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeTrack</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeTrack" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release one detached track and its owned resources. </p>
 <p>Removes bindings, destroys local grid and legend state, clears axis ownership and releases retained axis references. Frees the axis array, name and record. Does not unlink the track from the graph list or validate element/marker dependencies; callers perform those steps before destruction.</p>
 <dl class="field-list simple">
@@ -158,7 +158,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.TrackOption">
-<span class="target" id="group__track__ownership_1ga852a4238d2b5c356b71dfc5b92d2f0cd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TrackOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackOption" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1ga852a4238d2b5c356b71dfc5b92d2f0cd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TrackOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Construct the current value of a canonical track option. </p>
 <p>Returns a new unretained Tcl object, or NULL for an unknown option. Uses live weights/heights, including sash changes, and builds the axis-name list in configured order. Requires valid bar-mode state; neither caches values nor transfers axis ownership.</p>
 <dl class="field-list simple">
@@ -173,7 +173,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.TrackOptionInfo">
-<span class="target" id="group__track__ownership_1gacb3763328b97a42600ad83c06fb80029"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TrackOptionInfo</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackOptionInfo" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1gacb3763328b97a42600ad83c06fb80029"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TrackOptionInfo</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackOptionInfo" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Construct a standard five-field option description. </p>
 <p>Requires a validated specification index. Supplies TrackOption current state to the shared metadata helper, so values changed by dragging remain visible. Returns a new Tcl object; the track and static specification remain borrowed.</p>
 <dl class="field-list simple">
@@ -188,7 +188,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ConfigureTrack">
-<span class="target" id="group__track__ownership_1ga81eeb54175b4fc2a8f67425a955698dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureTrack</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConfigureTrack" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1ga81eeb54175b4fc2a8f67425a955698dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureTrack</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConfigureTrack" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate option pairs and axis dependencies before committing track settings. </p>
 <p>Borrow the graph, track and arguments. A replacement axis array is temporary until every name, ownership rule and dependent component has been checked. Acquire new axis references before releasing old ones, including axes retained in both lists. On error, discard the temporary array and retain track settings. The caller synchronizes axis display order and schedules redraw after success.</p>
 <dl class="field-list simple">
@@ -205,7 +205,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.InitTrackOptions">
-<span class="target" id="group__track__ownership_1ga6f7c189093ed270d118d4a098e093ea3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitTrackOptions</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InitTrackOptions" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1ga6f7c189093ed270d118d4a098e093ea3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitTrackOptions</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InitTrackOptions" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve creation defaults through the named Track option-database component. </p>
 <p>Explicit arguments override database values before ConfigureTrack validates the effective options. Temporary option objects and the option table are released on all exits. The caller owns the unlinked track and handles failed creation; this helper does not insert it into the graph.</p>
 <dl class="field-list simple">
@@ -237,7 +237,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.TrackStart">
-<span class="target" id="group__track__ownership_1gaaf55a494c6f134ff2ea69cf9c6141467"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackStart</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackStart" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1gaaf55a494c6f134ff2ea69cf9c6141467"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackStart</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackStart" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read the unclipped start along the track stacking dimension. </p>
 <p>Selects worldLeft for inverted layouts and worldTop otherwise. This is physical layout geometry, not a data-axis minimum or a clipped visible boundary.</p>
 <dl class="field-list simple">
@@ -252,7 +252,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.TrackEnd">
-<span class="target" id="group__track__ownership_1gabb21a4b16c4c371ac0bdbbea1373a79d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackEnd" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1gabb21a4b16c4c371ac0bdbbea1373a79d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TrackEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read the unclipped end along the track stacking dimension. </p>
 <p>Selects worldRight for inverted layouts and worldBottom otherwise. Pair with TrackStart when calculating sash gaps or full track sizes, including partly offscreen tracks.</p>
 <dl class="field-list simple">
@@ -267,7 +267,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.SetTrackSash">
-<span class="target" id="group__track__ownership_1gabe96e899b4ddad05c13fac7151323c84"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTrackSash</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetTrackSash" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__track__ownership_1gabe96e899b4ddad05c13fac7151323c84"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTrackSash</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetTrackSash" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resize at a boundary using fitted weights or scroll height. </p>
 <p>Requires a live track with a following neighbor and current layout. An unchanged coordinate is a no- op. Scroll mode changes only the first track requested height, clamped to its minimum and the height limit. Fit mode redistributes the adjacent weight sum above their minima; compressed minima cannot resize. Validates positive weights before commit, then requests remapping and redraw.</p>
 <dl class="field-list simple">
@@ -384,7 +384,7 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DrawTrackSeparators">
-<span class="target" id="rbc_gr_track_8h_1a980bdd7e36317fdc21d42443be47ecc2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawTrackSeparators</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawTrackSeparators" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_gr_track_8h_1a980bdd7e36317fdc21d42443be47ecc2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawTrackSeparators</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawTrackSeparators" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw dividers inside the gaps between adjacent tracks. </p>
 <p>Uses the same centers as sash positioning. Compressed or off-viewport strokes are omitted. Does nothing for ordinary graphs or an unset separator color. </p>
 <dl class="field-list simple">
@@ -396,6 +396,186 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TrackDefaults">
+<span class="target" id="struct_track_defaults"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackDefaults</span></span></span><a class="headerlink" href="#c.TrackDefaults" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporary track option defaults resolved through the option database. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrackDefaults.weight">
+<span class="target" id="struct_track_defaults_1a5ef1ebce46d14a9dd99a575e40abd496"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">weight</span></span></span><a class="headerlink" href="#c.TrackDefaults.weight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Default relative fitted-layout weight. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrackDefaults.minHeight">
+<span class="target" id="struct_track_defaults_1a579be55f4d2add35a2b65bf062870b51"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">minHeight</span></span></span><a class="headerlink" href="#c.TrackDefaults.minHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Default minimum stacking extent in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrackDefaults.height">
+<span class="target" id="struct_track_defaults_1a579e9d7380fa4d2feb35d153316a7d4f"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.TrackDefaults.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Default requested stacking extent in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrackDefaults.yAxes">
+<span class="target" id="struct_track_defaults_1afcd7b7d69f455133e01f5b77e64a684a"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">yAxes</span></span></span><a class="headerlink" href="#c.TrackDefaults.yAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tcl representation of default local Y-axis names. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrackDefaults.barMode">
+<span class="target" id="struct_track_defaults_1a0e41a148fea4a3ea1a50420bc37cb029"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">barMode</span></span></span><a class="headerlink" href="#c.TrackDefaults.barMode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Default bar mode; -1 inherits the graph setting. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.RbcTrack">
+<span class="target" id="struct_rbc_track"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RbcTrack</span></span></span><a class="headerlink" href="#c.RbcTrack" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graph-owned track with local component state and retained Y-axis references. </p>
+<p>Full world bounds drive mapping; visible bounds drive clipping after scrolling. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.barMode">
+<span class="target" id="struct_rbc_track_1aa0246cbc3a55db6b0e0807e9f3497833"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">barMode</span></span></span><a class="headerlink" href="#c.RbcTrack.barMode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>-1 inherits the graph bar mode. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.grid">
+<span class="target" id="struct_rbc_track_1a6e62999e51b54f58f12688ffd2e1ab8b"></span><a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><span class="n"><span class="pre">Grid</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">grid</span></span></span><a class="headerlink" href="#c.RbcTrack.grid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>NULL inherits the graph grid. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.gridX">
+<span class="target" id="struct_rbc_track_1abbcf82170148ef7bfbd95859fc1e2e26"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="grid-reference.html#c.GridSegments" title="GridSegments"><span class="n"><span class="pre">GridSegments</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gridX</span></span></span><a class="headerlink" href="#c.RbcTrack.gridX" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned mapped X-grid segment cache. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.gridY">
+<span class="target" id="struct_rbc_track_1a27773bd2983548d15ec4ecae41384710"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="grid-reference.html#c.GridSegments" title="GridSegments"><span class="n"><span class="pre">GridSegments</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gridY</span></span></span><a class="headerlink" href="#c.RbcTrack.gridY" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned mapped Y-grid segment cache. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.legend">
+<span class="target" id="struct_rbc_track_1aa83aa0f086777f9ce9a1994ca0b89a50"></span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">legend</span></span></span><a class="headerlink" href="#c.RbcTrack.legend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned local legend, or NULL. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.name">
+<span class="target" id="struct_rbc_track_1a3a5991bb06443aee69c0231a1b482482"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><a class="headerlink" href="#c.RbcTrack.name" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned track name. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.weight">
+<span class="target" id="struct_rbc_track_1a01ad3fd52a808633cb8b51cf3de63b2f"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">weight</span></span></span><a class="headerlink" href="#c.RbcTrack.weight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Relative share of fitted layout space after minimum sizes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.minHeight">
+<span class="target" id="struct_rbc_track_1a52c134f5db5ede10b2b6968a08a2649c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">minHeight</span></span></span><a class="headerlink" href="#c.RbcTrack.minHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Minimum plot extent along the stacking direction in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.height">
+<span class="target" id="struct_rbc_track_1a16f236f9220d9951021478d65779413c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.RbcTrack.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested plot size along the track stacking direction. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.worldLeft">
+<span class="target" id="struct_rbc_track_1a32bce67707d836187fa26750d140b635"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">worldLeft</span></span></span><a class="headerlink" href="#c.RbcTrack.worldLeft" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Full plot left edge before viewport clipping, in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.worldRight">
+<span class="target" id="struct_rbc_track_1a4dff5c93eb6d9e6b7d651698d38ea779"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">worldRight</span></span></span><a class="headerlink" href="#c.RbcTrack.worldRight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Full plot right edge before viewport clipping, in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.worldTop">
+<span class="target" id="struct_rbc_track_1ad971ad7f4bab528e7ee0961c890e3005"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">worldTop</span></span></span><a class="headerlink" href="#c.RbcTrack.worldTop" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Full plot top edge before viewport clipping, in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.worldBottom">
+<span class="target" id="struct_rbc_track_1a5682a4868057c29550caf045cd9fe506"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">worldBottom</span></span></span><a class="headerlink" href="#c.RbcTrack.worldBottom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Full plot bottom edge before viewport clipping, in widget pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.left">
+<span class="target" id="struct_rbc_track_1ab556761299b61d253c0996f4676fda9f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left</span></span></span><a class="headerlink" href="#c.RbcTrack.left" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Visible intersection with the plot viewport. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.right">
+<span class="target" id="struct_rbc_track_1a442acff222ad5fdaacf5a926fee812b9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right</span></span></span><a class="headerlink" href="#c.RbcTrack.right" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Visible intersection with the plot viewport. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.top">
+<span class="target" id="struct_rbc_track_1a723eab905651566efbefa74ab901c8ff"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">top</span></span></span><a class="headerlink" href="#c.RbcTrack.top" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Visible intersection with the plot viewport. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.bottom">
+<span class="target" id="struct_rbc_track_1a93bc6cafe0aa0337d336a57102137303"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bottom</span></span></span><a class="headerlink" href="#c.RbcTrack.bottom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Visible intersection with the plot viewport. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.axisOffset">
+<span class="target" id="struct_rbc_track_1a47440e8414026edbb6638932316f161a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">axisOffset</span></span></span><a class="headerlink" href="#c.RbcTrack.axisOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Accumulated local-axis layout offset in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.axes">
+<span class="target" id="struct_rbc_track_1a9c88df206e836a69e3513f79d467c9cc"></span><a class="reference internal" href="axis-reference.html#c.Axis" title="Axis"><span class="n"><span class="pre">Axis</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">axes</span></span></span><a class="headerlink" href="#c.RbcTrack.axes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned array of retained Y-axis references. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.nAxes">
+<span class="target" id="struct_rbc_track_1a33521ccbd52d59f1e1ef715c48cb6c61"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nAxes</span></span></span><a class="headerlink" href="#c.RbcTrack.nAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of entries in axes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.RbcTrack.next">
+<span class="target" id="struct_rbc_track_1a43a78961c093693ea35bb891a836027c"></span><a class="reference internal" href="#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">next</span></span></span><a class="headerlink" href="#c.RbcTrack.next" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next graph-owned track in display order, or NULL. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
@@ -435,6 +615,41 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 <li><a class="reference internal" href="#c.Rbc_ConfigureTrackGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ConfigureTrackGraph()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_TrackOp"><code class="docutils literal notranslate"><span class="pre">Rbc_TrackOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_DrawTrackSeparators"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawTrackSeparators()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.TrackDefaults"><code class="docutils literal notranslate"><span class="pre">TrackDefaults</span></code></a><ul>
+<li><a class="reference internal" href="#c.TrackDefaults.weight"><code class="docutils literal notranslate"><span class="pre">weight</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackDefaults.minHeight"><code class="docutils literal notranslate"><span class="pre">minHeight</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackDefaults.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackDefaults.yAxes"><code class="docutils literal notranslate"><span class="pre">yAxes</span></code></a></li>
+<li><a class="reference internal" href="#c.TrackDefaults.barMode"><code class="docutils literal notranslate"><span class="pre">barMode</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.RbcTrack"><code class="docutils literal notranslate"><span class="pre">RbcTrack</span></code></a><ul>
+<li><a class="reference internal" href="#c.RbcTrack.barMode"><code class="docutils literal notranslate"><span class="pre">barMode</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.grid"><code class="docutils literal notranslate"><span class="pre">grid</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.gridX"><code class="docutils literal notranslate"><span class="pre">gridX</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.gridY"><code class="docutils literal notranslate"><span class="pre">gridY</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.legend"><code class="docutils literal notranslate"><span class="pre">legend</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.weight"><code class="docutils literal notranslate"><span class="pre">weight</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.minHeight"><code class="docutils literal notranslate"><span class="pre">minHeight</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.worldLeft"><code class="docutils literal notranslate"><span class="pre">worldLeft</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.worldRight"><code class="docutils literal notranslate"><span class="pre">worldRight</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.worldTop"><code class="docutils literal notranslate"><span class="pre">worldTop</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.worldBottom"><code class="docutils literal notranslate"><span class="pre">worldBottom</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.left"><code class="docutils literal notranslate"><span class="pre">left</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.right"><code class="docutils literal notranslate"><span class="pre">right</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.top"><code class="docutils literal notranslate"><span class="pre">top</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.bottom"><code class="docutils literal notranslate"><span class="pre">bottom</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.axisOffset"><code class="docutils literal notranslate"><span class="pre">axisOffset</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.axes"><code class="docutils literal notranslate"><span class="pre">axes</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.nAxes"><code class="docutils literal notranslate"><span class="pre">nAxes</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcTrack.next"><code class="docutils literal notranslate"><span class="pre">next</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

@@ -135,7 +135,7 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageRotation.ShearY">
-<span class="target" id="group__image__rotation__internals_1ga59b157d5aeda4add1a89a504ba5ae4d3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShearY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">frac</span></span>, <span class="n"><span class="pre">Pix32</span></span><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.ShearY" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__image__rotation__internals_1ga59b157d5aeda4add1a89a504ba5ae4d3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShearY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">frac</span></span>, <a class="reference internal" href="#c.Pix32" title="Pix32"><span class="n"><span class="pre">Pix32</span></span></a><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.ShearY" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Shift and filter one source row into a destination row. </p>
 <p>Despite its name, this helper moves pixels horizontally at fixed row y. Borrows distinct images; y must exist in both. Initializes the entire destination row to bgColor, then processes all source pixels, including clipped ones, to retain the preceding fractional contribution. offset supplies the integer displacement and frac must lie in [0,1). Writes only in-range destination pixels and a final residual pixel when visible. Uses 14-bit fixed-point straight RGBA arithmetic with byte clamping. Caller ensures offset plus source width remains representable as int. Does not allocate, resize, or validate the row index or fraction.</p>
 <dl class="field-list simple">
@@ -154,7 +154,7 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageRotation.ShearX">
-<span class="target" id="group__image__rotation__internals_1ga4cc9f19b4e45f6cad61904c1e7df3a78"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShearX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">frac</span></span>, <span class="n"><span class="pre">Pix32</span></span><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.ShearX" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__image__rotation__internals_1ga4cc9f19b4e45f6cad61904c1e7df3a78"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShearX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">frac</span></span>, <a class="reference internal" href="#c.Pix32" title="Pix32"><span class="n"><span class="pre">Pix32</span></span></a><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.ShearX" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Shift and filter one source column into a destination column. </p>
 <p>Despite its name, this helper moves pixels vertically at fixed column x. Borrows distinct images; x must exist in both. Initializes the complete destination column to bgColor. offset is the integer displacement and frac must lie in [0,1). Accumulates the preceding fractional contribution even while destination coordinates are clipped, and emits the final residual pixel if visible. Filters straight RGBA with 14-bit fixed-point weights and clamps channels. Requires representable offset plus source height. Does not allocate or validate the column index or fraction.</p>
 <dl class="field-list simple">
@@ -201,7 +201,7 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcImageRotation.Rotate45">
-<span class="target" id="group__image__rotation__internals_1gae54d2335d64c26352994ca8e966d61fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rotate45</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Pix32</span></span><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.Rotate45" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__image__rotation__internals_1gae54d2335d64c26352994ca8e966d61fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rotate45</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <a class="reference internal" href="#c.Pix32" title="Pix32"><span class="n"><span class="pre">Pix32</span></span></a><span class="w"> </span><span class="n"><span class="pre">bgColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.Rotate45" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rotate a borrowed image by a residual angle using three filtered shears. </p>
 <p>theta is in radians and must lie in [-pi/4, pi/4]; this helper does not normalize or validate that interval. Uses horizontal, vertical, horizontal passes based on tan(theta/2) and sin(theta). Allocates two intermediates and the final image, releasing each intermediate after its last use. bgColor supplies padding and boundary contributions for every pass. Returns independent owned storage released with Rbc_FreeColorImage. Dimension/offset conversion panics on unrepresentable geometry. The construction follows Alan W. Paeth, A Fast Algorithm for General Raster Rotation, Graphics Gems, pp. 179-195. It is not a single-pass inverse-mapped rotation; intermediate clamping affects pixel results.</p>
 <dl class="field-list simple">
@@ -219,7 +219,7 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 <dt class="sig sig-object c" id="c.rbcImageRotation.CopyColorImage">
 <span class="target" id="group__image__rotation__internals_1ga5a248b0b4138d2c19a7cffc3dd65e4dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageRotation.CopyColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Duplicate an entire RGBA image into independent storage. </p>
-<p>Borrows a valid source, checks its pixel count, allocates an equal-size image and copies complete Pix32 values including alpha. Empty dimensions are retained. Returns ownership to the caller, which frees the result with Rbc_FreeColorImage. Does not modify or share source pixel storage.</p>
+<p>Borrows a valid source, checks its pixel count, allocates an equal-size image and copies complete <a class="reference internal" href="#union_pix32"><span class="std std-ref">Pix32</span></a> values including alpha. Empty dimensions are retained. Returns ownership to the caller, which frees the result with Rbc_FreeColorImage. Does not modify or share source pixel storage.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -356,7 +356,7 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcX11Image.ComputeMasks">
-<span class="target" id="group__x11__image__helpers_1gaaa20b9a6ecab40a1e630009ed4c60a49"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeMasks</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Visual</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">visualPtr</span></span>, <span class="n"><span class="pre">TrueColorMasks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">masks</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.ComputeMasks" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__x11__image__helpers_1gaaa20b9a6ecab40a1e630009ed4c60a49"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeMasks</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Visual</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">visualPtr</span></span>, <a class="reference internal" href="image-color-reference.html#c.TrueColorMasks" title="TrueColorMasks"><span class="n"><span class="pre">TrueColorMasks</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">masks</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcX11Image.ComputeMasks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare per-capture TrueColor shifts for eight-bit gamma indices. </p>
 <p>Borrows a Visual with valid nonzero contiguous RGB masks in its 32-bit pixel layout and fills caller-owned shift metadata. Components narrower than eight bits retain the legacy left shift without low-bit replication. Wider components discard low bits by increasing the extraction shift, so ten-bit channels cannot index beyond the 256-entry gamma table. Eight-bit extraction is unchanged. No display calls, shared mutable state or allocation occur.</p>
 <dl class="field-list simple">
@@ -438,6 +438,163 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 </dd></dl>
 
 </section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.ColorImage">
+<span class="target" id="struct_color_image"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ColorImage</span></span></span><a class="headerlink" href="#c.ColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned packed pixel array and its dimensions. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ColorImage.width">
+<span class="target" id="struct_color_image_1a36033d51794f972b1ebcc130f62b9904"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.ColorImage.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of the image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ColorImage.height">
+<span class="target" id="struct_color_image_1ac155845ce2c678bed8c68b8b1f6c5bc0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.ColorImage.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of the image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ColorImage.bits">
+<span class="target" id="struct_color_image_1a5f59656738f50b8e7d3f1d686cf09974"></span><a class="reference internal" href="#c.Pix32" title="Pix32"><span class="n"><span class="pre">Pix32</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bits</span></span></span><a class="headerlink" href="#c.ColorImage.bits" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Array of pixels representing the image. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Filter2D">
+<span class="target" id="struct_filter2_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Filter2D</span></span></span><a class="headerlink" href="#c.Filter2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Two-dimensional convolution kernel and normalization state. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Filter2D.support">
+<span class="target" id="struct_filter2_d_1ad34db8b96d2219e4dc16ddca94438812"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">support</span></span></span><a class="headerlink" href="#c.Filter2D.support" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Radius of filter. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Filter2D.sum">
+<span class="target" id="struct_filter2_d_1a3d72d111370e12771ff73a3f122a271d"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sum</span></span></span><a class="headerlink" href="#c.Filter2D.sum" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sum of kernel. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Filter2D.scale">
+<span class="target" id="struct_filter2_d_1a0ac2171ca278f8bda86d3921cc71bad9"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scale</span></span></span><a class="headerlink" href="#c.Filter2D.scale" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sum of kernel. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Filter2D.kernel">
+<span class="target" id="struct_filter2_d_1a74685d6cd3ed61b1b4e75905e78129e6"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">kernel</span></span></span><a class="headerlink" href="#c.Filter2D.kernel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Array of values (allocated) representing the discrete 2-D filter. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c union">
+<dt class="sig sig-object c" id="c.Pix32">
+<span class="target" id="union_pix32"></span><span class="k"><span class="pre">union</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Pix32</span></span></span><a class="headerlink" href="#c.Pix32" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcImage.h&gt;</em></div>
+<p>Four-channel pixel with packed and byte-array views. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Pix32.value">
+<span class="target" id="union_pix32_1a3c9a8a33dc99f8023491bae276c004e7"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">value</span></span></span><a class="headerlink" href="#c.Pix32.value" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Packed pixel word; byte interpretation is shared with rgba. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Pix32.rgba">
+<span class="target" id="union_pix32_1a8c6e7d5c6356e2909bc93f6e9a02d5b9"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Pix32" title="Pix32"><span class="n"><span class="pre">Pix32</span></span></a><span class="p"><span class="pre">.</span></span><a class="reference internal" href="#c.Pix32.RGBA" title="Pix32.RGBA"><span class="n"><span class="pre">RGBA</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rgba</span></span></span><a class="headerlink" href="#c.Pix32.rgba" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Named channel view of this pixel. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Pix32.channel">
+<span class="target" id="union_pix32_1a2841910d2f746515d56953a084352667"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">channel</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Pix32.channel" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Channel-byte array sharing storage with rgba and value; byte order follows <a class="reference internal" href="#struct_pix32_1_1_r_g_b_a"><span class="std std-ref">RGBA</span></a> member order. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Pix32.RGBA">
+<span class="target" id="struct_pix32_1_1_r_g_b_a"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RGBA</span></span></span><a class="headerlink" href="#c.Pix32.RGBA" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcImage.h&gt;</em></div>
+<p>Pixel channel bytes; alpha represents opacity. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Pix32.RGBA.red">
+<span class="target" id="struct_pix32_1_1_r_g_b_a_1a113ebb60a03f311e984446478cf37260"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">red</span></span></span><a class="headerlink" href="#c.Pix32.RGBA.red" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Red intensity 0..255. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Pix32.RGBA.green">
+<span class="target" id="struct_pix32_1_1_r_g_b_a_1a9ab818fcf5ae5849836f6ef380ce3c57"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">green</span></span></span><a class="headerlink" href="#c.Pix32.RGBA.green" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Green intensity 0..255. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Pix32.RGBA.blue">
+<span class="target" id="struct_pix32_1_1_r_g_b_a_1aa76ce233748a3eefadace2483d26a61c"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">blue</span></span></span><a class="headerlink" href="#c.Pix32.RGBA.blue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Blue intensity 0..255. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Pix32.RGBA.alpha">
+<span class="target" id="struct_pix32_1_1_r_g_b_a_1a9389fe6c1427ed88ad52e96c33c2f53f"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">alpha</span></span></span><a class="headerlink" href="#c.Pix32.RGBA.alpha" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Alpha-channel for compositing. </p>
+<p>0..255 </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.ResampleFilter">
+<span class="target" id="struct_resample_filter"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResampleFilter</span></span></span><a class="headerlink" href="#c.ResampleFilter" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Named separable reconstruction filter and support radius. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ResampleFilter.name">
+<span class="target" id="struct_resample_filter_1a101148cb3377d1256dc796493580c05e"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><a class="headerlink" href="#c.ResampleFilter.name" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Name of the filter. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ResampleFilter.proc">
+<span class="target" id="struct_resample_filter_1afb8f8c7d039307f4f9321d809600a075"></span><span class="n"><span class="pre">ResampleFilterProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.ResampleFilter.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>1-D filter procedure. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ResampleFilter.support">
+<span class="target" id="struct_resample_filter_1a3e00c33aee6f832c5898b360d48bd30e"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">support</span></span></span><a class="headerlink" href="#c.ResampleFilter.support" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Width of 1-D filter. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -478,6 +635,41 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 <li><a class="reference internal" href="#c.rbcX11Image.Rbc_DrawableToColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawableToColorImage()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcX11Image.Rbc_PhotoImageMask"><code class="docutils literal notranslate"><span class="pre">Rbc_PhotoImageMask()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcX11Image.Rbc_ColorImageMask"><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageMask()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.ColorImage"><code class="docutils literal notranslate"><span class="pre">ColorImage</span></code></a><ul>
+<li><a class="reference internal" href="#c.ColorImage.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.ColorImage.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.ColorImage.bits"><code class="docutils literal notranslate"><span class="pre">bits</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Filter2D"><code class="docutils literal notranslate"><span class="pre">Filter2D</span></code></a><ul>
+<li><a class="reference internal" href="#c.Filter2D.support"><code class="docutils literal notranslate"><span class="pre">support</span></code></a></li>
+<li><a class="reference internal" href="#c.Filter2D.sum"><code class="docutils literal notranslate"><span class="pre">sum</span></code></a></li>
+<li><a class="reference internal" href="#c.Filter2D.scale"><code class="docutils literal notranslate"><span class="pre">scale</span></code></a></li>
+<li><a class="reference internal" href="#c.Filter2D.kernel"><code class="docutils literal notranslate"><span class="pre">kernel</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Pix32"><code class="docutils literal notranslate"><span class="pre">Pix32</span></code></a><ul>
+<li><a class="reference internal" href="#c.Pix32.value"><code class="docutils literal notranslate"><span class="pre">value</span></code></a></li>
+<li><a class="reference internal" href="#c.Pix32.rgba"><code class="docutils literal notranslate"><span class="pre">rgba</span></code></a></li>
+<li><a class="reference internal" href="#c.Pix32.channel"><code class="docutils literal notranslate"><span class="pre">channel</span></code></a></li>
+<li><a class="reference internal" href="#c.Pix32.RGBA"><code class="docutils literal notranslate"><span class="pre">Pix32::RGBA</span></code></a><ul>
+<li><a class="reference internal" href="#c.Pix32.RGBA.red"><code class="docutils literal notranslate"><span class="pre">red</span></code></a></li>
+<li><a class="reference internal" href="#c.Pix32.RGBA.green"><code class="docutils literal notranslate"><span class="pre">green</span></code></a></li>
+<li><a class="reference internal" href="#c.Pix32.RGBA.blue"><code class="docutils literal notranslate"><span class="pre">blue</span></code></a></li>
+<li><a class="reference internal" href="#c.Pix32.RGBA.alpha"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.ResampleFilter"><code class="docutils literal notranslate"><span class="pre">ResampleFilter</span></code></a><ul>
+<li><a class="reference internal" href="#c.ResampleFilter.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li><a class="reference internal" href="#c.ResampleFilter.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+<li><a class="reference internal" href="#c.ResampleFilter.support"><code class="docutils literal notranslate"><span class="pre">support</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

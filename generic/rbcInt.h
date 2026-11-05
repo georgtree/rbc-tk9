@@ -317,16 +317,10 @@ int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashes
  */
 void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr);
 
-/* -------------------------------------------------------------------
- *
- * ColorPair --
- *
- *    Holds a pair of foreground, background colors.
- *
- * -------------------------------------------------------------------
- */
+/** @brief Foreground/background color pair; ownership belongs to the option or drawing owner. */
 typedef struct {
-    XColor *fgColor, *bgColor;
+    XColor *fgColor; /**< Foreground color, possibly a component-specific sentinel. */
+    XColor *bgColor; /**< Background color, or NULL when no background is requested. */
 } ColorPair;
 
 #define COLOR_NONE (XColor *)0
@@ -867,9 +861,10 @@ void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
  */
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode);
 typedef enum {RBC_SCROLL_MOVETO, RBC_SCROLL_UNITS, RBC_SCROLL_PAGES} Rbc_ScrollKind;
+/** @brief Parsed scrollbar request, independent of axis application. */
 typedef struct {
-    Rbc_ScrollKind kind;
-    double value;
+    Rbc_ScrollKind kind; /**< Request kind: absolute fraction, unit increment or page increment. */
+    double value; /**< Fraction for moveto, or signed count for scrolling. */
 } Rbc_ScrollRequest;
 /**
  * @brief Parse a finite double-valued scroll request without moving a viewport.

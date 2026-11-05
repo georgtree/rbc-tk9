@@ -25,6 +25,7 @@ Track layout and viewport scopes
 --------------------------------
 
 .. doxygenstruct:: RbcTrackViewport
+   :members:
 
 .. doxygenfunction:: Rbc_LayoutTracks
 
@@ -33,3 +34,54 @@ Track layout and viewport scopes
 .. doxygenfunction:: Rbc_LeaveTrack
 
 The graph layout entry point is documented in :doc:`graph-reference`.
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: ElemComplexVector
+   :members:
+
+.. doxygenstruct:: Line
+   :members:
+
+.. doxygenstruct:: LineAreaTransaction
+   :members:
+
+.. doxygenstruct:: LineBandPolygon
+   :members:
+
+.. doxygenstruct:: LineComplexDataTransaction
+   :members:
+
+.. doxygenstruct:: LineErrorBand
+   :members:
+
+.. doxygenstruct:: LineParamTransaction
+   :members:
+
+.. doxygenstruct:: LinePen
+   :members:
+
+.. doxygenstruct:: LinePenStyle
+   :members:
+
+.. doxygenstruct:: LineScalarTransaction
+   :members:
+
+.. doxygenstruct:: LineTrace
+   :members:
+
+.. doxygenstruct:: MapInfo
+   :members:
+
+.. doxygenstruct:: ParsedSymbol
+   :members:
+
+.. doxygenstruct:: SmoothingInfo
+   :members:
+
+.. doxygenstruct:: Symbol
+   :members:

@@ -20,3 +20,15 @@ complete mappings. The namespace is documentation-only.
    :members:
 
 .. c:namespace-pop::
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: LineDecimateBlock
+   :members:
+
+.. doxygenstruct:: LineDecimateCache
+   :members:

@@ -133,7 +133,7 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend">
-<span class="target" id="group__legend__configuration_1gac555697c92e5e2bd198d173672b8950d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateTrackLegend</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__legend__configuration_1gac555697c92e5e2bd198d173672b8950d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateTrackLegend</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create an opt-in local legend sharing graph event infrastructure. </p>
 <p>Requires a track without an existing legend. Creates a private tag table, borrows or lazily creates trackLegendBindings and initializes component options under trackLegend/TrackLegend. Returns TCL_OK on success; failure destroys the partial local legend but retains the graph-owned shared table.</p>
 <dl class="field-list simple">
@@ -151,6 +151,27 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 <dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.LegendPosition">
 <span class="target" id="struct_legend_position"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendPosition</span></span></span><a class="headerlink" href="#c.rbcGrLegendConfiguration.LegendPosition" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Staged position; windowName borrows the parsed Tcl object’s string. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.LegendPosition.site">
+<span class="target" id="struct_legend_position_1ab3d7ef3bc14c1017f1f9a80ad485e66f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">site</span></span></span><a class="headerlink" href="#c.rbcGrLegendConfiguration.LegendPosition.site" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Legend site selector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.LegendPosition.anchorPos">
+<span class="target" id="struct_legend_position_1aee8685d7b72aa3704765cf5d9e24323a"></span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anchorPos</span></span></span><a class="headerlink" href="#c.rbcGrLegendConfiguration.LegendPosition.anchorPos" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Explicit position in widget pixels; negative values are resolved from the far edges. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.LegendPosition.windowName">
+<span class="target" id="struct_legend_position_1a639aa42e5ebd94f56c6f6d71b2177f34"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">windowName</span></span></span><a class="headerlink" href="#c.rbcGrLegendConfiguration.LegendPosition.windowName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed Tk pathname for an external legend, or NULL. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -194,7 +215,7 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLegendLayout.GetLegendPixelDimension">
-<span class="target" id="group__legend__layout_1gab1b7c8e41a7a12dac598dd1b7f05fa03"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLegendPixelDimension</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">entrySize</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Pad</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">padPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dimensionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.GetLegendPixelDimension" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__legend__layout_1gab1b7c8e41a7a12dac598dd1b7f05fa03"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLegendPixelDimension</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">entrySize</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><span class="n"><span class="pre">Rbc_Pad</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">padPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dimensionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.GetLegendPixelDimension" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check a cell-count dimension including border and exterior padding. </p>
 <p>Returns TCL_OK and writes dimensionPtr only when all inputs are nonnegative and the complete dimension fits in int. Returns TCL_ERROR without changing output otherwise. Uses division before multiplication; performs no allocation.</p>
 <dl class="field-list simple">
@@ -584,7 +605,7 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLegendOutput.Rbc_LegendExport">
-<span class="target" id="group__legend__output_1gae6914e557e0f2d49c9a1d5054a3e970f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_LegendExport" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__legend__output_1gae6914e557e0f2d49c9a1d5054a3e970f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_LegendExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit mapped legend decoration, symbols and labels to an export backend. </p>
 <p>Borrows legend, export context and displayed elements. Hidden/empty layouts emit nothing. Subtracts exterior padding from the output box, sets origin and handles decorations before visiting entries in column-major order. Uses each concrete element’s exportSymbolProc and closes its own output context. Local clipping and external-legend exclusion belong to callers.</p>
 <dl class="field-list simple">
@@ -615,7 +636,7 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLegendOutput.Rbc_ExportTrackLegends">
-<span class="target" id="group__legend__output_1ga7cda3ba1724f6fc07582b950fef43a5c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportTrackLegends</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">raised</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_ExportTrackLegends" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__legend__output_1ga7cda3ba1724f6fc07582b950fef43a5c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportTrackLegends</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">raised</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_ExportTrackLegends" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export a local legend layer within each visible track clip. </p>
 <p>Selects matching raised flags and noncollapsed track rectangles. Opens an output context, pushes the inclusive visible rectangle as a clip, exports the legend, then balances clip/context cleanup. Does not remap track geometry.</p>
 <dl class="field-list simple">
@@ -790,7 +811,7 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend">
-<span class="target" id="group__legend__lifetime_1ga33a593148c79900916ec26c6be6e4088"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackLegend</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__legend__lifetime_1ga33a593148c79900916ec26c6be6e4088"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackLegend</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy a local legend and clear its track pointer. </p>
 <p>Requires the shared local binding table to remain live. An absent legend is harmless. Releases local tag bindings, not the shared binding table; Tk resources must be released before window loss.</p>
 <dl class="field-list simple">
@@ -823,6 +844,308 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 <span class="target" id="struct_legend_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendStruct</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Graph- or track-owned legend with borrowed elements and scoped bindings. </p>
 <p>Owns option state, derived shadow/text resources and optional external associations. A local legend owns tags but borrows the shared event table; a global legend owns its binding table. Cached dimensions are not entry records: entries remain in the graph’s element display list. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.track">
+<span class="target" id="struct_legend_struct_1ac07ea94a73477d0b402924d5f4909b0f"></span><a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">track</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.track" title="Link to this definition">¶</a><br /></dt>
+<dd><p>NULL for the graph-wide legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.tags">
+<span class="target" id="struct_legend_struct_1ad764f70abca346825cedbb97a6d71102"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tags</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.tags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Local binding tags, separate from global tags. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.optionTable">
+<span class="target" id="struct_legend_struct_1a779c1e347a5833ac5af0c42c8405aaa0"></span><span class="n"><span class="pre">Tk_OptionTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">optionTable</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.optionTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option table for this component configuration lifecycle. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.activeBorderWidthObjPtr">
+<span class="target" id="struct_legend_struct_1a5bd5622e533094299ecd8cd800c38c74"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">activeBorderWidthObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.activeBorderWidthObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for active border width; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.borderWidthObjPtr">
+<span class="target" id="struct_legend_struct_1acbc65eee7f26d94cfa603ae8319ba80e"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">borderWidthObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.borderWidthObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for border width; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.columnsObjPtr">
+<span class="target" id="struct_legend_struct_1a65a703439c9b24217067be6ca80fb993"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">columnsObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.columnsObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for columns; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.ipadXObjPtr">
+<span class="target" id="struct_legend_struct_1a03d07504ce9f017646b9e3b8b8a5c366"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ipadXObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.ipadXObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for ipad x; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.ipadYObjPtr">
+<span class="target" id="struct_legend_struct_1ab36b26c39aa5521d7ca5d2abb0859cab"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ipadYObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.ipadYObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for ipad y; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.padXObjPtr">
+<span class="target" id="struct_legend_struct_1a32c783556fd26459a30b92b8cfb63bed"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">padXObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.padXObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for pad x; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.padYObjPtr">
+<span class="target" id="struct_legend_struct_1a9218dcb0a1db80d68bef00e91e158faf"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">padYObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.padYObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for pad y; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.positionObjPtr">
+<span class="target" id="struct_legend_struct_1a518ff01e98753081175941e64cc7f540"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">positionObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.positionObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for position; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.rowsObjPtr">
+<span class="target" id="struct_legend_struct_1a1f6c2c75c51399e70967aa562c8c9832"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">rowsObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.rowsObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for rows; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.shadowObjPtr">
+<span class="target" id="struct_legend_struct_1a9cc306ff62c2e1170d106a5d612795f0"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">shadowObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.shadowObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for shadow; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.optionsInitialized">
+<span class="target" id="struct_legend_struct_1ac950557cfc80e2276e5655682431bd65"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">optionsInitialized</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.optionsInitialized" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero after Tk option initialization. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.tkResourcesReleased">
+<span class="target" id="struct_legend_struct_1ab8ccb8664b0bca390cb1bf26f0114bd8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tkResourcesReleased</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.tkResourcesReleased" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero after guarded Tk-resource release. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.flags">
+<span class="target" id="struct_legend_struct_1a618863809a71996e003258a70b5b9b42"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">flags</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.flags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Legend state flags, including redraw scheduling. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.classUid">
+<span class="target" id="struct_legend_struct_1a3f18dfd9e338abf962d5090dd4ed1651"></span><span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">classUid</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.classUid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Type: Element or Marker. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.hidden">
+<span class="target" id="struct_legend_struct_1a5f4ea244e4b5ebe9b0d0e39a8d485aa3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hidden</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.hidden" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, don’t display the legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.raised">
+<span class="target" id="struct_legend_struct_1acac1f81706d82fcd1fcf4636833f3fdd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">raised</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.raised" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, draw the legend last, above everything else. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.entryInset">
+<span class="target" id="struct_legend_struct_1a86f50d3baea741d1637187cb681a2b24"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">entryInset</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.entryInset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Entry width excluding its label. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.nEntries">
+<span class="target" id="struct_legend_struct_1a5d613e862bd6bb48d18590f2ba3a9665"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nEntries</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.nEntries" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of element entries in table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.width">
+<span class="target" id="struct_legend_struct_1a8c97fd56338fd4bdbcc94df5541bfddf"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of the legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.height">
+<span class="target" id="struct_legend_struct_1a10199abd1af1714e5ba9be1a315ed8dd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of the legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.nColumns">
+<span class="target" id="struct_legend_struct_1a70628b8c3d4a79b6dde471652ba7fd25"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nColumns</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.nColumns" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of columns and rows in legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.nRows">
+<span class="target" id="struct_legend_struct_1af3a3988f957c45ff1e4e3ec5c4c7c9d0"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nRows</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.nRows" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of columns and rows in legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.site">
+<span class="target" id="struct_legend_struct_1a6784633799e5f626850c4cc6b7cda697"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">site</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.site" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Legend placement selector: margin, plot, coordinates or external window. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.anchorPos">
+<span class="target" id="struct_legend_struct_1a55eaa6d311205abbb9957b8eb6a3ebbe"></span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anchorPos</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.anchorPos" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Says how to position the legend. </p>
+<p>Indicates the site and/or x-y screen coordinates of the legend. Used in conjunction with the anchor to determine its location. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.anchor">
+<span class="target" id="struct_legend_struct_1ac62659f084c5f25dec484114caac4847"></span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anchor</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.anchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Anchor of legend. </p>
+<p>Used to interpret the positioning point of the legend in the graph </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.x">
+<span class="target" id="struct_legend_struct_1a04bd3da2813ef1a80a9fa94dba632403"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.x" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computed origin of legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.y">
+<span class="target" id="struct_legend_struct_1a47646117ad8e8c32a9be68fde24b4ea3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">y</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.y" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computed origin of legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.graphPtr">
+<span class="target" id="struct_legend_struct_1a2eb46ca38a9c0292e885e2bd7102b72d"></span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">graphPtr</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.graphPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owning graph. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.cmdToken">
+<span class="target" id="struct_legend_struct_1a0ac09c87c4de851e558672f9f9ddb5bd"></span><span class="n"><span class="pre">Tcl_Command</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cmdToken</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.cmdToken" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Token for graph’s widget command. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.reqColumns">
+<span class="target" id="struct_legend_struct_1ae0bd9467010c7effaa8dfb9fc1303ca2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reqColumns</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.reqColumns" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested column count; zero allows automatic layout. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.reqRows">
+<span class="target" id="struct_legend_struct_1ad7918c7a5173d38578db98737ef5296d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reqRows</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.reqRows" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested row count; zero allows automatic layout. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.ipadX">
+<span class="target" id="struct_legend_struct_1a81f2fec3b1643f38fff618d040a6b2e3"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><span class="n"><span class="pre">Rbc_Pad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ipadX</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.ipadX" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_legend_struct_1autotoc_md11">
+<h3>of pixels padding around legend entries<a class="headerlink" href="#struct_legend_struct_1autotoc_md11" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_legend_struct_1autotoc_md11"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.ipadY">
+<span class="target" id="struct_legend_struct_1a72cdec9282c6e7d84c682604800bad57"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><span class="n"><span class="pre">Rbc_Pad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ipadY</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.ipadY" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_legend_struct_1autotoc_md12">
+<h3>of pixels padding around legend entries<a class="headerlink" href="#struct_legend_struct_1autotoc_md12" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_legend_struct_1autotoc_md12"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.padX">
+<span class="target" id="struct_legend_struct_1a9f89a7fc009ab9688b4fcd1cd11f4299"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><span class="n"><span class="pre">Rbc_Pad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">padX</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.padX" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_legend_struct_1autotoc_md13">
+<h3>of pixels padding to exterior of legend<a class="headerlink" href="#struct_legend_struct_1autotoc_md13" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_legend_struct_1autotoc_md13"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.padY">
+<span class="target" id="struct_legend_struct_1aee5999eb58b51ff57744db129deccfa8"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><span class="n"><span class="pre">Rbc_Pad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">padY</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.padY" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_legend_struct_1autotoc_md14">
+<h3>of pixels padding to exterior of legend<a class="headerlink" href="#struct_legend_struct_1autotoc_md14" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_legend_struct_1autotoc_md14"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.tkwin">
+<span class="target" id="struct_legend_struct_1ad9342f27c12f7b4b119d078e154bd970"></span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tkwin</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.tkwin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Optional external window to draw legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.style">
+<span class="target" id="struct_legend_struct_1a6cba787b8596bfabd1a46270e518d74a"></span><a class="reference internal" href="text-font-reference.html#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">style</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.style" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Entry text style and owned GC. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.maxSymSize">
+<span class="target" id="struct_legend_struct_1a75f14c7b09cccbdafc66a9a3562d91c0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">maxSymSize</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.maxSymSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Size of largest symbol to be displayed. </p>
+<p>Used to calculate size of legend </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.activeBorder">
+<span class="target" id="struct_legend_struct_1a3f9b760fd14bd0c24d7c4ed0af2084ad"></span><span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">activeBorder</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.activeBorder" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Active legend entry background color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.activeRelief">
+<span class="target" id="struct_legend_struct_1a3f509ac4eedf7afa50ac243503ef5fb3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">activeRelief</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.activeRelief" title="Link to this definition">¶</a><br /></dt>
+<dd><p>3-D effect on active entry. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.entryBorderWidth">
+<span class="target" id="struct_legend_struct_1a3f1cfa08504e9222f0548a12adb1c374"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">entryBorderWidth</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.entryBorderWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Border width around each entry in legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.border">
+<span class="target" id="struct_legend_struct_1a5278c566bf7b478a52a442f695b6c395"></span><span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">border</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.border" title="Link to this definition">¶</a><br /></dt>
+<dd><p>3-D effect of legend. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.borderWidth">
+<span class="target" id="struct_legend_struct_1a3ccd82647e3225983bbd571168b362ad"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">borderWidth</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.borderWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Width of legend 3-D border. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.relief">
+<span class="target" id="struct_legend_struct_1a4c77e1abb13eb9067a9259f4d1094832"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">relief</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.relief" title="Link to this definition">¶</a><br /></dt>
+<dd><p>3-d effect of border around the legend: TK_RELIEF_RAISED etc. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct.bindTable">
+<span class="target" id="struct_legend_struct_1a569b719c48cab21b3b5492214679eb97"></span><a class="reference internal" href="binding-reference.html#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bindTable</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct.bindTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Binding table used by this legend; local legends borrow the shared track table. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -957,7 +1280,7 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLegendCommands.Rbc_TrackLegendOp">
-<span class="target" id="group__legend__commands_1gaa5f389473e69d7608769e2b3112453c4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TrackLegendOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.Rbc_TrackLegendOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__legend__commands_1gaa5f389473e69d7608769e2b3112453c4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TrackLegendOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.Rbc_TrackLegendOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Normalize a nested track-legend command and refresh layout before dispatch. </p>
 <p>Requires a track with a live legend. Creates an owned normalized argument vector, validates operation/arity, refreshes layout and dispatches only on success, then releases the vector. Returns the Tcl status of the failing stage or handler. Borrows graph/track/legend; adds no preservation boundary around layout callbacks.</p>
 <dl class="field-list simple">
@@ -978,6 +1301,21 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 <dt class="sig sig-object c" id="c.rbcGrLegendCommands.LegendOpSpec">
 <span class="target" id="struct_legend_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendOpSpec</span></span></span><a class="headerlink" href="#c.rbcGrLegendCommands.LegendOpSpec" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Shared dispatch header followed by a legend-specific handler pointer. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.LegendOpSpec.header">
+<span class="target" id="struct_legend_op_spec_1a3e19509a05a5b1fc89490a7e766742cc"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.rbcGrLegendCommands.LegendOpSpec.header" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.LegendOpSpec.proc">
+<span class="target" id="struct_legend_op_spec_1ac14c7f2ee4353492bc5566111c03ce9f"></span><span class="n"><span class="pre">RbcGrLegdOp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.rbcGrLegendCommands.LegendOpSpec.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command handler for this operation. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1003,7 +1341,12 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 <li><a class="reference internal" href="#c.rbcGrLegendConfiguration.ConfigureLegend"><code class="docutils literal notranslate"><span class="pre">ConfigureLegend()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLegendConfiguration.Rbc_CreateLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateLegend()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateTrackLegend()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.LegendPosition"><code class="docutils literal notranslate"><span class="pre">LegendPosition</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.LegendPosition"><code class="docutils literal notranslate"><span class="pre">LegendPosition</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.LegendPosition.site"><code class="docutils literal notranslate"><span class="pre">site</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.LegendPosition.anchorPos"><code class="docutils literal notranslate"><span class="pre">anchorPos</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.LegendPosition.windowName"><code class="docutils literal notranslate"><span class="pre">windowName</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#measurement-and-placement">Measurement and placement</a><ul>
@@ -1057,7 +1400,57 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 <li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_DestroyLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyLegend()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTrackLegend()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_LegendFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendFontsChanged()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct"><code class="docutils literal notranslate"><span class="pre">LegendStruct</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct"><code class="docutils literal notranslate"><span class="pre">LegendStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.track"><code class="docutils literal notranslate"><span class="pre">track</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.tags"><code class="docutils literal notranslate"><span class="pre">tags</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.optionTable"><code class="docutils literal notranslate"><span class="pre">optionTable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.activeBorderWidthObjPtr"><code class="docutils literal notranslate"><span class="pre">activeBorderWidthObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.borderWidthObjPtr"><code class="docutils literal notranslate"><span class="pre">borderWidthObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.columnsObjPtr"><code class="docutils literal notranslate"><span class="pre">columnsObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.ipadXObjPtr"><code class="docutils literal notranslate"><span class="pre">ipadXObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.ipadYObjPtr"><code class="docutils literal notranslate"><span class="pre">ipadYObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.padXObjPtr"><code class="docutils literal notranslate"><span class="pre">padXObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.padYObjPtr"><code class="docutils literal notranslate"><span class="pre">padYObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.positionObjPtr"><code class="docutils literal notranslate"><span class="pre">positionObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.rowsObjPtr"><code class="docutils literal notranslate"><span class="pre">rowsObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.shadowObjPtr"><code class="docutils literal notranslate"><span class="pre">shadowObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.optionsInitialized"><code class="docutils literal notranslate"><span class="pre">optionsInitialized</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.tkResourcesReleased"><code class="docutils literal notranslate"><span class="pre">tkResourcesReleased</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.flags"><code class="docutils literal notranslate"><span class="pre">flags</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.classUid"><code class="docutils literal notranslate"><span class="pre">classUid</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.hidden"><code class="docutils literal notranslate"><span class="pre">hidden</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.raised"><code class="docutils literal notranslate"><span class="pre">raised</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.entryInset"><code class="docutils literal notranslate"><span class="pre">entryInset</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.nEntries"><code class="docutils literal notranslate"><span class="pre">nEntries</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.nColumns"><code class="docutils literal notranslate"><span class="pre">nColumns</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.nRows"><code class="docutils literal notranslate"><span class="pre">nRows</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.site"><code class="docutils literal notranslate"><span class="pre">site</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.anchorPos"><code class="docutils literal notranslate"><span class="pre">anchorPos</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.anchor"><code class="docutils literal notranslate"><span class="pre">anchor</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.x"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.y"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.graphPtr"><code class="docutils literal notranslate"><span class="pre">graphPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.cmdToken"><code class="docutils literal notranslate"><span class="pre">cmdToken</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.reqColumns"><code class="docutils literal notranslate"><span class="pre">reqColumns</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.reqRows"><code class="docutils literal notranslate"><span class="pre">reqRows</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.ipadX"><code class="docutils literal notranslate"><span class="pre">ipadX</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.ipadY"><code class="docutils literal notranslate"><span class="pre">ipadY</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.padX"><code class="docutils literal notranslate"><span class="pre">padX</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.padY"><code class="docutils literal notranslate"><span class="pre">padY</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.tkwin"><code class="docutils literal notranslate"><span class="pre">tkwin</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.style"><code class="docutils literal notranslate"><span class="pre">style</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.maxSymSize"><code class="docutils literal notranslate"><span class="pre">maxSymSize</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.activeBorder"><code class="docutils literal notranslate"><span class="pre">activeBorder</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.activeRelief"><code class="docutils literal notranslate"><span class="pre">activeRelief</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.entryBorderWidth"><code class="docutils literal notranslate"><span class="pre">entryBorderWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.border"><code class="docutils literal notranslate"><span class="pre">border</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.borderWidth"><code class="docutils literal notranslate"><span class="pre">borderWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.relief"><code class="docutils literal notranslate"><span class="pre">relief</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct.bindTable"><code class="docutils literal notranslate"><span class="pre">bindTable</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#command-handlers">Command handlers</a><ul>
@@ -1069,7 +1462,11 @@ namespaces below disambiguate static helper names without changing C linkage.</p
 <li><a class="reference internal" href="#c.rbcGrLegendCommands.Rbc_LegendOp"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLegendCommands.TrackLegendBboxOp"><code class="docutils literal notranslate"><span class="pre">TrackLegendBboxOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLegendCommands.Rbc_TrackLegendOp"><code class="docutils literal notranslate"><span class="pre">Rbc_TrackLegendOp()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrLegendCommands.LegendOpSpec"><code class="docutils literal notranslate"><span class="pre">LegendOpSpec</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.LegendOpSpec"><code class="docutils literal notranslate"><span class="pre">LegendOpSpec</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.LegendOpSpec.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.LegendOpSpec.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

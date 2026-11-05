@@ -27,26 +27,20 @@
 
 typedef struct Rbc_ChainLinkStruct Rbc_ChainLink;
 
-/*
- * A Rbc_ChainLink is the container structure for the Rbc_Chain.
- */
-
+/** @brief Chain linkage with borrowed caller payload. */
 struct Rbc_ChainLinkStruct {
-    Rbc_ChainLink *prevPtr; /* Link to the previous link */
-    Rbc_ChainLink *nextPtr; /* Link to the next link */
-    ClientData clientData;  /* Pointer to the data object */
+    Rbc_ChainLink *prevPtr; /**< Link to the previous link */
+    Rbc_ChainLink *nextPtr; /**< Link to the next link */
+    ClientData clientData; /**< Pointer to the data object */
 };
 
 typedef int(Rbc_ChainCompareProc)(Rbc_ChainLink **l1PtrPtr, Rbc_ChainLink **l2PtrPtr);
 
-/*
- * A Rbc_Chain is a doubly chained list structure.
- */
-
+/** @brief Doubly linked chain container; links do not own client payloads. */
 typedef struct {
-    Rbc_ChainLink *headPtr; /* Pointer to first element in chain */
-    Rbc_ChainLink *tailPtr; /* Pointer to last element in chain */
-    Tcl_Size nLinks;             /* Number of elements in chain */
+    Rbc_ChainLink *headPtr; /**< Pointer to first element in chain */
+    Rbc_ChainLink *tailPtr; /**< Pointer to last element in chain */
+    Tcl_Size nLinks; /**< Number of elements in chain */
 } Rbc_Chain;
 
 /**

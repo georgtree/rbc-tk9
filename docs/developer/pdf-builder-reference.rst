@@ -20,3 +20,15 @@ numbering conventions. They are independent of Cairo.
 .. doxygenfunction:: Rbc_PdfDocument
 
 .. doxygenfunction:: Rbc_PdfFree
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: PdfResource
+   :members:
+
+.. doxygenstruct:: PdfDocument
+   :members:

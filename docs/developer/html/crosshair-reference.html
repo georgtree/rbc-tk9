@@ -218,7 +218,7 @@ Updates segments, adds requested visible hairs, copies the frame to the window, 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcCrosshairs.GetCrosshairPositionFromObj">
-<span class="target" id="group__crosshair__internals_1gac6ff5dadc9f24b849fcd183ecad88f6e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCrosshairPositionFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcCrosshairs.GetCrosshairPositionFromObj" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__crosshair__internals_1gac6ff5dadc9f24b849fcd183ecad88f6e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCrosshairPositionFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcCrosshairs.GetCrosshairPositionFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse an optional &#64;x,y widget-pixel position. </p>
 <p>NULL or empty input succeeds with INT_MIN in both output coordinates, an out-of-plot sentinel. Otherwise splits at the first comma and converts both parts through Tk_GetPixelsFromObj using temporary retained Tcl objects. Accepts Tk screen-distance syntax, storing integer pixel results as doubles.</p>
 <p>Returns TCL_OK only after both coordinates convert. On TCL_ERROR leaves pointPtr unchanged, releases both temporary objects, and reports syntax or conversion context in interp. Does not move crosshairs or invoke Tcl code.</p>
@@ -363,7 +363,7 @@ Updates segments, adds requested visible hairs, copies the frame to the window, 
 scope does not change the compiled symbol or the shared crosshair interfaces.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcWindowsCrosshairs.MoveCrosshairs">
-<span class="target" id="group__crosshair__internals_1ga92a5abfe4ca56b60880389e6642dd0b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MoveCrosshairs</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Crosshairs</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">hotSpotPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsCrosshairs.MoveCrosshairs" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__crosshair__internals_1ga92a5abfe4ca56b60880389e6642dd0b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MoveCrosshairs</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Crosshairs</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">hotSpotPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsCrosshairs.MoveCrosshairs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Batch Windows position-only XOR erasure and drawing. </p>
 <p>Requires unchanged drawing style/GC and a live graph/window. Computes new segments from hotSpotPtr and current graph bounds; compares both visibility and endpoints to avoid redrawing identical geometry. Submits up to four old/new segments in one renderer call, preserving a single native drawing batch.</p>
 <p>Always updates hotspot, segments and visible, including when unmapped or hidden. Does not alter hidden or allocate a replacement GC. Only appropriate for position-only configuration; style changes must erase with the old GC. No Tcl callbacks or event processing may intervene in this transition.</p>
@@ -376,6 +376,117 @@ scope does not change the compiled symbol or the shared crosshair interfaces.</p
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.CrosshairsOpSpec">
+<span class="target" id="struct_crosshairs_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CrosshairsOpSpec</span></span></span><a class="headerlink" href="#c.CrosshairsOpSpec" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command dispatch entry with shared argument validation metadata. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsOpSpec.header">
+<span class="target" id="struct_crosshairs_op_spec_1a16af76d2d70ca81fc11e3b556b8c6d1d"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.CrosshairsOpSpec.header" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsOpSpec.proc">
+<span class="target" id="struct_crosshairs_op_spec_1abd5b7e1af3973d5b23b419b04d7d1404"></span><span class="n"><span class="pre">RbcGrHairsOp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.CrosshairsOpSpec.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command handler for this operation. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.CrosshairsStruct">
+<span class="target" id="struct_crosshairs_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CrosshairsStruct</span></span></span><a class="headerlink" href="#c.CrosshairsStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graph-owned crosshair options and mapped XOR drawing state. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.optionTable">
+<span class="target" id="struct_crosshairs_struct_1a2d0653b7fa0f76566bec64c40c0ce71d"></span><span class="n"><span class="pre">Tk_OptionTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">optionTable</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.optionTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option table for this component configuration lifecycle. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.dashesObjPtr">
+<span class="target" id="struct_crosshairs_struct_1aaea6b7c7e764ed8f96947c9df45ed5ac"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">dashesObjPtr</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.dashesObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for dashes; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.lineWidthObjPtr">
+<span class="target" id="struct_crosshairs_struct_1a2b610ff358ce0cb4ab4ed1de0a7a6cb0"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">lineWidthObjPtr</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.lineWidthObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for line width; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.positionObjPtr">
+<span class="target" id="struct_crosshairs_struct_1a38f15ddb718f25bbbabbe369b00091ca"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">positionObjPtr</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.positionObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for position; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.hotSpot">
+<span class="target" id="struct_crosshairs_struct_1a83c7cd205b1e8098c089d99662d7ef0b"></span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hotSpot</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.hotSpot" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Hot spot for crosshairs. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.visible">
+<span class="target" id="struct_crosshairs_struct_1aa11fda49e4e03b3f9e189343f6ed4f54"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">visible</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.visible" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Internal state of crosshairs. </p>
+<p>If non-zero, crosshairs are displayed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.hidden">
+<span class="target" id="struct_crosshairs_struct_1a56b660789903fd37d1d6a89521027d1f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hidden</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.hidden" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-zero, crosshairs are not displayed. </p>
+<p>This is not necessarily consistent with the internal state variable. This is true when the hot spot is off the graph. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.dashes">
+<span class="target" id="struct_crosshairs_struct_1a6abd53e26819ceda6789ac004746b93a"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Dashes" title="Rbc_Dashes"><span class="n"><span class="pre">Rbc_Dashes</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dashes</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.dashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dashstyle of the crosshairs. </p>
+<p>This represents an array of alternatingly drawn pixel values. If NULL, the hairs are drawn as a solid line </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.lineWidth">
+<span class="target" id="struct_crosshairs_struct_1a86e6ab1b3577024b7fad06db0f63a4ff"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lineWidth</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.lineWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Width of the simulated crosshair lines. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.segArr">
+<span class="target" id="struct_crosshairs_struct_1a91751ab65663c72bba3558b089d59893"></span><a class="reference internal" href="geometry-reference.html#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">segArr</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.CrosshairsStruct.segArr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Positions of line segments representing the simulated crosshairs. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.colorPtr">
+<span class="target" id="struct_crosshairs_struct_1affe63c8b66a8b651d4c1ec03d19ef1f7"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">colorPtr</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.colorPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Foreground color of crosshairs. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.CrosshairsStruct.gc">
+<span class="target" id="struct_crosshairs_struct_1a2a74d22f1c8df0940d98373caac5aaa7"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gc</span></span></span><a class="headerlink" href="#c.CrosshairsStruct.gc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graphics context for crosshairs. </p>
+<p>Set to GXxor to not require redraws of graph </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
@@ -424,6 +535,29 @@ scope does not change the compiled symbol or the shared crosshair interfaces.</p
 </li>
 <li><a class="reference internal" href="#windows-position-only-transition">Windows position-only transition</a><ul>
 <li><a class="reference internal" href="#c.rbcWindowsCrosshairs.MoveCrosshairs"><code class="docutils literal notranslate"><span class="pre">MoveCrosshairs()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.CrosshairsOpSpec"><code class="docutils literal notranslate"><span class="pre">CrosshairsOpSpec</span></code></a><ul>
+<li><a class="reference internal" href="#c.CrosshairsOpSpec.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsOpSpec.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.CrosshairsStruct"><code class="docutils literal notranslate"><span class="pre">CrosshairsStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.CrosshairsStruct.optionTable"><code class="docutils literal notranslate"><span class="pre">optionTable</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.dashesObjPtr"><code class="docutils literal notranslate"><span class="pre">dashesObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.lineWidthObjPtr"><code class="docutils literal notranslate"><span class="pre">lineWidthObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.positionObjPtr"><code class="docutils literal notranslate"><span class="pre">positionObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.hotSpot"><code class="docutils literal notranslate"><span class="pre">hotSpot</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.visible"><code class="docutils literal notranslate"><span class="pre">visible</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.hidden"><code class="docutils literal notranslate"><span class="pre">hidden</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.dashes"><code class="docutils literal notranslate"><span class="pre">dashes</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.lineWidth"><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.segArr"><code class="docutils literal notranslate"><span class="pre">segArr</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.colorPtr"><code class="docutils literal notranslate"><span class="pre">colorPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.CrosshairsStruct.gc"><code class="docutils literal notranslate"><span class="pre">gc</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

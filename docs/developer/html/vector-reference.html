@@ -52,7 +52,7 @@ read-only state and notification reentry and client-data lifetime.</p>
 <h2>Types<a class="headerlink" href="#types" title="Link to this heading">¶</a></h2>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.Rbc_Vector">
-<span class="target" id="rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Vector_s</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Vector</span></span></span><a class="headerlink" href="#c.Rbc_Vector" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_Vector_s" title="Rbc_Vector_s"><span class="n"><span class="pre">Rbc_Vector_s</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Vector</span></span></span><a class="headerlink" href="#c.Rbc_Vector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Opaque vector record; access values and metadata through the API. </p>
 </dd></dl>
 
@@ -96,7 +96,7 @@ read-only state and notification reentry and client-data lifetime.</p>
 
 <dl class="c type">
 <dt class="sig sig-object c" id="c.Rbc_VectorId">
-<span class="target" id="rbc_vector_8h_1af00ee250213139f9049fda52db682fcf"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_VectorIdStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorId</span></span></span><a class="headerlink" href="#c.Rbc_VectorId" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_vector_8h_1af00ee250213139f9049fda52db682fcf"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorIdStruct" title="Rbc_VectorIdStruct"><span class="n"><span class="pre">Rbc_VectorIdStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorId</span></span></span><a class="headerlink" href="#c.Rbc_VectorId" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Observer token attached to one vector, not a vector reference count. </p>
 <p>Survives vector rename. Free it when detaching, including from a callback. Vector destruction frees remaining tokens after delivering DESTROY; clients must discard their saved token at that point. </p>
 </dd></dl>

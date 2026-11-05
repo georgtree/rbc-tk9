@@ -14,3 +14,24 @@ failure-state descriptions in :doc:`expression-engine`.
 
 .. doxygengroup:: expression_engine
    :members:
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: ComplexComponentFunction
+   :members:
+
+.. doxygenstruct:: ComplexRealFunction
+   :members:
+
+.. doxygenstruct:: ComplexRealScalarFunction
+   :members:
+
+.. doxygenstruct:: ComplexScalarFunction
+   :members:
+
+.. doxygenstruct:: MathFunction
+   :members:

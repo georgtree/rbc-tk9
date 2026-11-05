@@ -65,3 +65,23 @@ Creation, insertion and lookup
 .. doxygenfunction:: Rb_ListDeleteNodeByKey
 
 .. doxygenfunction:: Rbc_ListGetNthNode
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: Rbc_Chain
+   :members:
+
+.. doxygenstruct:: Rbc_ChainLinkStruct
+   :members:
+
+.. doxygenunion:: Rbc_ListKey
+
+.. doxygenstruct:: Rbc_ListNodeStruct
+   :members:
+
+.. doxygenstruct:: Rbc_ListStruct
+   :members:

@@ -11,16 +11,19 @@
 #include "rbcInt.h"
 #include "rbcExport.h"
 
-/* PDF resources own their byte strings; IDs 1..5 are the document skeleton. */
+/** @brief Owned PDF resource body; document skeleton objects reserve IDs 1 through 5. */
 typedef struct {
-    char kind;
-    Tcl_DString body;
+    char kind; /**< Resource category used for lookup and serialization. */
+    Tcl_DString body; /**< Owned serialized resource bytes. */
 } PdfResource;
 
+/** @brief Document-owned PDF resource registry and page coordinate conversion. */
 typedef struct {
-    PdfResource **resources;
-    int count, capacity, height;
-    double scale;
+    PdfResource **resources; /**< Owned array of owned resource records. */
+    int count; /**< Number of initialized resources. */
+    int capacity; /**< Allocated resource-pointer capacity. */
+    int height; /**< Page height in unscaled display pixels. */
+    double scale; /**< Display-pixel to PDF-point scale. */
 } PdfDocument;
 
 void Rbc_PdfBegin(Rbc_ExportContext *token, double scale, int height) {
@@ -91,7 +94,7 @@ void Rbc_PdfSetResource(Rbc_ExportContext *token, int id, const char *body, Tcl_
 
 /* Stream lengths always count bytes, including embedded NULs. */
 int Rbc_PdfStream(Rbc_ExportContext *token, char kind, const char *dictionary, const char *bytes, Tcl_Size length) {
-    Tcl_DString body;
+    Tcl_DString body; /**< Owned serialized resource bytes. */
     Tcl_DString *saved = token->buffer;
     int id;
 

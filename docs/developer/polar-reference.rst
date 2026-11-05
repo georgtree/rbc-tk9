@@ -38,3 +38,12 @@ drawing pass when callbacks mutate or destroy its graph.
 
 .. doxygengroup:: polar_labels
    :members:
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: PolarRadiusRange
+   :members:

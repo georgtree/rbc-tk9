@@ -122,3 +122,43 @@ source offsets must agree across cropped copies; see :doc:`images-tiles`.
    :members:
 
 .. c:namespace-pop::
+
+Windows header records
+----------------------
+
+The packed file headers retain their on-disk layout. Border colors are resolved
+values, not retained Tk resources.
+
+.. doxygenstruct:: DOSEPSHEADER
+   :project: rbc-win
+   :members:
+
+.. doxygenstruct:: APMHEADER
+   :project: rbc-win
+   :members:
+
+.. doxygenstruct:: Rbc_Win3DBorderColors
+   :project: rbc-win
+   :members:
+
+Platform-specific record extensions
+-----------------------------------
+
+These views include Windows-only handles omitted from the normal-platform
+:doc:`text-font-reference` and :doc:`eps-reference` records.
+
+.. c:namespace-push:: rbcFontWindows
+
+.. doxygenstruct:: FontSource
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::
+
+.. c:namespace-push:: rbcEpsWindows
+
+.. doxygenstruct:: EpsItem
+   :project: rbc-win
+   :members:
+
+.. c:namespace-pop::

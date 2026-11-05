@@ -157,7 +157,7 @@ First delegates to CheckCommandSource, then enforces the vector read-only flag. 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.PrepareCommandWrite">
-<span class="target" id="group__vector__command__paths_1ga8c1b1e9ea243f1664475a3d098b6cf37"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareCommandWrite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.PrepareCommandWrite" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__command__paths_1ga8c1b1e9ea243f1664475a3d098b6cf37"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareCommandWrite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <a class="reference internal" href="vector-storage-private-reference.html#c.VectorData" title="VectorData"><span class="n"><span class="pre">VectorData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.PrepareCommandWrite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare reusable or enlarged storage without releasing old data. </p>
 <p>
 Requires a nonnegative requested length and a retained destination/interpreter. Checks writability, reuses existing capacity when sufficient, otherwise grows geometrically with overflow checks and copies the existing logical prefix. Does not initialize the added tail or change metadata. On success outputs either borrowed current storage or a new allocation; callers distinguish them when abandoning preparation. No storage-release callback occurs here. </p>
@@ -178,7 +178,7 @@ Requires a nonnegative requested length and a retained destination/interpreter. 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.PrepareCommandResize">
-<span class="target" id="group__vector__command__paths_1gaaf16d069b27247b6b91ed1a4ff08f5a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareCommandResize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.PrepareCommandResize" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__command__paths_1gaaf16d069b27247b6b91ed1a4ff08f5a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareCommandResize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <a class="reference internal" href="vector-storage-private-reference.html#c.VectorData" title="VectorData"><span class="n"><span class="pre">VectorData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sizePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.PrepareCommandResize" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare storage using the explicit-resize capacity policy. </p>
 <p>
 Requires a nonnegative length and a retained destination/interpreter. Checks writability and computes capacity from DEF_ARRAY_SIZE, with zero capacity for zero length. Reuses matching capacity or allocates and copies the retained prefix. Does not zero newly added values, install metadata or release old storage. The caller owns a newly allocated result until commit, but must not free a reused current pointer. </p>
@@ -199,7 +199,7 @@ Requires a nonnegative length and a retained destination/interpreter. Checks wri
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.FinishCommandWrite">
-<span class="target" id="group__vector__command__paths_1ga673fb834e4ddc1cc299bc4bb42b4dbe0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FinishCommandWrite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.FinishCommandWrite" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__command__paths_1ga673fb834e4ddc1cc299bc4bb42b4dbe0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FinishCommandWrite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <a class="reference internal" href="vector-storage-private-reference.html#c.VectorData" title="VectorData"><span class="n"><span class="pre">VectorData</span></span></a><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.FinishCommandWrite" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Install completed storage before releasing the old allocation. </p>
 <p>
 Caller validates dimensions, prepares all values and retains vector/interpreter. Installs data, length, capacity, whole-vector selection and invalid extrema. A changed pointer acquires TCL_DYNAMIC ownership; an unchanged pointer keeps its existing release procedure. Releases detached old storage according to its previous policy, preserving interpreter state across a custom release callback. Does not access vector storage after release, enforce writability or notify observers. Callback effects are not rolled back. </p>
@@ -293,7 +293,7 @@ Qualifies the name in the current namespace, so a relative output does not fall 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.ReleaseCommandOutputs">
-<span class="target" id="group__vector__command__paths_1gadb81020eac26cb4dd576304bc3ab91a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseCommandOutputs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">CommandOutput</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outputs</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ReleaseCommandOutputs" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__command__paths_1gadb81020eac26cb4dd576304bc3ab91a8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseCommandOutputs</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcVectorCommands.CommandOutput" title="CommandOutput"><span class="n"><span class="pre">CommandOutput</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outputs</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ReleaseCommandOutputs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an output-record array and its preservation references. </p>
 <p>
 Releases every non-NULL vector slot, then frees the owned array. Requires count initialized slots, which may include repeated identities with separate references. Does not destroy newly created vectors or roll back their data. </p>
@@ -309,7 +309,7 @@ Releases every non-NULL vector slot, then frees the owned array. Requires count 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.GetCommandOutputs">
-<span class="target" id="group__vector__command__paths_1gac262d2256b6ae3170531943e36870aa0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">CommandOutput</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetCommandOutputs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.GetCommandOutputs" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__command__paths_1gac262d2256b6ae3170531943e36870aa0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcVectorCommands.CommandOutput" title="CommandOutput"><span class="n"><span class="pre">CommandOutput</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetCommandOutputs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.GetCommandOutputs" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Precheck existing destinations then collect retained output identities. </p>
 <p>
 Allocates zero-initialized output records after checking the byte count. First validates existing literal destinations for type and writability, then resolves or creates each output. On failure releases collected references and the record array; already created vectors remain. Returns an owned array, including an allocation for count zero. Does not reject duplicate names or source/output aliasing; operation handlers impose their own rules. </p>
@@ -348,7 +348,7 @@ Requires a retained destination/interpreter and already committed data. A destro
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.AllocateCommandData">
-<span class="target" id="group__vector__command__paths_1ga4e2301eda5f8b3272848e44d24ec5772"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AllocateCommandData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.AllocateCommandData" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__command__paths_1ga4e2301eda5f8b3272848e44d24ec5772"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AllocateCommandData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <a class="reference internal" href="vector-storage-private-reference.html#c.VectorData" title="VectorData"><span class="n"><span class="pre">VectorData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.AllocateCommandData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate uninitialized typed staging storage. </p>
 <p>
 Checks byte-count overflow and attempts an owned allocation, reserving one byte for an empty result so NULL denotes failure. Returns a Tcl status. Does not modify vector metadata, check writability or invoke callbacks. The caller frees the allocation or transfers it at commit. </p>
@@ -368,7 +368,7 @@ Checks byte-count overflow and attempts an owned allocation, reserving one byte 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.ConvertCommandList">
-<span class="target" id="group__vector__command__paths_1ga9c69482e6fc863019c0dc7424355c926"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConvertCommandList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ConvertCommandList" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__command__paths_1ga9c69482e6fc863019c0dc7424355c926"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConvertCommandList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <a class="reference internal" href="vector-storage-private-reference.html#c.VectorData" title="VectorData"><span class="n"><span class="pre">VectorData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.ConvertCommandList" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert a complete argument list into owned typed staging storage. </p>
 <p>
 Allocates storage and retains a private outer Tcl list representation before evaluating values. Each successful conversion is followed by a destination liveness/writability check. Failure frees staging storage and resets its pointer to NULL. Success returns owned data, or NULL for an empty list. Does not install values or length; callbacks may change the destination themselves. Caller retains the vector/interpreter throughout conversion. </p>
@@ -510,7 +510,7 @@ Floating, signed and unsigned formats resolve against native C sizeof values. Re
 <li><p><strong>interp</strong> – <strong>[in]</strong> Diagnostic/evaluation interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Number of remaining option-value arguments; zero reports a missing value. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed option-value slice; objv[0] is the value, not the option name. </p></li>
-<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Required NativeFmtValue output, written only for a supported native representation. </p></li>
+<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Required <a class="reference internal" href="#struct_native_fmt_value"><span class="std std-ref">NativeFmtValue</span></a> output, written only for a supported native representation. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -859,6 +859,74 @@ Heapifies the permutation, then moves successive maxima to the end and repairs t
 </div>
 </dd></dl>
 
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.CommandOutput">
+<span class="target" id="struct_command_output"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommandOutput</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.CommandOutput" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validated vector-command destination and rollback ownership. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.CommandOutput.vector">
+<span class="target" id="struct_command_output_1a9d36f8bbdb75bd1c50a3490f7e30d518"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">vector</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.CommandOutput.vector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destination vector; borrowed if pre-existing. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.CommandOutput.isNew">
+<span class="target" id="struct_command_output_1a89dd6ef4396a8d94a85c0b432f979a76"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isNew</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.CommandOutput.isNew" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when this operation created the destination and owns failure cleanup. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFmtValue">
+<span class="target" id="struct_native_fmt_value"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeFmtValue</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFmtValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native binary format descriptor. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFmtValue.size">
+<span class="target" id="struct_native_fmt_value_1a7171149419b6612c12fe21a4c493b8e2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFmtValue.size" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Element width in bytes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFmtValue.format">
+<span class="target" id="struct_native_fmt_value_1a7491b23dac5923008c01edc6526c5ab9"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">format</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFmtValue.format" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Binary numeric format selector. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.VectorInstOpSpec">
+<span class="target" id="struct_vector_inst_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorInstOpSpec</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.VectorInstOpSpec" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command dispatch entry with shared argument validation metadata. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.VectorInstOpSpec.header">
+<span class="target" id="struct_vector_inst_op_spec_1a7efe9577f00b4fe15a0075a8c4195059"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.VectorInstOpSpec.header" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.VectorInstOpSpec.proc">
+<span class="target" id="struct_vector_inst_op_spec_1ac7983d74eb580c63834af518e5d07ee6"></span><span class="n"><span class="pre">RbcVectorCmdOp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.VectorInstOpSpec.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command handler for this operation. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -910,6 +978,24 @@ Heapifies the permutation, then moves successive maxima to the end and repairs t
 <li><a class="reference internal" href="#c.rbcVectorCommands.CompareVectorIndices"><code class="docutils literal notranslate"><span class="pre">CompareVectorIndices()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcVectorCommands.SiftVectorIndices"><code class="docutils literal notranslate"><span class="pre">SiftVectorIndices()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcVectorCommands.SortVectorIndices"><code class="docutils literal notranslate"><span class="pre">SortVectorIndices()</span></code></a></li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.rbcVectorCommands.CommandOutput"><code class="docutils literal notranslate"><span class="pre">CommandOutput</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcVectorCommands.CommandOutput.vector"><code class="docutils literal notranslate"><span class="pre">vector</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcVectorCommands.CommandOutput.isNew"><code class="docutils literal notranslate"><span class="pre">isNew</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcVectorCommands.NativeFmtValue"><code class="docutils literal notranslate"><span class="pre">NativeFmtValue</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcVectorCommands.NativeFmtValue.size"><code class="docutils literal notranslate"><span class="pre">size</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcVectorCommands.NativeFmtValue.format"><code class="docutils literal notranslate"><span class="pre">format</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcVectorCommands.VectorInstOpSpec"><code class="docutils literal notranslate"><span class="pre">VectorInstOpSpec</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcVectorCommands.VectorInstOpSpec.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcVectorCommands.VectorInstOpSpec.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

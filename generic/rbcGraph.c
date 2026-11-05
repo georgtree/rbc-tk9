@@ -160,45 +160,50 @@ typedef enum {
 
 #define GRAPH_PIXEL_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    unsigned int stagedMask;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
 
-    int borderWidth;
-    int bottomMarginSize;
-    int halo;
-    int reqHeight;
-    int highlightWidth;
-    int leftMarginSize;
-    int plotBorderWidth;
-    int rightMarginSize;
-    int topMarginSize;
-    int reqWidth;
+    int borderWidth; /**< Border thickness in pixels staged for commit or abort. */
+    int bottomMarginSize; /**< Bottom margin size in pixels staged for commit or abort. */
+    int halo; /**< Picking halo in pixels staged for commit or abort. */
+    int reqHeight; /**< Requested widget height in pixels staged for commit or abort. */
+    int highlightWidth; /**< Focus-highlight thickness in pixels staged for commit or abort. */
+    int leftMarginSize; /**< Left margin size in pixels staged for commit or abort. */
+    int plotBorderWidth; /**< Plot border thickness in pixels staged for commit or abort. */
+    int rightMarginSize; /**< Right margin size in pixels staged for commit or abort. */
+    int topMarginSize; /**< Top margin size in pixels staged for commit or abort. */
+    int reqWidth; /**< Requested widget width in pixels staged for commit or abort. */
 } GraphPixelTransaction;
 
 typedef enum { GRAPH_PADDING_OPTION_NONE, GRAPH_PADDING_OPTION_X, GRAPH_PADDING_OPTION_Y } GraphPaddingOption;
 
 #define GRAPH_PADDING_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    unsigned int stagedMask;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
 
-    Rbc_Pad padX;
-    Rbc_Pad padY;
+    Rbc_Pad padX; /**< Horizontal pixel padding staged for commit or abort. */
+    Rbc_Pad padY; /**< Vertical pixel padding staged for commit or abort. */
 } GraphPaddingTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    BarMode mode;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    BarMode mode; /**< Validated mode selector staged for commit or abort. */
 } GraphBarModeTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    Shadow shadow;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    Shadow shadow; /**< Replacement text shadow staged for commit or abort. */
 } GraphShadowTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    Rbc_Tile tile;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    Rbc_Tile tile; /**< Retained replacement tile token staged for commit or abort. */
 } GraphTileTransaction;
 
 static const char *const polarRepresentationNames[] = {"polar", "smith", NULL};
@@ -326,10 +331,12 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
+/** @brief Parsed graph snapshot destination and dimensions. */
 typedef struct {
-    const char *name;
-    int width, height;
-    int format;
+    const char *name; /**< Snapshot destination name. */
+    int width; /**< Requested snapshot width in pixels. */
+    int height; /**< Requested snapshot height in pixels. */
+    int format; /**< Snapshot format selector. */
 } SnapData;
 
 static Tcl_IdleProc DisplayGraph;
@@ -378,14 +385,16 @@ static int InitMetaFileHeader(Tcl_Interp *interp, Tk_Window tkwin, int width, in
 static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHEADER *mfhPtr, const char *fileName);
 #endif
 
+/** @brief Static graph option-name lookup entry. */
 typedef struct {
-    const char *name;
-    int option;
+    const char *name; /**< Borrowed option name. */
+    int option; /**< Associated option selector. */
 } GraphOptionName;
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    Rbc_GraphOpProc *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_GraphOpProc *proc; /**< Typed command handler for this operation. */
 } GraphOpSpec;
 
 /**
@@ -1231,8 +1240,12 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
  * dereferenced through this record. The settle owner owns the sample array.
  */
 typedef struct {
-    Tk_Window window;
-    int x, y, width, height, border;
+    Tk_Window window; /**< Borrowed sampled Tk window. */
+    int x; /**< Window X position in parent pixels. */
+    int y; /**< Window Y position in parent pixels. */
+    int width; /**< Window width in pixels. */
+    int height; /**< Window height in pixels. */
+    int border; /**< Window border width in pixels. */
 } GraphGeometrySample;
 
 /**
@@ -1242,9 +1255,9 @@ typedef struct {
  * samples. REDRAW_PENDING represents the scheduled work separately.
  */
 typedef struct GraphRedrawSettle {
-    int count;
-    int stablePasses;
-    GraphGeometrySample *samples;
+    int count; /**< Number of geometry samples. */
+    int stablePasses; /**< Number of consecutive passes with unchanged geometry. */
+    GraphGeometrySample *samples; /**< Owned sample array. */
 } GraphRedrawSettle;
 
 /**

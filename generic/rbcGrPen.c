@@ -23,9 +23,10 @@ static Pen *NameToPen(Graph *graphPtr, Tcl_Obj *nameObj);
 
 typedef int RbcGrPenOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrPenOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrPenOp *proc; /**< Typed command handler for this operation. */
 } PenOpSpec;
 
 static RbcGrPenOp CgetOp;

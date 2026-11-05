@@ -242,44 +242,50 @@ typedef struct {
     Tcl_Size changedLast; /**< Last source index covered by the accumulated change range. */
 } ElemVector;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    unsigned int stagedMask;
-    ElemVector x;
-    ElemVector y;
-    ElemVector w;
-    ElemVector xError;
-    ElemVector xHigh;
-    ElemVector xLow;
-    ElemVector yError;
-    ElemVector yHigh;
-    ElemVector yLow;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    ElemVector x; /**< Replacement X-data descriptor staged for commit or abort. */
+    ElemVector y; /**< Replacement Y-data descriptor staged for commit or abort. */
+    ElemVector w; /**< Replacement weight-data descriptor staged for commit or abort. */
+    ElemVector xError; /**< Replacement symmetric X-error data staged for commit or abort. */
+    ElemVector xHigh; /**< Replacement explicit X-high data staged for commit or abort. */
+    ElemVector xLow; /**< Replacement explicit X-low data staged for commit or abort. */
+    ElemVector yError; /**< Replacement symmetric Y-error data staged for commit or abort. */
+    ElemVector yHigh; /**< Replacement explicit Y-high data staged for commit or abort. */
+    ElemVector yLow; /**< Replacement explicit Y-low data staged for commit or abort. */
 } ElemDataTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    unsigned int stagedMask;
-    Pen *activePenPtr;
-    Pen *normalPenPtr;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    Pen *activePenPtr; /**< Retained replacement active pen staged for commit or abort. */
+    Pen *normalPenPtr; /**< Retained replacement normal pen staged for commit or abort. */
 } ElemPenTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    unsigned int stagedMask;
-    Axis *xAxisPtr;
-    Axis *yAxisPtr;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    Axis *xAxisPtr; /**< Retained replacement X axis staged for commit or abort. */
+    Axis *yAxisPtr; /**< Retained replacement Y axis staged for commit or abort. */
 } ElemAxisTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    int state;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    int state; /**< Validated interaction state staged for commit or abort. */
 } ElemStateTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    char **tags;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    char **tags; /**< Owned replacement binding-tag array staged for commit or abort. */
 } ElemTagsTransaction;
 
+/** @brief Staged option replacements; commit transfers resources and abort releases uncommitted resources. */
 typedef struct {
-    int staged;
-    Rbc_Chain *palette;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    Rbc_Chain *palette; /**< Owned replacement style palette staged for commit or abort. */
 } ElemStylesTransaction;
 
 /** @brief Shared prefix of graph element implementations.

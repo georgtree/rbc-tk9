@@ -46,60 +46,62 @@
  * records: entries remain in the graph's element display list.
  */
 struct LegendStruct {
-    RbcTrack *track;    /* NULL for the graph-wide legend. */
-    Tcl_HashTable tags; /* Local binding tags, separate from global tags. */
-    Tk_OptionTable optionTable;
+    RbcTrack *track; /**< NULL for the graph-wide legend. */
+    Tcl_HashTable tags; /**< Local binding tags, separate from global tags. */
+    Tk_OptionTable optionTable; /**< Tk option table for this component configuration lifecycle. */
     /*
      * Original Tcl representations for values requiring additional
      * conversion or validation.
      */
-    Tcl_Obj *activeBorderWidthObjPtr;
-    Tcl_Obj *borderWidthObjPtr;
-    Tcl_Obj *columnsObjPtr;
-    Tcl_Obj *ipadXObjPtr;
-    Tcl_Obj *ipadYObjPtr;
-    Tcl_Obj *padXObjPtr;
-    Tcl_Obj *padYObjPtr;
-    Tcl_Obj *positionObjPtr;
-    Tcl_Obj *rowsObjPtr;
-    Tcl_Obj *shadowObjPtr;
-    int optionsInitialized;
-    int tkResourcesReleased;
-    unsigned int flags;
-    Rbc_Uid classUid;         /* Type: Element or Marker. */
-    int hidden;               /* If non-zero, don't display the legend. */
-    int raised;               /* If non-zero, draw the legend last, above
-                               * everything else. */
-    int entryInset;           /* Entry width excluding its label. */
-    Tcl_Size nEntries;        /* Number of element entries in table. */
-    int width, height;        /* Dimensions of the legend */
-    Tcl_Size nColumns, nRows; /* Number of columns and rows in legend */
-    int site;
-    Point2D anchorPos; /* Says how to position the legend. Indicates
-                        * the site and/or x-y screen coordinates of
-                        * the legend.  Used in conjunction with the
-                        * anchor to determine its location. */
-    Tk_Anchor anchor;  /* Anchor of legend. Used to interpret the
-                        * positioning point of the legend in the
-                        * graph*/
-    int x, y;          /* Computed origin of legend. */
-    Graph *graphPtr;
-    Tcl_Command cmdToken; /* Token for graph's widget command. */
-    int reqColumns, reqRows;
-    Rbc_Pad ipadX, ipadY; /* # of pixels padding around legend entries */
-    Rbc_Pad padX, padY;   /* # of pixels padding to exterior of legend */
-    Tk_Window tkwin;      /* Optional external window to draw legend. */
-    TextStyle style;
-    int maxSymSize;           /* Size of largest symbol to be displayed.
-                               * Used to calculate size of legend */
-    Tk_3DBorder activeBorder; /* Active legend entry background color. */
-    int activeRelief;         /* 3-D effect on active entry. */
-    int entryBorderWidth;     /* Border width around each entry in legend. */
-    Tk_3DBorder border;       /* 3-D effect of legend. */
-    int borderWidth;          /* Width of legend 3-D border */
-    int relief;               /* 3-d effect of border around the legend:
-                               * TK_RELIEF_RAISED etc. */
-    Rbc_BindTable bindTable;
+    Tcl_Obj *activeBorderWidthObjPtr; /**< Tk option-managed Tcl representation for active border width; released with the owning option
+     * state.
+     */
+    Tcl_Obj *borderWidthObjPtr; /**< Tk option-managed Tcl representation for border width; released with the owning option state. */
+    Tcl_Obj *columnsObjPtr; /**< Tk option-managed Tcl representation for columns; released with the owning option state. */
+    Tcl_Obj *ipadXObjPtr; /**< Tk option-managed Tcl representation for ipad x; released with the owning option state. */
+    Tcl_Obj *ipadYObjPtr; /**< Tk option-managed Tcl representation for ipad y; released with the owning option state. */
+    Tcl_Obj *padXObjPtr; /**< Tk option-managed Tcl representation for pad x; released with the owning option state. */
+    Tcl_Obj *padYObjPtr; /**< Tk option-managed Tcl representation for pad y; released with the owning option state. */
+    Tcl_Obj *positionObjPtr; /**< Tk option-managed Tcl representation for position; released with the owning option state. */
+    Tcl_Obj *rowsObjPtr; /**< Tk option-managed Tcl representation for rows; released with the owning option state. */
+    Tcl_Obj *shadowObjPtr; /**< Tk option-managed Tcl representation for shadow; released with the owning option state. */
+    int optionsInitialized; /**< Nonzero after Tk option initialization. */
+    int tkResourcesReleased; /**< Nonzero after guarded Tk-resource release. */
+    unsigned int flags; /**< Legend state flags, including redraw scheduling. */
+    Rbc_Uid classUid; /**< Type: Element or Marker. */
+    int hidden; /**< If non-zero, don't display the legend. */
+    int raised; /**< If non-zero, draw the legend last, above everything else. */
+    int entryInset; /**< Entry width excluding its label. */
+    Tcl_Size nEntries; /**< Number of element entries in table. */
+    int width; /**< Dimensions of the legend */
+    int height; /**< Dimensions of the legend */
+    Tcl_Size nColumns; /**< Number of columns and rows in legend */
+    Tcl_Size nRows; /**< Number of columns and rows in legend */
+    int site; /**< Legend placement selector: margin, plot, coordinates or external window. */
+    Point2D anchorPos; /**< Says how to position the legend. Indicates the site and/or x-y screen coordinates of the legend.
+     * Used in conjunction with the anchor to determine its location.
+     */
+    Tk_Anchor anchor; /**< Anchor of legend. Used to interpret the positioning point of the legend in the graph */
+    int x; /**< Computed origin of legend. */
+    int y; /**< Computed origin of legend. */
+    Graph *graphPtr; /**< Borrowed owning graph. */
+    Tcl_Command cmdToken; /**< Token for graph's widget command. */
+    int reqColumns; /**< Requested column count; zero allows automatic layout. */
+    int reqRows; /**< Requested row count; zero allows automatic layout. */
+    Rbc_Pad ipadX; /**< # of pixels padding around legend entries */
+    Rbc_Pad ipadY; /**< # of pixels padding around legend entries */
+    Rbc_Pad padX; /**< # of pixels padding to exterior of legend */
+    Rbc_Pad padY; /**< # of pixels padding to exterior of legend */
+    Tk_Window tkwin; /**< Optional external window to draw legend. */
+    TextStyle style; /**< Entry text style and owned GC. */
+    int maxSymSize; /**< Size of largest symbol to be displayed. Used to calculate size of legend */
+    Tk_3DBorder activeBorder; /**< Active legend entry background color. */
+    int activeRelief; /**< 3-D effect on active entry. */
+    int entryBorderWidth; /**< Border width around each entry in legend. */
+    Tk_3DBorder border; /**< 3-D effect of legend. */
+    int borderWidth; /**< Width of legend 3-D border */
+    int relief; /**< 3-d effect of border around the legend: TK_RELIEF_RAISED etc. */
+    Rbc_BindTable bindTable; /**< Binding table used by this legend; local legends borrow the shared track table. */
 };
 
 /**
@@ -107,9 +109,9 @@ struct LegendStruct {
  * @brief Staged position; windowName borrows the parsed Tcl object's string.
  */
 typedef struct {
-    int site;
-    Point2D anchorPos;
-    const char *windowName;
+    int site; /**< Legend site selector. */
+    Point2D anchorPos; /**< Explicit position in widget pixels; negative values are resolved from the far edges. */
+    const char *windowName; /**< Borrowed Tk pathname for an external legend, or NULL. */
 } LegendPosition;
 
 /**
@@ -295,8 +297,8 @@ typedef int RbcGrLegdOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
  * @brief Shared dispatch header followed by a legend-specific handler pointer.
  */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrLegdOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrLegdOp *proc; /**< Typed command handler for this operation. */
 } LegendOpSpec;
 
 static RbcGrLegdOp GetOp;

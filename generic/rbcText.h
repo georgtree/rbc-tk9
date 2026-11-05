@@ -16,77 +16,55 @@
 
 #define DEF_TEXT_FLAGS (TK_PARTIAL_OK | TK_IGNORE_NEWLINES)
 
-/*
- * ----------------------------------------------------------------------
- *
- * TextFragment --
- *
- * ----------------------------------------------------------------------
- */
+/** @brief One line of a multiline layout. Text is borrowed from the original string. */
 typedef struct {
-    const char *text; /* Text to be displayed. */
-    int x, y; /* X-Y offset of the baseline from the
-               * upper-left corner of the bounding box. */
-    int sx, sy; /* Reserved screen-coordinate fields. */
-    Tcl_Size count; /* Number of bytes in text. The actual
-                     * character count may differ because of
-                     * multi-byte UTF encodings. */
-    int width; /* Width of segment in pixels. This is used
-                * to draw PostScript strings at the same
-                * width as the screen representation. */
+    const char *text; /**< Borrowed UTF byte span; count gives its length and it need not be NUL-terminated. */
+    int x; /**< X-Y offset of the baseline from the upper-left corner of the bounding box. */
+    int y; /**< X-Y offset of the baseline from the upper-left corner of the bounding box. */
+    int sx; /**< Reserved screen-coordinate fields. */
+    int sy; /**< Reserved screen-coordinate fields. */
+    Tcl_Size count; /**< Number of bytes in text. The actual character count may differ because of multi-byte UTF
+     * encodings.
+     */
+    int width; /**< Width of segment in pixels. This is used to draw PostScript strings at the same width as the
+     * screen representation.
+     */
 } TextFragment;
 
-/*
- * ----------------------------------------------------------------------
- *
- * TextLayout --
- *
- * ----------------------------------------------------------------------
- */
+/** @brief Single variable-size allocation of measured text fragments. */
 typedef struct {
-    Tcl_Size nFrags;         /* Number of text fragments. */
-    int width, height;       /* Dimensions of text bounding box. */
-    TextFragment fragArr[1]; /* Information about each fragment. */
+    Tcl_Size nFrags; /**< Number of text fragments. */
+    int width; /**< Dimensions of text bounding box. */
+    int height; /**< Dimensions of text bounding box. */
+    TextFragment fragArr[1]; /**< Inline fragment records; allocation extends to nFrags entries. Fragment strings remain borrowed. */
 } TextLayout;
 
+/** @brief Text shadow color and pixel displacement. */
 typedef struct {
-    XColor *color;
-    int offset;
+    XColor *color; /**< Borrowed shadow color, or NULL to omit the shadow. */
+    int offset; /**< Shadow displacement in pixels. */
 } Shadow;
 
-/*
- * ----------------------------------------------------------------------
- *
- * TextStyle --
- *
- *     Represents a convenient structure to hold text attributes
- *    which determine how a text string is to be displayed on the
- *    window, or drawn with PostScript commands.  The alternative
- *    is to pass lots of parameters to the drawing and printing
- *    routines. This seems like a more efficient and less cumbersome
- *    way of passing parameters.
- *
- * ----------------------------------------------------------------------
+/**
+ * @brief Shared text attributes. Font, colors and border are borrowed; the GC is released by
+ * Rbc_FreeTextStyle(). Initialization does not initialize every field.
  */
 typedef struct {
-    unsigned int state; /* If non-zero, indicates to draw text
-                         * in the active color */
-    int width, height;  /* Extents of text */
-    XColor *color;       /* Normal color */
-    XColor *activeColor; /* Active color */
-    Tk_Font font;        /* Font to use to draw text */
-    Tk_3DBorder border;  /* Background color of text.  This is also
-                          * used for drawing disabled text. */
-    Shadow shadow;       /* Drop shadow color and offset */
-    Tk_Justify justify;  /* Justification of the text string. This
-                          * only matters if the text is composed
-                          * of multiple lines. */
-    GC gc;               /* GC used to draw the text */
-    double theta;        /* Rotation of text in degrees. */
-    Tk_Anchor anchor;    /* Indicates how the text is anchored around
-                          * its x and y coordinates. */
-    Rbc_Pad padX, padY;  /* # pixels padding of around text region */
-    int leader;          /* # pixels spacing between lines of text */
+    unsigned int state; /**< If non-zero, indicates to draw text in the active color */
+    int width; /**< Extents of text */
+    int height; /**< Extents of text */
+    XColor *color; /**< Normal color */
+    XColor *activeColor; /**< Active color */
+    Tk_Font font; /**< Font to use to draw text */
+    Tk_3DBorder border; /**< Background color of text. This is also used for drawing disabled text. */
+    Shadow shadow; /**< Drop shadow color and offset */
+    Tk_Justify justify; /**< Justification of the text string. This only matters if the text is composed of multiple lines. */
+    GC gc; /**< GC used to draw the text */
+    double theta; /**< Rotation of text in degrees. */
+    Tk_Anchor anchor; /**< Indicates how the text is anchored around its x and y coordinates. */
+    Rbc_Pad padX; /**< # pixels padding of around text region */
+    Rbc_Pad padY; /**< # pixels padding of around text region */
+    int leader; /**< # pixels spacing between lines of text */
 
 } TextStyle;
 

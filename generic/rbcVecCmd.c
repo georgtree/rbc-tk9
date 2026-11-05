@@ -381,9 +381,10 @@ done:
     return dest;
 }
 
+/** @brief Validated vector-command destination and rollback ownership. */
 typedef struct {
-    VectorObject *vector;
-    int isNew;
+    VectorObject *vector; /**< Destination vector; borrowed if pre-existing. */
+    int isNew; /**< Nonzero when this operation created the destination and owns failure cleanup. */
 } CommandOutput;
 
 /**
@@ -667,9 +668,10 @@ static void SortVectorIndices(Tcl_Size *indexArr, Tcl_Size length, VectorObject 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
 typedef int RbcVectorCmdOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcVectorCmdOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcVectorCmdOp *proc; /**< Typed command handler for this operation. */
 } VectorInstOpSpec;
 
 static RbcVectorCmdOp TypeOp;
@@ -1102,13 +1104,10 @@ static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     return TCL_OK;
 }
 
-/*
- * Types and helper functions (for Tcl_ParseArgsObjv) for "binread" vector
- * instance command
- */
+/** @brief Native binary format descriptor. */
 struct NativeFmtValue {
-    int size;
-    enum NativeFormats format;
+    int size; /**< Element width in bytes. */
+    enum NativeFormats format; /**< Binary numeric format selector. */
 };
 
 /**

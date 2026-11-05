@@ -113,6 +113,7 @@ proc ::rbcDocBuild::main {arguments} {
         @WINDOW_SOURCE@ [doxyQuote [file join $root generic rbcWindow.c]] \
         @DRAW_SOURCE@ [doxyQuote [file join $root generic rbcDraw.c]] \
         @FONT_SOURCE@ [doxyQuote [file join $root generic rbcFont.c]] \
+        @PDF_BUILDER_SOURCE@ [doxyQuote [file join $root generic rbcPdf.c]] \
         @PDF_FONT_SOURCE@ [doxyQuote [file join $root generic rbcPdfFont.c]] \
         @FONT_HEADER@ [doxyQuote [file join $root generic rbcFont.h]] \
         @PS_HEADER@ [doxyQuote [file join $root generic rbcPs.h]] \
@@ -145,6 +146,8 @@ proc ::rbcDocBuild::main {arguments} {
         @ELEMENT_HEADER@ [doxyQuote [file join $root generic rbcGrElem.h]] \
         @LEGEND_HEADER@ [doxyQuote [file join $root generic rbcGrLegd.h]] \
         @LEGEND_SOURCE@ [doxyQuote [file join $root generic rbcGrLegd.c]] \
+        @AXIS_HEADER@ [doxyQuote [file join $root generic rbcGrAxis.h]] \
+        @TYPES_HEADER@ [doxyQuote [file join $root generic rbcTypes.h]] \
         @AXIS_SOURCE@ [doxyQuote [file join $root generic rbcGrAxis.c]] \
         @MARKER_SOURCE@ [doxyQuote [file join $root generic rbcGrMarker.c]] \
         @TRACK_SOURCE@ [doxyQuote [file join $root generic rbcGrTrack.c]] \
@@ -176,7 +179,7 @@ proc ::rbcDocBuild::main {arguments} {
     set winConfig [file join $output Doxyfile-win]
     file delete -force $winXml
     set winSettings [readFile $config]
-    append winSettings "\nINPUT = [doxyQuote [file join $source groups.dox]] [doxyQuote [file join $source calling-conventions.dox]] [doxyQuote [file join $root generic rbcInt.c]] [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcRenderCairo.c]] [doxyQuote [file join $root generic rbcWinDraw.c]] [doxyQuote [file join $root generic rbcWinImage.c]] [doxyQuote [file join $root generic rbcWinUtil.c]] [doxyQuote [file join $root generic rbcTile.c]] [doxyQuote [file join $root generic rbcGrPs.c]] [doxyQuote [file join $root generic rbcWindow.c]] [doxyQuote [file join $root generic rbcGrHairs.c]] [doxyQuote [file join $root generic rbcGraph.c]]\n"
+    append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcFont.c]] [doxyQuote [file join $root generic rbcCanvEps.c]] [doxyQuote [file join $root generic rbcWin.h]] [doxyQuote [file join $source groups.dox]] [doxyQuote [file join $source calling-conventions.dox]] [doxyQuote [file join $root generic rbcInt.c]] [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcRenderCairo.c]] [doxyQuote [file join $root generic rbcWinDraw.c]] [doxyQuote [file join $root generic rbcWinImage.c]] [doxyQuote [file join $root generic rbcWinUtil.c]] [doxyQuote [file join $root generic rbcTile.c]] [doxyQuote [file join $root generic rbcGrPs.c]] [doxyQuote [file join $root generic rbcWindow.c]] [doxyQuote [file join $root generic rbcGrHairs.c]] [doxyQuote [file join $root generic rbcGraph.c]]\n"
     append winSettings "OUTPUT_DIRECTORY = [doxyQuote [file join $output doxygen-win]]\n"
     append winSettings "WARN_LOGFILE = [doxyQuote $winLog]\n"
     # Select Windows branches and expand Xlib spelling without platform headers.

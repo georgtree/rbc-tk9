@@ -46,7 +46,7 @@
 <p>These interfaces are private. See <a class="reference internal" href="containers.html"><span class="doc">Chains and keyed lists</span></a> for ownership and traversal.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainInit">
-<span class="target" id="rbc_chain_8h_1a7ff7d64f38bbc50d0b50859343eb4b98"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainInit" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1a7ff7d64f38bbc50d0b50859343eb4b98"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainInit</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainInit" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initialize caller-owned storage as an empty chain. </p>
 <p>Does not free existing links. Use Reset to clear an initialized chain.</p>
 <dl class="field-list simple">
@@ -60,7 +60,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainReset">
-<span class="target" id="rbc_chain_8h_1aa4bedb7314555dc6b8b5a3139114f9ab"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainReset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainReset" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1aa4bedb7314555dc6b8b5a3139114f9ab"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainReset</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainReset" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Free all linked records and leave an empty initialized chain. </p>
 <p>NULL is harmless. External clientData is not freed. Inline storage created by ChainAllocLink is part of each freed record; run any payload cleanup first.</p>
 <dl class="field-list simple">
@@ -74,7 +74,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainDestroy">
-<span class="target" id="rbc_chain_8h_1ab3155590a4627616ef2317ef4ffd669d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainDestroy</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainDestroy" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1ab3155590a4627616ef2317ef4ffd669d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainDestroy</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainDestroy" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reset and free a heap-allocated chain, accepting NULL. </p>
 <p>Do not use on stack or embedded storage. External payload ownership remains with the caller.</p>
 <dl class="field-list simple">
@@ -102,7 +102,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainUnlinkLink">
-<span class="target" id="rbc_chain_8h_1a94ea4b2c87964346965ffee90ec2b2ca"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainUnlinkLink</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainUnlinkLink" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1a94ea4b2c87964346965ffee90ec2b2ca"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainUnlinkLink</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainUnlinkLink" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach a link without freeing its record or payload. </p>
 <p>Supply its actual chain; links do not store owner identity and this helper cannot validate membership. Clears next/previous pointers. The detached link may be reinserted or freed by the caller.</p>
 <dl class="field-list simple">
@@ -117,7 +117,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainDeleteLink">
-<span class="target" id="rbc_chain_8h_1a2c211092fd64fb65f3156a352b634ecc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainDeleteLink</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainDeleteLink" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1a2c211092fd64fb65f3156a352b634ecc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainDeleteLink</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainDeleteLink" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Unlink and free a link record, including any inline trailing storage. </p>
 <p>Requires a valid link and its actual chain. Does not free external clientData. All borrowed pointers into the link become invalid.</p>
 <dl class="field-list simple">
@@ -227,7 +227,7 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindString">
-<span class="target" id="group__list__internals_1gaee28d9110a4d03960bdbcda9312840c6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FindString</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindString" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__list__internals_1gaee28d9110a4d03960bdbcda9312840c6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListNodeStruct" title="Rbc_ListNodeStruct"><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FindString</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListStruct" title="Rbc_ListStruct"><span class="n"><span class="pre">Rbc_ListStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first node with equal string-key contents. </p>
 <p>Requires a valid string-key list and non-NULL NUL-terminated key. Checks the first byte before strcmp while traversing head to tail. Returns a borrowed node or NULL without mutation, allocation or retention.</p>
 <dl class="field-list simple">
@@ -242,7 +242,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindOneWord">
-<span class="target" id="group__list__internals_1ga090bd1514bd7f3788290c82589cda49d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindOneWord</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindOneWord" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__list__internals_1ga090bd1514bd7f3788290c82589cda49d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindOneWord</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListStruct" title="Rbc_ListStruct"><span class="n"><span class="pre">Rbc_ListStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindOneWord" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first node with the same pointer-sized key value. </p>
 <p>Requires a valid one-word-key list. Compares identity, not pointed-to contents; NULL is a valid key value. Returns a borrowed first match or NULL. Does not dereference keys or change membership/payload ownership.</p>
 <dl class="field-list simple">
@@ -257,7 +257,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindArray">
-<span class="target" id="group__list__internals_1gae9bbf9428558c7569416ad62e3f61acf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindArray</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindArray" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__list__internals_1gae9bbf9428558c7569416ad62e3f61acf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindArray</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListStruct" title="Rbc_ListStruct"><span class="n"><span class="pre">Rbc_ListStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindArray" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first node with equal integer-array key bytes. </p>
 <p>Requires a valid list whose type is the key’s int count and a readable key buffer of that size. Invalid count or byte-size overflow panics. Uses memcmp on copied native int bytes, not text or portable serialization. Returns a borrowed first match or NULL without mutation or allocation.</p>
 <dl class="field-list simple">
@@ -272,7 +272,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FreeNode">
-<span class="target" id="group__list__internals_1ga8b7438bc589cf872ad0a24b7239bb476"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeNode</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nodePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeNode" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__list__internals_1ga8b7438bc589cf872ad0a24b7239bb476"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeNode</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListNodeStruct" title="Rbc_ListNodeStruct"><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nodePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeNode" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Free a node allocation and its inline copied key. </p>
 <p>Caller must already have removed the node from membership, or be disposing of a never-inserted record. Does not unlink, adjust list count or free payloads or one-word key targets. All pointers into the node become invalid.</p>
 <dl class="field-list simple">
@@ -292,7 +292,7 @@
 <h2>Creation, insertion and lookup<a class="headerlink" href="#creation-insertion-and-lookup" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainCreate">
-<span class="target" id="rbc_chain_8h_1a3f9fb3f982961f1fa9bf78b55fa9b86d"></span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainCreate</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainCreate" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1a3f9fb3f982961f1fa9bf78b55fa9b86d"></span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainCreate</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainCreate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an initialized empty chain. </p>
 <p>Uses Tcl allocation; allocation exhaustion is not a recoverable Tcl error. The caller owns the container and eventually uses Rbc_ChainDestroy. No payload or link is created. </p>
 </dd></dl>
@@ -306,7 +306,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainAppend">
-<span class="target" id="rbc_chain_8h_1a39e4bf10ee419df607fb98d6a4479a0d"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainAppend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainAppend" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1a39e4bf10ee419df607fb98d6a4479a0d"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainAppend</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainAppend" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a link and append a borrowed payload pointer. </p>
 <p>Requires an initialized non-NULL chain. Returns the newly linked record, owned by the chain. Does not copy, retain or release clientData. Insertion increments the count and panics on count overflow.</p>
 <dl class="field-list simple">
@@ -321,7 +321,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainPrepend">
-<span class="target" id="rbc_chain_8h_1a85e127bb7ea243f584dd1bc4b9c330fe"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainPrepend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainPrepend" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1a85e127bb7ea243f584dd1bc4b9c330fe"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainPrepend</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainPrepend" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate a link and prepend a borrowed payload pointer. </p>
 <p>Requires an initialized non-NULL chain. Returns the newly linked record, owned by the chain. clientData remains independently owned. Allocation/count failure is not reported through an interpreter.</p>
 <dl class="field-list simple">
@@ -336,7 +336,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainLinkAfter">
-<span class="target" id="rbc_chain_8h_1a5de27f43826421287e2b5ad50aec1d21"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainLinkAfter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">afterLinkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainLinkAfter" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1a5de27f43826421287e2b5ad50aec1d21"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainLinkAfter</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">afterLinkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainLinkAfter" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Insert a detached link after a neighbor, or prepend for NULL. </p>
 <p>Requires a valid chain, a detached link with NULL neighbor pointers, and a non-NULL neighbor belonging to that chain. Does not validate membership or unlink an already inserted link. Updates endpoints, neighbors and count without allocation or callbacks; count overflow panics. Payload ownership is unchanged.</p>
 <dl class="field-list simple">
@@ -352,7 +352,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ChainLinkBefore">
-<span class="target" id="rbc_chain_8h_1ad8daa12d35a1cffcb8dcd3b9903ff48e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainLinkBefore</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">beforeLinkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainLinkBefore" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_chain_8h_1ad8daa12d35a1cffcb8dcd3b9903ff48e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainLinkBefore</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">beforeLinkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainLinkBefore" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Insert a detached link before a neighbor, or append for NULL. </p>
 <p>Requires a valid chain, a detached link with NULL neighbor pointers, and a non-NULL neighbor belonging to that chain. No membership validation or automatic unlinking occurs. Updates endpoints, neighbors and count without allocation; count overflow panics. The chain owns the inserted record, not its payload.</p>
 <dl class="field-list simple">
@@ -505,6 +505,167 @@
 </dd></dl>
 
 </section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_Chain">
+<span class="target" id="struct_rbc___chain"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Chain</span></span></span><a class="headerlink" href="#c.Rbc_Chain" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Doubly linked chain container; links do not own client payloads. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Chain.headPtr">
+<span class="target" id="struct_rbc___chain_1a938f620e9b282533b7024af53958fe87"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">headPtr</span></span></span><a class="headerlink" href="#c.Rbc_Chain.headPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to first element in chain. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Chain.tailPtr">
+<span class="target" id="struct_rbc___chain_1a7618e9185978efa5beb0ee4fa9812c72"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">tailPtr</span></span></span><a class="headerlink" href="#c.Rbc_Chain.tailPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to last element in chain. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Chain.nLinks">
+<span class="target" id="struct_rbc___chain_1a642002e58438ff7c11a5a73c5e839dd7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nLinks</span></span></span><a class="headerlink" href="#c.Rbc_Chain.nLinks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of elements in chain. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_ChainLinkStruct">
+<span class="target" id="struct_rbc___chain_link_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainLinkStruct</span></span></span><a class="headerlink" href="#c.Rbc_ChainLinkStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Chain linkage with borrowed caller payload. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ChainLinkStruct.prevPtr">
+<span class="target" id="struct_rbc___chain_link_struct_1ad405200546142ca62ab1985fb14ab138"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">prevPtr</span></span></span><a class="headerlink" href="#c.Rbc_ChainLinkStruct.prevPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Link to the previous link. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ChainLinkStruct.nextPtr">
+<span class="target" id="struct_rbc___chain_link_struct_1a1c895a293b48745b11a58e42ba6b974f"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nextPtr</span></span></span><a class="headerlink" href="#c.Rbc_ChainLinkStruct.nextPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Link to the next link. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ChainLinkStruct.clientData">
+<span class="target" id="struct_rbc___chain_link_struct_1ad40bc996761cfde395f2eca0eef786fe"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clientData</span></span></span><a class="headerlink" href="#c.Rbc_ChainLinkStruct.clientData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to the data object. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c union">
+<dt class="sig sig-object c" id="c.Rbc_ListKey">
+<span class="target" id="union_rbc___list_key"></span><span class="k"><span class="pre">union</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListKey</span></span></span><a class="headerlink" href="#c.Rbc_ListKey" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcList.h&gt;</em></div>
+<p>Inline keyed-list storage selected by <a class="reference internal" href="#struct_rbc___list_struct_1aa7dbe7242ca1b116728ccd3a2c5090c3"><span class="std std-ref">Rbc_ListStruct::type</span></a>. </p>
+<p>String and integer-array keys extend the node allocation beyond these placeholder arrays. One-word keys store only a borrowed pointer value. Keep the containing key member last in <a class="reference internal" href="#struct_rbc___list_node_struct"><span class="std std-ref">Rbc_ListNodeStruct</span></a>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListKey.oneWordValue">
+<span class="target" id="union_rbc___list_key_1a416dd9236be6ca26d65e9d3daa4294da"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">oneWordValue</span></span></span><a class="headerlink" href="#c.Rbc_ListKey.oneWordValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed one-word key; only the pointer value is stored. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListKey.words">
+<span class="target" id="union_rbc___list_key_1a3dc8678806d652937e8f0c11cd6e849b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">words</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_ListKey.words" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Inline integer-array key; allocation extends to the list’s key word count. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListKey.string">
+<span class="target" id="union_rbc___list_key_1ace7fa6630e2497793037127f799c6333"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">string</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_ListKey.string" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Inline NUL-terminated string key; allocation extends to fit the copied key. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_ListNodeStruct">
+<span class="target" id="struct_rbc___list_node_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span></span><a class="headerlink" href="#c.Rbc_ListNodeStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List link with inline or pointer key storage selected by the list key type. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListNodeStruct.prevPtr">
+<span class="target" id="struct_rbc___list_node_struct_1a19594d310dc80b8523247286d38c4b62"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListNodeStruct" title="Rbc_ListNodeStruct"><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">prevPtr</span></span></span><a class="headerlink" href="#c.Rbc_ListNodeStruct.prevPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Link to the previous node. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListNodeStruct.nextPtr">
+<span class="target" id="struct_rbc___list_node_struct_1a86e8a07be0628df4f04b0acfb389305b"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListNodeStruct" title="Rbc_ListNodeStruct"><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nextPtr</span></span></span><a class="headerlink" href="#c.Rbc_ListNodeStruct.nextPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Link to the next node. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListNodeStruct.clientData">
+<span class="target" id="struct_rbc___list_node_struct_1af945c4da802fc38eebcd14a9de054372"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clientData</span></span></span><a class="headerlink" href="#c.Rbc_ListNodeStruct.clientData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to the data object. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListNodeStruct.listPtr">
+<span class="target" id="struct_rbc___list_node_struct_1a39ac507eec4a1c39b2c4a8fc10b47aa2"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListStruct" title="Rbc_ListStruct"><span class="n"><span class="pre">Rbc_ListStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">listPtr</span></span></span><a class="headerlink" href="#c.Rbc_ListNodeStruct.listPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List to eventually insert node. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListNodeStruct.key">
+<span class="target" id="struct_rbc___list_node_struct_1a85a5f1ff2090725e1cf15343a2f2d8c4"></span><span class="k"><span class="pre">union</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListKey" title="Rbc_ListKey"><span class="n"><span class="pre">Rbc_ListKey</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">key</span></span></span><a class="headerlink" href="#c.Rbc_ListNodeStruct.key" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Inline key storage; must remain last because allocation extends it for long keys. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_ListStruct">
+<span class="target" id="struct_rbc___list_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListStruct</span></span></span><a class="headerlink" href="#c.Rbc_ListStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned list container; node payload ownership remains with the caller. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListStruct.headPtr">
+<span class="target" id="struct_rbc___list_struct_1ab58862596a55ae767aad6e485cc3cad1"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListNodeStruct" title="Rbc_ListNodeStruct"><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">headPtr</span></span></span><a class="headerlink" href="#c.Rbc_ListStruct.headPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to first element in list. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListStruct.tailPtr">
+<span class="target" id="struct_rbc___list_struct_1a71de7186102ee2ba683a4dc6b0ba8e90"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_ListNodeStruct" title="Rbc_ListNodeStruct"><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">tailPtr</span></span></span><a class="headerlink" href="#c.Rbc_ListStruct.tailPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pointer to last element in list. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListStruct.nNodes">
+<span class="target" id="struct_rbc___list_struct_1aefee555eb9c4761efafe4310262b9387"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nNodes</span></span></span><a class="headerlink" href="#c.Rbc_ListStruct.nNodes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of node currently in the list. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_ListStruct.type">
+<span class="target" id="struct_rbc___list_struct_1aa7dbe7242ca1b116728ccd3a2c5090c3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><a class="headerlink" href="#c.Rbc_ListStruct.type" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Type of keys in list. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -553,6 +714,42 @@
 <li><a class="reference internal" href="#c.Rbc_ListLinkBefore"><code class="docutils literal notranslate"><span class="pre">Rbc_ListLinkBefore()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rb_ListDeleteNodeByKey"><code class="docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ListGetNthNode"><code class="docutils literal notranslate"><span class="pre">Rbc_ListGetNthNode()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.Rbc_Chain"><code class="docutils literal notranslate"><span class="pre">Rbc_Chain</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_Chain.headPtr"><code class="docutils literal notranslate"><span class="pre">headPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Chain.tailPtr"><code class="docutils literal notranslate"><span class="pre">tailPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Chain.nLinks"><code class="docutils literal notranslate"><span class="pre">nLinks</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_ChainLinkStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_ChainLinkStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_ChainLinkStruct.prevPtr"><code class="docutils literal notranslate"><span class="pre">prevPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ChainLinkStruct.nextPtr"><code class="docutils literal notranslate"><span class="pre">nextPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ChainLinkStruct.clientData"><code class="docutils literal notranslate"><span class="pre">clientData</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_ListKey"><code class="docutils literal notranslate"><span class="pre">Rbc_ListKey</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_ListKey.oneWordValue"><code class="docutils literal notranslate"><span class="pre">oneWordValue</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListKey.words"><code class="docutils literal notranslate"><span class="pre">words</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListKey.string"><code class="docutils literal notranslate"><span class="pre">string</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_ListNodeStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_ListNodeStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_ListNodeStruct.prevPtr"><code class="docutils literal notranslate"><span class="pre">prevPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListNodeStruct.nextPtr"><code class="docutils literal notranslate"><span class="pre">nextPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListNodeStruct.clientData"><code class="docutils literal notranslate"><span class="pre">clientData</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListNodeStruct.listPtr"><code class="docutils literal notranslate"><span class="pre">listPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListNodeStruct.key"><code class="docutils literal notranslate"><span class="pre">key</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_ListStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_ListStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_ListStruct.headPtr"><code class="docutils literal notranslate"><span class="pre">headPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListStruct.tailPtr"><code class="docutils literal notranslate"><span class="pre">tailPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListStruct.nNodes"><code class="docutils literal notranslate"><span class="pre">nNodes</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListStruct.type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

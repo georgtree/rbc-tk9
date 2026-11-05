@@ -61,7 +61,7 @@
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ConvolveColorImage">
-<span class="target" id="rbc_image_8h_1a5e6869a053c1e9f1325aa754125068ef"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ConvolveColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Filter2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ConvolveColorImage" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_image_8h_1a5e6869a053c1e9f1325aa754125068ef"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ConvolveColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <a class="reference internal" href="image-transform-reference.html#c.Filter2D" title="Filter2D"><span class="n"><span class="pre">Filter2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ConvolveColorImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a newly owned, same-size image filtered over RGB with opaque alpha. </p>
 <p>Borrow source and filter. The effective radius is max(1, (int)support). The caller supplies a row-major square kernel of (2 * radius + 1)^2 finite coefficients and a finite nonzero divisor in sum. scale is unused. Samples beyond the image repeat its edge pixels. The kernel is traversed as stored, without reversal. Release the result with <a class="reference internal" href="image-tile-reference.html#group__image__storage__release_1gacf52dcbf4d03374b7ed3a71fba1243ed"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. Invalid filter metadata panics; kernel length and coefficients are not validated.</p>
 <dl class="field-list simple">
@@ -266,7 +266,7 @@
 <dt class="sig sig-object c" id="c.rbcImageQuantization.CreateColorLookupTable">
 <span class="target" id="group__image__quantize__internals_1gafbbd370584c459d92aaa86c2fc379e4f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateColorLookupTable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics" title="ColorImageStatistics"><span class="n"><span class="pre">ColorImageStatistics</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">s</span></span>, <a class="reference internal" href="#c.rbcImageQuantization.Cube" title="Cube"><span class="n"><span class="pre">Cube</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cubes</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nColors</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcImageQuantization.CreateColorLookupTable" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate packed representative RGB values for the partition boxes. </p>
-<p>Borrows cumulative statistics and nColors initialized cubes. Returns an owned zeroed 33-cubed unsigned-int table, freed with ckfree. Computes integer channel means, scales by 257 then shifts by eight, and marks each cube with an opaque Pix32 value. Empty boxes print a stderr diagnostic and use black; ordinary nonempty splits avoid that path. The mapping pass restores source alpha separately. Does not change source statistics.</p>
+<p>Borrows cumulative statistics and nColors initialized cubes. Returns an owned zeroed 33-cubed unsigned-int table, freed with ckfree. Computes integer channel means, scales by 257 then shifts by eight, and marks each cube with an opaque <a class="reference internal" href="image-transform-reference.html#union_pix32"><span class="std std-ref">Pix32</span></a> value. Empty boxes print a stderr diagnostic and use black; ordinary nonempty splits avoid that path. The mapping pass restores source alpha separately. Does not change source statistics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -300,6 +300,51 @@
 <span class="target" id="struct_cube"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Cube</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Lower-exclusive, upper-inclusive box in the five-bit RGB grid. </p>
 <p>Bounds lie in 0..32. vol is geometric cell count, not pixel population; Cut updates it for the two resulting boxes. The owner allocates the array. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.Cube.r0">
+<span class="target" id="struct_cube_1ad5cdbc5f780793585007355c97a4608a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">r0</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube.r0" title="Link to this definition">¶</a><br /></dt>
+<dd><p>min, max values: min exclusive max inclusive </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.Cube.r1">
+<span class="target" id="struct_cube_1a267481c5f252a3a0842d8ceb0edc3bc1"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">r1</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube.r1" title="Link to this definition">¶</a><br /></dt>
+<dd><p>min, max values: min exclusive max inclusive </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.Cube.g0">
+<span class="target" id="struct_cube_1ac00dddd26973eaa82e6e00762b19df1e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">g0</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube.g0" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower green boundary, excluded from the box sum. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.Cube.g1">
+<span class="target" id="struct_cube_1ab0746b3a28d1acfaaafc52291520d7b0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">g1</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube.g1" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Upper green boundary, included in the box sum. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.Cube.b0">
+<span class="target" id="struct_cube_1ae1b37ba9f22ddbcb6c53de688066bd35"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">b0</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube.b0" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower blue boundary, excluded from the box sum. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.Cube.b1">
+<span class="target" id="struct_cube_1adac38c22653c185c133d3b53285fc581"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">b1</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube.b1" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Upper blue boundary, included in the box sum. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.Cube.vol">
+<span class="target" id="struct_cube_1ab9955da1eda38b8c9897bfdd7eaf3b3f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vol</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.Cube.vol" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Box volume in histogram cells. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -307,8 +352,93 @@
 <span class="target" id="struct_color_image_statistics"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ColorImageStatistics</span></span></span><a class="headerlink" href="#c.rbcImageQuantization.ColorImageStatistics" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Owned raw RGB histograms, transformed in place into cumulative moments. </p>
 <p>Arrays use bins 1..32 with zero boundary planes. gm2 stores squared-color sums, not a precomputed variance. Alpha is absent. GetColorImageStatistics allocates the record; M3d changes its representation; the owner frees it. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.ColorImageStatistics.wt">
+<span class="target" id="struct_color_image_statistics_1a5ece048fa528c94fefcd995e7c42b1c5"></span><span class="n"><span class="pre">Moment</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">wt</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.rbcImageQuantization.ColorImageStatistics.wt" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_color_image_statistics_1autotoc_md0">
+<h3>pixels in voxel<a class="headerlink" href="#struct_color_image_statistics_1autotoc_md0" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_color_image_statistics_1autotoc_md0"></span></section>
 </dd></dl>
 
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.ColorImageStatistics.mR">
+<span class="target" id="struct_color_image_statistics_1aced03500fba9b11c9bc57375774dc22f"></span><span class="n"><span class="pre">Moment</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mR</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.rbcImageQuantization.ColorImageStatistics.mR" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sum over voxel of red pixel values. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.ColorImageStatistics.mG">
+<span class="target" id="struct_color_image_statistics_1a04e2b4e02454a4cdbc9e964fe35c9b7c"></span><span class="n"><span class="pre">Moment</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mG</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.rbcImageQuantization.ColorImageStatistics.mG" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sum over voxel of green pixel values. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.ColorImageStatistics.mB">
+<span class="target" id="struct_color_image_statistics_1aced9b491f6122dbf98a8f6ed471b2409"></span><span class="n"><span class="pre">Moment</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mB</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.rbcImageQuantization.ColorImageStatistics.mB" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sum over voxel of blue pixel values. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcImageQuantization.ColorImageStatistics.gm2">
+<span class="target" id="struct_color_image_statistics_1aa61a4675d9600f016d5ab70963cb3bbd"></span><span class="n"><span class="pre">Moment</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gm2</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.rbcImageQuantization.ColorImageStatistics.gm2" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sum of squared RGB channel values. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.TrueColorMasks">
+<span class="target" id="struct_true_color_masks"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrueColorMasks</span></span></span><a class="headerlink" href="#c.TrueColorMasks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Display-specific bit shifts for packing RGB channels into native pixels. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrueColorMasks.redAdjust">
+<span class="target" id="struct_true_color_masks_1a179e72c5af4aaac33c3210a4472f51b3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">redAdjust</span></span></span><a class="headerlink" href="#c.TrueColorMasks.redAdjust" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bit adjustment for the red component. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrueColorMasks.greenAdjust">
+<span class="target" id="struct_true_color_masks_1a9506e67089df89911975ea6e5537e9d0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">greenAdjust</span></span></span><a class="headerlink" href="#c.TrueColorMasks.greenAdjust" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bit adjustment for the green component. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrueColorMasks.blueAdjust">
+<span class="target" id="struct_true_color_masks_1a5d7b875d61686c18d4aecd7d02da2a19"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">blueAdjust</span></span></span><a class="headerlink" href="#c.TrueColorMasks.blueAdjust" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bit adjustment for the blue component. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrueColorMasks.redMaskShift">
+<span class="target" id="struct_true_color_masks_1a686a966535e5c83c94097435cb4f917d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">redMaskShift</span></span></span><a class="headerlink" href="#c.TrueColorMasks.redMaskShift" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native pixel mask shift for the red component. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrueColorMasks.greenMaskShift">
+<span class="target" id="struct_true_color_masks_1a31ddb3c23621628a05e15a388bc6ac30"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">greenMaskShift</span></span></span><a class="headerlink" href="#c.TrueColorMasks.greenMaskShift" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native pixel mask shift for the green component. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.TrueColorMasks.blueMaskShift">
+<span class="target" id="struct_true_color_masks_1a7a656d09a1979427b7da64a6d0f2c51f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">blueMaskShift</span></span></span><a class="headerlink" href="#c.TrueColorMasks.blueMaskShift" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native pixel mask shift for the blue component. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
@@ -341,8 +471,36 @@
 <li><a class="reference internal" href="#c.rbcImageQuantization.Mark"><code class="docutils literal notranslate"><span class="pre">Mark()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageQuantization.CreateColorLookupTable"><code class="docutils literal notranslate"><span class="pre">CreateColorLookupTable()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcImageQuantization.MapColors"><code class="docutils literal notranslate"><span class="pre">MapColors()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcImageQuantization.Cube"><code class="docutils literal notranslate"><span class="pre">Cube</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics"><code class="docutils literal notranslate"><span class="pre">ColorImageStatistics</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube"><code class="docutils literal notranslate"><span class="pre">Cube</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube.r0"><code class="docutils literal notranslate"><span class="pre">r0</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube.r1"><code class="docutils literal notranslate"><span class="pre">r1</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube.g0"><code class="docutils literal notranslate"><span class="pre">g0</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube.g1"><code class="docutils literal notranslate"><span class="pre">g1</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube.b0"><code class="docutils literal notranslate"><span class="pre">b0</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube.b1"><code class="docutils literal notranslate"><span class="pre">b1</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.Cube.vol"><code class="docutils literal notranslate"><span class="pre">vol</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics"><code class="docutils literal notranslate"><span class="pre">ColorImageStatistics</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics.wt"><code class="docutils literal notranslate"><span class="pre">wt</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics.mR"><code class="docutils literal notranslate"><span class="pre">mR</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics.mG"><code class="docutils literal notranslate"><span class="pre">mG</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics.mB"><code class="docutils literal notranslate"><span class="pre">mB</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcImageQuantization.ColorImageStatistics.gm2"><code class="docutils literal notranslate"><span class="pre">gm2</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.TrueColorMasks"><code class="docutils literal notranslate"><span class="pre">TrueColorMasks</span></code></a><ul>
+<li><a class="reference internal" href="#c.TrueColorMasks.redAdjust"><code class="docutils literal notranslate"><span class="pre">redAdjust</span></code></a></li>
+<li><a class="reference internal" href="#c.TrueColorMasks.greenAdjust"><code class="docutils literal notranslate"><span class="pre">greenAdjust</span></code></a></li>
+<li><a class="reference internal" href="#c.TrueColorMasks.blueAdjust"><code class="docutils literal notranslate"><span class="pre">blueAdjust</span></code></a></li>
+<li><a class="reference internal" href="#c.TrueColorMasks.redMaskShift"><code class="docutils literal notranslate"><span class="pre">redMaskShift</span></code></a></li>
+<li><a class="reference internal" href="#c.TrueColorMasks.greenMaskShift"><code class="docutils literal notranslate"><span class="pre">greenMaskShift</span></code></a></li>
+<li><a class="reference internal" href="#c.TrueColorMasks.blueMaskShift"><code class="docutils literal notranslate"><span class="pre">blueMaskShift</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

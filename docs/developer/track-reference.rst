@@ -25,3 +25,15 @@ Widget integration
 .. doxygenfunction:: Rbc_TrackOp
 
 .. doxygenfunction:: Rbc_DrawTrackSeparators
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: TrackDefaults
+   :members:
+
+.. doxygenstruct:: RbcTrack
+   :members:

@@ -82,9 +82,10 @@ static const Tk_OptionSpec postScriptOptionSpecs[] = {
 
 typedef int RbcGrPsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrPsOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrPsOp *proc; /**< Typed command handler for this operation. */
 } PostScriptOpSpec;
 
 static RbcGrPsOp CgetOp;

@@ -12,6 +12,10 @@ breathe_projects = {
 breathe_default_project = "rbc"
 breathe_domain_by_extension = {"h": "c", "c": "c"}
 primary_domain = "c"
+# VectorData uses "complex" as a member identifier, not the optional C99
+# <complex.h> macro. Preserve Sphinx's other extra keyword spellings.
+c_extra_keywords = ["alignas", "alignof", "bool", "imaginary", "noreturn",
+                    "static_assert", "thread_local"]
 highlight_language = "c"
 root_doc = "index"
 # Published HTML lives below the sources. Never rescan its copied RST files.

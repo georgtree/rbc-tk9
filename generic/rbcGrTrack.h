@@ -39,27 +39,49 @@ void Rbc_FreeTrackComponentArgs(Tcl_Obj **args);
  * Restore in reverse entry order when nesting scopes.
  */
 typedef struct {
-    RbcTrack *activeTrack;
-    int top, bottom, range, offset, pad1, pad2;
-    int left, right, hRange, hOffset, hPad1, hPad2;
-    double scale, hScale;
+    RbcTrack *activeTrack; /**< Borrowed previously active track, or NULL. */
+    int top; /**< Saved plot top in widget pixels. */
+    int bottom; /**< Saved plot bottom in widget pixels. */
+    int range; /**< Saved vertical mapping span in pixels. */
+    int offset; /**< Saved vertical mapping origin in pixels. */
+    int pad1; /**< Saved top padding in pixels. */
+    int pad2; /**< Saved bottom padding in pixels. */
+    int left; /**< Saved plot left in widget pixels. */
+    int right; /**< Saved plot right in widget pixels. */
+    int hRange; /**< Saved horizontal mapping span in pixels. */
+    int hOffset; /**< Saved horizontal mapping origin in pixels. */
+    int hPad1; /**< Saved left padding in pixels. */
+    int hPad2; /**< Saved right padding in pixels. */
+    double scale; /**< Saved reciprocal vertical mapping span. */
+    double hScale; /**< Saved reciprocal horizontal mapping span. */
 } RbcTrackViewport;
 
+/**
+ * @brief Graph-owned track with local component state and retained Y-axis references. Full world bounds drive
+ * mapping; visible bounds drive clipping after scrolling.
+ */
 struct RbcTrack {
-    int barMode; /* -1 inherits the graph bar mode. */
-    Grid *grid;  /* NULL inherits the graph grid. */
-    struct GridSegments gridX, gridY;
-    Legend *legend;
-    char *name;
-    double weight;
-    int minHeight;
-    int height; /* Requested plot size along the track stacking direction. */
-    int worldLeft, worldRight, worldTop, worldBottom;
-    int left, right, top, bottom; /* Visible intersection with the plot viewport. */
-    int axisOffset;
-    Axis **axes;
-    Tcl_Size nAxes;
-    RbcTrack *next;
+    int barMode; /**< -1 inherits the graph bar mode. */
+    Grid *grid; /**< NULL inherits the graph grid. */
+    struct GridSegments gridX; /**< Owned mapped X-grid segment cache. */
+    struct GridSegments gridY; /**< Owned mapped Y-grid segment cache. */
+    Legend *legend; /**< Owned local legend, or NULL. */
+    char *name; /**< Owned track name. */
+    double weight; /**< Relative share of fitted layout space after minimum sizes. */
+    int minHeight; /**< Minimum plot extent along the stacking direction in pixels. */
+    int height; /**< Requested plot size along the track stacking direction. */
+    int worldLeft; /**< Full plot left edge before viewport clipping, in widget pixels. */
+    int worldRight; /**< Full plot right edge before viewport clipping, in widget pixels. */
+    int worldTop; /**< Full plot top edge before viewport clipping, in widget pixels. */
+    int worldBottom; /**< Full plot bottom edge before viewport clipping, in widget pixels. */
+    int left; /**< Visible intersection with the plot viewport. */
+    int right; /**< Visible intersection with the plot viewport. */
+    int top; /**< Visible intersection with the plot viewport. */
+    int bottom; /**< Visible intersection with the plot viewport. */
+    int axisOffset; /**< Accumulated local-axis layout offset in pixels. */
+    Axis **axes; /**< Owned array of retained Y-axis references. */
+    Tcl_Size nAxes; /**< Number of entries in axes. */
+    RbcTrack *next; /**< Next graph-owned track in display order, or NULL. */
 };
 
 /**

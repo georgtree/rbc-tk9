@@ -82,10 +82,14 @@ static int GetBitmapDimension(double value) {
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
-/* Per-capture shifts for converting TrueColor pixels to RGB bytes. */
+/** @brief Display-specific bit shifts for packing RGB channels into native pixels. */
 typedef struct {
-    int redAdjust, greenAdjust, blueAdjust;
-    int redMaskShift, greenMaskShift, blueMaskShift;
+    int redAdjust; /**< Bit adjustment for the red component. */
+    int greenAdjust; /**< Bit adjustment for the green component. */
+    int blueAdjust; /**< Bit adjustment for the blue component. */
+    int redMaskShift; /**< Native pixel mask shift for the red component. */
+    int greenMaskShift; /**< Native pixel mask shift for the green component. */
+    int blueMaskShift; /**< Native pixel mask shift for the blue component. */
 } TrueColorMasks;
 
 /**

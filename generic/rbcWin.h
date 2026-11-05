@@ -1,7 +1,6 @@
-/*
- * rbcWin.h --
- *
- *      TODO: Description
+/**
+ * @file rbcWin.h
+ * @brief Windows resource records and native compatibility declarations.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -32,28 +31,29 @@ typedef float *TCHAR;
 
 /* DOS Encapsulated PostScript File Header */
 #pragma pack(2)
+/** @brief Packed DOS EPS wrapper header; offsets and lengths are byte counts. */
 typedef struct {
-    BYTE magic[4];    /* Magic number for a DOS EPS file
-                       * C5,D0,D3,C6 */
-    DWORD psStart;    /* Offset of PostScript section. */
-    DWORD psLength;   /* Length of the PostScript section. */
-    DWORD wmfStart;   /* Offset of Windows Meta File section. */
-    DWORD wmfLength;  /* Length of Meta file section. */
-    DWORD tiffStart;  /* Offset of TIFF section. */
-    DWORD tiffLength; /* Length of TIFF section. */
-    WORD checksum;    /* Checksum of header. If FFFF, ignore. */
+    BYTE magic[4]; /**< Magic number for a DOS EPS file C5,D0,D3,C6 */
+    DWORD psStart; /**< Offset of PostScript section. */
+    DWORD psLength; /**< Length of the PostScript section. */
+    DWORD wmfStart; /**< Offset of Windows Meta File section. */
+    DWORD wmfLength; /**< Length of Meta file section. */
+    DWORD tiffStart; /**< Offset of TIFF section. */
+    DWORD tiffLength; /**< Length of TIFF section. */
+    WORD checksum; /**< Checksum of header. If FFFF, ignore. */
 } DOSEPSHEADER;
 #pragma pack()
 
 /* Aldus Portable Metafile Header */
 #pragma pack(2)
+/** @brief Packed Aldus placeable-metafile header. */
 typedef struct {
-    DWORD key;       /* Type of metafile */
-    WORD hmf;        /* Unused. Must be NULL. */
-    SMALL_RECT bbox; /* Bounding rectangle */
-    WORD inch;       /* Units per inch. */
-    DWORD reserved;  /* Unused. */
-    WORD checksum;   /* XOR of the previous ten 16-bit words. */
+    DWORD key; /**< Type of metafile */
+    WORD hmf; /**< Unused. Must be NULL. */
+    SMALL_RECT bbox; /**< Bounding rectangle */
+    WORD inch; /**< Units per inch. */
+    DWORD reserved; /**< Unused. */
+    WORD checksum; /**< XOR of the previous ten 16-bit words. */
 } APMHEADER;
 #pragma pack()
 
@@ -116,12 +116,13 @@ extern char *Rbc_LastError(void);
 #define XLowerWindow Rbc_EmulateXLowerWindow
 #define XMaxRequestSize Rbc_EmulateXMaxRequestSize
 
+/** @brief Resolved Windows colors for flat and bevelled Tk borders. */
 typedef struct {
-    COLORREF flat;
-    COLORREF light;
-    COLORREF dark;
-    COLORREF light2;
-    COLORREF dark2;
+    COLORREF flat; /**< Flat background color. */
+    COLORREF light; /**< Light bevel color. */
+    COLORREF dark; /**< Dark bevel color. */
+    COLORREF light2; /**< Secondary light bevel color. */
+    COLORREF dark2; /**< Secondary dark bevel color. */
 } Rbc_Win3DBorderColors;
 
 void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBorderColors *colorsPtr);

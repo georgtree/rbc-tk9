@@ -54,7 +54,7 @@ they do not change C linkage.</p>
 <dt class="sig sig-object c" id="c.FreqKey">
 <span class="target" id="struct_freq_key"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreqKey</span></span></span><a class="headerlink" href="#c.FreqKey" title="Link to this definition">¶</a><br /></dt>
 <dd><p><a class="reference internal" href="#struct_bar"><span class="std std-ref">Bar</span></a> grouping key for an abscissa and axis pair. </p>
-<p>Axis identities distinguish otherwise equal X values belonging to different mappings. </p>
+<p><a class="reference internal" href="axis-reference.html#struct_axis"><span class="std std-ref">Axis</span></a> identities distinguish otherwise equal X values belonging to different mappings. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="c var">
@@ -65,7 +65,7 @@ they do not change C linkage.</p>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.FreqKey.axes">
-<span class="target" id="struct_freq_key_1a7c3c02e152eab940ffce9bfc25447d6a"></span><span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">axes</span></span></span><a class="headerlink" href="#c.FreqKey.axes" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="struct_freq_key_1a7c3c02e152eab940ffce9bfc25447d6a"></span><a class="reference internal" href="axis-reference.html#c.Axis2D" title="Axis2D"><span class="n"><span class="pre">Axis2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">axes</span></span></span><a class="headerlink" href="#c.FreqKey.axes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrowed axis pair participating in this group. </p>
 </dd></dl>
 
@@ -87,7 +87,7 @@ they do not change C linkage.</p>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.FreqInfo.axes">
-<span class="target" id="struct_freq_info_1a2a6036dca0cd71553ea7d2b49e7776a4"></span><span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">axes</span></span></span><a class="headerlink" href="#c.FreqInfo.axes" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="struct_freq_info_1a2a6036dca0cd71553ea7d2b49e7776a4"></span><a class="reference internal" href="axis-reference.html#c.Axis2D" title="Axis2D"><span class="n"><span class="pre">Axis2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">axes</span></span></span><a class="headerlink" href="#c.FreqInfo.axes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrowed axis pair for this group. </p>
 </dd></dl>
 
@@ -305,7 +305,7 @@ they do not change C linkage.</p>
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarLayout.GetTrackBarMode">
-<span class="target" id="group__bar__layout_1gad8865f5ee36f8c37bf2b29a93e5b77b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTrackBarMode</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">yAxis</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetTrackBarMode" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__layout_1gad8865f5ee36f8c37bf2b29a93e5b77b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTrackBarMode</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="axis-reference.html#c.Axis" title="Axis"><span class="n"><span class="pre">Axis</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">yAxis</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetTrackBarMode" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select the owning track override or the graph bar mode. </p>
 <p>The borrowed Y axis must be live. A nonnegative track barMode overrides the graph mode; axis identity, rather than this helper, isolates grouping. No state is changed.</p>
 <dl class="field-list simple">
@@ -350,7 +350,7 @@ they do not change C linkage.</p>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarLayout.CheckStacks">
-<span class="target" id="group__bar__layout_1gaeedb61b3cd0322cd6c71c4297cf9c1a5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckStacks</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.CheckStacks" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__layout_1gaeedb61b3cd0322cd6c71c4297cf9c1a5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CheckStacks</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="axis-reference.html#c.Axis2D" title="Axis2D"><span class="n"><span class="pre">Axis2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.CheckStacks" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Expand Y limits using precomputed totals for one axis pair. </p>
 <p>Only operates in the effective stacked mode with duplicate metadata. Reads matching records in graph-owned freqArr; negative totals may lower minPtr, nonnegative totals may raise maxPtr. Requires Rbc_ComputeStacks first. Does not reset counters or inspect intermediate cumulative heights.</p>
 <dl class="field-list simple">
@@ -396,7 +396,7 @@ they do not change C linkage.</p>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarLayout.PlaceBar">
-<span class="target" id="group__bar__layout_1gab8e2a125edbac53a72cb487bc3fe25fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PlaceBar</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">clip</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.PlaceBar" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__layout_1gab8e2a125edbac53a72cb487bc3fe25fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PlaceBar</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">clip</span></span>, <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.PlaceBar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute one bar’s data-space corners and consume its group position. </p>
 <p>
 Apply each element’s width, alignment and offset before subdivision. Duplicate keys use the original X value and both axis identities. Successful grouped placement advances count or lastY; this is not a pure query. Reset grouping state before a new ordered pass. Log-invalid and nonfinite input, invalid full X intervals, viewport rejection and stack overflow are skipped. Corners are not screen mapped or reordered for negative-height bars. </p>
@@ -419,7 +419,7 @@ Apply each element’s width, alignment and offset before subdivision. Duplicate
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarLayout.GetBarExtents">
-<span class="target" id="group__bar__layout_1gae6343dabaa9fa06e018de8fc9facb52e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarExtents</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetBarExtents" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__layout_1gae6343dabaa9fa06e018de8fc9facb52e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarExtents</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <a class="reference internal" href="geometry-reference.html#c.Extents2D" title="Extents2D"><span class="n"><span class="pre">Extents2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarLayout.GetBarExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute bar data limits and translated error limits. </p>
 <p>
 Includes full anchored X intervals, baseline rules and duplicate stack totals. Calls PlaceBar without viewport rejection to advance group state even when error bars retain data positioning. In bar positioning mode, owns a temporary per-source translation array and frees it after expanding error limits. The caller must reset group state before the ordered pass. </p>
@@ -522,7 +522,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarGeometry.ClearPalette">
-<span class="target" id="group__bar__geometry_1ga5fb51e5edadef9b16da8a2b58fefa03d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClearPalette</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.ClearPalette" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__geometry_1ga5fb51e5edadef9b16da8a2b58fefa03d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClearPalette</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="container-reference.html#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.ClearPalette" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Invalidate rectangle and error-segment counts in every style. </p>
 <p>The palette and styles are borrowed. Slice pointers are not cleared or freed; their zero counts prevent use until remapping replaces the views. Pen references and weight ranges are retained.</p>
 <dl class="field-list simple">
@@ -536,9 +536,9 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarGeometry.NewBarErrorOffsets">
-<span class="target" id="group__bar__geometry_1ga497a2bcbf20a297161fd209f2c52718f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewBarErrorOffsets</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.NewBarErrorOffsets" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__geometry_1ga497a2bcbf20a297161fd209f2c52718f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewBarErrorOffsets</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.NewBarErrorOffsets" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate per-source error translations initially marked invalid. </p>
-<p>Returns an owned Point2D array with both coordinates set to NaN in every slot, or NULL if the byte count is invalid. Allocation uses ckalloc; this is not a recoverable allocator-failure interface. The caller frees the array after mapping or expanding error limits.</p>
+<p>Returns an owned <a class="reference internal" href="geometry-reference.html#struct_point2_d"><span class="std std-ref">Point2D</span></a> array with both coordinates set to NaN in every slot, or NULL if the byte count is invalid. Allocation uses ckalloc; this is not a recoverable allocator-failure interface. The caller frees the array after mapping or expanding error limits.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -550,7 +550,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarGeometry.SetBarErrorOffset">
-<span class="target" id="group__bar__geometry_1gae0a69b0bf10afe4fde68f8894fe47f2f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetBarErrorOffset</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrBarGeometry.Bar" title="Bar"><span class="n"><span class="pre">Bar</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsets</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.SetBarErrorOffset" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__geometry_1gae0a69b0bf10afe4fde68f8894fe47f2f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetBarErrorOffset</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrBarGeometry.Bar" title="Bar"><span class="n"><span class="pre">Bar</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span>, <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offsets</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.SetBarErrorOffset" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Store the placed-center and placed-value displacement of one sample. </p>
 <p>All pointers are borrowed and index must be valid in both source arrays and offsets. Corners must come from PlaceBar before swapping Y edges or screen mapping. Averages X endpoints as two halves and subtracts source X; subtracts source Y from the first corner’s Y. Does not allocate or validate.</p>
 <dl class="field-list simple">
@@ -568,7 +568,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarGeometry.Rbc_GetBarRectangle">
-<span class="target" id="group__bar__geometry_1ga5a50b24a9b4adc1dcacc6781ffcd3d7f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBarRectangle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">dataIndex</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__geometry_1ga5a50b24a9b4adc1dcacc6781ffcd3d7f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBarRectangle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">dataIndex</span></span>, <a class="reference internal" href="geometry-reference.html#c.Extents2D" title="Extents2D"><span class="n"><span class="pre">Extents2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Look up mapped bounds by original source index. </p>
 <p>The non-NULL element must be a bar; no class check or remapping occurs. Returns TRUE and writes physical window bounds on a match. Returns FALSE for missing geometry, invalid arguments or an unmapped index, leaving output unchanged. Bounds include placement, inversion and mapping’s window clamp, but are not intersected with the final renderer plot clip. Borrows all storage and does not invoke callbacks.</p>
 <dl class="field-list simple">
@@ -646,6 +646,171 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 <span class="target" id="struct_bar_pen"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarPen</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen" title="Link to this definition">¶</a><br /></dt>
 <dd><p>A concrete bar pen with a first-member Pen header. </p>
 <p>Tk owns direct option resources; ConfigurePen/DestroyPen own derived colors and drawing GCs. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.core">
+<span class="target" id="struct_bar_pen_1ac39bb1bdd69bfece9acc97bb4ad594a3"></span><a class="reference internal" href="pen-reference.html#c.Pen" title="Pen"><span class="n"><span class="pre">Pen</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">core</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.core" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common Pen prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.borderWidthObjPtr">
+<span class="target" id="struct_bar_pen_1adb3357d3aca544efef698ff8b01d4338"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">borderWidthObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.borderWidthObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for border width; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarCapObjPtr">
+<span class="target" id="struct_bar_pen_1a16b6aaa59c43d36d74967cac350009f9"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">errorBarCapObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarCapObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for error bar cap; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarColorObjPtr">
+<span class="target" id="struct_bar_pen_1ad92613adaab9b933842690a61e116b91"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">errorBarColorObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarColorObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for error bar color; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarWidthObjPtr">
+<span class="target" id="struct_bar_pen_1a21d2583c6d4d8d4047b696acb63e9e30"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">errorBarWidthObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarWidthObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for error bar width; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.showErrorBarsObjPtr">
+<span class="target" id="struct_bar_pen_1a6c6b9e42b1c6801b3c90182595cfb476"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">showErrorBarsObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.showErrorBarsObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for show error bars; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.showValuesObjPtr">
+<span class="target" id="struct_bar_pen_1a4530f2c1ce4cc556026aa4ee59e5e49e"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">showValuesObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.showValuesObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for show values; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueRotateObjPtr">
+<span class="target" id="struct_bar_pen_1ad2859a827fc0b7ec95590cdf0e60a1f2"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">valueRotateObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueRotateObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for value rotate; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueShadowObjPtr">
+<span class="target" id="struct_bar_pen_1a8223618b253a99e4637ad8819ba6cce6"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">valueShadowObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueShadowObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for value shadow; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.fgColor">
+<span class="target" id="struct_bar_pen_1a71eb4c3ef8bb7a84a5484568f6353e5f"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fgColor</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.fgColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Configured fill color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.border">
+<span class="target" id="struct_bar_pen_1a7c144438df58f2bf0256630a439d8d6d"></span><span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">border</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.border" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk-managed 3D border for the bar fill and relief. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.borderWidth">
+<span class="target" id="struct_bar_pen_1af4832b21deea9c4c90412d4e8cef7b7d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">borderWidth</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.borderWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bevel thickness in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.relief">
+<span class="target" id="struct_bar_pen_1aaac0a94fbfe096b82f39a92485f7ec2e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">relief</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.relief" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk bar relief selector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.stipple">
+<span class="target" id="struct_bar_pen_1a26deecc07ebd777261b572c06fa1112b"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stipple</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.stipple" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Retained fill stipple bitmap, or None. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.fillOpacity">
+<span class="target" id="struct_bar_pen_1a281450e55cc9afc1f255819c9f6ea857"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillOpacity</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.fillOpacity" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill alpha; borders and annotations remain opaque. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.gc">
+<span class="target" id="struct_bar_pen_1a5639050e3e8ad13161cab00d8899eba8"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gc</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.gc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned native fill GC. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarShow">
+<span class="target" id="struct_bar_pen_1a021df70eaa113a20e62f95896b6a02e9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">errorBarShow</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarShow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bit mask selecting X and Y error bars. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarLineWidth">
+<span class="target" id="struct_bar_pen_1a1c6daad082ea9d68b5b21f5a29f2962a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">errorBarLineWidth</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarLineWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Error stroke width in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarCapWidth">
+<span class="target" id="struct_bar_pen_1ad67275f3ab512c1502c73e7c00639949"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">errorBarCapWidth</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarCapWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested error cap width in pixels; mapping resolves automatic widths. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarColor">
+<span class="target" id="struct_bar_pen_1a70c03db9ca05d82e5aab2e40019e0f07"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">errorBarColor</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Configured error color; COLOR_DEFAULT requests the element fallback. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.errorBarGC">
+<span class="target" id="struct_bar_pen_1a4d53b05286ccaadb562b76a17fa08983"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">errorBarGC</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.errorBarGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned GC for native error strokes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueShow">
+<span class="target" id="struct_bar_pen_1a826fb8c753e9c360e3a486c7eb830c5f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">valueShow</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueShow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bit mask selecting X and Y coordinates in labels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueFormat">
+<span class="target" id="struct_bar_pen_1ac8506a6e57ab52d38e900f4b9fe97192"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">valueFormat</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueFormat" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Option-managed numeric format string. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueCommandObjPtr">
+<span class="target" id="struct_bar_pen_1ae7e82c5e43144586c5bcdeffa45e5df7"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">valueCommandObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueCommandObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for value command; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueOffsetObjPtr">
+<span class="target" id="struct_bar_pen_1a39626770905f413c171729ec352c2618"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">valueOffsetObjPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueOffsetObjPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk option-managed Tcl representation for value offset; released with the owning option state. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueOffset">
+<span class="target" id="struct_bar_pen_1a894f102e50d006fd8dfbe3e21f107bee"></span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">valueOffset</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Label anchor displacement in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPen.valueStyle">
+<span class="target" id="struct_bar_pen_1aada4164c12ab094abc45e5426db4ad2a"></span><a class="reference internal" href="text-font-reference.html#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">valueStyle</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPen.valueStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Label text style; its GC belongs to the pen. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -653,6 +818,73 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 <span class="target" id="struct_bar_pen_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarPenStyle</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>A weighted palette entry borrowing a concrete pen and mapped array slices. </p>
 <p>Counts delimit valid views; the containing element owns the arrays. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.weight">
+<span class="target" id="struct_bar_pen_style_1afc1a41536221184f8a862a9a35e36abd"></span><a class="reference internal" href="pen-reference.html#c.Weight" title="Weight"><span class="n"><span class="pre">Weight</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">weight</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.weight" title="Link to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="pen-reference.html#struct_weight"><span class="std std-ref">Weight</span></a> range where this pen is valid. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.penPtr">
+<span class="target" id="struct_bar_pen_style_1a55c2bdd750af07d575c8dc7c10e10ed4"></span><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen" title="BarPen"><span class="n"><span class="pre">BarPen</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">penPtr</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.penPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pen to draw. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.xErrorBars">
+<span class="target" id="struct_bar_pen_style_1af30c0e1804124c83b24ea38cfae6f6d2"></span><a class="reference internal" href="geometry-reference.html#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">xErrorBars</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.xErrorBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Point to start of this pen’s X-error bar segments in the element’s array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.yErrorBars">
+<span class="target" id="struct_bar_pen_style_1a49001ff4a82f4189fb6447b8337aa4fd"></span><a class="reference internal" href="geometry-reference.html#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">yErrorBars</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.yErrorBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Point to start of this pen’s Y-error bar segments in the element’s array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.xErrorBarCnt">
+<span class="target" id="struct_bar_pen_style_1a2db06e3b327f4989630fc65c09f39c1a"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">xErrorBarCnt</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.xErrorBarCnt" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_bar_pen_style_1autotoc_md8">
+<h3>of error bars for this pen.<a class="headerlink" href="#struct_bar_pen_style_1autotoc_md8" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_bar_pen_style_1autotoc_md8"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.yErrorBarCnt">
+<span class="target" id="struct_bar_pen_style_1ad42502d655dfbf5da6348b50078535a0"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">yErrorBarCnt</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.yErrorBarCnt" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_bar_pen_style_1autotoc_md9">
+<h3>of error bars for this pen.<a class="headerlink" href="#struct_bar_pen_style_1autotoc_md9" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_bar_pen_style_1autotoc_md9"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.errorBarCapWidth">
+<span class="target" id="struct_bar_pen_style_1a6e17d0688dd265bb80386c027f1db803"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">errorBarCapWidth</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.errorBarCapWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Length of the cap ends on each error bar. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.symbolSize">
+<span class="target" id="struct_bar_pen_style_1ace803842e4bfc8d95019d0e68ead99e6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">symbolSize</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.symbolSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Size of the pen’s symbol scaled to the current graph size. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.rectangles">
+<span class="target" id="struct_bar_pen_style_1aab5e42ea79723540cf1ca30b1e6370dc"></span><span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">rectangles</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.rectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Indicates starting location in bar array for this pen. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.BarPenStyle.nRects">
+<span class="target" id="struct_bar_pen_style_1aaa729455f5803e736e7006a3e2ce76f3"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nRects</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.BarPenStyle.nRects" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of bar segments for this pen. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -660,6 +892,89 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 <span class="target" id="struct_bar"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Bar</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar" title="Link to this definition">¶</a><br /></dt>
 <dd><p>A concrete bar element with a first-member Element header and embedded pen. </p>
 <p>Owns normal/active rectangles and source-index maps; common error arrays reside in the Element header. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.core">
+<span class="target" id="struct_bar_1aa80dfc451c734c07d301fdd6b4aa921f"></span><a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">core</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.core" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common Element prefix; must remain first. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.builtinPen">
+<span class="target" id="struct_bar_1a0163ba17cc1213fdeb12dbda0af84f51"></span><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen" title="BarPen"><span class="n"><span class="pre">BarPen</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">builtinPen</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.builtinPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Embedded default bar pen owned by this element. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.rectToData">
+<span class="target" id="struct_bar_1a239892a2a12f60d2b7a87c6bca1f4aeb"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">rectToData</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.rectToData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned map from each displayed rectangle to its source sample index. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.rectangles">
+<span class="target" id="struct_bar_1a14b20d3814599f7472f55e2528129597"></span><span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">rectangles</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.rectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Array of rectangles comprising the bar segments of the element. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.nRects">
+<span class="target" id="struct_bar_1a2be3167b2159e98d8746206368f3c88e"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nRects</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.nRects" title="Link to this definition">¶</a><br /></dt>
+<dd><section id="struct_bar_1autotoc_md10">
+<h3>of visible bar segments for element<a class="headerlink" href="#struct_bar_1autotoc_md10" title="Link to this heading">¶</a></h3>
+<span class="target" id="struct_bar_1autotoc_md10"></span></section>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.padX">
+<span class="target" id="struct_bar_1af54d99effbce5a30dba3881688430e36"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">padX</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.padX" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Spacing on either side of bar. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.barWidth">
+<span class="target" id="struct_bar_1af5314312563ba7241e5ec44f0715eca9"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">barWidth</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.barWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Requested bar width in X data units; zero inherits graph width. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.barAlign">
+<span class="target" id="struct_bar_1a02b7e03fe7e3b7c3b58e0875cd8fc30d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">barAlign</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.barAlign" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Anchor of the full group interval. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.errorBarPosition">
+<span class="target" id="struct_bar_1af69d2b1a05b79e4089540ca3fd4791fe"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">errorBarPosition</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.errorBarPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Data coordinates or final bar placement. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.barOffset">
+<span class="target" id="struct_bar_1a19064cba664e60354d7129cb4d67f4d6"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">barOffset</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.barOffset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translation in data X coordinates. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.nActive">
+<span class="target" id="struct_bar_1a0311a7641f4d7dd59bf0c2ac18ec3390"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nActive</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.nActive" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of mapped active rectangles. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.activeRects">
+<span class="target" id="struct_bar_1ac0eaeeaa4ade8394a48eb2ba756f1781"></span><span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">activeRects</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.activeRects" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned mapped active rectangle array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrBarGeometry.Bar.activeToData">
+<span class="target" id="struct_bar_1a2a730320ce4497fb4e3b83bf8a1434c6"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">activeToData</span></span></span><a class="headerlink" href="#c.rbcGrBarGeometry.Bar.activeToData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned map from active rectangles to source indices. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -734,7 +1049,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarOutput.DrawBarErrorSegments">
-<span class="target" id="group__bar__output_1ga3a187fcdca1ce9c53e31a384fa59e8b1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawBarErrorSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawBarErrorSegments" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__output_1ga3a187fcdca1ce9c53e31a384fa59e8b1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawBarErrorSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.DrawBarErrorSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw one error-stroke batch with screen color and width defaults. </p>
 <p>Borrows pen and segments. NULL/default color falls back to foreground, then border color, then screen black. Supplies at least one pixel to the stroke renderer and the configured GC for native drawing. Closes any returned context; an unavailable context produces no strokes. Does not map errors.</p>
 <dl class="field-list simple">
@@ -784,7 +1099,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarOutput.SymbolExport">
-<span class="target" id="group__bar__output_1ga41a83a8fca988ca4eb179d38e03b76f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.SymbolExport" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__output_1ga41a83a8fca988ca4eb179d38e03b76f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.SymbolExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export a normal-pen legend sample through the selected backend. </p>
 <p>Skips zero opacity or absent colors. With stipple and no foreground, promotes background to stipple foreground and leaves gaps transparent. Borrows style resources and closes the symbol context after one point; does not emit data rectangles or relief borders.</p>
 <dl class="field-list simple">
@@ -803,7 +1118,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarOutput.SegmentsExport">
-<span class="target" id="group__bar__output_1ga1adaa0afcde2b08c47a64272d4207b2e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SegmentsExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.SegmentsExport" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__output_1ga1adaa0afcde2b08c47a64272d4207b2e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SegmentsExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.SegmentsExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export filled rectangles and optional relief borders for one pen. </p>
 <p>Borrows the mapped rectangle batch. Normalizes stipple colors, opens one fill context and skips rectangles with dimensions below one. Preserves the historical one-pixel fill inset. Positive opacity enables fills; nonflat borders use the original dimensions and can remain visible at zero fill opacity. No colors means no output. Closes its context before returning; plot/track clipping belongs to the outer export scope.</p>
 <dl class="field-list simple">
@@ -821,7 +1136,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarOutput.BarValuesExport">
-<span class="target" id="group__bar__output_1ga067ce432440168a79a8cae24036a9c29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarValuesExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectToData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.BarValuesExport" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__output_1ga067ce432440168a79a8cae24036a9c29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarValuesExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">BarPen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">BarRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectToData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.BarValuesExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export source-value labels at mapped bar anchors. </p>
 <p>Uses the same source-index lookup and baseline/inversion anchor rule as DrawBarValues, retaining floating-point output coordinates. Borrows drawing records, releases each acquired label object and closes the output context. Label commands may execute Tcl and must not mutate owners or geometry or enter nested event loops. Empty labels are skipped.</p>
 <dl class="field-list simple">
@@ -841,7 +1156,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarOutput.ActiveBarExport">
-<span class="target" id="group__bar__output_1ga576358e01f26ce1c3f55861bdd6af778"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ActiveBarExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.ActiveBarExport" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__output_1ga576358e01f26ce1c3f55861bdd6af778"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ActiveBarExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.ActiveBarExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export selected or all active rectangles and their labels. </p>
 <p>Uses the active pen if present. Positive selection rebuilds pending active geometry; negative selection uses the full mapped arrays. Zero selection emits nothing. Does not export active errors. Requires the outer export clip and the label-callback lifetime contract of BarValuesExport.</p>
 <dl class="field-list simple">
@@ -857,7 +1172,7 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrBarOutput.NormalBarExport">
-<span class="target" id="group__bar__output_1gac36447a29395984b8a7655a83a7deb08"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalBarExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.NormalBarExport" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__bar__output_1gac36447a29395984b8a7655a83a7deb08"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalBarExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <a class="reference internal" href="element-reference.html#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrBarOutput.NormalBarExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export palette-grouped bars, error strokes and value labels. </p>
 <p>Borrows current style slices and corresponding source-index ranges. Uses the shared bar color fallback for errors and passes the configured width to export stroke contexts. Labels may execute Tcl; the outer caller must maintain the drawing records and export clip throughout.</p>
 <dl class="field-list simple">
@@ -943,9 +1258,65 @@ Allocates owned rectangles and original-source indices, places bars in order, ma
 <li><a class="reference internal" href="#c.rbcGrBarGeometry.MapActiveBars"><code class="docutils literal notranslate"><span class="pre">MapActiveBars()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrBarGeometry.ResetBar"><code class="docutils literal notranslate"><span class="pre">ResetBar()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrBarGeometry.DestroyBar"><code class="docutils literal notranslate"><span class="pre">DestroyBar()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen"><code class="docutils literal notranslate"><span class="pre">BarPen</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle"><code class="docutils literal notranslate"><span class="pre">BarPenStyle</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar"><code class="docutils literal notranslate"><span class="pre">Bar</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen"><code class="docutils literal notranslate"><span class="pre">BarPen</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.core"><code class="docutils literal notranslate"><span class="pre">core</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.borderWidthObjPtr"><code class="docutils literal notranslate"><span class="pre">borderWidthObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarCapObjPtr"><code class="docutils literal notranslate"><span class="pre">errorBarCapObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarColorObjPtr"><code class="docutils literal notranslate"><span class="pre">errorBarColorObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarWidthObjPtr"><code class="docutils literal notranslate"><span class="pre">errorBarWidthObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.showErrorBarsObjPtr"><code class="docutils literal notranslate"><span class="pre">showErrorBarsObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.showValuesObjPtr"><code class="docutils literal notranslate"><span class="pre">showValuesObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueRotateObjPtr"><code class="docutils literal notranslate"><span class="pre">valueRotateObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueShadowObjPtr"><code class="docutils literal notranslate"><span class="pre">valueShadowObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.fgColor"><code class="docutils literal notranslate"><span class="pre">fgColor</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.border"><code class="docutils literal notranslate"><span class="pre">border</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.borderWidth"><code class="docutils literal notranslate"><span class="pre">borderWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.relief"><code class="docutils literal notranslate"><span class="pre">relief</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.stipple"><code class="docutils literal notranslate"><span class="pre">stipple</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.fillOpacity"><code class="docutils literal notranslate"><span class="pre">fillOpacity</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.gc"><code class="docutils literal notranslate"><span class="pre">gc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarShow"><code class="docutils literal notranslate"><span class="pre">errorBarShow</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarLineWidth"><code class="docutils literal notranslate"><span class="pre">errorBarLineWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarCapWidth"><code class="docutils literal notranslate"><span class="pre">errorBarCapWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarColor"><code class="docutils literal notranslate"><span class="pre">errorBarColor</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.errorBarGC"><code class="docutils literal notranslate"><span class="pre">errorBarGC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueShow"><code class="docutils literal notranslate"><span class="pre">valueShow</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueFormat"><code class="docutils literal notranslate"><span class="pre">valueFormat</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueCommandObjPtr"><code class="docutils literal notranslate"><span class="pre">valueCommandObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueOffsetObjPtr"><code class="docutils literal notranslate"><span class="pre">valueOffsetObjPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueOffset"><code class="docutils literal notranslate"><span class="pre">valueOffset</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPen.valueStyle"><code class="docutils literal notranslate"><span class="pre">valueStyle</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle"><code class="docutils literal notranslate"><span class="pre">BarPenStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.weight"><code class="docutils literal notranslate"><span class="pre">weight</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.penPtr"><code class="docutils literal notranslate"><span class="pre">penPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.xErrorBars"><code class="docutils literal notranslate"><span class="pre">xErrorBars</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.yErrorBars"><code class="docutils literal notranslate"><span class="pre">yErrorBars</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.xErrorBarCnt"><code class="docutils literal notranslate"><span class="pre">xErrorBarCnt</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.yErrorBarCnt"><code class="docutils literal notranslate"><span class="pre">yErrorBarCnt</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.errorBarCapWidth"><code class="docutils literal notranslate"><span class="pre">errorBarCapWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.symbolSize"><code class="docutils literal notranslate"><span class="pre">symbolSize</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.rectangles"><code class="docutils literal notranslate"><span class="pre">rectangles</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.BarPenStyle.nRects"><code class="docutils literal notranslate"><span class="pre">nRects</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar"><code class="docutils literal notranslate"><span class="pre">Bar</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.core"><code class="docutils literal notranslate"><span class="pre">core</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.builtinPen"><code class="docutils literal notranslate"><span class="pre">builtinPen</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.rectToData"><code class="docutils literal notranslate"><span class="pre">rectToData</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.rectangles"><code class="docutils literal notranslate"><span class="pre">rectangles</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.nRects"><code class="docutils literal notranslate"><span class="pre">nRects</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.padX"><code class="docutils literal notranslate"><span class="pre">padX</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.barWidth"><code class="docutils literal notranslate"><span class="pre">barWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.barAlign"><code class="docutils literal notranslate"><span class="pre">barAlign</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.errorBarPosition"><code class="docutils literal notranslate"><span class="pre">errorBarPosition</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.barOffset"><code class="docutils literal notranslate"><span class="pre">barOffset</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.nActive"><code class="docutils literal notranslate"><span class="pre">nActive</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.activeRects"><code class="docutils literal notranslate"><span class="pre">activeRects</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrBarGeometry.Bar.activeToData"><code class="docutils literal notranslate"><span class="pre">activeToData</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#screen-drawing-and-document-output">Screen drawing and document output</a><ul>

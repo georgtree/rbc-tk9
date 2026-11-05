@@ -67,21 +67,15 @@
 
 #define MAX_EPS_LINE_LENGTH 255 /* Maximum line length for a EPS file */
 
-/*
- * EpsParseInfo --
- *
- *    This structure is used to pass PostScript file information
- *    around to various routines while parsing the EPS file.
- */
+/** @brief Temporary EPS input parser state. */
 typedef struct {
-    size_t maxBytes;  /* Maximum bytes in PostScript section.
-                       * Zero means read to EOF. */
-    size_t bytesRead; /* Bytes consumed from PostScript section. */
-    int lineNumber;
-    char line[MAX_EPS_LINE_LENGTH + 1];
-    char hexTable[256];
-    char *nextPtr;
-    FILE *f;
+    size_t maxBytes; /**< Maximum bytes in PostScript section. Zero means read to EOF. */
+    size_t bytesRead; /**< Bytes consumed from PostScript section. */
+    int lineNumber; /**< Current input line number. */
+    char line[MAX_EPS_LINE_LENGTH + 1]; /**< Current line buffer. */
+    char hexTable[256]; /**< Hexadecimal-byte lookup table used for preview decoding. */
+    char *nextPtr; /**< Current position within the buffered input. */
+    FILE *f; /**< Borrowed open input stream. */
 } EpsParseInfo;
 
 #define DEF_EPS_ANCHOR "nw"
@@ -117,91 +111,91 @@ static Tk_CustomOption tagsOption;
 extern Tk_CustomOption rbcDistanceOption;
 extern Tk_CustomOption rbcShadowOption;
 
-/*
- * The structure below defines the record for each EPS item.
- */
+/** @brief Canvas EPS item owning parsed PostScript and preview resources. */
 typedef struct {
-    Tk_Item header;            /* Generic stuff that's the same for all
-                                * types.  MUST BE FIRST IN STRUCTURE. */
-    Tk_Canvas canvas;          /* Canvas containing the EPS item. */
-    int canvasX, canvasY;      /* Translated (by the anchor) canvas
-                                * coordinates of the EPS item. */
-    int lastWidth, lastHeight; /* Last known dimensions of the EPS item.
-                                * This is used to know if the color image
-                                * preview needs to be resized. */
-    Tcl_Interp *interp;
-    FILE *psFile;      /* File pointer to Encapsulated
-                        * PostScript file. We'll hold this as
-                        * long as the EPS item is using this
-                        * file. */
-    size_t psStart;    /* File offset of PostScript code. */
-    size_t psLength;   /* Length of PostScript code. If zero,
-                        * indicates to read to EOF. */
-    size_t wmfStart;   /* File offset of Windows Metafile preview.  */
-    size_t wmfLength;  /* Length of WMF portion in bytes. If zero,
-                        * indicates there is no WMF preview. */
-    size_t tiffStart;  /* File offset of TIFF preview. */
-    size_t tiffLength; /* Length of TIFF portion in bytes. If zero,
-                        * indicates there is no TIFF preview. */
-    char *previewName;
-    int previewFormat;
-    Tk_Image preview;          /* A Tk photo image provided as a
-                                * preview of the EPS contents. This
-                                * image supersedes any EPS preview
-                                * embedded PostScript preview (EPSI). */
-    Tk_Image tmpImage;         /* Used to display the resized preview image.
-                                * Created and deleted internally. */
-    Pixmap pixmap;             /* Pixmap representing scaled preview. This
-                                * isn't currently used.  For now we're
-                                * overwriting the Tk image everytime the
-                                * EPS item is resized. In the future
-                                * we'll use our own image routines. */
-    Rbc_ColorImage colorImage; /* The original photo or PostScript
-                                * preview image converted to a color
-                                * image.  This is kept around for
-                                * resampling or resizing the image. */
-    int firstLine, lastLine;   /* First and last line numbers of the
-                                * PostScript preview.  They are used
-                                * to skip over the preview when
-                                * encapsulating PostScript for the
-                                * canvas item. */
-    GC fillGC;                 /* Graphics context to fill background
-                                * of image outline if no preview image
-                                * was present. */
-    int llx, lly, urx, ury;    /* Lower left and upper right coordinates
-                                * of PostScript bounding box, retrieved
-                                * from file's "BoundingBox:" field. */
-    char *title;               /* Title, retrieved from the file's "Title:"
-                                * field, to be displayed over the top of
-                                * the EPS preview (malloc-ed).  */
-    Tcl_DString dString;       /* Contains the encapsulate PostScript. */
+    Tk_Item header; /**< Generic stuff that's the same for all types. MUST BE FIRST IN STRUCTURE. */
+    Tk_Canvas canvas; /**< Canvas containing the EPS item. */
+    int canvasX; /**< Translated (by the anchor) canvas coordinates of the EPS item. */
+    int canvasY; /**< Translated (by the anchor) canvas coordinates of the EPS item. */
+    int lastWidth; /**< Last known dimensions of the EPS item. This is used to know if the color image preview needs to
+     * be resized.
+     */
+    int lastHeight; /**< Last known dimensions of the EPS item. This is used to know if the color image preview needs to
+     * be resized.
+     */
+    Tcl_Interp *interp; /**< Borrowed canvas interpreter. */
+    FILE *psFile; /**< File pointer to Encapsulated PostScript file. We'll hold this as long as the EPS item is using
+     * this file.
+     */
+    size_t psStart; /**< File offset of PostScript code. */
+    size_t psLength; /**< Length of PostScript code. If zero, indicates to read to EOF. */
+    size_t wmfStart; /**< File offset of Windows Metafile preview. */
+    size_t wmfLength; /**< Length of WMF portion in bytes. If zero, indicates there is no WMF preview. */
+    size_t tiffStart; /**< File offset of TIFF preview. */
+    size_t tiffLength; /**< Length of TIFF portion in bytes. If zero, indicates there is no TIFF preview. */
+    char *previewName; /**< Configured preview image name. */
+    int previewFormat; /**< Preview format selector. */
+    Tk_Image preview; /**< A Tk photo image provided as a preview of the EPS contents. This image supersedes any EPS
+     * preview embedded PostScript preview (EPSI).
+     */
+    Tk_Image tmpImage; /**< Used to display the resized preview image. Created and deleted internally. */
+    Pixmap pixmap; /**< Pixmap representing scaled preview. This isn't currently used. For now we're overwriting the Tk
+     * image everytime the EPS item is resized. In the future we'll use our own image routines.
+     */
+    Rbc_ColorImage colorImage; /**< The original photo or PostScript preview image converted to a color image. This is kept around
+     * for resampling or resizing the image.
+     */
+    int firstLine; /**< First and last line numbers of the PostScript preview. They are used to skip over the preview
+     * when encapsulating PostScript for the canvas item.
+     */
+    int lastLine; /**< First and last line numbers of the PostScript preview. They are used to skip over the preview
+     * when encapsulating PostScript for the canvas item.
+     */
+    GC fillGC; /**< Graphics context to fill background of image outline if no preview image was present. */
+    int llx; /**< Lower left and upper right coordinates of PostScript bounding box, retrieved from file's
+     * "BoundingBox:" field.
+     */
+    int lly; /**< Lower left and upper right coordinates of PostScript bounding box, retrieved from file's
+     * "BoundingBox:" field.
+     */
+    int urx; /**< Lower left and upper right coordinates of PostScript bounding box, retrieved from file's
+     * "BoundingBox:" field.
+     */
+    int ury; /**< Lower left and upper right coordinates of PostScript bounding box, retrieved from file's
+     * "BoundingBox:" field.
+     */
+    char *title; /**< Title, retrieved from the file's "Title:" field, to be displayed over the top of the EPS preview
+     * (allocated).
+     */
+    Tcl_DString dString; /**< Contains the encapsulate PostScript. */
 
     /* User configurable fields */
-    double x, y; /* Canvas coordinates of the item */
-    Tk_Anchor anchor;
-    char *fileName;    /* Name of the encapsulated PostScript file.
-                        * If NULL, indicates that no EPS file
-                        * has be successfully loaded yet. */
-    char *reqTitle;    /* Title to be displayed in the EPS item.
-                        * Supersedes the title found in the EPS
-                        * file. If NULL, indicates that the title
-                        * found in the EPS file should be used. */
-    int width, height; /* Dimensions of EPS item. If set to zero,
-                        * the dimension found in the "%%BoundingBox:"
-                        * specification from the EPS file are
-                        * used. */
-    int showImage;     /* Indicates if the image or the outline
-                        * rectangle should be displayed */
-    int quick;
-    XColor *fillColor;  /* Fill color of the image outline. */
-    Tk_3DBorder border; /* Outline color */
-    int borderWidth;
-    int relief;
-    TextStyle titleStyle; /* Font, color, etc. for title */
-    Pixmap stipple;       /* Stipple for image fill */
-    ClientData tiffPtr;
+    double x; /**< Canvas coordinates of the item */
+    double y; /**< Canvas coordinates of the item */
+    Tk_Anchor anchor; /**< Tk anchor locating the item relative to x/y. */
+    char *fileName; /**< Name of the encapsulated PostScript file. If NULL, indicates that no EPS file has be
+     * successfully loaded yet.
+     */
+    char *reqTitle; /**< Title to be displayed in the EPS item. Supersedes the title found in the EPS file. If NULL,
+     * indicates that the title found in the EPS file should be used.
+     */
+    int width; /**< Dimensions of EPS item. If set to zero, the dimension found in the "%%BoundingBox:"
+     * specification from the EPS file are used.
+     */
+    int height; /**< Dimensions of EPS item. If set to zero, the dimension found in the "%%BoundingBox:"
+     * specification from the EPS file are used.
+     */
+    int showImage; /**< Indicates if the image or the outline rectangle should be displayed */
+    int quick; /**< Nonzero requests quick preview resampling. */
+    XColor *fillColor; /**< Fill color of the image outline. */
+    Tk_3DBorder border; /**< Outline color */
+    int borderWidth; /**< Preview border thickness in pixels. */
+    int relief; /**< Tk preview border relief. */
+    TextStyle titleStyle; /**< Font, color, etc. for title */
+    Pixmap stipple; /**< Stipple for image fill */
+    ClientData tiffPtr; /**< TIFF decoder handle when TIFF preview support is compiled in. */
 #ifdef WIN32
-    HENHMETAFILE *hMetaFile; /* Windows metafile. */
+    HENHMETAFILE *hMetaFile; /**< Optional Windows metafile state retained by the EPS item. */
 #endif
 } EpsItem;
 

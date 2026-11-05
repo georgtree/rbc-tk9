@@ -68,7 +68,7 @@ cleanup context described in <a class="reference internal" href="grids.html"><sp
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.Grid.track">
-<span class="target" id="struct_grid_1a10c92fa4e9929c7e9b496669f71e7797"></span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">track</span></span></span><a class="headerlink" href="#c.Grid.track" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="struct_grid_1a10c92fa4e9929c7e9b496669f71e7797"></span><a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">track</span></span></span><a class="headerlink" href="#c.Grid.track" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrowed owning track, or NULL for the graph-wide grid. </p>
 </dd></dl>
 
@@ -266,7 +266,7 @@ cleanup context described in <a class="reference internal" href="grids.html"><sp
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.Grid.axes">
-<span class="target" id="struct_grid_1a4e58d0afd14f95ade8dfacc4ee3a22d7"></span><span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">axes</span></span></span><a class="headerlink" href="#c.Grid.axes" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="struct_grid_1a4e58d0afd14f95ade8dfacc4ee3a22d7"></span><a class="reference internal" href="axis-reference.html#c.Axis2D" title="Axis2D"><span class="n"><span class="pre">Axis2D</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">axes</span></span></span><a class="headerlink" href="#c.Grid.axes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Retained X/Y axis references used for Cartesian grid selection. </p>
 </dd></dl>
 
@@ -284,14 +284,14 @@ cleanup context described in <a class="reference internal" href="grids.html"><sp
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.Grid.dashes">
-<span class="target" id="struct_grid_1adcfb0fcc0422e5b3b1352f679889e668"></span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dashes</span></span></span><a class="headerlink" href="#c.Grid.dashes" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="struct_grid_1adcfb0fcc0422e5b3b1352f679889e668"></span><a class="reference internal" href="geometry-reference.html#c.Rbc_Dashes" title="Rbc_Dashes"><span class="n"><span class="pre">Rbc_Dashes</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dashes</span></span></span><a class="headerlink" href="#c.Grid.dashes" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parsed dash pattern. </p>
 </dd></dl>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.Grid.lineWidth">
 <span class="target" id="struct_grid_1ab1b00e18718cefb158dba4216c1df591"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lineWidth</span></span></span><a class="headerlink" href="#c.Grid.lineWidth" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Line width in pixels. </p>
+<dd><p><a class="reference internal" href="mapping-reference.html#struct_line"><span class="std std-ref">Line</span></a> width in pixels. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -324,14 +324,14 @@ cleanup context described in <a class="reference internal" href="grids.html"><sp
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GridSegments.segments">
-<span class="target" id="struct_grid_segments_1aaadf1102cf3c9c4966fd8f458f4aa40c"></span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">segments</span></span></span><a class="headerlink" href="#c.GridSegments.segments" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="struct_grid_segments_1aaadf1102cf3c9c4966fd8f458f4aa40c"></span><a class="reference internal" href="geometry-reference.html#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">segments</span></span></span><a class="headerlink" href="#c.GridSegments.segments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Owned mapped endpoint-pair array; NULL when empty. </p>
 </dd></dl>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GridSegments.nSegments">
 <span class="target" id="struct_grid_segments_1a9f071dc937ba3faeb0e8c3925bdc1b65"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nSegments</span></span></span><a class="headerlink" href="#c.GridSegments.nSegments" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Number of initialized Segment2D entries. </p>
+<dd><p>Number of initialized <a class="reference internal" href="geometry-reference.html#struct_segment2_d"><span class="std std-ref">Segment2D</span></a> entries. </p>
 </dd></dl>
 
 </div>
@@ -395,7 +395,7 @@ Trackgraphs dispatch before testing global visibility, so each effective track g
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GridExport">
-<span class="target" id="rbc_graph_8h_1a2b02618db8919ce19372265a10dc8396"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GridExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GridExport" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_graph_8h_1a2b02618db8919ce19372265a10dc8396"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GridExport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GridExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit prepared grid segments through an initialized export context. </p>
 <p>
 Track grids use their effective styles, visibility and per-track clips. Ordinary graphs skip a hidden global grid. Does not perform layout or finalize the document. </p>
@@ -429,7 +429,7 @@ Selects graph, bar or polar option defaults, initializes resource name grid and 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_DestroyTrackGrid">
-<span class="target" id="rbc_gr_track_8h_1a392edcd11f08ace11fad78bf01b087d5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackGrid</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTrackGrid" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="rbc_gr_track_8h_1a392edcd11f08ace11fad78bf01b087d5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackGrid</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTrackGrid" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a track’s local grid and both mapped segment caches. </p>
 <p>
 A NULL local grid is allowed. Does not destroy the track or global grid. </p>
@@ -748,7 +748,7 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrid.DrawTrackGrids">
-<span class="target" id="group__grid__internals_1ga629edccf72c47d18525c834b3662c866"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTrackGrids</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrid.DrawTrackGrids" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__grid__internals_1ga629edccf72c47d18525c834b3662c866"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTrackGrids</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrid.DrawTrackGrids" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw cached segments with each track’s effective grid and clip. </p>
 <p>Requires mapped track geometry and segment caches. Selects local settings or the global inherited grid, skipping hidden/collapsed tracks independently. Pairs each entered track viewport with restoration. A non-NULL exportPtr selects export output and explicit rectangular clipping; otherwise drawable is borrowed screen storage. Renderer contexts are ended before returning.</p>
 <p>The native fallback reuses one scratch clip context across tracks and copies only visible track rectangles, retaining original segment/dash coordinates. This clips complete strokes, not only their centerlines. Does not remap, finalize export documents or own the cached segment arrays.</p>
@@ -882,7 +882,7 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrid.Rbc_TrackGridOp">
-<span class="target" id="group__grid__internals_1ga1e08f24f7cec2f816aaffb049366106b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TrackGridOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrid.Rbc_TrackGridOp" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__grid__internals_1ga1e08f24f7cec2f816aaffb049366106b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TrackGridOp</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><span class="n"><span class="pre">RbcTrack</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrid.Rbc_TrackGridOp" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Adapt nested track grid commands without freezing query defaults. </p>
 <p>Owns a temporary adapted argument vector and option table, and retains a temporary Y-axis name. Inherited queries use a shallow borrowed global view with the track first Y axis when enabled. First mutation prepares an owned local candidate; only success attaches it. Temporarily selects the view or candidate through graphPtr-&gt;gridPtr, restoring the global pointer before cleanup. This synchronous path must not evaluate Tcl callbacks while temporary selection is active.</p>
 <dl class="field-list simple">
@@ -904,6 +904,45 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 <span class="target" id="struct_grid_polar_angle_ticks_transaction"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GridPolarAngleTicksTransaction</span></span></span><a class="headerlink" href="#c.rbcGrid.GridPolarAngleTicksTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Owned staging buffers for the two angular tick options. </p>
 <p>Zero-initialize before staging. A staged flag distinguishes an explicitly empty replacement from an unchanged slot. Commit transfers array ownership and clears each staged slot; cleanup releases only remaining owned arrays. The record must not be copied as an independent owner while buffers exist. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridPolarAngleTicksTransaction.majorStaged">
+<span class="target" id="struct_grid_polar_angle_ticks_transaction_1aae70257a1f6734b51b61b7d1dc34341a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">majorStaged</span></span></span><a class="headerlink" href="#c.rbcGrid.GridPolarAngleTicksTransaction.majorStaged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the corresponding tick array has a staged replacement. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridPolarAngleTicksTransaction.majorTicks">
+<span class="target" id="struct_grid_polar_angle_ticks_transaction_1a366143a1b5a43ffc48d1aa942b9d1d0d"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">majorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridPolarAngleTicksTransaction.majorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staged tick values; transferred on commit or freed on abort. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridPolarAngleTicksTransaction.nMajorTicks">
+<span class="target" id="struct_grid_polar_angle_ticks_transaction_1a20e62fc10a96aee2c5af5c2dae843cb7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nMajorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridPolarAngleTicksTransaction.nMajorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of values in the staged tick array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridPolarAngleTicksTransaction.minorStaged">
+<span class="target" id="struct_grid_polar_angle_ticks_transaction_1a332b73a52dba7bf66f8735d5f9b5773f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">minorStaged</span></span></span><a class="headerlink" href="#c.rbcGrid.GridPolarAngleTicksTransaction.minorStaged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the corresponding tick array has a staged replacement. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridPolarAngleTicksTransaction.minorTicks">
+<span class="target" id="struct_grid_polar_angle_ticks_transaction_1afa97e3044dbadd6684dc6371900855df"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">minorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridPolarAngleTicksTransaction.minorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staged tick values; transferred on commit or freed on abort. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridPolarAngleTicksTransaction.nMinorTicks">
+<span class="target" id="struct_grid_polar_angle_ticks_transaction_1ad30dcc76c41690554d2b842a45bd76a2"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nMinorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridPolarAngleTicksTransaction.nMinorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of values in the staged tick array. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl class="c struct">
@@ -911,8 +950,109 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 <span class="target" id="struct_grid_smith_ticks_transaction"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GridSmithTicksTransaction</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Owned staging buffers for four independent Smith tick options. </p>
 <p>Real/imaginary and major/minor slots each have a staged flag, owned array and count. NULL with a true flag means clear that active list. Prepare initializes the complete record; commit detaches ownership; cleanup resets all fields. This storage is separate from Tk_SavedOptions and owns no Tcl objects. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.realMajorStaged">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a6bc70788ab9ec6d01bbbce5d954e1fe7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">realMajorStaged</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.realMajorStaged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the corresponding tick array has a staged replacement. </p>
 </dd></dl>
 
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.realMajorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a624e2fa28564409ad7d58839b8805e86"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">realMajorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.realMajorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staged tick values; transferred on commit or freed on abort. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.nRealMajorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a5112d67dc78c8c653498a43274bc7053"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nRealMajorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.nRealMajorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of values in the staged tick array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.realMinorStaged">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a08e96b09125d6019b127d6c709694e64"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">realMinorStaged</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.realMinorStaged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the corresponding tick array has a staged replacement. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.realMinorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a71e481b6a26c9fdbf41635f3c7cc8d91"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">realMinorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.realMinorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staged tick values; transferred on commit or freed on abort. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.nRealMinorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a5a90bc7976d4deed284e423756da9e5b"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nRealMinorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.nRealMinorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of values in the staged tick array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.imagMajorStaged">
+<span class="target" id="struct_grid_smith_ticks_transaction_1aef406e7f86f3d8bea0271043f766dcef"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">imagMajorStaged</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.imagMajorStaged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the corresponding tick array has a staged replacement. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.imagMajorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a86ff4b17cc75f8bd0a60e9eed7f31024"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">imagMajorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.imagMajorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staged tick values; transferred on commit or freed on abort. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.nImagMajorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a07ea1e7bc8c1af6b158b092ee7d7903f"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nImagMajorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.nImagMajorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of values in the staged tick array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.imagMinorStaged">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a178678e3423d844fbf3c4dc02a7bf881"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">imagMinorStaged</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.imagMinorStaged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when the corresponding tick array has a staged replacement. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.imagMinorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1a6c5b57c58415c2155f9a25bc4636dfe5"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">imagMinorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.imagMinorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned staged tick values; transferred on commit or freed on abort. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrid.GridSmithTicksTransaction.nImagMinorTicks">
+<span class="target" id="struct_grid_smith_ticks_transaction_1aab369d7aa6fd1efddd86e52c4bc39e18"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nImagMinorTicks</span></span></span><a class="headerlink" href="#c.rbcGrid.GridSmithTicksTransaction.nImagMinorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of values in the staged tick array. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.GridOpSpec">
+<span class="target" id="struct_grid_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GridOpSpec</span></span></span><a class="headerlink" href="#c.GridOpSpec" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command dispatch entry with shared argument validation metadata. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.GridOpSpec.header">
+<span class="target" id="struct_grid_op_spec_1ae95d78cec57f74f1e11cb2e0ca9dac0a"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.GridOpSpec.header" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.GridOpSpec.proc">
+<span class="target" id="struct_grid_op_spec_1a1e65e6096b2b2b3eda9a1fe066ab0da6"></span><span class="n"><span class="pre">RbcGrGridOp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.GridOpSpec.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command handler for this operation. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
@@ -1027,8 +1167,38 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 <li><a class="reference internal" href="#c.rbcGrid.ToggleOp"><code class="docutils literal notranslate"><span class="pre">ToggleOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrid.Rbc_GridOp"><code class="docutils literal notranslate"><span class="pre">Rbc_GridOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrid.Rbc_TrackGridOp"><code class="docutils literal notranslate"><span class="pre">Rbc_TrackGridOp()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction"><code class="docutils literal notranslate"><span class="pre">GridPolarAngleTicksTransaction</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction"><code class="docutils literal notranslate"><span class="pre">GridSmithTicksTransaction</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction"><code class="docutils literal notranslate"><span class="pre">GridPolarAngleTicksTransaction</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction.majorStaged"><code class="docutils literal notranslate"><span class="pre">majorStaged</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction.majorTicks"><code class="docutils literal notranslate"><span class="pre">majorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction.nMajorTicks"><code class="docutils literal notranslate"><span class="pre">nMajorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction.minorStaged"><code class="docutils literal notranslate"><span class="pre">minorStaged</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction.minorTicks"><code class="docutils literal notranslate"><span class="pre">minorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridPolarAngleTicksTransaction.nMinorTicks"><code class="docutils literal notranslate"><span class="pre">nMinorTicks</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction"><code class="docutils literal notranslate"><span class="pre">GridSmithTicksTransaction</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.realMajorStaged"><code class="docutils literal notranslate"><span class="pre">realMajorStaged</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.realMajorTicks"><code class="docutils literal notranslate"><span class="pre">realMajorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.nRealMajorTicks"><code class="docutils literal notranslate"><span class="pre">nRealMajorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.realMinorStaged"><code class="docutils literal notranslate"><span class="pre">realMinorStaged</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.realMinorTicks"><code class="docutils literal notranslate"><span class="pre">realMinorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.nRealMinorTicks"><code class="docutils literal notranslate"><span class="pre">nRealMinorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.imagMajorStaged"><code class="docutils literal notranslate"><span class="pre">imagMajorStaged</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.imagMajorTicks"><code class="docutils literal notranslate"><span class="pre">imagMajorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.nImagMajorTicks"><code class="docutils literal notranslate"><span class="pre">nImagMajorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.imagMinorStaged"><code class="docutils literal notranslate"><span class="pre">imagMinorStaged</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.imagMinorTicks"><code class="docutils literal notranslate"><span class="pre">imagMinorTicks</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrid.GridSmithTicksTransaction.nImagMinorTicks"><code class="docutils literal notranslate"><span class="pre">nImagMinorTicks</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.GridOpSpec"><code class="docutils literal notranslate"><span class="pre">GridOpSpec</span></code></a><ul>
+<li><a class="reference internal" href="#c.GridOpSpec.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li><a class="reference internal" href="#c.GridOpSpec.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

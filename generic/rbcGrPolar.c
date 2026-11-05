@@ -37,9 +37,10 @@
 #define SMITH_RESISTANCE_LABEL_OFFSET 2
 #define SMITH_REACTANCE_LABEL_RADIUS 0.94
 
+/** @brief Computed finite radial interval. */
 typedef struct {
-    double min;
-    double max;
+    double min; /**< Minimum finite radial value. */
+    double max; /**< Maximum finite radial value. */
 } PolarRadiusRange;
 
 /**

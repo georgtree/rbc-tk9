@@ -25,3 +25,21 @@ Implementation helpers
 
 .. doxygengroup:: spline_internals
    :members:
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: Cubic2D
+   :members:
+
+.. doxygenstruct:: CubicSpline
+   :members:
+
+.. doxygenstruct:: Quint2D
+   :members:
+
+.. doxygenstruct:: SplineOpSpec
+   :members:

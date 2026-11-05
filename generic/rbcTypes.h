@@ -1,5 +1,6 @@
-/*
- * rbcTypes.h --
+/**
+ * @file rbcTypes.h
+ * @brief Shared geometry, padding and dash records.
  *
  *      Shared padding and geometry types.  This private header has no
  *      dependency on graph, renderer, or text implementation headers.
@@ -12,26 +13,10 @@
 
 #include <tcl.h>
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_Pad --
- *
- *     Specifies vertical and horizontal padding.
- *
- *    Padding can be specified on a per side basis.  The fields
- *    side1 and side2 refer to the opposite sides, either
- *    horizontally or vertically.
- *
- *        side1    side2
- *              -----   -----
- *      x | left    right
- *        y | top     bottom
- *
- * ----------------------------------------------------------------------
- */
+/** @brief Opposite-side padding in pixels. */
 typedef struct {
-    int side1, side2;
+    int side1; /**< Left padding for X, top padding for Y. */
+    int side2; /**< Right padding for X, bottom padding for Y. */
 } Rbc_Pad;
 
 #define padLeft padX.side1
@@ -40,80 +25,58 @@ typedef struct {
 #define padBottom padY.side2
 #define PADDING(x) ((Tcl_WideInt)(x).side1 + (Tcl_WideInt)(x).side2)
 
-/*
- * -------------------------------------------------------------------
- *
- * Point2D --
- *
- *    2-D coordinate.
- *
- * -------------------------------------------------------------------
- */
+/** @brief Coordinate value; the containing operation determines units. */
 typedef struct {
-    double x, y;
+    double x; /**< X coordinate. */
+    double y; /**< Y coordinate. */
 } Point2D;
 
-/*
- * -------------------------------------------------------------------
- *
- * Point3D --
- *
- *    3-D coordinate.
- *
- * -------------------------------------------------------------------
- */
+/** @brief Coordinate value; the containing operation determines units. */
 typedef struct {
-    double x, y, z;
+    double x; /**< X coordinate. */
+    double y; /**< Y coordinate. */
+    double z; /**< Z coordinate. */
 } Point3D;
 
-/*
- * -------------------------------------------------------------------
- *
- * Segment2D --
- *
- *    2-D line segment.
- *
- * -------------------------------------------------------------------
- */
+/** @brief Two endpoints of a line segment in the caller coordinate system. */
 typedef struct {
-    Point2D p, q; /* The two end points of the segment. */
+    Point2D p; /**< The two end points of the segment. */
+    Point2D q; /**< The two end points of the segment. */
 } Segment2D;
 
-/*
- * -------------------------------------------------------------------
- *
- * Dim2D --
- *
- *    2-D dimension.
- *
- * -------------------------------------------------------------------
- */
+/** @brief Integer dimensions in pixels. */
 typedef struct {
-    int width, height;
+    int width; /**< Horizontal extent. */
+    int height; /**< Vertical extent. */
 } Dim2D;
 
-/*
- *----------------------------------------------------------------------
- *
- * Region2D --
- *
- *      2-D region.  Used to copy parts of images.
- *
- *----------------------------------------------------------------------
- */
+/** @brief Rectangle with inclusive integer pixel edges. */
 typedef struct {
-    int left, right, top, bottom;
+    int left; /**< Left boundary. */
+    int right; /**< Right boundary. */
+    int top; /**< Top boundary. */
+    int bottom; /**< Bottom boundary. */
 } Region2D;
 
 #define RegionWidth(r) ((r)->right - (r)->left + 1)
 #define RegionHeight(r) ((r)->bottom - (r)->top + 1)
 
+/** @brief Coordinate bounds; units and axis direction follow the caller. */
 typedef struct {
-    double left, right, top, bottom;
+    double left; /**< Left boundary. */
+    double right; /**< Right boundary. */
+    double top; /**< Top boundary. */
+    double bottom; /**< Bottom boundary. */
 } Extents2D;
 
+/** @brief Coordinate bounds; units and axis direction follow the caller. */
 typedef struct {
-    double left, right, top, bottom, front, back;
+    double left; /**< Left boundary. */
+    double right; /**< Right boundary. */
+    double top; /**< Top boundary. */
+    double bottom; /**< Bottom boundary. */
+    double front; /**< Front boundary. */
+    double back; /**< Back boundary. */
 } Extents3D;
 
 #define PointInRegion(e, x, y) (((x) <= (e)->right) && ((x) >= (e)->left) && ((y) <= (e)->bottom) && ((y) >= (e)->top))
@@ -124,14 +87,10 @@ typedef struct {
 
 #define RBC_MAX_DASH_VALUES 10
 
-/*
- * Rbc_Dashes --
- *
- *     List of dash values.  One additional byte terminates the list.
- */
+/** @brief Native dash pattern with a zero terminator and phase. */
 typedef struct {
-    unsigned char values[RBC_MAX_DASH_VALUES + 1];
-    int offset;
+    unsigned char values[RBC_MAX_DASH_VALUES + 1]; /**< Dash lengths in pixels followed by zero; first zero selects a solid line. */
+    int offset; /**< Dash phase offset in pixels. */
 } Rbc_Dashes;
 
 #define LineIsDashed(d) ((d).values[0] != 0)

@@ -76,7 +76,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativePolyline">
-<span class="target" id="group__native__windows__drawing_1ga82469865729ac1f8fd4290efe8ce4da1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace" title="Rbc_NativeTrace"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">screenPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolyline" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__native__windows__drawing_1ga82469865729ac1f8fd4290efe8ce4da1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativePolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeTrace" title="Rbc_NativeTrace"><span class="n"><span class="pre">Rbc_NativeTrace</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">screenPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativePolyline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke connected mapped points through a retained Windows DC. </p>
 <p>Borrows the trace context and input. NULL context/points or fewer than two points is a no-op. Converts coordinates to int and repeats the previous endpoint in continuation chunks. Uses preallocated POINT workspace; Polyline return values are not propagated.</p>
 <dl class="field-list simple">
@@ -92,7 +92,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeStrips">
-<span class="target" id="group__native__windows__drawing_1gab53f31433b56e3fed242962f4b4bc478"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeStrips</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeStrips" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__native__windows__drawing_1gab53f31433b56e3fed242962f4b4bc478"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeStrips</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Segment2D" title="Segment2D"><span class="n"><span class="pre">Segment2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeStrips" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw independent two-point strips with one DC acquisition. </p>
 <p>Owns bounded POINT and DWORD count buffers. Narrow strokes use up to 8192 segments per PolyPolyline call; wide strokes use 680. Converts endpoints to LONG, selects a GC-derived pen and raster operation, restores/deletes the selected pen and releases DC state. Allocation failure skips output; GDI drawing failures are not reported through this void interface.</p>
 <dl class="field-list simple">
@@ -215,7 +215,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeCircles">
-<span class="target" id="group__native__windows__drawing_1ga738c1d4012cf6a80899a370f94f98e6a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeCircles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeCircles" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__native__windows__drawing_1ga738c1d4012cf6a80899a370f94f98e6a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeCircles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">radius</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeCircles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw Windows circle symbols with guarded path batching. </p>
 <p>Borrows style/centers and advances interval counters for examined centers. Owns template/batch arrays, DC acquisition and non-stock pen/brush objects. Batching requires GXcopy for participating GCs and equal fill/outline colors when both are used. Filled batches contain at most 32 circles; outlines use 512, or 64 for wide pens. Setup failure selects individual Ellipse drawing; failed copy batches replay their buffered centers. Restores fill mode and selected objects and frees temporary resources. No Tcl error is produced.</p>
 <dl class="field-list simple">
@@ -234,7 +234,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeSquares">
-<span class="target" id="group__native__windows__drawing_1ga2f4c6299c1890b3322e3fe418660eab6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeSquares</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">r</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeSquares" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__native__windows__drawing_1ga2f4c6299c1890b3322e3fe418660eab6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeSquares</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">r</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeSquares" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert selected squares to closed polygon symbols. </p>
 <p>Allocates five XPoints per input center, including a repeated first vertex. Subtracts radius before short conversion. Positive intervals update the style counter even for skipped centers. Delegates selected squares to Rbc_NativePolygonSymbols and frees storage; invalid/empty output or allocation failure is ignored.</p>
 <dl class="field-list simple">
@@ -307,7 +307,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeWindows.DrawWin3DRectangle1">
-<span class="target" id="group__native__windows__drawing_1gac45e49119921679d4dcb7e12dc3c8825"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWin3DRectangle1</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawWin3DRectangle1" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__native__windows__drawing_1gac45e49119921679d4dcb7e12dc3c8825"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWin3DRectangle1</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_Win3DBorderColors" title="Rbc_Win3DBorderColors"><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawWin3DRectangle1" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reproduce a one-pixel Tk raised or sunken rectangle bevel. </p>
 <p>Borrows DC and extracted colors. Clamps the bevel for tiny rectangles. Draws left, right, top and bottom strips in Tk order; unsupported relief draws nothing. Does not acquire a DC or retain color resources.</p>
 <dl class="field-list simple">
@@ -327,7 +327,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeWindows.DrawWinRbcOuter3DBorder">
-<span class="target" id="group__native__windows__drawing_1gac742e415c0ea0dd622159b48da2fc7b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWinRbcOuter3DBorder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawWinRbcOuter3DBorder" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__native__windows__drawing_1gac742e415c0ea0dd622159b48da2fc7b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWinRbcOuter3DBorder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="n"><span class="pre">dc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_Win3DBorderColors" title="Rbc_Win3DBorderColors"><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.DrawWinRbcOuter3DBorder" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw the RBC-specific outer layer of a two-pixel bevel. </p>
 <p>Requires dimensions greater than two; supports raised/sunken relief only. Uses the historical flat/light/dark color selection and right, top, bottom, left drawing order. Borrows DC and colors without allocating state.</p>
 <dl class="field-list simple">
@@ -416,7 +416,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcNativeWindows.Rbc_NativeBatchPolygon">
-<span class="target" id="group__native__windows__drawing_1ga68299b2ac42a223ac9fb4cacbe76903b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBatchPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">batch</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeBatchPolygon" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__native__windows__drawing_1ga68299b2ac42a223ac9fb4cacbe76903b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NativeBatchPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePolygonBatch" title="Rbc_NativePolygonBatch"><span class="n"><span class="pre">Rbc_NativePolygonBatch</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">batch</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcNativeWindows.Rbc_NativeBatchPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill one polygon using retained Windows batch state. </p>
 <p>Requires a live context and valid point array. Rejects unsupported count or count exceeding workspace capacity. Deliberately converts through short before LONG to preserve the original polygon path. Does not propagate Polygon failure or retain input points.</p>
 <dl class="field-list simple">
@@ -833,7 +833,7 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinGet3DBorderColors">
-<span class="target" id="group__windows__drawing__resources_1gacbce5c183792c3fe23bcbf68e23e5937"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinGet3DBorderColors</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinGet3DBorderColors" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__windows__drawing__resources_1gacbce5c183792c3fe23bcbf68e23e5937"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinGet3DBorderColors</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <a class="reference internal" href="#c.Rbc_Win3DBorderColors" title="Rbc_Win3DBorderColors"><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinGet3DBorderColors" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read Tk Windows bevel pixels into caller storage. </p>
 <p>Borrows window and border; fills flat, light, dark, light2 and dark2 through TkWinGetBorderPixels. Does not allocate or transfer color resources.</p>
 <dl class="field-list simple">
@@ -972,6 +972,27 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 <span class="target" id="struct_rbc___win_drawable_d_c"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WinDrawableDC</span></span></span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinDrawableDC" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Owned release record for a borrowed Tk drawable DC. </p>
 <p>Retains the drawable and private Tk state until release. A NULL dc still leaves this allocated record owned by the acquiring caller. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinDrawableDC.state">
+<span class="target" id="struct_rbc___win_drawable_d_c_1aa9efc935951832eb54b7285c4d56ac28"></span><span class="n"><span class="pre">TkWinDCState</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">state</span></span></span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinDrawableDC.state" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk drawable DC state restored on release. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinDrawableDC.drawable">
+<span class="target" id="struct_rbc___win_drawable_d_c_1a606b20c62da7d4d2982da0c16dcbafc2"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">drawable</span></span></span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinDrawableDC.drawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed source drawable. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcWindowsResources.Rbc_WinDrawableDC.dc">
+<span class="target" id="struct_rbc___win_drawable_d_c_1ac6b0eb31e832e109bca14bc30b4d8b6b"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dc</span></span></span><a class="headerlink" href="#c.rbcWindowsResources.Rbc_WinDrawableDC.dc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquired device context; released by the paired helper. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
@@ -1431,6 +1452,507 @@ source offsets must agree across cropped copies; see <a class="reference interna
 </dd></dl>
 
 </section>
+<section id="windows-header-records">
+<h2>Windows header records<a class="headerlink" href="#windows-header-records" title="Link to this heading">¶</a></h2>
+<p>The packed file headers retain their on-disk layout. Border colors are resolved
+values, not retained Tk resources.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DOSEPSHEADER</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Packed DOS EPS wrapper header; offsets and lengths are byte counts. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.magic">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1a66a4bb6d05de07fd79f3417910d5d3e3"></span><span class="n"><span class="pre">BYTE</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">magic</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.DOSEPSHEADER.magic" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Magic number for a DOS EPS file C5,D0,D3,C6. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.psStart">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1ae47b60827178df333548abab7a941437"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">psStart</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER.psStart" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Offset of PostScript section. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.psLength">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1a55bc78b1487b18124bd91a7c22d3c7d2"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">psLength</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER.psLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Length of the PostScript section. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.wmfStart">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1ab117122b24166208f09b69122c378e03"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">wmfStart</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER.wmfStart" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Offset of Windows Meta File section. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.wmfLength">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1a09ba4a25931365e9a23437167ac69440"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">wmfLength</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER.wmfLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Length of Meta file section. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.tiffStart">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1a9a0c7fa5c8df120c4a73d5cca517cadd"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tiffStart</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER.tiffStart" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Offset of TIFF section. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.tiffLength">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1a24fe3216a2208ba16a112fb197b0c41e"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tiffLength</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER.tiffLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Length of TIFF section. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.DOSEPSHEADER.checksum">
+<span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r_1a8bd902a98d2dc84c98e1d093bf5e354a"></span><span class="n"><span class="pre">WORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">checksum</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER.checksum" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Checksum of header. </p>
+<p>If FFFF, ignore. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.APMHEADER">
+<span class="target" id="struct_a_p_m_h_e_a_d_e_r"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">APMHEADER</span></span></span><a class="headerlink" href="#c.APMHEADER" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Packed Aldus placeable-metafile header. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.APMHEADER.key">
+<span class="target" id="struct_a_p_m_h_e_a_d_e_r_1a2621acd25b1b82aed4bcfc094d5fd52a"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">key</span></span></span><a class="headerlink" href="#c.APMHEADER.key" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Type of metafile. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.APMHEADER.hmf">
+<span class="target" id="struct_a_p_m_h_e_a_d_e_r_1a899b4ee89008fb8ec100724047a591cb"></span><span class="n"><span class="pre">WORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hmf</span></span></span><a class="headerlink" href="#c.APMHEADER.hmf" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unused. </p>
+<p>Must be NULL. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.APMHEADER.bbox">
+<span class="target" id="struct_a_p_m_h_e_a_d_e_r_1aa231a00e1fba8fdc6c80e5b059ca3d7f"></span><span class="n"><span class="pre">SMALL_RECT</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bbox</span></span></span><a class="headerlink" href="#c.APMHEADER.bbox" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bounding rectangle. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.APMHEADER.inch">
+<span class="target" id="struct_a_p_m_h_e_a_d_e_r_1ada5c8af17f7a6b15b8cebdf7a9b0347c"></span><span class="n"><span class="pre">WORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">inch</span></span></span><a class="headerlink" href="#c.APMHEADER.inch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Units per inch. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.APMHEADER.reserved">
+<span class="target" id="struct_a_p_m_h_e_a_d_e_r_1a68ad021df3a9028dc11ae9e58a2dd2fc"></span><span class="n"><span class="pre">DWORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reserved</span></span></span><a class="headerlink" href="#c.APMHEADER.reserved" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unused. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.APMHEADER.checksum">
+<span class="target" id="struct_a_p_m_h_e_a_d_e_r_1aeed81786a054adaa90b5b820e7433f99"></span><span class="n"><span class="pre">WORD</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">checksum</span></span></span><a class="headerlink" href="#c.APMHEADER.checksum" title="Link to this definition">¶</a><br /></dt>
+<dd><p>XOR of the previous ten 16-bit words. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_Win3DBorderColors">
+<span class="target" id="struct_rbc___win3_d_border_colors"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Win3DBorderColors</span></span></span><a class="headerlink" href="#c.Rbc_Win3DBorderColors" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolved Windows colors for flat and bevelled Tk borders. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Win3DBorderColors.flat">
+<span class="target" id="struct_rbc___win3_d_border_colors_1a3eb4965f28b9e57fe6c73f94a819974a"></span><span class="n"><span class="pre">COLORREF</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">flat</span></span></span><a class="headerlink" href="#c.Rbc_Win3DBorderColors.flat" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Flat background color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Win3DBorderColors.light">
+<span class="target" id="struct_rbc___win3_d_border_colors_1a91fe67ebfece84cf4ee63d5a8fb53dd3"></span><span class="n"><span class="pre">COLORREF</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">light</span></span></span><a class="headerlink" href="#c.Rbc_Win3DBorderColors.light" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Light bevel color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Win3DBorderColors.dark">
+<span class="target" id="struct_rbc___win3_d_border_colors_1a11c09fe8a0425cad4bb619f2b7244759"></span><span class="n"><span class="pre">COLORREF</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dark</span></span></span><a class="headerlink" href="#c.Rbc_Win3DBorderColors.dark" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dark bevel color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Win3DBorderColors.light2">
+<span class="target" id="struct_rbc___win3_d_border_colors_1a85b0fb3432f24a83a9facb407e390f82"></span><span class="n"><span class="pre">COLORREF</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">light2</span></span></span><a class="headerlink" href="#c.Rbc_Win3DBorderColors.light2" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Secondary light bevel color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Win3DBorderColors.dark2">
+<span class="target" id="struct_rbc___win3_d_border_colors_1adf33d4296e00a430bcea94a7ca11c2bc"></span><span class="n"><span class="pre">COLORREF</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dark2</span></span></span><a class="headerlink" href="#c.Rbc_Win3DBorderColors.dark2" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Secondary dark bevel color. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="platform-specific-record-extensions">
+<h2>Platform-specific record extensions<a class="headerlink" href="#platform-specific-record-extensions" title="Link to this heading">¶</a></h2>
+<p>These views include Windows-only handles omitted from the normal-platform
+<a class="reference internal" href="text-font-reference.html"><span class="doc">Text and font C reference</span></a> and <a class="reference internal" href="eps-reference.html"><span class="doc">EPS canvas C reference</span></a> records.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcFontWindows.FontSource">
+<span class="target" id="struct_font_source"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSource</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporary native font source; cleanup releases bytes and platform handles. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcFontWindows.FontSource.bytes">
+<span class="target" id="struct_font_source_1a7b3fef7b37ed3d6f1181bc47ab905e9c"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">bytes</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource.bytes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owned retrieved font-program bytes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcFontWindows.FontSource.length">
+<span class="target" id="struct_font_source_1ab5cb76bc45e7bd54b153566b6a518232"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">length</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource.length" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of retrieved bytes. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcFontWindows.FontSource.offset">
+<span class="target" id="struct_font_source_1aa1e78d677091646e4de707f2e3a4fca8"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource.offset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Face offset within a font collection. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcFontWindows.FontSource.dc">
+<span class="target" id="struct_font_source_1aa56ed77a0573e1f0b04d66f478e48aca"></span><span class="n"><span class="pre">HDC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dc</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource.dc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporary Windows device context, released by font-source cleanup. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcFontWindows.FontSource.font">
+<span class="target" id="struct_font_source_1a9536dd4d6cf76e21347a29b62610e793"></span><span class="n"><span class="pre">HFONT</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">font</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource.font" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Selected native font handle. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcFontWindows.FontSource.oldFont">
+<span class="target" id="struct_font_source_1ab2fc6371cfab66219d1645f5fb8205a9"></span><span class="n"><span class="pre">HFONT</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">oldFont</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource.oldFont" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous DC font restored before releasing the DC. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem">
+<span class="target" id="struct_eps_item"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EpsItem</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Canvas EPS item owning parsed PostScript and preview resources. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.header">
+<span class="target" id="struct_eps_item_1affaf775ba398efa37486300232fc79ba"></span><span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.header" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Generic stuff that’s the same for all types. </p>
+<p>MUST BE FIRST IN STRUCTURE. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.canvas">
+<span class="target" id="struct_eps_item_1ad94a59d9beaa80564664f876f4be7256"></span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">canvas</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.canvas" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Canvas containing the EPS item. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.canvasX">
+<span class="target" id="struct_eps_item_1af2e6d002743d41fa25e317572a998fd5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">canvasX</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.canvasX" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translated (by the anchor) canvas coordinates of the EPS item. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.canvasY">
+<span class="target" id="struct_eps_item_1a61571bf34d0ca6f973dca1f0866a5fc4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">canvasY</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.canvasY" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translated (by the anchor) canvas coordinates of the EPS item. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.lastWidth">
+<span class="target" id="struct_eps_item_1a0c7425ff1d25fc5309a67f17ab4c9241"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lastWidth</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.lastWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last known dimensions of the EPS item. </p>
+<p>This is used to know if the color image preview needs to be resized. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.lastHeight">
+<span class="target" id="struct_eps_item_1aa2171e358c6ce3e8f142fc33974b606d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lastHeight</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.lastHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last known dimensions of the EPS item. </p>
+<p>This is used to know if the color image preview needs to be resized. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.interp">
+<span class="target" id="struct_eps_item_1a2341ab5d5b32f346a4fbfe5ba6f9d1f8"></span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">interp</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.interp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed canvas interpreter. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.psFile">
+<span class="target" id="struct_eps_item_1a01bec32ce004675d7a255eddc42c2f53"></span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">psFile</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.psFile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>File pointer to Encapsulated PostScript file. </p>
+<p>We’ll hold this as long as the EPS item is using this file. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.psStart">
+<span class="target" id="struct_eps_item_1a0a3df76f268b7ef020d605183ca00050"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">psStart</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.psStart" title="Link to this definition">¶</a><br /></dt>
+<dd><p>File offset of PostScript code. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.psLength">
+<span class="target" id="struct_eps_item_1af00f127e795cc79485550dce4fc60bdf"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">psLength</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.psLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Length of PostScript code. </p>
+<p>If zero, indicates to read to EOF. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.wmfStart">
+<span class="target" id="struct_eps_item_1a83daea48ca4f818fbcb6982b68cfde3b"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">wmfStart</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.wmfStart" title="Link to this definition">¶</a><br /></dt>
+<dd><p>File offset of Windows Metafile preview. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.wmfLength">
+<span class="target" id="struct_eps_item_1ad1089f618002231402cc1d8ea3e5d3f1"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">wmfLength</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.wmfLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Length of WMF portion in bytes. </p>
+<p>If zero, indicates there is no WMF preview. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.tiffStart">
+<span class="target" id="struct_eps_item_1a797b6d1b58c3a9be9436058eafd03829"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tiffStart</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.tiffStart" title="Link to this definition">¶</a><br /></dt>
+<dd><p>File offset of TIFF preview. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.tiffLength">
+<span class="target" id="struct_eps_item_1a2f355448b34a447df23f316c7a208212"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tiffLength</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.tiffLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Length of TIFF portion in bytes. </p>
+<p>If zero, indicates there is no TIFF preview. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.previewName">
+<span class="target" id="struct_eps_item_1a2495aaa9d6dd9e39c11a1ab3e9d49b8d"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">previewName</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.previewName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Configured preview image name. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.previewFormat">
+<span class="target" id="struct_eps_item_1a237ceb774a4abbcd54a5cbb9d771b6b3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">previewFormat</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.previewFormat" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Preview format selector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.preview">
+<span class="target" id="struct_eps_item_1aa9f5f1bab3ad540c707190d253d52698"></span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">preview</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.preview" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A Tk photo image provided as a preview of the EPS contents. </p>
+<p>This image supersedes any EPS preview embedded PostScript preview (EPSI). </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.tmpImage">
+<span class="target" id="struct_eps_item_1a6ef77038147a71f0cd0b5abf73b728fa"></span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tmpImage</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.tmpImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Used to display the resized preview image. </p>
+<p>Created and deleted internally. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.pixmap">
+<span class="target" id="struct_eps_item_1a92cbb8e0340977b1a5151ebd49a3c12b"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pixmap</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.pixmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pixmap representing scaled preview. </p>
+<p>This isn’t currently used. For now we’re overwriting the Tk image everytime the EPS item is resized. In the future we’ll use our own image routines. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.colorImage">
+<span class="target" id="struct_eps_item_1aca95d0693bfe59132af3f8ee1ea416bf"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">colorImage</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.colorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The original photo or PostScript preview image converted to a color image. </p>
+<p>This is kept around for resampling or resizing the image. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.firstLine">
+<span class="target" id="struct_eps_item_1ac9f0e6f75a5cb2f5881e432dff73dd8f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">firstLine</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.firstLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>First and last line numbers of the PostScript preview. </p>
+<p>They are used to skip over the preview when encapsulating PostScript for the canvas item. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.lastLine">
+<span class="target" id="struct_eps_item_1afeddd3f8c8b2b251c512dd0bf00c8c33"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lastLine</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.lastLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>First and last line numbers of the PostScript preview. </p>
+<p>They are used to skip over the preview when encapsulating PostScript for the canvas item. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.fillGC">
+<span class="target" id="struct_eps_item_1aaddd6616c78f787ba833c44474c494f6"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fillGC</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.fillGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graphics context to fill background of image outline if no preview image was present. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.llx">
+<span class="target" id="struct_eps_item_1a9b0126511b90e7b161990d3bbb8e1d87"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">llx</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.llx" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower left and upper right coordinates of PostScript bounding box, retrieved from file’s “BoundingBox:” field. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.lly">
+<span class="target" id="struct_eps_item_1a5a5dd5722bc90cfe23d1296e10daa124"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lly</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.lly" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower left and upper right coordinates of PostScript bounding box, retrieved from file’s “BoundingBox:” field. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.urx">
+<span class="target" id="struct_eps_item_1ab8937f280a726242ad9f415f93ef9d5f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">urx</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.urx" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower left and upper right coordinates of PostScript bounding box, retrieved from file’s “BoundingBox:” field. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.ury">
+<span class="target" id="struct_eps_item_1a347782d4c3d3eba2acc1985705d6844a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ury</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.ury" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower left and upper right coordinates of PostScript bounding box, retrieved from file’s “BoundingBox:” field. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.title">
+<span class="target" id="struct_eps_item_1a8d233394e01c4785f30821c67cd21c99"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">title</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.title" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Title, retrieved from the file’s “Title:” field, to be displayed over the top of the EPS preview (allocated). </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.dString">
+<span class="target" id="struct_eps_item_1a8a84bb864fd3090e03ef3016113f2e1c"></span><span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dString</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.dString" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Contains the encapsulate PostScript. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.x">
+<span class="target" id="struct_eps_item_1a321041435be89a368b1e232042495a9d"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.x" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Canvas coordinates of the item. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.y">
+<span class="target" id="struct_eps_item_1aa061ca7ed7399342aed4cd3305447519"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">y</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.y" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Canvas coordinates of the item. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.anchor">
+<span class="target" id="struct_eps_item_1a7b9b864c464e63e4e814696d13af7992"></span><span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anchor</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.anchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk anchor locating the item relative to x/y. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.fileName">
+<span class="target" id="struct_eps_item_1a380ee04b854d51070416d369bec7f15f"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fileName</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.fileName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Name of the encapsulated PostScript file. </p>
+<p>If NULL, indicates that no EPS file has be successfully loaded yet. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.reqTitle">
+<span class="target" id="struct_eps_item_1aa1e782478893dc24a5baee9fba245cc8"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">reqTitle</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.reqTitle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Title to be displayed in the EPS item. </p>
+<p>Supersedes the title found in the EPS file. If NULL, indicates that the title found in the EPS file should be used. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.width">
+<span class="target" id="struct_eps_item_1adae45c8597ae52ab5d1201e78573f8ed"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">width</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.width" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of EPS item. </p>
+<p>If set to zero, the dimension found in the “%%BoundingBox:” specification from the EPS file are used. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.height">
+<span class="target" id="struct_eps_item_1ac22ba19a590853844dcb49a7981f128f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">height</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.height" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dimensions of EPS item. </p>
+<p>If set to zero, the dimension found in the “%%BoundingBox:” specification from the EPS file are used. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.showImage">
+<span class="target" id="struct_eps_item_1ab998d6470f8c96e4fa7c1bde84ee759e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">showImage</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.showImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Indicates if the image or the outline rectangle should be displayed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.quick">
+<span class="target" id="struct_eps_item_1a82377f0f2c92db748b82af55554628d5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">quick</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.quick" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero requests quick preview resampling. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.fillColor">
+<span class="target" id="struct_eps_item_1a8ff03d01ecd424d4cd79f1b9c1fb6b05"></span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fillColor</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.fillColor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill color of the image outline. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.border">
+<span class="target" id="struct_eps_item_1ad0b98fde0f6a53d2c1a5eedaacbbf793"></span><span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">border</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.border" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Outline color. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.borderWidth">
+<span class="target" id="struct_eps_item_1a228ebb549a3547f0c5565ae1df2c9fa9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">borderWidth</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.borderWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Preview border thickness in pixels. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.relief">
+<span class="target" id="struct_eps_item_1adf5ea0e97026410f0f8a75cc3e7bc77e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">relief</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.relief" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Tk preview border relief. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.titleStyle">
+<span class="target" id="struct_eps_item_1a4e0658095c43a481be091e43e365ffd7"></span><a class="reference internal" href="text-font-reference.html#c.TextStyle" title="TextStyle"><span class="n"><span class="pre">TextStyle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">titleStyle</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.titleStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Font, color, etc. </p>
+<p>for title </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.stipple">
+<span class="target" id="struct_eps_item_1a33c9bddc3b1d62025004e1f4b4cfd8e0"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stipple</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.stipple" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stipple for image fill. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.tiffPtr">
+<span class="target" id="struct_eps_item_1acd3468bf0e00fc05711becdb8d37bf51"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tiffPtr</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.tiffPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>TIFF decoder handle when TIFF preview support is compiled in. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcEpsWindows.EpsItem.hMetaFile">
+<span class="target" id="struct_eps_item_1aca7e36015ce2dfd3d006c100a222b9c3"></span><span class="n"><span class="pre">HENHMETAFILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hMetaFile</span></span></span><a class="headerlink" href="#c.rbcEpsWindows.EpsItem.hMetaFile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Optional Windows metafile state retained by the EPS item. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1519,7 +2041,12 @@ source offsets must agree across cropped copies; see <a class="reference interna
 <li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_EmulateXLowerWindow"><code class="docutils literal notranslate"><span class="pre">Rbc_EmulateXLowerWindow()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsResources.GetGCDashValues"><code class="docutils literal notranslate"><span class="pre">GetGCDashValues()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_GCToPen"><code class="docutils literal notranslate"><span class="pre">Rbc_GCToPen()</span></code></a></li>
-<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinDrawableDC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC"><code class="docutils literal notranslate"><span class="pre">Rbc_WinDrawableDC</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC.state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC.drawable"><code class="docutils literal notranslate"><span class="pre">drawable</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinDrawableDC.dc"><code class="docutils literal notranslate"><span class="pre">dc</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#compatibility-drawing-primitives">Compatibility drawing primitives</a><ul>
@@ -1555,6 +2082,98 @@ source offsets must agree across cropped copies; see <a class="reference interna
 <li><a class="reference internal" href="#c.rbcWindowsTiles.Rbc_TilePolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_TilePolygon()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsTiles.Rbc_TileRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_TileRectangle()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcWindowsTiles.Rbc_TileRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_TileRectangles()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-header-records">Windows header records</a><ul>
+<li><a class="reference internal" href="#c.DOSEPSHEADER"><code class="docutils literal notranslate"><span class="pre">DOSEPSHEADER</span></code></a><ul>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.magic"><code class="docutils literal notranslate"><span class="pre">magic</span></code></a></li>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.psStart"><code class="docutils literal notranslate"><span class="pre">psStart</span></code></a></li>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.psLength"><code class="docutils literal notranslate"><span class="pre">psLength</span></code></a></li>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.wmfStart"><code class="docutils literal notranslate"><span class="pre">wmfStart</span></code></a></li>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.wmfLength"><code class="docutils literal notranslate"><span class="pre">wmfLength</span></code></a></li>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.tiffStart"><code class="docutils literal notranslate"><span class="pre">tiffStart</span></code></a></li>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.tiffLength"><code class="docutils literal notranslate"><span class="pre">tiffLength</span></code></a></li>
+<li><a class="reference internal" href="#c.DOSEPSHEADER.checksum"><code class="docutils literal notranslate"><span class="pre">checksum</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.APMHEADER"><code class="docutils literal notranslate"><span class="pre">APMHEADER</span></code></a><ul>
+<li><a class="reference internal" href="#c.APMHEADER.key"><code class="docutils literal notranslate"><span class="pre">key</span></code></a></li>
+<li><a class="reference internal" href="#c.APMHEADER.hmf"><code class="docutils literal notranslate"><span class="pre">hmf</span></code></a></li>
+<li><a class="reference internal" href="#c.APMHEADER.bbox"><code class="docutils literal notranslate"><span class="pre">bbox</span></code></a></li>
+<li><a class="reference internal" href="#c.APMHEADER.inch"><code class="docutils literal notranslate"><span class="pre">inch</span></code></a></li>
+<li><a class="reference internal" href="#c.APMHEADER.reserved"><code class="docutils literal notranslate"><span class="pre">reserved</span></code></a></li>
+<li><a class="reference internal" href="#c.APMHEADER.checksum"><code class="docutils literal notranslate"><span class="pre">checksum</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_Win3DBorderColors"><code class="docutils literal notranslate"><span class="pre">Rbc_Win3DBorderColors</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_Win3DBorderColors.flat"><code class="docutils literal notranslate"><span class="pre">flat</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Win3DBorderColors.light"><code class="docutils literal notranslate"><span class="pre">light</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Win3DBorderColors.dark"><code class="docutils literal notranslate"><span class="pre">dark</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Win3DBorderColors.light2"><code class="docutils literal notranslate"><span class="pre">light2</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Win3DBorderColors.dark2"><code class="docutils literal notranslate"><span class="pre">dark2</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#platform-specific-record-extensions">Platform-specific record extensions</a><ul>
+<li><a class="reference internal" href="#c.rbcFontWindows.FontSource"><code class="docutils literal notranslate"><span class="pre">FontSource</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcFontWindows.FontSource.bytes"><code class="docutils literal notranslate"><span class="pre">bytes</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcFontWindows.FontSource.length"><code class="docutils literal notranslate"><span class="pre">length</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcFontWindows.FontSource.offset"><code class="docutils literal notranslate"><span class="pre">offset</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcFontWindows.FontSource.dc"><code class="docutils literal notranslate"><span class="pre">dc</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcFontWindows.FontSource.font"><code class="docutils literal notranslate"><span class="pre">font</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcFontWindows.FontSource.oldFont"><code class="docutils literal notranslate"><span class="pre">oldFont</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem"><code class="docutils literal notranslate"><span class="pre">EpsItem</span></code></a><ul>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.canvas"><code class="docutils literal notranslate"><span class="pre">canvas</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.canvasX"><code class="docutils literal notranslate"><span class="pre">canvasX</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.canvasY"><code class="docutils literal notranslate"><span class="pre">canvasY</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.lastWidth"><code class="docutils literal notranslate"><span class="pre">lastWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.lastHeight"><code class="docutils literal notranslate"><span class="pre">lastHeight</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.interp"><code class="docutils literal notranslate"><span class="pre">interp</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.psFile"><code class="docutils literal notranslate"><span class="pre">psFile</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.psStart"><code class="docutils literal notranslate"><span class="pre">psStart</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.psLength"><code class="docutils literal notranslate"><span class="pre">psLength</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.wmfStart"><code class="docutils literal notranslate"><span class="pre">wmfStart</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.wmfLength"><code class="docutils literal notranslate"><span class="pre">wmfLength</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.tiffStart"><code class="docutils literal notranslate"><span class="pre">tiffStart</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.tiffLength"><code class="docutils literal notranslate"><span class="pre">tiffLength</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.previewName"><code class="docutils literal notranslate"><span class="pre">previewName</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.previewFormat"><code class="docutils literal notranslate"><span class="pre">previewFormat</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.preview"><code class="docutils literal notranslate"><span class="pre">preview</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.tmpImage"><code class="docutils literal notranslate"><span class="pre">tmpImage</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.pixmap"><code class="docutils literal notranslate"><span class="pre">pixmap</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.colorImage"><code class="docutils literal notranslate"><span class="pre">colorImage</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.firstLine"><code class="docutils literal notranslate"><span class="pre">firstLine</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.lastLine"><code class="docutils literal notranslate"><span class="pre">lastLine</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.fillGC"><code class="docutils literal notranslate"><span class="pre">fillGC</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.llx"><code class="docutils literal notranslate"><span class="pre">llx</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.lly"><code class="docutils literal notranslate"><span class="pre">lly</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.urx"><code class="docutils literal notranslate"><span class="pre">urx</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.ury"><code class="docutils literal notranslate"><span class="pre">ury</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.title"><code class="docutils literal notranslate"><span class="pre">title</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.dString"><code class="docutils literal notranslate"><span class="pre">dString</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.x"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.y"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.anchor"><code class="docutils literal notranslate"><span class="pre">anchor</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.fileName"><code class="docutils literal notranslate"><span class="pre">fileName</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.reqTitle"><code class="docutils literal notranslate"><span class="pre">reqTitle</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.width"><code class="docutils literal notranslate"><span class="pre">width</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.height"><code class="docutils literal notranslate"><span class="pre">height</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.showImage"><code class="docutils literal notranslate"><span class="pre">showImage</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.quick"><code class="docutils literal notranslate"><span class="pre">quick</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.fillColor"><code class="docutils literal notranslate"><span class="pre">fillColor</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.border"><code class="docutils literal notranslate"><span class="pre">border</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.borderWidth"><code class="docutils literal notranslate"><span class="pre">borderWidth</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.relief"><code class="docutils literal notranslate"><span class="pre">relief</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.titleStyle"><code class="docutils literal notranslate"><span class="pre">titleStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.stipple"><code class="docutils literal notranslate"><span class="pre">stipple</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.tiffPtr"><code class="docutils literal notranslate"><span class="pre">tiffPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcEpsWindows.EpsItem.hMetaFile"><code class="docutils literal notranslate"><span class="pre">hMetaFile</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

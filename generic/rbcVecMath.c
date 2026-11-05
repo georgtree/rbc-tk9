@@ -30,36 +30,37 @@ typedef Rbc_Complex(ComplexComponentProc)(Rbc_Complex value);
 typedef double(ComplexRealProc)(Rbc_Complex value);
 typedef Rbc_Complex(ComplexScalarProc)(VectorObject *vPtr);
 
+/** @brief Paired real/complex expression implementations selected by input type. */
 typedef struct {
-    ComponentProc *realProc;
-    ComplexComponentProc *complexProc;
+    ComponentProc *realProc; /**< Real-input implementation. */
+    ComplexComponentProc *complexProc; /**< Complex-input implementation. */
 } ComplexComponentFunction;
 
+/** @brief Paired real/complex expression implementations selected by input type. */
 typedef struct {
-    ComponentProc *realProc;
-    ComplexRealProc *complexProc;
+    ComponentProc *realProc; /**< Real-input implementation. */
+    ComplexRealProc *complexProc; /**< Complex-input implementation. */
 } ComplexRealFunction;
 
+/** @brief Paired real/complex expression implementations selected by input type. */
 typedef struct {
-    Rbc_VectorIndexProc *realProc;
-    ComplexScalarProc *complexProc;
+    Rbc_VectorIndexProc *realProc; /**< Real-input implementation. */
+    ComplexScalarProc *complexProc; /**< Complex-input implementation. */
 } ComplexScalarFunction;
 
 typedef double(ComplexRealScalarProc)(VectorObject *vPtr);
 
+/** @brief Paired real/complex expression implementations selected by input type. */
 typedef struct {
-    Rbc_VectorIndexProc *realProc;
-    ComplexRealScalarProc *complexProc;
+    Rbc_VectorIndexProc *realProc; /**< Real-input implementation. */
+    ComplexRealScalarProc *complexProc; /**< Complex-input implementation. */
 } ComplexRealScalarFunction;
 
-/* Built-in descriptors are shared static storage. Each interpreter owns its
- * lookup table; entries borrow these descriptors and their adapter data. */
+/** @brief Static expression-function registration entry. */
 typedef struct {
-    char *name;            /* Built-in name; NULL terminates the descriptor array. */
-    GenericMathProc *proc; /* Procedure that implements this math
-                            * function. */
-    ClientData clientData; /* Argument to pass when invoking the
-                            * function. */
+    char *name; /**< Built-in name; NULL terminates the descriptor array. */
+    GenericMathProc *proc; /**< Procedure that implements this math function. */
+    ClientData clientData; /**< Argument to pass when invoking the function. */
 } MathFunction;
 
 

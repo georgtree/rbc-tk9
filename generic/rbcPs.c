@@ -654,8 +654,8 @@ static const char *NameOfAtom(Tk_Window tkwin, Atom atom) {
  * Strings are static; lookup does not create or own font resources.
  */
 typedef struct {
-    const char *alias;
-    const char *fontName;
+    const char *alias; /**< Borrowed alias recognized by the resolver. */
+    const char *fontName; /**< Borrowed PostScript font name. */
 } FontMap;
 
 static const FontMap psFontMap[] = {

@@ -20,25 +20,35 @@
 
 typedef int (*Rbc_SplineOp)(const Point2D *, Tcl_Size, Point2D *, Tcl_Size);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    Rbc_SplineOp proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_SplineOp proc; /**< Typed command handler for this operation. */
 } SplineOpSpec;
 
 typedef double TriDiagonalMatrix[3];
 
+/** @brief Polynomial coefficients of a cubic spline segment. */
 typedef struct {
-    double b, c, d;
+    double b; /**< Coefficient of the parameter power 1. */
+    double c; /**< Coefficient of the parameter power 2. */
+    double d; /**< Coefficient of the parameter power 3. */
 } Cubic2D;
 
+/** @brief Polynomial coefficients of a quintic spline segment. */
 typedef struct {
-    double b, c, d, e, f;
+    double b; /**< Coefficient of the parameter power 1. */
+    double c; /**< Coefficient of the parameter power 2. */
+    double d; /**< Coefficient of the parameter power 3. */
+    double e; /**< Coefficient of the parameter power 4. */
+    double f; /**< Coefficient of the parameter power 5. */
 } Quint2D;
 
+/** @brief Parameterized cubic spline with component coefficients. */
 typedef struct {
-    double t; /* Arc length of interval. */
-    double x; /* 2nd derivative of X with respect to T */
-    double y; /* 2nd derivative of Y with respect to T */
+    double t; /**< Arc length of interval. */
+    double x; /**< 2nd derivative of X with respect to T */
+    double y; /**< 2nd derivative of Y with respect to T */
 } CubicSpline;
 
 #define SQR(x) ((x) * (x))

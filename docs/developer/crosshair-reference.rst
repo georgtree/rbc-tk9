@@ -51,3 +51,15 @@ scope does not change the compiled symbol or the shared crosshair interfaces.
    :project: rbc-win
 
 .. c:namespace-pop::
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: CrosshairsOpSpec
+   :members:
+
+.. doxygenstruct:: CrosshairsStruct
+   :members:

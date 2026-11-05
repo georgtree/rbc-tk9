@@ -16,3 +16,29 @@ directions. A borrowed record may still be mutated; an input buffer may be
 adopted if the reset contract says so. Output arguments are not implicitly
 initialized on failure. The individual contract defines each case; see
 :doc:`calling-conventions` for the common terminology.
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: VectorOpSpec
+   :members:
+
+.. doxygenstruct:: ParseInfo
+   :members:
+
+.. doxygenstruct:: Rbc_VectorIdStruct
+   :members:
+
+.. doxygenstruct:: Rbc_Vector_s
+   :members:
+
+.. doxygenstruct:: Value
+   :members:
+
+.. doxygenunion:: VectorData
+
+.. doxygenstruct:: VectorInterpData
+   :members:

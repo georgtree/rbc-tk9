@@ -20,24 +20,21 @@ typedef enum { PS_MODE_MONOCHROME, PS_MODE_GREYSCALE, PS_MODE_COLOR } PsColorMod
 
 typedef struct PsTokenStruct *PsToken;
 
+/** @brief PostScript accumulator with borrowed interpreter/window and color/font mapping names. */
 struct PsTokenStruct {
-    Tcl_Interp *interp; /* Interpreter to report errors to. */
-    Tk_Window tkwin; /* Tk_Window used to get font and color
-                      * information */
-    Tcl_DString dString; /* Dynamic string used to contain the
-                          * PostScript generated. */
-    char *fontVarName; /* Name of a Tcl array variable to convert
-                        * X font names to PostScript fonts. */
-    char *colorVarName; /* Name of a Tcl array variable to convert
-                         * X color names to PostScript. */
-    PsColorMode colorMode; /* Mode: color or greyscale */
+    Tcl_Interp *interp; /**< Interpreter to report errors to. */
+    Tk_Window tkwin; /**< Tk_Window used to get font and color information */
+    Tcl_DString dString; /**< Dynamic string used to contain the PostScript generated. */
+    char *fontVarName; /**< Name of a Tcl array variable to convert X font names to PostScript fonts. */
+    char *colorVarName; /**< Name of a Tcl array variable to convert X color names to PostScript. */
+    PsColorMode colorMode; /**< Mode: color or greyscale */
 
 #define PSTOKEN_BUFSIZ ((BUFSIZ * 2) - 1)
     /*
      * Utility space for building strings.  Currently used to create
      * PostScript output for the "postscript" command.
      */
-    char scratchArr[PSTOKEN_BUFSIZ + 1];
+    char scratchArr[PSTOKEN_BUFSIZ + 1]; /**< Reusable formatting buffer, including a terminator slot. */
 };
 
 PsToken Rbc_GetPsToken(Tcl_Interp *interp, Tk_Window tkwin);

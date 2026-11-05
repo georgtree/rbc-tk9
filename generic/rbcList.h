@@ -17,36 +17,36 @@
 typedef struct Rbc_ListStruct *Rbc_List;
 typedef struct Rbc_ListNodeStruct *Rbc_ListNode;
 
-/*
- * A Rbc_ListNode is the container structure for the Rbc_List.
+/**
+ * @brief Inline keyed-list storage selected by Rbc_ListStruct::type.
+ *
+ * String and integer-array keys extend the node allocation beyond these
+ * placeholder arrays. One-word keys store only a borrowed pointer value.
+ * Keep the containing key member last in Rbc_ListNodeStruct.
  */
+union Rbc_ListKey {
+    const char *oneWordValue; /**< Borrowed one-word key; only the pointer value is stored. */
+    int words[1]; /**< Inline integer-array key; allocation extends to the list's key word count. */
+    char string[4]; /**< Inline NUL-terminated string key; allocation extends to fit the copied key. */
+};
+
+/** @brief List link with inline or pointer key storage selected by the list key type. */
 struct Rbc_ListNodeStruct {
-    struct Rbc_ListNodeStruct *prevPtr; /* Link to the previous node */
-    struct Rbc_ListNodeStruct *nextPtr; /* Link to the next node */
-    ClientData clientData;              /* Pointer to the data object */
-    struct Rbc_ListStruct *listPtr;     /* List to eventually insert node */
-    union {                             /* Key has one of these forms: */
-        const char *oneWordValue;       /* One-word value for key. */
-        int words[1];                   /* Multiple integer words for key.
-                                         * The actual size will be as large
-                                         * as necessary for this table's
-                                         * keys. */
-        char string[4];                 /* String for key.  The actual size
-                                         * will be as large as needed to hold
-                                         * the key. */
-    } key;                              /* MUST BE LAST FIELD IN RECORD!! */
+    struct Rbc_ListNodeStruct *prevPtr; /**< Link to the previous node */
+    struct Rbc_ListNodeStruct *nextPtr; /**< Link to the next node */
+    ClientData clientData; /**< Pointer to the data object */
+    struct Rbc_ListStruct *listPtr; /**< List to eventually insert node */
+    union Rbc_ListKey key; /**< Inline key storage; must remain last because allocation extends it for long keys. */
 };
 
 typedef int(Rbc_ListCompareProc)(Rbc_ListNode *node1Ptr, Rbc_ListNode *node2Ptr);
 
-/*
- * A Rbc_List is a doubly chained list structure.
- */
+/** @brief Owned list container; node payload ownership remains with the caller. */
 struct Rbc_ListStruct {
-    struct Rbc_ListNodeStruct *headPtr; /* Pointer to first element in list */
-    struct Rbc_ListNodeStruct *tailPtr; /* Pointer to last element in list */
-    Tcl_Size nNodes;                    /* Number of node currently in the list. */
-    int type;                           /* Type of keys in list. */
+    struct Rbc_ListNodeStruct *headPtr; /**< Pointer to first element in list */
+    struct Rbc_ListNodeStruct *tailPtr; /**< Pointer to last element in list */
+    Tcl_Size nNodes; /**< Number of node currently in the list. */
+    int type; /**< Type of keys in list. */
 };
 
 /**

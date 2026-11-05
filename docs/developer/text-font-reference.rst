@@ -51,3 +51,39 @@ PDF font resource encoding
 
 .. doxygengroup:: pdf_font_internals
    :members:
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: ExportCharacter
+   :members:
+
+.. doxygenstruct:: ExportFontCache
+   :members:
+
+.. doxygenstruct:: FontSource
+   :members:
+
+.. doxygenstruct:: FontUnicodePair
+   :members:
+
+.. doxygenstruct:: Rbc_ExportFont
+   :members:
+
+.. doxygenstruct:: Rbc_FontTable
+   :members:
+
+.. doxygenstruct:: Shadow
+   :members:
+
+.. doxygenstruct:: TextFragment
+   :members:
+
+.. doxygenstruct:: TextLayout
+   :members:
+
+.. doxygenstruct:: TextStyle
+   :members:

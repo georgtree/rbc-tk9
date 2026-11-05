@@ -45,37 +45,37 @@ typedef struct {
     /*
      * Common pen state. This must remain the first member.
      */
-    Pen core;
+    Pen core; /**< Common Pen prefix; must remain first. */
     /*
      * Original Tcl representations for values requiring additional
      * validation or conversion.
      */
-    Tcl_Obj *borderWidthObjPtr;
-    Tcl_Obj *errorBarCapObjPtr;
-    Tcl_Obj *errorBarColorObjPtr;
-    Tcl_Obj *errorBarWidthObjPtr;
-    Tcl_Obj *showErrorBarsObjPtr;
-    Tcl_Obj *showValuesObjPtr;
-    Tcl_Obj *valueRotateObjPtr;
-    Tcl_Obj *valueShadowObjPtr;
-    XColor *fgColor;
-    Tk_3DBorder border;
-    int borderWidth;
-    int relief;
-    Pixmap stipple;
-    double fillOpacity; /* Fill alpha; borders and annotations remain opaque. */
-    GC gc;
-    int errorBarShow;
-    int errorBarLineWidth;
-    int errorBarCapWidth;
-    XColor *errorBarColor;
-    GC errorBarGC;
-    int valueShow;
-    char *valueFormat;
-    Tcl_Obj *valueCommandObjPtr; /* Optional value-label command prefix. */
-    Tcl_Obj *valueOffsetObjPtr; /* Pixel offset of the value-label anchor. */
-    Point2D valueOffset;
-    TextStyle valueStyle;
+    Tcl_Obj *borderWidthObjPtr; /**< Tk option-managed Tcl representation for border width; released with the owning option state. */
+    Tcl_Obj *errorBarCapObjPtr; /**< Tk option-managed Tcl representation for error bar cap; released with the owning option state. */
+    Tcl_Obj *errorBarColorObjPtr; /**< Tk option-managed Tcl representation for error bar color; released with the owning option state. */
+    Tcl_Obj *errorBarWidthObjPtr; /**< Tk option-managed Tcl representation for error bar width; released with the owning option state. */
+    Tcl_Obj *showErrorBarsObjPtr; /**< Tk option-managed Tcl representation for show error bars; released with the owning option state. */
+    Tcl_Obj *showValuesObjPtr; /**< Tk option-managed Tcl representation for show values; released with the owning option state. */
+    Tcl_Obj *valueRotateObjPtr; /**< Tk option-managed Tcl representation for value rotate; released with the owning option state. */
+    Tcl_Obj *valueShadowObjPtr; /**< Tk option-managed Tcl representation for value shadow; released with the owning option state. */
+    XColor *fgColor; /**< Configured fill color. */
+    Tk_3DBorder border; /**< Tk-managed 3D border for the bar fill and relief. */
+    int borderWidth; /**< Bevel thickness in pixels. */
+    int relief; /**< Tk bar relief selector. */
+    Pixmap stipple; /**< Retained fill stipple bitmap, or None. */
+    double fillOpacity; /**< Fill alpha; borders and annotations remain opaque. */
+    GC gc; /**< Owned native fill GC. */
+    int errorBarShow; /**< Bit mask selecting X and Y error bars. */
+    int errorBarLineWidth; /**< Error stroke width in pixels. */
+    int errorBarCapWidth; /**< Requested error cap width in pixels; mapping resolves automatic widths. */
+    XColor *errorBarColor; /**< Configured error color; COLOR_DEFAULT requests the element fallback. */
+    GC errorBarGC; /**< Owned GC for native error strokes. */
+    int valueShow; /**< Bit mask selecting X and Y coordinates in labels. */
+    char *valueFormat; /**< Option-managed numeric format string. */
+    Tcl_Obj *valueCommandObjPtr; /**< Tk option-managed Tcl representation for value command; released with the owning option state. */
+    Tcl_Obj *valueOffsetObjPtr; /**< Tk option-managed Tcl representation for value offset; released with the owning option state. */
+    Point2D valueOffset; /**< Label anchor displacement in pixels. */
+    TextStyle valueStyle; /**< Label text style; its GC belongs to the pen. */
 } BarPen;
 
 typedef Rbc_RenderRectangle BarRectangle;
@@ -89,22 +89,17 @@ typedef Rbc_RenderRectangle BarRectangle;
  * Counts delimit valid views; the containing element owns the arrays.
  */
 typedef struct {
-    Weight weight;         /* Weight range where this pen is valid. */
-    BarPen *penPtr;        /* Pen to draw */
-    Segment2D *xErrorBars; /* Point to start of this pen's X-error bar
-                            * segments in the element's array. */
-    Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
-                            * segments in the element's array. */
-    Tcl_Size xErrorBarCnt; /* # of error bars for this pen. */
-    Tcl_Size yErrorBarCnt; /* # of error bars for this pen. */
-    int errorBarCapWidth;  /* Length of the cap ends on each
-                            * error bar. */
-    int symbolSize;        /* Size of the pen's symbol scaled to the
-                            * current graph size. */
+    Weight weight; /**< Weight range where this pen is valid. */
+    BarPen *penPtr; /**< Pen to draw */
+    Segment2D *xErrorBars; /**< Point to start of this pen's X-error bar segments in the element's array. */
+    Segment2D *yErrorBars; /**< Point to start of this pen's Y-error bar segments in the element's array. */
+    Tcl_Size xErrorBarCnt; /**< # of error bars for this pen. */
+    Tcl_Size yErrorBarCnt; /**< # of error bars for this pen. */
+    int errorBarCapWidth; /**< Length of the cap ends on each error bar. */
+    int symbolSize; /**< Size of the pen's symbol scaled to the current graph size. */
     /* Bar chart specific data. */
-    BarRectangle *rectangles; /* Indicates starting location in bar
-                               * array for this pen. */
-    Tcl_Size nRects;          /* Number of bar segments for this pen. */
+    BarRectangle *rectangles; /**< Indicates starting location in bar array for this pen. */
+    Tcl_Size nRects; /**< Number of bar segments for this pen. */
 } BarPenStyle;
 
 /**
@@ -117,23 +112,22 @@ typedef struct {
     /*
      * Common element state. This must remain the first member.
      */
-    Element core;
+    Element core; /**< Common Element prefix; must remain first. */
     /*
      * Bar specific attributes
      */
-    BarPen builtinPen;
-    Tcl_Size *rectToData;
-    BarRectangle *rectangles; /* Array of rectangles comprising the bar
-                               * segments of the element. */
-    Tcl_Size nRects;          /* # of visible bar segments for element */
-    int padX;                 /* Spacing on either side of bar */
-    double barWidth;
-    int barAlign;            /* Anchor of the full group interval. */
-    int errorBarPosition;    /* Data coordinates or final bar placement. */
-    double barOffset;        /* Translation in data X coordinates. */
-    Tcl_Size nActive;
-    BarRectangle *activeRects;
-    Tcl_Size *activeToData;
+    BarPen builtinPen; /**< Embedded default bar pen owned by this element. */
+    Tcl_Size *rectToData; /**< Owned map from each displayed rectangle to its source sample index. */
+    BarRectangle *rectangles; /**< Array of rectangles comprising the bar segments of the element. */
+    Tcl_Size nRects; /**< # of visible bar segments for element */
+    int padX; /**< Spacing on either side of bar */
+    double barWidth; /**< Requested bar width in X data units; zero inherits graph width. */
+    int barAlign; /**< Anchor of the full group interval. */
+    int errorBarPosition; /**< Data coordinates or final bar placement. */
+    double barOffset; /**< Translation in data X coordinates. */
+    Tcl_Size nActive; /**< Number of mapped active rectangles. */
+    BarRectangle *activeRects; /**< Owned mapped active rectangle array. */
+    Tcl_Size *activeToData; /**< Owned map from active rectangles to source indices. */
 } Bar;
 
 _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar member");

@@ -23,24 +23,29 @@
 /* Bound font input and directory arithmetic before allocating or indexing it. */
 #define EXPORT_FONT_LIMIT (64u * 1024u * 1024u)
 
+/** @brief Cached resolved character within a document font. */
 typedef struct {
-    Rbc_ExportFont *font;
-    int cid;
-    double size;
+    Rbc_ExportFont *font; /**< Borrowed document-owned font. */
+    int cid; /**< One-based document character ID, not a native glyph index. */
+    double size; /**< Resolved font size in display pixels. */
 } ExportCharacter;
 
+/** @brief Document-owned font list and character lookup cache. */
 typedef struct {
-    Rbc_ExportFont *fonts;
-    int serial;
-    Tcl_HashTable characters;
+    Rbc_ExportFont *fonts; /**< Owned list of font programs. */
+    int serial; /**< Last allocated document-local font identifier. */
+    Tcl_HashTable characters; /**< Cache of resolved font/character pairs; entries own ExportCharacter records. */
 } ExportFontCache;
 
+/** @brief Temporary native font source; cleanup releases bytes and platform handles. */
 typedef struct {
-    unsigned char *bytes;
-    size_t length, offset;
+    unsigned char *bytes; /**< Owned retrieved font-program bytes. */
+    size_t length; /**< Number of retrieved bytes. */
+    size_t offset; /**< Face offset within a font collection. */
 #ifdef WIN32
-    HDC dc;
-    HFONT font, oldFont;
+    HDC dc; /**< Temporary Windows device context, released by font-source cleanup. */
+    HFONT font; /**< Selected native font handle. */
+    HFONT oldFont; /**< Previous DC font restored before releasing the DC. */
 #endif
 } FontSource;
 
@@ -1597,10 +1602,10 @@ Rbc_ExportFont *Rbc_FirstExportFont(Rbc_ExportContext *token) {
     return cache == NULL ? NULL : cache->fonts;
 }
 
-/* SVG keeps Unicode text. Map its used characters directly to the resolved
- * glyphs, including legacy Symbol encodings, without removing any outlines. */
+/** @brief Unicode scalar to source-glyph mapping used to build a cmap. */
 typedef struct {
-    uint32_t character, glyph;
+    uint32_t character; /**< Unicode scalar. */
+    uint32_t glyph; /**< Native glyph index. */
 } FontUnicodePair;
 
 /**

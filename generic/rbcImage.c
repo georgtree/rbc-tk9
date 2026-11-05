@@ -43,11 +43,13 @@ enum ColorIndices { RED, GREEN, BLUE };
  * Cut updates it for the two resulting boxes. The owner allocates the array.
  */
 typedef struct {
-    int r0, r1; /* min, max values:
-                 * min exclusive max inclusive */
-    int g0, g1;
-    int b0, b1;
-    int vol;
+    int r0; /**< min, max values: min exclusive max inclusive */
+    int r1; /**< min, max values: min exclusive max inclusive */
+    int g0; /**< Lower green boundary, excluded from the box sum. */
+    int g1; /**< Upper green boundary, included in the box sum. */
+    int b0; /**< Lower blue boundary, excluded from the box sum. */
+    int b1; /**< Upper blue boundary, included in the box sum. */
+    int vol; /**< Box volume in histogram cells. */
 } Cube;
 
 /*
@@ -69,11 +71,11 @@ typedef int64_t Moment;
  * allocates the record; M3d changes its representation; the owner frees it.
  */
 typedef struct {
-    Moment wt[33][33][33];  /* # pixels in voxel */
-    Moment mR[33][33][33];  /* Sum over voxel of red pixel values */
-    Moment mG[33][33][33];  /* Sum over voxel of green pixel values */
-    Moment mB[33][33][33];  /* Sum over voxel of blue pixel values */
-    Moment gm2[33][33][33]; /* Sum of squared RGB channel values */
+    Moment wt[33][33][33]; /**< # pixels in voxel */
+    Moment mR[33][33][33]; /**< Sum over voxel of red pixel values */
+    Moment mG[33][33][33]; /**< Sum over voxel of green pixel values */
+    Moment mB[33][33][33]; /**< Sum over voxel of blue pixel values */
+    Moment gm2[33][33][33]; /**< Sum of squared RGB channel values */
 } ColorImageStatistics;
 
 static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr);
@@ -2800,85 +2802,63 @@ Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr
     return regionPtr;
 }
 
-/*
- * Each call to Tk_GetImage returns a pointer to one of the following
- * structures, which is used as a token by clients (widgets) that
- * display images.
- */
+/** @brief Compatibility view of Tk image instance internals; layout must match the supported Tk version. */
 typedef struct TkImageStruct {
-    Tk_Window tkwin;  /* Window passed to Tk_GetImage (needed to
-                       * "re-get" the image later if the manager
-                       * changes). */
-    Display *display; /* Display for tkwin.  Needed because when
-                       * the image is eventually freed tkwin may
-                       * not exist anymore. */
-    struct TkImageMasterStruct *masterPtr;
+    Tk_Window tkwin; /**< Window passed to Tk_GetImage (needed to "re-get" the image later if the manager changes). */
+    Display *display; /**< Display for tkwin. Needed because when the image is eventually freed tkwin may not exist
+     * anymore.
+     */
+    struct TkImageMasterStruct *masterPtr; /**< Borrowed Tk image master. */
     /* Master for this image (identifiers image
      * manager, for example). */
-    ClientData instanceData;
+    ClientData instanceData; /**< Tk image-type instance payload. */
     /* One word argument to pass to image manager
      * when dealing with this image instance. */
-    Tk_ImageChangedProc *changeProc;
+    Tk_ImageChangedProc *changeProc; /**< Tk image-change callback. */
     /* Code in widget to call when image changes
      * in a way that affects redisplay. */
-    ClientData widgetClientData;
+    ClientData widgetClientData; /**< Borrowed callback data supplied by the image consumer. */
     /* Argument to pass to changeProc. */
-    struct Image *nextPtr; /* Next in list of all image instances
-                            * associated with the same name. */
+    struct Image *nextPtr; /**< Next in list of all image instances associated with the same name. */
 
 } TkImage;
 
-/*
- * For each image master there is one of the following structures,
- * which represents a name in the image table and all of the images
- * instantiated from it.  Entries in mainPtr->imageTable point to
- * these structures.
- */
+/** @brief Compatibility view of Tk image master internals; RBC does not own these fields. */
 typedef struct TkImageMasterStruct {
-    Tk_ImageType *typePtr;   /* Information about image type.  NULL means
-                              * that no image manager owns this image:  the
-                              * image was deleted. */
-    ClientData masterData;   /* One-word argument to pass to image mgr
-                              * when dealing with the master, as opposed
-                              * to instances. */
-    int width, height;       /* Last known dimensions for image. */
-    Tcl_HashTable *tablePtr; /* Pointer to hash table containing image
-                              * (the imageTable field in some TkMainInfo
-                              * structure). */
-    Tcl_HashEntry *hPtr;     /* Hash entry in mainPtr->imageTable for
-                              * this structure (used to delete the hash
-                              * entry). */
-    TkImage *instancePtr;    /* Pointer to first in list of instances
-                              * derived from this name. */
+    Tk_ImageType *typePtr; /**< Information about image type. NULL means that no image manager owns this image: the image was
+     * deleted.
+     */
+    ClientData masterData; /**< One-word argument to pass to image mgr when dealing with the master, as opposed to instances. */
+    int width; /**< Last known dimensions for image. */
+    int height; /**< Last known dimensions for image. */
+    Tcl_HashTable *tablePtr; /**< Pointer to hash table containing image (the imageTable field in some TkMainInfo structure). */
+    Tcl_HashEntry *hPtr; /**< Hash entry in mainPtr->imageTable for this structure (used to delete the hash entry). */
+    TkImage *instancePtr; /**< Pointer to first in list of instances derived from this name. */
 } TkImageMaster;
 
 typedef struct TkPhotoMasterStruct TkPhotoMaster;
 typedef struct TkColorTableStruct TkColorTable;
 
+/** @brief Compatibility view of Tk photo instance internals; RBC does not own these fields. */
 typedef struct TkPhotoInstanceStruct {
-    TkPhotoMaster *masterPtr; /* Pointer to master for image. */
-    Display *display;         /* Display for windows using this instance. */
-    Colormap colormap;        /* The image may only be used in windows with
-                               * this particular colormap. */
-    struct TkPhotoInstanceStruct *nextPtr;
+    TkPhotoMaster *masterPtr; /**< Pointer to master for image. */
+    Display *display; /**< Display for windows using this instance. */
+    Colormap colormap; /**< The image may only be used in windows with this particular colormap. */
+    struct TkPhotoInstanceStruct *nextPtr; /**< Next Tk-managed instance of the same photo master. */
     /* Pointer to the next instance in the list
      * of instances associated with this master. */
-    int refCount;                /* Number of instances using this structure. */
-    Tk_Uid palette;              /* Palette for these particular instances. */
-    double outputGamma;          /* Gamma value for these instances. */
-    Tk_Uid defaultPalette;       /* Default palette to use if a palette
-                                  * is not specified for the master. */
-    TkColorTable *colorTablePtr; /* Pointer to information about colors
-                                  * allocated for image display in windows
-                                  * like this one. */
-    Pixmap pixels;               /* X pixmap containing dithered image. */
-    int width, height;           /* Dimensions of the pixmap. */
-    char *error;                 /* Error image, used in dithering. */
-    XImage *imagePtr;            /* Image structure for converted pixels. */
-    XVisualInfo visualInfo;      /* Information about the visual that these
-                                  * windows are using. */
-    GC gc;                       /* Graphics context for writing images
-                                  * to the pixmap. */
+    int refCount; /**< Number of instances using this structure. */
+    Tk_Uid palette; /**< Palette for these particular instances. */
+    double outputGamma; /**< Gamma value for these instances. */
+    Tk_Uid defaultPalette; /**< Default palette to use if a palette is not specified for the master. */
+    TkColorTable *colorTablePtr; /**< Pointer to information about colors allocated for image display in windows like this one. */
+    Pixmap pixels; /**< X pixmap containing dithered image. */
+    int width; /**< Dimensions of the pixmap. */
+    int height; /**< Dimensions of the pixmap. */
+    char *error; /**< Error image, used in dithering. */
+    XImage *imagePtr; /**< Image structure for converted pixels. */
+    XVisualInfo visualInfo; /**< Information about the visual that these windows are using. */
+    GC gc; /**< Graphics context for writing images to the pixmap. */
 } TkPhotoInstance;
 
 /*

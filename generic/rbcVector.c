@@ -27,9 +27,10 @@
 
 typedef int RbcVectorOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcVectorOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcVectorOp *proc; /**< Typed command handler for this operation. */
 } VectorOpSpec;
 
 static Tcl_ObjCmdProc2 VectorObjCmd;

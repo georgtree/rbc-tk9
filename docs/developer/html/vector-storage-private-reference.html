@@ -185,7 +185,7 @@ Increments the supplied object reference and returns it through the legacy char 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ZeroVectorElements">
-<span class="target" id="group__vector__storage__private_1ga66f2408898b303ccb790d553eb8f6c3e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ZeroVectorElements</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ZeroVectorElements" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__storage__private_1ga66f2408898b303ccb790d553eb8f6c3e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ZeroVectorElements</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <a class="reference internal" href="#c.VectorData" title="VectorData"><span class="n"><span class="pre">VectorData</span></span></a><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ZeroVectorElements" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Zero the half-open interval [first,last) of typed storage. </p>
 <p>
 Zeros both components for complex values. Bounds and capacity are caller preconditions; does not allocate, change metadata, invalidate extrema or notify. </p>
@@ -251,7 +251,7 @@ Resolves a literal source name and an existing destination namespace, validates 
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> registry, valid throughout the call. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; literal old and new names at indices 2 and 3. </p></li>
@@ -331,7 +331,7 @@ Requires finite coordinates, finite nonnegative tolerance, equal input lengths a
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> registry, valid throughout the call. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Six standalone arguments: command, x, y, destX, destY, tolerance. </p></li>
@@ -356,7 +356,7 @@ Borrows arguments and removes the ensemble command word by shifting the vector a
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> registry, valid throughout the call. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Seven full ensemble arguments; forwards objv+1 and objc-1 to the standalone handler. </p></li>
@@ -381,7 +381,7 @@ Uses the typed command table to check name and arity before calling the selected
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> registry, valid throughout the call. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments: command at index 0, operation at index 1. </p></li>
@@ -492,7 +492,7 @@ Borrows ensemble arguments and owns the parsed name array, work string and resul
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> registry, valid throughout the call. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; names and creation options start at index 2. </p></li>
@@ -517,7 +517,7 @@ Uses the range-aware lookup helper, then destroys the entire returned vector, no
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> registry, valid throughout the call. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; references to destroy start at index 2. </p></li>
@@ -563,7 +563,7 @@ Walks the interpreter vector hash table, appending fully qualified keys to a new
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned VectorInterpData registry, valid throughout the call. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed interpreter-owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> registry, valid throughout the call. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> Owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
 <li><p><strong>objc</strong> – <strong>[in]</strong> Argument count; the dispatcher checks ensemble-handler arity, while standalone simplify checks its own. </p></li>
 <li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed array. Full ensemble arguments; optional glob pattern at index 2. </p></li>
@@ -577,7 +577,7 @@ Walks the interpreter vector hash table, appending fully qualified keys to a new
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorGetInterpData">
-<span class="target" id="group__vector__storage__private_1ga9af08f7d8b460419b71a7041d3154764"></span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetInterpData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetInterpData" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__storage__private_1ga9af08f7d8b460419b71a7041d3154764"></span><a class="reference internal" href="#c.VectorInterpData" title="VectorInterpData"><span class="n"><span class="pre">VectorInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetInterpData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetInterpData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Obtain or lazily initialize an interpreter-local vector registry. </p>
 <p>
 Returns borrowed associated data. First access allocates the vector, math and special-index tables, installs built-in functions and registers interpreter cleanup. Does not create Tcl commands or establish thread-shared storage. </p>
@@ -602,7 +602,7 @@ Repeatedly takes the first remaining registry entry because destruction mutates 
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Owned VectorInterpData associated with the interpreter; released here. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Owned <a class="reference internal" href="#struct_vector_interp_data"><span class="std std-ref">VectorInterpData</span></a> associated with the interpreter; released here. </p></li>
 <li><p><strong>interp</strong> – <strong>[in]</strong> See <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. Interpreter undergoing teardown.</p></li>
 </ul>
 </dd>
@@ -611,7 +611,7 @@ Repeatedly takes the first remaining registry entry because destruction mutates 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorNew">
-<span class="target" id="group__vector__storage__private_1gaa97f25caf076bf6e4654013ba08959a5"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorNew</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorNew" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__storage__private_1gaa97f25caf076bf6e4654013ba08959a5"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorNew</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.VectorInterpData" title="VectorInterpData"><span class="n"><span class="pre">VectorInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorNew" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an unregistered empty real vector record. </p>
 <p>
 Initializes static NULL storage, zero length/capacity, an empty observer chain, idle notifications, invalid extrema and no array flushing. The caller owns the record and may register it or use it as a temporary; release with Rbc_VectorFree. Does not create a name, Tcl command, mapped array or numeric allocation. </p>
@@ -629,7 +629,7 @@ Initializes static NULL storage, zero length/capacity, an empty observer chain, 
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorCreate">
-<span class="target" id="group__vector__storage__private_1ga4d9513b27cd54918de53c1ac460f09ae"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorCreate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cmdName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">varName</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorCreate" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__storage__private_1ga4d9513b27cd54918de53c1ac460f09ae"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorCreate</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.VectorInterpData" title="VectorInterpData"><span class="n"><span class="pre">VectorInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cmdName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">varName</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorCreate" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create or reuse a registered vector and configure its access surfaces. </p>
 <p>
 Qualifies the name in the current namespace; #auto selects an unused registry and command name. Existing vectors must be writable and have the requested type. Checks command collisions, replaces an existing instance command, and optionally maps an array. NULL command/variable arguments suppress that setup. Returns a borrowed record and writes newPtr on success, or NULL on error. Failure frees a newly created record, but does not roll back existing-object changes. Retains the record and interpreter across command deletion and mapping, and rejects destruction, new protection or replacement commands before continuing. </p>
@@ -794,7 +794,7 @@ Checks writability and a nonnegative length. Chooses a capacity starting at DEF_
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorLookupName">
-<span class="target" id="group__vector__storage__private_1ga533abe26386a89b0001ff327cb4842ba"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorLookupName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorLookupName" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__storage__private_1ga533abe26386a89b0001ff327cb4842ba"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorLookupName</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.VectorInterpData" title="VectorInterpData"><span class="n"><span class="pre">VectorInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorLookupName" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a complete vector reference including an optional selection. </p>
 <p>
 Delegates to Rbc_VectorParseElement with current/global namespace search and rejects trailing unconsumed characters. Returns TCL_OK and writes a borrowed vector pointer only on success, otherwise TCL_ERROR with an interpreter diagnostic. Parsing may update the selection and evaluate index expressions; this is not a literal-name lookup or a lifetime-retaining API. Callers needing to survive subsequent callbacks must retain and revalidate the object separately. <div class="admonition seealso">
@@ -900,7 +900,7 @@ Requires a real vector whose caller has already changed only the stated inclusiv
 <dt class="sig sig-object c" id="c.VectorVarTraceImpl">
 <span class="target" id="group__vector__storage__private_1ga9b363efe07646826becc67c1cbd09236"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">VectorVarTraceImpl</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">part1</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">part2</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorVarTraceImpl" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Perform one mapped-array access while the wrapper retains its owners. </p>
-<p>Reads materialize copied values; writes stage conversion before committing an inclusive interval; unsets compact storage and publish a full update. Value and index expressions may execute Tcl. Revalidate liveness, writability and storage layout before writing, and retain a private conversion object so callback changes to the array cannot invalidate a complex pair. Callback effects are not rolled back. Errors are retained Tcl objects for traces registered with TCL_TRACE_RESULT_OBJECT.</p>
+<p>Reads materialize copied values; writes stage conversion before committing an inclusive interval; unsets compact storage and publish a full update. <a class="reference internal" href="#struct_value"><span class="std std-ref">Value</span></a> and index expressions may execute Tcl. Revalidate liveness, writability and storage layout before writing, and retain a private conversion object so callback changes to the array cannot invalidate a complex pair. Callback effects are not rolled back. Errors are retained Tcl objects for traces registered with TCL_TRACE_RESULT_OBJECT.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -983,7 +983,7 @@ Requires a real vector whose caller has already changed only the stated inclusiv
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetVectorObject">
-<span class="target" id="group__vector__storage__private_1gab0dc5ba8735200ffc7a4c504c0426ba9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetVectorObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetVectorObject" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__storage__private_1gab0dc5ba8735200ffc7a4c504c0426ba9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetVectorObject</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.VectorInterpData" title="VectorInterpData"><span class="n"><span class="pre">VectorInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetVectorObject" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a literal vector registry name with controlled namespace search. </p>
 <p>Explicit namespace syntax restricts lookup to that namespace. Otherwise flags select current namespace first and optional global fallback. Returns a borrowed vector or NULL, without changing its index selection. Range syntax belongs to higher-level parsing, not this lookup helper.</p>
 <dl class="field-list simple">
@@ -999,7 +999,7 @@ Requires a real vector whose caller has already changed only the stated inclusiv
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindVectorInNamespace">
-<span class="target" id="group__vector__storage__private_1ga6adeb844112431cce83748fa2e86b9b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FindVectorInNamespace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Namespace</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindVectorInNamespace" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__vector__storage__private_1ga6adeb844112431cce83748fa2e86b9b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FindVectorInNamespace</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.VectorInterpData" title="VectorInterpData"><span class="n"><span class="pre">VectorInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="n"><span class="pre">Tcl_Namespace</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindVectorInNamespace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find a literal vector in one namespace registry scope. </p>
 <p>
 Builds a temporary qualified key, queries the interpreter-local vector table and frees the key. Returns a borrowed record or NULL. Does not resolve Tcl command aliases or acquire a vector client ID. </p>
@@ -1099,6 +1099,402 @@ adopted if the reset contract says so. Output arguments are not implicitly
 initialized on failure. The individual contract defines each case; see
 <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> for the common terminology.</p>
 </section>
+<section id="data-records-and-member-contracts">
+<h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading">¶</a></h2>
+<p>These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.VectorOpSpec">
+<span class="target" id="struct_vector_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorOpSpec</span></span></span><a class="headerlink" href="#c.VectorOpSpec" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command dispatch entry with shared argument validation metadata. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorOpSpec.header">
+<span class="target" id="struct_vector_op_spec_1a8377f0dc44445b6653bfbdac6f7151c0"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.VectorOpSpec.header" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorOpSpec.proc">
+<span class="target" id="struct_vector_op_spec_1a2f5daca86d39968c80cb51d19ebf561f"></span><span class="n"><span class="pre">RbcVectorOp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.VectorOpSpec.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Typed command handler for this operation. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.ParseInfo">
+<span class="target" id="struct_parse_info"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseInfo</span></span></span><a class="headerlink" href="#c.ParseInfo" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Expression scan position and current token. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ParseInfo.expr">
+<span class="target" id="struct_parse_info_1ab3e56541b8c2d6400890e11c7dd93f89"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">expr</span></span></span><a class="headerlink" href="#c.ParseInfo.expr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The entire right-hand side of the expression, as originally passed to Rbc_ExprVector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ParseInfo.nextPtr">
+<span class="target" id="struct_parse_info_1ad33106b42b54e74ed0381acc661fee1e"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">nextPtr</span></span></span><a class="headerlink" href="#c.ParseInfo.nextPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Position of the next character to be scanned from the expression string. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.ParseInfo.token">
+<span class="target" id="struct_parse_info_1a00a8d5ae30299e2d01007df37a30dd54"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">Tokens</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">token</span></span></span><a class="headerlink" href="#c.ParseInfo.token" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Type of the last token to be parsed from nextPtr. </p>
+<p>See below for definitions. Corresponds to the characters just before nextPtr. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct">
+<span class="target" id="struct_rbc___vector_id_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorIdStruct</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Observer token for a vector. </p>
+<p>Detaching invalidates the token; notification snapshots defer reclamation during callbacks. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.magic">
+<span class="target" id="struct_rbc___vector_id_struct_1afc2078ed5872cf3d9d7d338707ff5a7a"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">magic</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.magic" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Magic value designating whether this really is a vector token or not. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.serverPtr">
+<span class="target" id="struct_rbc___vector_id_struct_1a7ff7d2f21724ee44dc77094f9dc45884"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serverPtr</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.serverPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed vector; cleared when the ID is detached. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.proc">
+<span class="target" id="struct_rbc___vector_id_struct_1aa39638093dd3cc9bf0415ea123ada048"></span><span class="n"><span class="pre">Rbc_VectorChangedProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">proc</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.proc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Routine to call when the contents of the vector change or the vector is deleted. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.clientData">
+<span class="target" id="struct_rbc___vector_id_struct_1a9ca18c7855becd8f42f80943350d15b8"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clientData</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.clientData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Data passed whenever the vector change procedure is called. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.linkPtr">
+<span class="target" id="struct_rbc___vector_id_struct_1a1173aa75afc8ae87077efa51f36148a4"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">linkPtr</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.linkPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Used to quickly remove this entry from its server’s client chain. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.updateAll">
+<span class="target" id="struct_rbc___vector_id_struct_1a8ce5c1c4a9ae67a1b3f85cca35ae042a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateAll</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.updateAll" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero means the entire vector, or an unknown range, changed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.updateRangeValid">
+<span class="target" id="struct_rbc___vector_id_struct_1addfc36d8c2ab19ff6e885b392f45c92c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateRangeValid</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.updateRangeValid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when updateFirst and updateLast specify a modified range. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.updateFirst">
+<span class="target" id="struct_rbc___vector_id_struct_1af0b616e24859d805de87246e362b5edf"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateFirst</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.updateFirst" title="Link to this definition">¶</a><br /></dt>
+<dd><p>First changed source index, inclusive; meaningful only when updateRangeValid is set. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_VectorIdStruct.updateLast">
+<span class="target" id="struct_rbc___vector_id_struct_1a5e45a39601f5b67368c5c0e6bb899027"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateLast</span></span></span><a class="headerlink" href="#c.Rbc_VectorIdStruct.updateLast" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last changed source index, inclusive; meaningful only when updateRangeValid is set. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s">
+<span class="target" id="struct_rbc___vector__s"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Vector_s</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Vector storage and command state. </p>
+<p>Named vectors belong to the interpreter registry; client tokens observe without preserving vector lifetime. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.type">
+<span class="target" id="struct_rbc___vector__s_1a3d743b42a8272886a05b95d150743af7"></span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.type" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Real or complex storage discriminator; data must agree with it. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.readOnly">
+<span class="target" id="struct_rbc___vector__s_1aa9cdaba3c1c04d6a4deab9c5cd84adaa"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">readOnly</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.readOnly" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Protect values, length and index offset; not vector lifetime. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.data">
+<span class="target" id="struct_rbc___vector__s_1a1a675bd8f8713c3b55a1c23814232364"></span><a class="reference internal" href="#c.VectorData" title="VectorData"><span class="n"><span class="pre">VectorData</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">data</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.data" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Storage allocation governed by freeProc; growth or reset can invalidate borrowed pointers. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.length">
+<span class="target" id="struct_rbc___vector__s_1a60914ff355c0e11a0de4c28269a8f66b"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">length</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.length" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Current number of values in the array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.size">
+<span class="target" id="struct_rbc___vector__s_1a98643cc18ecd0d5b77911317610cb648"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.size" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Maximum number of values that can be stored in the value array. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.min">
+<span class="target" id="struct_rbc___vector__s_1a5afe7b84e668e3207a7e24b7928aa42e"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">min</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.min" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Minimum and maximum values in the vector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.max">
+<span class="target" id="struct_rbc___vector__s_1ae4d0648d2c6f17613bcb0628557ca7f8"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">max</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.max" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Minimum and maximum values in the vector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.minIndex">
+<span class="target" id="struct_rbc___vector__s_1ace0556fa7d6a959637a25d6060f2cdf1"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">minIndex</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.minIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Source index of cached finite minimum, or -1 when unavailable. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.maxIndex">
+<span class="target" id="struct_rbc___vector__s_1a170f51bc0dc411f6373753b22fcfee8f"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">maxIndex</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.maxIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Source index of cached finite maximum, or -1 when unavailable. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.dirty">
+<span class="target" id="struct_rbc___vector__s_1a33f8fed6433b930d2702975342b32337"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dirty</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.dirty" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Indicates if the vector has been updated. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.name">
+<span class="target" id="struct_rbc___vector__s_1a7ccc6a9817a385b2b6136b033ab5dac7"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.name" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The namespace-qualified name of the vector command. </p>
+<p>It points to the hash key allocated for the entry in the vector hash table; destruction keeps a temporary copy while callbacks run after removing the registration. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.dataPtr">
+<span class="target" id="struct_rbc___vector__s_1ac61c8fd873f5dd1c81f887f9af724163"></span><a class="reference internal" href="#c.VectorInterpData" title="VectorInterpData"><span class="n"><span class="pre">VectorInterpData</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">dataPtr</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.dataPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed interpreter-associated vector registry. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.interp">
+<span class="target" id="struct_rbc___vector__s_1aa575c4a0c4f42dd96dd8e1a8bac6b463"></span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">interp</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.interp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Interpreter associated with the vector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.hashPtr">
+<span class="target" id="struct_rbc___vector__s_1a4e7ef0b92cb58dd35e3ff0b386b6219b"></span><span class="n"><span class="pre">Tcl_HashEntry</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hashPtr</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.hashPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>If non-NULL, pointer in a hash table to track the vectors in use. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.freeProc">
+<span class="target" id="struct_rbc___vector__s_1a00b2ac3192d945f1654e972627de6481"></span><span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">freeProc</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.freeProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Address of procedure to call to release storage for the value array, Optionally can be one of the following: TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.arrayName">
+<span class="target" id="struct_rbc___vector__s_1afe54a87693d383f0a46c78922fecd105"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">arrayName</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.arrayName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>The namespace-qualified name of the Tcl array variable mapped to the vector (allocated). </p>
+<p>If NULL, indicates that the vector isn’t mapped to any variable </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.offset">
+<span class="target" id="struct_rbc___vector__s_1a36eaf841a36e224c84fea7bc12eb73d9"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.offset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Offset from zero of the vector’s starting index. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.cmdToken">
+<span class="target" id="struct_rbc___vector__s_1a826b721e93bbfd1528aa38cec3c05a77"></span><span class="n"><span class="pre">Tcl_Command</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cmdToken</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.cmdToken" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Token for vector’s Tcl command. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.chainPtr">
+<span class="target" id="struct_rbc___vector__s_1a9695255591a05251cf0d5a4e5eb258c4"></span><a class="reference internal" href="container-reference.html#c.Rbc_Chain" title="Rbc_Chain"><span class="n"><span class="pre">Rbc_Chain</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">chainPtr</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.chainPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List of clients using this vector. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.destroying">
+<span class="target" id="struct_rbc___vector__s_1a0fe18f94db43d5213d6a00d49df281fb"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">destroying</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.destroying" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destruction started; reject recursive deletion and new clients. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.notifyFlags">
+<span class="target" id="struct_rbc___vector__s_1a8207af6c8d17e084d33b229ce11445f0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">notifyFlags</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.notifyFlags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Notification flags. </p>
+<p>See definitions below </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.varFlags">
+<span class="target" id="struct_rbc___vector__s_1a21e59c78da239c9cf039a64110ffac6f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">varFlags</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.varFlags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Indicate if the variable is global, namespace, or local. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.freeOnUnset">
+<span class="target" id="struct_rbc___vector__s_1a589c707ddf4c820122877a2a33f53ed8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">freeOnUnset</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.freeOnUnset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>For backward compatibility only: If non-zero, free the vector when its variable is unset. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.flush">
+<span class="target" id="struct_rbc___vector__s_1ac785f4c436a131811e462cb72cb98b2f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">flush</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.flush" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero flushes mapped-array cached entries when values change. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.first">
+<span class="target" id="struct_rbc___vector__s_1a5d91632e6330cefdf1008eecfde893ae"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">first</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.first" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Selected region of vector. </p>
+<p>This is used mostly for the math routines </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.last">
+<span class="target" id="struct_rbc___vector__s_1ab4c646e47d33504ab2855a70a7025953"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">last</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.last" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Selected region of vector. </p>
+<p>This is used mostly for the math routines </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.updateAll">
+<span class="target" id="struct_rbc___vector__s_1a6d7cdba60d6d3f9b50f29b338e816dd6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateAll</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.updateAll" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero means the entire vector, or an unknown range, changed. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.updateRangeValid">
+<span class="target" id="struct_rbc___vector__s_1a1e3da6bd22b903608cd9d105e6b6756e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateRangeValid</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.updateRangeValid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nonzero when updateFirst and updateLast specify a modified range. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.updateFirst">
+<span class="target" id="struct_rbc___vector__s_1af74271b634af37bfb2fac91846969088"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateFirst</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.updateFirst" title="Link to this definition">¶</a><br /></dt>
+<dd><p>First changed source index, inclusive; meaningful only when updateRangeValid is set. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Vector_s.updateLast">
+<span class="target" id="struct_rbc___vector__s_1a697e3ab24099332e870d9079056bf2a7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateLast</span></span></span><a class="headerlink" href="#c.Rbc_Vector_s.updateLast" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Last changed source index, inclusive; meaningful only when updateRangeValid is set. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Value">
+<span class="target" id="struct_value"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Value</span></span></span><a class="headerlink" href="#c.Value" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporary expression value owning its result vector. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Value.vPtr">
+<span class="target" id="struct_value_1aa04df98de178d6bf633530ae8c3d9abf"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">vPtr</span></span></span><a class="headerlink" href="#c.Value.vPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporary result vector used by the expression parser. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c union">
+<dt class="sig sig-object c" id="c.VectorData">
+<span class="target" id="union_vector_data"></span><span class="k"><span class="pre">union</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorData</span></span></span><a class="headerlink" href="#c.VectorData" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcVectorInt.h&gt;</em></div>
+<p>Typed views of one vector storage allocation; type is stored in the owning vector. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorData.real">
+<span class="target" id="union_vector_data_1a60c976bbb84c25b566d0390302a2f2f7"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">real</span></span></span><a class="headerlink" href="#c.VectorData.real" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Real-value view when the vector type is real. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorData.complex">
+<span class="target" id="union_vector_data_1a0ef2612aecbb336ac70af2fe947486dc"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">complex</span></span></span><a class="headerlink" href="#c.VectorData.complex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Complex-value view when the vector type is complex. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorData.raw">
+<span class="target" id="union_vector_data_1add5aa110e1b5d36869b545407cd2c6d0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">raw</span></span></span><a class="headerlink" href="#c.VectorData.raw" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Untyped storage view used for allocation and release. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.VectorInterpData">
+<span class="target" id="struct_vector_interp_data"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorInterpData</span></span></span><a class="headerlink" href="#c.VectorInterpData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Interpreter-associated vector registry and expression/index dispatch tables. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorInterpData.vectorTable">
+<span class="target" id="struct_vector_interp_data_1ac239fbe765cf271cac381938247e99c5"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vectorTable</span></span></span><a class="headerlink" href="#c.VectorInterpData.vectorTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Table of vectors. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorInterpData.mathProcTable">
+<span class="target" id="struct_vector_interp_data_1a092a865f3a63a585a90f16fa18bfd2ad"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mathProcTable</span></span></span><a class="headerlink" href="#c.VectorInterpData.mathProcTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Table of vector math functions. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorInterpData.indexProcTable">
+<span class="target" id="struct_vector_interp_data_1a92899d67f6099641fba0615c2f926786"></span><span class="n"><span class="pre">Tcl_HashTable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">indexProcTable</span></span></span><a class="headerlink" href="#c.VectorInterpData.indexProcTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Registered special-index callbacks indexed by name. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorInterpData.interp">
+<span class="target" id="struct_vector_interp_data_1a4e9b0d3f6dce4c1ce24bee65becc7b1a"></span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">interp</span></span></span><a class="headerlink" href="#c.VectorInterpData.interp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed owning interpreter. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.VectorInterpData.nextId">
+<span class="target" id="struct_vector_interp_data_1ab6cb913c1d9ce9d5d03ee8e9635d81af"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nextId</span></span></span><a class="headerlink" href="#c.VectorInterpData.nextId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next candidate suffix for automatic vector names. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1170,6 +1566,83 @@ initialized on failure. The individual contract defines each case; see
 </ul>
 </li>
 <li><a class="reference internal" href="#parameter-and-ownership-conventions">Parameter and ownership conventions</a></li>
+<li><a class="reference internal" href="#data-records-and-member-contracts">Data records and member contracts</a><ul>
+<li><a class="reference internal" href="#c.VectorOpSpec"><code class="docutils literal notranslate"><span class="pre">VectorOpSpec</span></code></a><ul>
+<li><a class="reference internal" href="#c.VectorOpSpec.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorOpSpec.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.ParseInfo"><code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code></a><ul>
+<li><a class="reference internal" href="#c.ParseInfo.expr"><code class="docutils literal notranslate"><span class="pre">expr</span></code></a></li>
+<li><a class="reference internal" href="#c.ParseInfo.nextPtr"><code class="docutils literal notranslate"><span class="pre">nextPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.ParseInfo.token"><code class="docutils literal notranslate"><span class="pre">token</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorIdStruct</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.magic"><code class="docutils literal notranslate"><span class="pre">magic</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.serverPtr"><code class="docutils literal notranslate"><span class="pre">serverPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.proc"><code class="docutils literal notranslate"><span class="pre">proc</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.clientData"><code class="docutils literal notranslate"><span class="pre">clientData</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.linkPtr"><code class="docutils literal notranslate"><span class="pre">linkPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.updateAll"><code class="docutils literal notranslate"><span class="pre">updateAll</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.updateRangeValid"><code class="docutils literal notranslate"><span class="pre">updateRangeValid</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.updateFirst"><code class="docutils literal notranslate"><span class="pre">updateFirst</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorIdStruct.updateLast"><code class="docutils literal notranslate"><span class="pre">updateLast</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s"><code class="docutils literal notranslate"><span class="pre">Rbc_Vector_s</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.readOnly"><code class="docutils literal notranslate"><span class="pre">readOnly</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.data"><code class="docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.length"><code class="docutils literal notranslate"><span class="pre">length</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.size"><code class="docutils literal notranslate"><span class="pre">size</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.min"><code class="docutils literal notranslate"><span class="pre">min</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.max"><code class="docutils literal notranslate"><span class="pre">max</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.minIndex"><code class="docutils literal notranslate"><span class="pre">minIndex</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.maxIndex"><code class="docutils literal notranslate"><span class="pre">maxIndex</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.dirty"><code class="docutils literal notranslate"><span class="pre">dirty</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.dataPtr"><code class="docutils literal notranslate"><span class="pre">dataPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.interp"><code class="docutils literal notranslate"><span class="pre">interp</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.hashPtr"><code class="docutils literal notranslate"><span class="pre">hashPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.freeProc"><code class="docutils literal notranslate"><span class="pre">freeProc</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.arrayName"><code class="docutils literal notranslate"><span class="pre">arrayName</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.offset"><code class="docutils literal notranslate"><span class="pre">offset</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.cmdToken"><code class="docutils literal notranslate"><span class="pre">cmdToken</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.chainPtr"><code class="docutils literal notranslate"><span class="pre">chainPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.destroying"><code class="docutils literal notranslate"><span class="pre">destroying</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.notifyFlags"><code class="docutils literal notranslate"><span class="pre">notifyFlags</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.varFlags"><code class="docutils literal notranslate"><span class="pre">varFlags</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.freeOnUnset"><code class="docutils literal notranslate"><span class="pre">freeOnUnset</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.flush"><code class="docutils literal notranslate"><span class="pre">flush</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.first"><code class="docutils literal notranslate"><span class="pre">first</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.last"><code class="docutils literal notranslate"><span class="pre">last</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.updateAll"><code class="docutils literal notranslate"><span class="pre">updateAll</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.updateRangeValid"><code class="docutils literal notranslate"><span class="pre">updateRangeValid</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.updateFirst"><code class="docutils literal notranslate"><span class="pre">updateFirst</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Vector_s.updateLast"><code class="docutils literal notranslate"><span class="pre">updateLast</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Value"><code class="docutils literal notranslate"><span class="pre">Value</span></code></a><ul>
+<li><a class="reference internal" href="#c.Value.vPtr"><code class="docutils literal notranslate"><span class="pre">vPtr</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.VectorData"><code class="docutils literal notranslate"><span class="pre">VectorData</span></code></a><ul>
+<li><a class="reference internal" href="#c.VectorData.real"><code class="docutils literal notranslate"><span class="pre">real</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorData.complex"><code class="docutils literal notranslate"><span class="pre">complex</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorData.raw"><code class="docutils literal notranslate"><span class="pre">raw</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.VectorInterpData"><code class="docutils literal notranslate"><span class="pre">VectorInterpData</span></code></a><ul>
+<li><a class="reference internal" href="#c.VectorInterpData.vectorTable"><code class="docutils literal notranslate"><span class="pre">vectorTable</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorInterpData.mathProcTable"><code class="docutils literal notranslate"><span class="pre">mathProcTable</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorInterpData.indexProcTable"><code class="docutils literal notranslate"><span class="pre">indexProcTable</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorInterpData.interp"><code class="docutils literal notranslate"><span class="pre">interp</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorInterpData.nextId"><code class="docutils literal notranslate"><span class="pre">nextId</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

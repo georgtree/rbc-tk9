@@ -14,17 +14,22 @@
 
 typedef enum { RBC_EXPORT_POSTSCRIPT, RBC_EXPORT_SVG, RBC_EXPORT_PDF } Rbc_ExportBackend;
 
+/**
+ * @brief Synchronous document export owner with backend and font caches. Window and interpreter are borrowed;
+ * cleanup releases backend state and font resources.
+ */
 typedef struct {
-    Rbc_ExportBackend backend;
-    Tcl_Interp *interp;
-    Tk_Window tkwin;
-    Tcl_DString storage;
-    Tcl_DString *buffer;
-    void *backendData;           /* State owned by the backend command (PostScript token or PDF document). */
-    void *fontData;              /* Document-local font cache shared by PDF and SVG. */
-    unsigned int nextResourceId; /* Document-local SVG definition identifiers. */
-    int decorations, embedFonts;
-    const char *error; /* First export error, static message. */
+    Rbc_ExportBackend backend; /**< Selected document backend. */
+    Tcl_Interp *interp; /**< Borrowed result interpreter. */
+    Tk_Window tkwin; /**< Borrowed live Tk window used to resolve display resources. */
+    Tcl_DString storage; /**< Inline DString storage used when no external buffer is supplied. */
+    Tcl_DString *buffer; /**< Active document buffer; may point to storage or caller-owned storage. */
+    void *backendData; /**< State owned by the backend command (PostScript token or PDF document). */
+    void *fontData; /**< Document-local font cache shared by PDF and SVG. */
+    unsigned int nextResourceId; /**< Document-local SVG definition identifiers. */
+    int decorations; /**< Nonzero includes plot decorations. */
+    int embedFonts; /**< Nonzero requests embedded font programs. */
+    const char *error; /**< First export error, static message. */
 } Rbc_ExportContext;
 
 void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl_Interp *interp, Tk_Window tkwin,

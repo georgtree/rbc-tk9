@@ -59,11 +59,12 @@
 
 typedef enum AxisComponents { MAJOR_TICK, MINOR_TICK, TICK_LABEL, AXIS_LINE } AxisComponent;
 
+/** @brief Pixel offsets used to place the axis line, ticks and labels. */
 typedef struct {
-    int axis;  /* Length of the axis.  */
-    int t1;    /* Length of a major tick (in pixels). */
-    int t2;    /* Length of a minor tick (in pixels). */
-    int label; /* Distance from axis to tick label.  */
+    int axis; /**< Length of the axis. */
+    int t1; /**< Length of a major tick (in pixels). */
+    int t2; /**< Length of a minor tick (in pixels). */
+    int label; /**< Distance from axis to tick label. */
 } AxisInfo;
 
 /* Axis flags: */
@@ -154,12 +155,12 @@ typedef enum {
  * @brief Scalar requested/scroll candidates, initialized from live values; stagedMask selects fields to commit.
  */
 typedef struct {
-    unsigned int stagedMask;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
 
-    double reqMin;
-    double reqMax;
-    double scrollMin;
-    double scrollMax;
+    double reqMin; /**< Requested lower limit staged for commit or abort. */
+    double reqMax; /**< Requested upper limit staged for commit or abort. */
+    double scrollMin; /**< Scroll-region lower limit staged for commit or abort. */
+    double scrollMax; /**< Scroll-region upper limit staged for commit or abort. */
 } AxisLimitTransaction;
 
 typedef enum { AXIS_TICK_OPTION_NONE, AXIS_TICK_OPTION_MAJOR, AXIS_TICK_OPTION_MINOR } AxisTickOption;
@@ -171,9 +172,9 @@ typedef enum { AXIS_TICK_OPTION_NONE, AXIS_TICK_OPTION_MAJOR, AXIS_TICK_OPTION_M
  * @brief Owns major/minor tick allocations until commit. A masked NULL candidate requests automatic ticks.
  */
 typedef struct {
-    unsigned int stagedMask;
-    Ticks *majorTicksPtr;
-    Ticks *minorTicksPtr;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    Ticks *majorTicksPtr; /**< Owned major-tick replacement staged for commit or abort. */
+    Ticks *minorTicksPtr; /**< Owned minor-tick replacement staged for commit or abort. */
 } AxisTickTransaction;
 
 /**
@@ -181,9 +182,9 @@ typedef struct {
  * @brief Scalar minimum/maximum policies; staged distinguishes no change from a parsed pair.
  */
 typedef struct {
-    int staged;
-    int looseMin;
-    int looseMax;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    int looseMin; /**< Lower-limit loose-mode selector staged for commit or abort. */
+    int looseMax; /**< Upper-limit loose-mode selector staged for commit or abort. */
 } AxisLooseTransaction;
 
 typedef enum {
@@ -200,10 +201,10 @@ typedef enum {
  * @brief Scalar pixel candidates; stagedMask identifies parsed fields and no heap cleanup is needed.
  */
 typedef struct {
-    unsigned int stagedMask;
-    int borderWidth;
-    int lineWidth;
-    int scrollIncrement;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    int borderWidth; /**< Border thickness in pixels staged for commit or abort. */
+    int lineWidth; /**< Stroke thickness in pixels staged for commit or abort. */
+    int scrollIncrement; /**< Unit-scroll increment in pixels staged for commit or abort. */
 } AxisPixelTransaction;
 
 typedef enum {
@@ -220,10 +221,10 @@ typedef enum {
  * @brief Owns staged Tk colour references and offsets until commit; unmasked entries are zero initialized.
  */
 typedef struct {
-    unsigned int stagedMask;
-    Shadow limitsShadow;
-    Shadow tickShadow;
-    Shadow titleShadow;
+    unsigned int stagedMask; /**< Bit mask selecting staged replacements to commit or release. */
+    Shadow limitsShadow; /**< Limit-label shadow staged for commit or abort. */
+    Shadow tickShadow; /**< Tick-label shadow staged for commit or abort. */
+    Shadow titleShadow; /**< Title shadow staged for commit or abort. */
 } AxisShadowTransaction;
 
 /**
@@ -231,8 +232,8 @@ typedef struct {
  * @brief Owns one staged string-list allocation until commit; staged distinguishes no change from an empty list.
  */
 typedef struct {
-    int staged;
-    char **tags;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    char **tags; /**< Owned replacement binding-tag array staged for commit or abort. */
 } AxisTagsTransaction;
 
 /**
@@ -240,9 +241,9 @@ typedef struct {
  * @brief Owns one split-list allocation with at most two formats until commit; count and staged accompany it.
  */
 typedef struct {
-    int staged;
-    char **formats;
-    int nFormats;
+    int staged; /**< Nonzero when the transaction contains a replacement to commit or release. */
+    char **formats; /**< Owned replacement format-string array staged for commit or abort. */
+    int nFormats; /**< Number of replacement format strings staged for commit or abort. */
 } AxisFormatTransaction;
 
 static const Tk_OptionSpec axisOptionSpecs[] = {
@@ -380,14 +381,16 @@ static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr);
 typedef int RbcGrAxisOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]);
 typedef int RbcGrAxisVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrAxisOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrAxisOp *proc; /**< Typed command handler for this operation. */
 } AxisOpSpec;
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrAxisVirtualOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrAxisVirtualOp *proc; /**< Typed command handler for this operation. */
 } AxisVirtualOpSpec;
 
 static RbcGrAxisOp BindOp;

@@ -20,3 +20,18 @@ These functions are defined by RBC in ``rbcImage.c`` and declared privately in
 .. doxygenfunction:: Rbc_CreateTemporaryImage
 
 .. doxygenfunction:: Rbc_DestroyTemporaryImage
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: TkImageMasterStruct
+   :members:
+
+.. doxygenstruct:: TkImageStruct
+   :members:
+
+.. doxygenstruct:: TkPhotoInstanceStruct
+   :members:

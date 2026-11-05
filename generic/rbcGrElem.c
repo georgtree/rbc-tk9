@@ -72,9 +72,10 @@ static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr);
 
 typedef int RbcGrElementOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrElementOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrElementOp *proc; /**< Typed command handler for this operation. */
 } ElementOpSpec;
 
 static RbcGrElementOp ActivateOp;

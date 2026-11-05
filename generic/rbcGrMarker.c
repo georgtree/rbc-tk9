@@ -129,74 +129,64 @@ typedef void(MarkerExportProc)(Marker *markerPtr, Rbc_ExportContext *exportPtr);
 typedef int(MarkerPointProc)(Marker *markerPtr, Point2D *samplePtr);
 typedef int(MarkerRegionProc)(Marker *markerPtr, Extents2D *extsPtr, int enclosed);
 
+/** @brief Immutable dispatch and option descriptor for a marker type. */
 typedef struct {
-    const Tk_OptionSpec *optionSpecs;
-    const Tk_OptionSpec *monoOptionSpecs;
-    MarkerConfigProc *configProc;
-    MarkerDrawProc *drawProc;
-    MarkerFreeProc *freeProc;
-    MarkerMapProc *mapProc;
-    MarkerPointProc *pointProc;
-    MarkerRegionProc *regionProc;
-    MarkerExportProc *exportProc;
+    const Tk_OptionSpec *optionSpecs; /**< Borrowed color-display option table. */
+    const Tk_OptionSpec *monoOptionSpecs; /**< Borrowed monochrome option table. */
+    MarkerConfigProc *configProc; /**< Rebuild marker resources after option validation. */
+    MarkerDrawProc *drawProc; /**< Draw mapped geometry into the supplied drawable. */
+    MarkerFreeProc *freeProc; /**< Release concrete resources before generic marker destruction. */
+    MarkerMapProc *mapProc; /**< Map world coordinates and update clipping state. */
+    MarkerPointProc *pointProc; /**< Test the mapped marker against a picking point. */
+    MarkerRegionProc *regionProc; /**< Test overlap or enclosure with a search rectangle. */
+    MarkerExportProc *exportProc; /**< Serialize mapped geometry through the document backend. */
 } MarkerClass;
 
-/*
- * -------------------------------------------------------------------
- *
- * Marker --
- *
- *      Structure defining the generic marker.  In C++ parlance this
- *      would be the base type from which all markers are derived.
- *
- * -------------------------------------------------------------------
- */
+/** @brief Common marker prefix: graph registry identity, coordinates, axis references and option lifecycle. */
 struct MarkerStruct {
-    char *name;       /* Identifier for marker in list */
-    Rbc_Uid classUid; /* Type of marker. */
-    Graph *graphPtr;  /* Graph widget of marker. */
-    unsigned int flags;
-    char **tags;
-    int hidden; /* If non-zero, don't display the marker. */
-    Tcl_HashEntry *hashPtr;
-    Rbc_ChainLink *linkPtr;
-    Point2D *worldPts;  /* Coordinate array to position marker */
-    Tcl_Size nWorldPts; /* Number of points in above array */
-    char *elemName;     /* Element associated with marker */
-    Axis2D axes;
-    RbcTrack *track;       /* Optional owner; prevents track/axis detachment. */
-    Tcl_Obj *trackObjPtr;
-    int drawUnder;        /* If non-zero, draw the marker
-                           * underneath any elements. This can
-                           * be a performance penalty because
-                           * the graph must be redraw entirely
-                           * each time the marker is redrawn. */
-    int clipped;          /* Indicates if the marker is totally
-                           * clipped by the plotting area. */
-    int xOffset, yOffset; /* Pixel offset from graph position */
-    MarkerClass *classPtr;
-    int state;
+    char *name; /**< Identifier for marker in list */
+    Rbc_Uid classUid; /**< Type of marker. */
+    Graph *graphPtr; /**< Borrowed owning graph. */
+    unsigned int flags; /**< Mapping/redraw state bits. */
+    char **tags; /**< Owned binding-tag strings. */
+    int hidden; /**< If non-zero, don't display the marker. */
+    Tcl_HashEntry *hashPtr; /**< Borrowed registry entry; cleared when detached. */
+    Rbc_ChainLink *linkPtr; /**< Link in the owning graph marker display chain. */
+    Point2D *worldPts; /**< Coordinate array to position marker */
+    Tcl_Size nWorldPts; /**< Number of points in above array */
+    char *elemName; /**< Element associated with marker */
+    Axis2D axes; /**< Axis references retained by the marker. */
+    RbcTrack *track; /**< Optional owner; prevents track/axis detachment. */
+    Tcl_Obj *trackObjPtr; /**< Tk option-managed Tcl representation for track; released with the owning option state. */
+    int drawUnder; /**< If non-zero, draw the marker underneath any elements. This can be a performance penalty because
+     * the graph must be redraw entirely each time the marker is redrawn.
+     */
+    int clipped; /**< Indicates if the marker is totally clipped by the plotting area. */
+    int xOffset; /**< Pixel offset from graph position */
+    int yOffset; /**< Pixel offset from graph position */
+    MarkerClass *classPtr; /**< Borrowed immutable descriptor for the concrete marker type. */
+    int state; /**< Tk interaction state controlling event eligibility. */
     /*
      * Original Tcl representations for common manually converted options.
      */
-    Tcl_Obj *bindTagsObjPtr;
-    Tcl_Obj *coordsObjPtr;
-    Tcl_Obj *mapXObjPtr;
-    Tcl_Obj *mapYObjPtr;
-    Tcl_Obj *stateObjPtr;
-    Tcl_Obj *xOffsetObjPtr;
-    Tcl_Obj *yOffsetObjPtr;
+    Tcl_Obj *bindTagsObjPtr; /**< Tk option-managed Tcl representation for bind tags; released with the owning option state. */
+    Tcl_Obj *coordsObjPtr; /**< Tk option-managed Tcl representation for coords; released with the owning option state. */
+    Tcl_Obj *mapXObjPtr; /**< Tk option-managed Tcl representation for map x; released with the owning option state. */
+    Tcl_Obj *mapYObjPtr; /**< Tk option-managed Tcl representation for map y; released with the owning option state. */
+    Tcl_Obj *stateObjPtr; /**< Tk option-managed Tcl representation for state; released with the owning option state. */
+    Tcl_Obj *xOffsetObjPtr; /**< Tk option-managed Tcl representation for x offset; released with the owning option state. */
+    Tcl_Obj *yOffsetObjPtr; /**< Tk option-managed Tcl representation for y offset; released with the owning option state. */
     /*
      * Option typeMask values modified by the current Tk_SetOptions()
      * transaction. Valid only while configProc is running.
      */
-    int optionMask;
+    int optionMask; /**< Change mask from the current option transaction. */
     /*
      * Tk option state and two-stage resource-release state.
      */
-    Tk_OptionTable optionTable;
-    int optionsInitialized;
-    int tkResourcesReleased;
+    Tk_OptionTable optionTable; /**< Tk option table for this component configuration lifecycle. */
+    int optionsInitialized; /**< Nonzero after Tk option initialization. */
+    int tkResourcesReleased; /**< Nonzero after guarded Tk-resource release. */
 };
 
 /**
@@ -208,25 +198,23 @@ struct MarkerStruct {
  * north-west text-style anchor. outline is translated by anchorPos at use.
  */
 typedef struct {
-    Marker core;
+    Marker core; /**< Common Marker prefix; must remain first. */
     /*
      * Original Tcl representations of manually converted options.
      */
-    Tcl_Obj *padXObjPtr;
-    Tcl_Obj *padYObjPtr;
-    Tcl_Obj *shadowObjPtr;
-    char *string;        /* Text string to be display.  The string
-                          * make contain newlines. */
-    Tk_Anchor anchor;    /* Indicates how to translate the given
-                          * marker position. */
-    Point2D anchorPos;   /* Translated anchor point. */
-    int width, height;   /* Dimension of bounding box.  */
-    TextStyle style;     /* Text attributes (font, fg, anchor, etc) */
-    TextLayout *textPtr; /* Contains information about the layout
-                          * of the text. */
-    Point2D outline[5];
-    XColor *fillColor;
-    GC fillGC;
+    Tcl_Obj *padXObjPtr; /**< Tk option-managed Tcl representation for pad x; released with the owning option state. */
+    Tcl_Obj *padYObjPtr; /**< Tk option-managed Tcl representation for pad y; released with the owning option state. */
+    Tcl_Obj *shadowObjPtr; /**< Tk option-managed Tcl representation for shadow; released with the owning option state. */
+    char *string; /**< Text string to be display. The string make contain newlines. */
+    Tk_Anchor anchor; /**< Indicates how to translate the given marker position. */
+    Point2D anchorPos; /**< Translated anchor point. */
+    int width; /**< Dimension of bounding box. */
+    int height; /**< Dimension of bounding box. */
+    TextStyle style; /**< Text attributes (font, fg, anchor, etc) */
+    TextLayout *textPtr; /**< Contains information about the layout of the text. */
+    Point2D outline[5]; /**< Mapped rotated background polygon in display pixels. */
+    XColor *fillColor; /**< Configured text-background color, or NULL. */
+    GC fillGC; /**< Owned native text-background GC. */
 } TextMarker;
 
 static const Tk_OptionSpec textMarkerOptionSpecs[] = {
@@ -278,24 +266,24 @@ static const Tk_OptionSpec textMarkerOptionSpecs[] = {
  * marker destroys its current child; replacing the child only detaches it.
  */
 typedef struct {
-    Marker core;
+    Marker core; /**< Common Marker prefix; must remain first. */
 
     /*
      * Original Tcl representations of the requested dimensions.
      */
-    Tcl_Obj *reqHeightObjPtr;
-    Tcl_Obj *reqWidthObjPtr;
+    Tcl_Obj *reqHeightObjPtr; /**< Tk option-managed Tcl representation for req height; released with the owning option state. */
+    Tcl_Obj *reqWidthObjPtr; /**< Tk option-managed Tcl representation for req width; released with the owning option state. */
     /*
      * Window specific attributes
      */
-    char *pathName;          /* Name of child widget to be displayed. */
-    Tk_Window tkwin;         /* Window to display. */
-    int reqWidth, reqHeight; /* If non-zero, this overrides the size
-                              * requested by the child widget. */
-    Tk_Anchor anchor;        /* Indicates how to translate the given
-                              * marker position. */
-    Point2D anchorPos;       /* Translated anchor point. */
-    int width, height;       /* Current size of the child window. */
+    char *pathName; /**< Name of child widget to be displayed. */
+    Tk_Window tkwin; /**< Window to display. */
+    int reqWidth; /**< If non-zero, this overrides the size requested by the child widget. */
+    int reqHeight; /**< If non-zero, this overrides the size requested by the child widget. */
+    Tk_Anchor anchor; /**< Indicates how to translate the given marker position. */
+    Point2D anchorPos; /**< Translated anchor point. */
+    int width; /**< Current size of the child window. */
+    int height; /**< Current size of the child window. */
 } WindowMarker;
 
 static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
@@ -335,32 +323,28 @@ static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
  * outline is an absolute mapped background polygon, not anchor-local geometry.
  */
 typedef struct {
-    Marker core;
+    Marker core; /**< Common Marker prefix; must remain first. */
     /* Bitmap specific attributes */
-    Pixmap srcBitmap;     /* Original bitmap. May be further
-                           * scaled or rotated. */
-    Pixmap srcMask;       /* User-specified transparency mask */
-    double rotate;        /* Requested rotation of the bitmap */
-    double theta;         /* Normalized rotation (0..360
-                           * degrees) */
-    Tk_Anchor anchor;     /* If only one X-Y coordinate is
-                           * given, indicates how to translate
-                           * the given marker position.  Otherwise,
-                           * if there are two X-Y coordinates, then
-                           * this value is ignored. */
-    Point2D anchorPos;    /* Translated anchor point. */
-    XColor *outlineColor; /* Foreground color */
-    XColor *fillColor;    /* Background color */
-    GC gc;                /* Private graphic context */
-    GC fillGC;            /* Shared graphic context */
-    Pixmap destBitmap;    /* Bitmap to be drawn. */
-    Pixmap destMask;      /* Final scaled/rotated clip mask */
-    int destBitmapOwned;
-    int destMaskOwned;
-    int destWidth, destHeight;           /* Dimensions of the final bitmap */
-    Point2D outline[MAX_OUTLINE_POINTS]; /* Polygon representing the background
-                                          * of the bitmap. */
-    int nOutlinePts;
+    Pixmap srcBitmap; /**< Original bitmap. May be further scaled or rotated. */
+    Pixmap srcMask; /**< User-specified transparency mask */
+    double rotate; /**< Requested rotation of the bitmap */
+    double theta; /**< Normalized rotation (0..360 degrees) */
+    Tk_Anchor anchor; /**< If only one X-Y coordinate is given, indicates how to translate the given marker position.
+     * Otherwise, if there are two X-Y coordinates, then this value is ignored.
+     */
+    Point2D anchorPos; /**< Translated anchor point. */
+    XColor *outlineColor; /**< Foreground color */
+    XColor *fillColor; /**< Background color */
+    GC gc; /**< Private graphic context */
+    GC fillGC; /**< Shared graphic context */
+    Pixmap destBitmap; /**< Bitmap to be drawn. */
+    Pixmap destMask; /**< Final scaled/rotated clip mask */
+    int destBitmapOwned; /**< Nonzero when destBitmap must be freed separately from srcBitmap. */
+    int destMaskOwned; /**< Nonzero when destMask must be freed separately from srcMask. */
+    int destWidth; /**< Dimensions of the final bitmap */
+    int destHeight; /**< Dimensions of the final bitmap */
+    Point2D outline[MAX_OUTLINE_POINTS]; /**< Polygon representing the background of the bitmap. */
+    int nOutlinePts; /**< Number of mapped outline vertices. */
 } BitmapMarker;
 
 static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
@@ -408,29 +392,30 @@ static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
  * resources. Cached dimensions describe current mapped presentation.
  */
 typedef struct {
-    Marker core;
+    Marker core; /**< Common Marker prefix; must remain first. */
     /* Image specific attributes */
-    Tcl_Obj *imageObjPtr; /* Original Tcl representation of -image. */
-    Tk_Image tkImage;     /* Tk image to be displayed. */
-    Tk_Anchor anchor;     /* Indicates how to translate the given
-                           * marker position. */
-    Point2D anchorPos;    /* Translated anchor point. */
-    int width, height;    /* Dimensions of the image */
-    Tk_Image tmpImage;
-    Pixmap pixmap;         /* Pixmap containing the scaled image */
-    Rbc_ColorImage srcImage;
-    GC gc;
+    Tcl_Obj *imageObjPtr; /**< Tk option-managed Tcl representation for image; released with the owning option state. */
+    Tk_Image tkImage; /**< Tk image to be displayed. */
+    Tk_Anchor anchor; /**< Indicates how to translate the given marker position. */
+    Point2D anchorPos; /**< Translated anchor point. */
+    int width; /**< Dimensions of the image */
+    int height; /**< Dimensions of the image */
+    Tk_Image tmpImage; /**< Owned resized color-image cache, or NULL. */
+    Pixmap pixmap; /**< Pixmap containing the scaled image */
+    Rbc_ColorImage srcImage; /**< Owned source color-image copy, or NULL. */
+    GC gc; /**< Owned native image-copy GC. */
 
 } ImageMarker;
 
+/** @brief Staged marker coordinates, tags and axis references for transactional configuration. */
 typedef struct {
-    char **tags;
-    Point2D *worldPts;
-    Tcl_Size nWorldPts;
-    Axis *xAxis;
-    Axis *yAxis;
-    RbcTrack *track;
-    int state;
+    char **tags; /**< Staged owned binding-tag array. */
+    Point2D *worldPts; /**< Staged owned world-coordinate array. */
+    Tcl_Size nWorldPts; /**< Number of staged world-coordinate points. */
+    Axis *xAxis; /**< Staged retained X-axis reference. */
+    Axis *yAxis; /**< Staged retained Y-axis reference. */
+    RbcTrack *track; /**< Borrowed validated target track, or NULL. */
+    int state; /**< Validated Tk interaction state. */
 } ParsedMarkerOptions;
 
 static const Tk_OptionSpec imageMarkerOptionSpecs[] = {
@@ -477,47 +462,43 @@ static const char *const arrowStrings[] = {"none", "first", "last", "both", NULL
  * immediate graph-wide image, not the current requested xor option alone.
  */
 typedef struct {
-    Marker core;
+    Marker core; /**< Common Marker prefix; must remain first. */
     /*
      * Original Tcl representations for manually converted line
      * marker options.
      */
-    Tcl_Obj *capObjPtr;
-    Tcl_Obj *dashesObjPtr;
-    Tcl_Obj *dashOffsetObjPtr;
-    Tcl_Obj *joinObjPtr;
-    Tcl_Obj *lineWidthObjPtr;
-    Tcl_Obj *arrowShapeObjPtr;
+    Tcl_Obj *capObjPtr; /**< Tk option-managed Tcl representation for cap; released with the owning option state. */
+    Tcl_Obj *dashesObjPtr; /**< Tk option-managed Tcl representation for dashes; released with the owning option state. */
+    Tcl_Obj *dashOffsetObjPtr; /**< Tk option-managed Tcl representation for dash offset; released with the owning option state. */
+    Tcl_Obj *joinObjPtr; /**< Tk option-managed Tcl representation for join; released with the owning option state. */
+    Tcl_Obj *lineWidthObjPtr; /**< Tk option-managed Tcl representation for line width; released with the owning option state. */
+    Tcl_Obj *arrowShapeObjPtr; /**< Tk option-managed Tcl representation for arrow shape; released with the owning option state. */
     /* Line specific attributes */
-    XColor *fillColor;
-    XColor *outlineColor; /* Foreground and background colors */
-    int lineWidth;        /* Line width. */
-    int capStyle;         /* Cap style. */
-    int joinStyle;        /* Join style.*/
-    Rbc_Dashes dashes;    /* Dash list values (max 11) */
-    LineArrow arrow;
-    double arrowShape[3];
+    XColor *fillColor; /**< Off-dash background color, or NULL for unpainted gaps. */
+    XColor *outlineColor; /**< Foreground stroke and arrowhead color */
+    int lineWidth; /**< Line width. */
+    int capStyle; /**< Cap style. */
+    int joinStyle; /**< Join style. */
+    Rbc_Dashes dashes; /**< Dash list values (max 11) */
+    LineArrow arrow; /**< Arrow placement selector: none, first, last or both. */
+    double arrowShape[3]; /**< Arrow dimensions in pixels: tip-to-neck, tip-to-trailing-corner, and extra half-width beyond half the shaft width. */
     /*
      * Mapped arrowhead geometry.  The first and last point are
      * identical so the polygon is explicitly closed.
      */
-    Point2D firstArrow[PTS_IN_ARROW];
-    Point2D lastArrow[PTS_IN_ARROW];
-    Point2D firstShaftPoint;
-    Point2D lastShaftPoint;
-    int hasFirstArrow;
-    int hasLastArrow;
-    GC gc;               /* Private graphic context */
-    Segment2D *segments; /* Malloc'ed array of points.
-                          * Represents individual line segments
-                          * (2 points per segment) comprising
-                          * the mapped line.  The segments may
-                          * not necessarily be connected after
-                          * clipping. */
-    Tcl_Size nSegments;  /* # segments in the above array. */
-    int xor ;
-    int xorState; /* State of the XOR drawing. Indicates
-                   * if the marker is currently drawn. */
+    Point2D firstArrow[PTS_IN_ARROW]; /**< Closed mapped polygon for the first arrowhead. */
+    Point2D lastArrow[PTS_IN_ARROW]; /**< Closed mapped polygon for the last arrowhead. */
+    Point2D firstShaftPoint; /**< Adjusted first shaft endpoint after arrow shortening. */
+    Point2D lastShaftPoint; /**< Adjusted last shaft endpoint after arrow shortening. */
+    int hasFirstArrow; /**< Nonzero when firstArrow contains drawable geometry. */
+    int hasLastArrow; /**< Nonzero when lastArrow contains drawable geometry. */
+    GC gc; /**< Private graphic context */
+    Segment2D *segments; /**< Malloc'ed array of points. Represents individual line segments (2 points per segment) comprising
+     * the mapped line. The segments may not necessarily be connected after clipping.
+     */
+    Tcl_Size nSegments; /**< # segments in the above array. */
+    int xor; /**< Nonzero requests reversible XOR screen drawing. */
+    int xorState; /**< State of the XOR drawing. Indicates if the marker is currently drawn. */
 } LineMarker;
 
 static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
@@ -568,54 +549,49 @@ static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
  * their Tcl representations and stipple reference.
  */
 typedef struct {
-    Marker core;
+    Marker core; /**< Common Marker prefix; must remain first. */
     /*
      * Original Tcl representations of manually converted options.
      */
-    Tcl_Obj *capObjPtr;
-    Tcl_Obj *dashesObjPtr;
-    Tcl_Obj *fillObjPtr;
-    Tcl_Obj *joinObjPtr;
-    Tcl_Obj *lineWidthObjPtr;
-    Tcl_Obj *outlineObjPtr;
+    Tcl_Obj *capObjPtr; /**< Tk option-managed Tcl representation for cap; released with the owning option state. */
+    Tcl_Obj *dashesObjPtr; /**< Tk option-managed Tcl representation for dashes; released with the owning option state. */
+    Tcl_Obj *fillObjPtr; /**< Tk option-managed Tcl representation for fill; released with the owning option state. */
+    Tcl_Obj *joinObjPtr; /**< Tk option-managed Tcl representation for join; released with the owning option state. */
+    Tcl_Obj *lineWidthObjPtr; /**< Tk option-managed Tcl representation for line width; released with the owning option state. */
+    Tcl_Obj *outlineObjPtr; /**< Tk option-managed Tcl representation for outline; released with the owning option state. */
     /* Polygon specific attributes and fields */
-    Point2D *screenPts;
-    ColorPair outline;
-    ColorPair fill;
-    Pixmap stipple; /* Stipple pattern to fill the polygon. */
-    int lineWidth;  /* Width of polygon outline. */
-    int capStyle;
-    int joinStyle;
-    Rbc_Dashes dashes;     /* List of dash values.  Indicates how
-                            * draw the dashed line.  If no dash
-                            * values are provided, or the first value
-                            * is zero, then the line is drawn solid. */
-    GC outlineGC;          /* Graphics context to draw the outline of
-                            * the polygon. */
-    GC fillGC;             /* Graphics context to draw the filled
-                            * polygon. */
-    Point2D *fillPts;      /* Malloc'ed array of points used to draw
-                            * the filled polygon. These points may
-                            * form a degenerate polygon after clipping.
-                            */
-    Tcl_Size nFillPts;     /* # points in the above array. */
-    Segment2D *outlinePts; /* Malloc'ed array of points.
-                            * Represents individual line segments
-                            * (2 points per segment) comprising
-                            * the outline of the polygon.  The
-                            * segments may not necessarily be
-                            * closed or connected after clipping. */
-    Tcl_Size nOutlinePts;  /* # points in the above array. */
-    int xor ;
-    int xorState; /* State of the XOR drawing. Indicates
-                   * if the marker is visible. We have
-                   * to drawn it again to erase it. */
+    Point2D *screenPts; /**< Owned mapped un-clipped polygon or tessellated arc vertices. */
+    ColorPair outline; /**< Outline foreground/background colors. */
+    ColorPair fill; /**< Fill foreground/background colors. */
+    Pixmap stipple; /**< Stipple pattern to fill the polygon. */
+    int lineWidth; /**< Width of polygon outline. */
+    int capStyle; /**< Native stroke cap selector. */
+    int joinStyle; /**< Native stroke join selector. */
+    Rbc_Dashes dashes; /**< List of dash values. Indicates how draw the dashed line. If no dash values are provided, or the
+     * first value is zero, then the line is drawn solid.
+     */
+    GC outlineGC; /**< Graphics context to draw the outline of the polygon. */
+    GC fillGC; /**< Graphics context to draw the filled polygon. */
+    Point2D *fillPts; /**< Malloc'ed array of points used to draw the filled polygon. These points may form a degenerate
+     * polygon after clipping.
+     */
+    Tcl_Size nFillPts; /**< # points in the above array. */
+    Segment2D *outlinePts; /**< Malloc'ed array of points. Represents individual line segments (2 points per segment) comprising
+     * the outline of the polygon. The segments may not necessarily be closed or connected after
+     * clipping.
+     */
+    Tcl_Size nOutlinePts; /**< # points in the above array. */
+    int xor; /**< Nonzero requests reversible XOR screen drawing. */
+    int xorState; /**< State of the XOR drawing. Indicates if the marker is visible. We have to drawn it again to erase
+     * it.
+     */
     /* Arc markers share polygon appearance/resources, but have their own
      * mapped vertex count: their world coordinates remain a two-point box. */
-    double start, extent;
-    int arcStyle;
-    Tcl_Size nArcPts;
-    Rbc_RenderArcGeometry arc; /* Unclipped ellipse for curved renderers. */
+    double start; /**< Arc start angle in degrees. */
+    double extent; /**< Signed arc sweep in degrees. */
+    int arcStyle; /**< Open arc, chord or pie-slice closure selector. */
+    Tcl_Size nArcPts; /**< Number of tessellated arc vertices. */
+    Rbc_RenderArcGeometry arc; /**< Unclipped ellipse for curved renderers. */
 } PolygonMarker;
 
 enum { ARC_OPEN = RBC_RENDER_ARC_OPEN, ARC_CHORD = RBC_RENDER_ARC_CHORD, ARC_PIESLICE = RBC_RENDER_ARC_PIESLICE };
@@ -783,9 +759,10 @@ static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr
 
 typedef int RbcGrMarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrMarkerOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrMarkerOp *proc; /**< Typed command handler for this operation. */
 } MarkerOpSpec;
 
 static RbcGrMarkerOp BindOp;
@@ -6708,10 +6685,12 @@ static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, Bitmap
  * reuse only; each marker must still be submitted as its own stroke.
  */
 typedef struct {
-    const Segment2D *segments;
-    Tcl_Size count;
-    const XColor *color;
-    int width, cap, join;
+    const Segment2D *segments; /**< Borrowed mapped segment array. */
+    Tcl_Size count; /**< Number of segments. */
+    const XColor *color; /**< Borrowed stroke color. */
+    int width; /**< Stroke width in pixels. */
+    int cap; /**< Native cap selector. */
+    int join; /**< Native join selector. */
 } MarkerStroke;
 
 /**

@@ -30,3 +30,15 @@ Relative child lookup
 ---------------------
 
 .. doxygenfunction:: Rbc_FindChild
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: ColorPair
+   :members:
+
+.. doxygenstruct:: Rbc_ScrollRequest
+   :members:

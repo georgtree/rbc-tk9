@@ -20,8 +20,13 @@
 
 #define CLAMP(value, low, high) MIN(MAX((value), (low)), (high))
 
+/** @brief Temporary track option defaults resolved through the option database. */
 typedef struct {
-    Tcl_Obj *weight, *minHeight, *height, *yAxes, *barMode;
+    Tcl_Obj *weight; /**< Default relative fitted-layout weight. */
+    Tcl_Obj *minHeight; /**< Default minimum stacking extent in pixels. */
+    Tcl_Obj *height; /**< Default requested stacking extent in pixels. */
+    Tcl_Obj *yAxes; /**< Tcl representation of default local Y-axis names. */
+    Tcl_Obj *barMode; /**< Default bar mode; -1 inherits the graph setting. */
 } TrackDefaults;
 
 static const Tk_OptionSpec trackOptionSpecs[] = {

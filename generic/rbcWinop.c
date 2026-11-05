@@ -38,9 +38,10 @@ static Window StringToWindow(Tcl_Interp *interp, const char *string);
 
 typedef int RbcWinOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcWinOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcWinOp *proc; /**< Typed command handler for this operation. */
 } WinopOpSpec;
 #ifndef WIN32
 static RbcWinOp ColormapOp;

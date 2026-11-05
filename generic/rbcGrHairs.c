@@ -18,48 +18,33 @@
 #include "rbcGraph.h"
 #include "rbcRender.h"
 
-/*
- * -------------------------------------------------------------------
- *
- * Crosshairs --
- *
- *      Contains the line segments positions and graphics context used
- *      to simulate crosshairs (by XORing) on the graph.
- *
- * -------------------------------------------------------------------
- */
-
+/** @brief Graph-owned crosshair options and mapped XOR drawing state. */
 struct CrosshairsStruct {
     /*
      * Modern Tk option state.
      */
-    Tk_OptionTable optionTable;
+    Tk_OptionTable optionTable; /**< Tk option table for this component configuration lifecycle. */
     /*
      * Original Tcl representations.
      */
-    Tcl_Obj *dashesObjPtr;
-    Tcl_Obj *lineWidthObjPtr;
-    Tcl_Obj *positionObjPtr;
+    Tcl_Obj *dashesObjPtr; /**< Tk option-managed Tcl representation for dashes; released with the owning option state. */
+    Tcl_Obj *lineWidthObjPtr; /**< Tk option-managed Tcl representation for line width; released with the owning option state. */
+    Tcl_Obj *positionObjPtr; /**< Tk option-managed Tcl representation for position; released with the owning option state. */
     /*
      * Derived and runtime state.
      */
-    Point2D hotSpot;     /* Hot spot for crosshairs */
-    int visible;         /* Internal state of crosshairs. If non-zero,
-                          * crosshairs are displayed. */
-    int hidden;          /* If non-zero, crosshairs are not displayed.
-                          * This is not necessarily consistent with the
-                          * internal state variable.  This is true when
-                          * the hot spot is off the graph.  */
-    Rbc_Dashes dashes;   /* Dashstyle of the crosshairs. This represents
-                          * an array of alternatingly drawn pixel
-                          * values. If NULL, the hairs are drawn as a
-                          * solid line */
-    int lineWidth;       /* Width of the simulated crosshair lines */
-    Segment2D segArr[2]; /* Positions of line segments representing the
-                          * simulated crosshairs. */
-    XColor *colorPtr;    /* Foreground color of crosshairs */
-    GC gc;               /* Graphics context for crosshairs. Set to
-                          * GXxor to not require redraws of graph */
+    Point2D hotSpot; /**< Hot spot for crosshairs */
+    int visible; /**< Internal state of crosshairs. If non-zero, crosshairs are displayed. */
+    int hidden; /**< If non-zero, crosshairs are not displayed. This is not necessarily consistent with the internal
+     * state variable. This is true when the hot spot is off the graph.
+     */
+    Rbc_Dashes dashes; /**< Dashstyle of the crosshairs. This represents an array of alternatingly drawn pixel values. If
+     * NULL, the hairs are drawn as a solid line
+     */
+    int lineWidth; /**< Width of the simulated crosshair lines */
+    Segment2D segArr[2]; /**< Positions of line segments representing the simulated crosshairs. */
+    XColor *colorPtr; /**< Foreground color of crosshairs */
+    GC gc; /**< Graphics context for crosshairs. Set to GXxor to not require redraws of graph */
 };
 
 #define DEF_HAIRS_DASHES (char *)NULL
@@ -91,9 +76,10 @@ static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr);
 
 typedef int RbcGrHairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header;
-    RbcGrHairsOp *proc;
+    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    RbcGrHairsOp *proc; /**< Typed command handler for this operation. */
 } CrosshairsOpSpec;
 
 static RbcGrHairsOp CgetOp;

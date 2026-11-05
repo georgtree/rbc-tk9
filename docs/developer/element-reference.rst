@@ -193,3 +193,30 @@ Shared error-bar geometry
 
 .. doxygengroup:: element_error_geometry
    :members:
+
+Data records and member contracts
+---------------------------------
+
+These records describe stored state and resource ownership. Their presence in
+the reference does not make private layouts part of the installed C API.
+
+.. doxygenstruct:: ElementOpSpec
+   :members:
+
+.. doxygenstruct:: ElemAxisTransaction
+   :members:
+
+.. doxygenstruct:: ElemDataTransaction
+   :members:
+
+.. doxygenstruct:: ElemPenTransaction
+   :members:
+
+.. doxygenstruct:: ElemStateTransaction
+   :members:
+
+.. doxygenstruct:: ElemStylesTransaction
+   :members:
+
+.. doxygenstruct:: ElemTagsTransaction
+   :members:
