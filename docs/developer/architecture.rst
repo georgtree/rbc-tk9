@@ -1,9 +1,8 @@
 Implementation overview
 =======================
 
-The installed C interface is primarily the vector API in ``rbc.h`` and
-``rbcVector.h``, with generated declarations and stubs. Renderer interfaces
-are private; adding a renderer declaration does not add a public stub entry.
+The installed C interface is primarily the vector API in ``rbc.h`` and ``rbcVector.h``, with generated declarations and
+stubs. Renderer interfaces are private; adding a renderer declaration does not add a public stub entry.
 
 .. list-table::
    :header-rows: 1
@@ -52,50 +51,42 @@ See :doc:`splines` for interpolation kernels, vector outputs and trace smoothing
 Supporting modules
 ------------------
 
-See :doc:`utility-ownership` for allocation, UID references and scratch strings;
-:doc:`command-dispatch` for typed operation tables; and :doc:`value-conversion`
-for parser commit rules, expression callbacks and numeric compatibility limits.
+See :doc:`utility-ownership` for allocation, UID references and scratch strings; :doc:`command-dispatch` for typed
+operation tables; and :doc:`value-conversion` for parser commit rules, expression callbacks and numeric compatibility
+limits.
 
 See :doc:`containers` for chain/list payload ownership and mutation rules.
 
-``rbcGeometry.c`` contains geometry algorithms without graph state or drawing.
-See :doc:`geometry` for clipping boundaries, hit testing and simplification.
-``rbcScroll.c`` parses scroll requests and computes viewports; callers retain
-widget mutation and redraw responsibilities. See :doc:`scrolling` for request
-parsing, axis/track viewport policy and scrollbar notification. ``rbcConfig.c`` owns common option
-conversion and rollback helpers. See :doc:`configuration` for resource lookup,
-transaction boundaries and the distinction between option and derived resources. ``rbcDraw.c`` contains shared Tk/Xlib services
-used outside graph rendering too, rather than a universal renderer backend.
+``rbcGeometry.c`` contains geometry algorithms without graph state or drawing.  See :doc:`geometry` for clipping
+boundaries, hit testing and simplification.  ``rbcScroll.c`` parses scroll requests and computes viewports; callers
+retain widget mutation and redraw responsibilities. See :doc:`scrolling` for request parsing, axis/track viewport policy
+and scrollbar notification. ``rbcConfig.c`` owns common option conversion and rollback helpers. See :doc:`configuration`
+for resource lookup, transaction boundaries and the distinction between option and derived resources. ``rbcDraw.c``
+contains shared Tk/Xlib services used outside graph rendering too, rather than a universal renderer backend.
 
-``rbcWinDraw.c`` is Windows/Tk compatibility infrastructure used by renderers,
-image and tile code. It owns private Tk drawable/DC integration and Xlib
-emulation. See :doc:`rendering` for backend boundaries.
+``rbcWinDraw.c`` is Windows/Tk compatibility infrastructure used by renderers, image and tile code. It owns private Tk
+drawable/DC integration and Xlib emulation. See :doc:`rendering` for backend boundaries.
 
-See :doc:`window-services` for private GC ownership, native identifiers and
-window instance associations. See :doc:`winop-internals` for standalone window
-and photo commands, and :doc:`eps-canvas` for the legacy canvas item. These
-services are outside the graph renderer lifecycle even when they reuse shared
-pixel or PostScript helpers.
+See :doc:`window-services` for private GC ownership, native identifiers and window instance associations. See
+:doc:`winop-internals` for standalone window and photo commands, and :doc:`eps-canvas` for the legacy canvas item. These
+services are outside the graph renderer lifecycle even when they reuse shared pixel or PostScript helpers.
 
 Lifetime and callbacks
 ----------------------
 
-A borrowed pointer does not keep a graph, component, Tcl object or Tk resource
-alive. Callers retain that responsibility. Tcl callbacks can reconfigure or
-delete the owning widget; call sites invoking user code must preserve the
-appropriate state and revalidate it before continuing.
+A borrowed pointer does not keep a graph, component, Tcl object or Tk resource alive. Callers retain that
+responsibility. Tcl callbacks can reconfigure or delete the owning widget; call sites invoking user code must preserve
+the appropriate state and revalidate it before continuing.
 
-Rendering is synchronous and used on the owning Tk thread. The interface does
-not provide worker-thread drawing or context synchronization. An internal
-renderer run callback does not authorize arbitrary Tcl reentry.
+Rendering is synchronous and used on the owning Tk thread. The interface does not provide worker-thread drawing or
+context synchronization. An internal renderer run callback does not authorize arbitrary Tcl reentry.
 
-See :doc:`graph-lifecycle` for widget scheduling, callback cancellation and
-the two phases of destruction. See :doc:`vectors` for borrowed numeric storage and observer lifetime.
-Detailed component destruction contracts remain with their owning modules.
+See :doc:`graph-lifecycle` for widget scheduling, callback cancellation and the two phases of destruction. See
+:doc:`vectors` for borrowed numeric storage and observer lifetime.  Detailed component destruction contracts remain with
+their owning modules.
 
 Object interaction
 ------------------
 
-See :doc:`bindings` for component hit priority, per-family tag identities,
-legend entry contexts and callback lifetime. Generic event dispatch does not
-interpret component layouts; graph and legend pickers supply those decisions.
+See :doc:`bindings` for component hit priority, per-family tag identities, legend entry contexts and callback
+lifetime. Generic event dispatch does not interpret component layouts; graph and legend pickers supply those decisions.

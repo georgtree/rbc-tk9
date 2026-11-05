@@ -24,6 +24,9 @@
  * produce INT_MAX/INT_MIN; in-range conversion truncates toward zero. Does not
  * round, apply viewport bounds or report errors. The scroll parser uses it first
  * for a delta and then for offset-plus-delta to retain historical rounding.
+ *
+ * @param[in] value Non-NaN value to saturate to int limits and otherwise truncate toward zero; infinities
+ *   saturate.
  */
 static int ClampScrollValue(long double value) {
     if (value > (long double)INT_MAX) {

@@ -54,7 +54,7 @@ array, holds references to its assigned Y axes, and owns optional local grid
 and legend components. An axis has a back-pointer to its track. Elements and
 markers refer to tracks but remain graph-managed objects; deleting a track
 through the command interface does not implicitly delete its data components.</p>
-<p>Track names are case-sensitive and lookup scans the list. Reordering relinks
+<p>Track names are case-sensitive and lookup scans the list. <a class="reference internal" href="track-reference.html#c.OrderTracks" title="OrderTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">OrderTracks()</span></code></a> relinks
 the same records, preserving component and binding identities. A borrowed
 <code class="docutils literal notranslate"><span class="pre">RbcTrack</span> <span class="pre">*</span></code> remains valid across reordering, but not deletion or teardown.
 The <code class="docutils literal notranslate"><span class="pre">all</span></code> track binding target uses the address of the graph’s list field,
@@ -62,18 +62,18 @@ not the current first track. See <a class="reference internal" href="bindings.ht
 </section>
 <section id="configuration-and-axis-ownership">
 <h2>Configuration and axis ownership<a class="headerlink" href="#configuration-and-axis-ownership" title="Link to this heading">¶</a></h2>
-<p>Creation reads defaults using the named <code class="docutils literal notranslate"><span class="pre">Track</span></code> option-database component,
+<p><a class="reference internal" href="track-reference.html#c.InitTrackOptions" title="InitTrackOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">InitTrackOptions()</span></code></a> reads creation defaults using the named <code class="docutils literal notranslate"><span class="pre">Track</span></code> option-database component,
 with the resource-name conversion used by older components. Temporary
 <code class="docutils literal notranslate"><span class="pre">TrackDefaults</span></code> fields retain Tcl objects rather than immediately converting
 axis names or dimensions. Explicit options replace database defaults before
-validation; the effective option list goes through <code class="docutils literal notranslate"><span class="pre">ConfigureTrack</span></code>.</p>
-<p>Configuration stages scalar values and a replacement axis array. It rejects
+validation; the effective option list goes through <a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a>.</p>
+<p><a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a> stages scalar values and a replacement axis array. It rejects
 duplicate axes, incompatible classes or margins, axes owned by another track,
 and axes used by graph-wide markers. Removing an axis is rejected when an
 existing track element, local grid or track marker still uses it. New axis
 references are acquired before old ones are released, so an axis retained in
 both lists survives replacement.</p>
-<p>On success, the caller synchronizes the Y-axis display chain. <code class="docutils literal notranslate"><span class="pre">SyncTrackAxes</span></code>
+<p>On success, the caller synchronizes the Y-axis display chain. <a class="reference internal" href="track-reference.html#c.SyncTrackAxes" title="SyncTrackAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SyncTrackAxes()</span></code></a>
 rebuilds that chain in track order and axis-list order, updates on-screen flags,
 marks <code class="docutils literal notranslate"><span class="pre">RESET_WORLD</span></code> and schedules redraw. This is logical Y-axis ownership:
 inversion changes physical orientation, not the axis class.</p>
@@ -95,7 +95,7 @@ mapping and visible bounds for clipping; using visible height as the data
 scale would move data when scrolling. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for paired
 <code class="docutils literal notranslate"><span class="pre">Rbc_EnterTrack</span></code>/<code class="docutils literal notranslate"><span class="pre">Rbc_LeaveTrack</span></code> scopes and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for the
 separate stack-offset and local data-axis scroll operations.</p>
-<p>A fitted sash adjusts the adjacent pair’s weights while preserving their sum.
+<p><a class="reference internal" href="track-reference.html#c.SetTrackSash" title="SetTrackSash"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetTrackSash()</span></code></a> in fitted mode adjusts the adjacent pair’s weights while preserving their sum.
 If the pair has no room beyond its minima, the operation does nothing. In
 scrolling layout the sash changes the first track’s requested height instead.
 Both paths invalidate layout and schedule redraw; they do not directly draw
@@ -116,7 +116,7 @@ ordinary component command handling and diagnostics reusable.</p>
 </section>
 <section id="deletion-and-teardown">
 <h2>Deletion and teardown<a class="headerlink" href="#deletion-and-teardown" title="Link to this heading">¶</a></h2>
-<p>Command deletion validates every requested name and dependency before removing
+<p><a class="reference internal" href="track-reference.html#c.DeleteTracks" title="DeleteTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteTracks()</span></code></a> validates every requested name and dependency before removing
 anything. Duplicate names are harmless. Tracks with elements or markers must
 first have those components moved or deleted. Each removed track releases its
 bindings, local grid and legend, axis references, pointer array and name.
@@ -139,16 +139,17 @@ after layout, without requiring a new motion event.</p>
 <section id="axis-chain-synchronization-and-option-queries">
 <h2>Axis-chain synchronization and option queries<a class="headerlink" href="#axis-chain-synchronization-and-option-queries" title="Link to this heading">¶</a></h2>
 <p>Committing a track change and updating the displayed axis chain are separate
-steps. <code class="docutils literal notranslate"><span class="pre">SyncTrackAxes</span></code> removes old chain links and clears their on-screen flags,
+steps. <a class="reference internal" href="track-reference.html#c.SyncTrackAxes" title="SyncTrackAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SyncTrackAxes()</span></code></a> removes old chain links and clears their on-screen flags,
 then rebuilds the Y-axis chain from track order and each track’s configured axis
 order. Axis objects and retained references survive this relinking. The helper
 requests a world reset and deferred redraw; it does not perform layout itself.</p>
-<p>Track option metadata shares the creation specifications, but current values
-are constructed from live track fields. Consequently sash-adjusted heights and
+<p><a class="reference internal" href="track-reference.html#c.TrackOptionIndex" title="TrackOptionIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionIndex()</span></code></a> resolves names against shared specifications.
+<a class="reference internal" href="track-reference.html#c.TrackOptionInfo" title="TrackOptionInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionInfo()</span></code></a> builds the five-field description using current values
+from <a class="reference internal" href="track-reference.html#c.TrackOption" title="TrackOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOption()</span></code></a>, which reads live track fields. Consequently sash-adjusted heights and
 weights appear in later queries rather than stale creation-time Tcl objects.
 Axis queries construct names in configured order, and a negative bar mode is
 reported as inherit. These result objects do not own the referenced axes.</p>
-<p><code class="docutils literal notranslate"><span class="pre">FreeTrack</span></code> is a resource destructor, not a list operation. Its caller must
+<p><a class="reference internal" href="track-reference.html#c.FreeTrack" title="FreeTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeTrack()</span></code></a> is a resource destructor, not a list operation. Its caller must
 first validate dependencies and detach the record. It removes bindings and local
 grid/legend resources, clears axis-to-track ownership, releases axis references,
 and frees the axis array, name and record. Reordering instead relinks existing
@@ -156,8 +157,8 @@ records and does not use this destructor.</p>
 </section>
 <section id="sash-geometry-and-scroll-fractions">
 <h2>Sash geometry and scroll fractions<a class="headerlink" href="#sash-geometry-and-scroll-fractions" title="Link to this heading">¶</a></h2>
-<p>Sash calculations use unclipped world bounds along the physical stacking
-dimension: top/bottom normally and left/right when inverted. Visible clipped
+<p><a class="reference internal" href="track-reference.html#c.TrackStart" title="TrackStart"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackStart()</span></code></a> and <a class="reference internal" href="track-reference.html#c.TrackEnd" title="TrackEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackEnd()</span></code></a> supply sash calculations with
+unclipped world bounds along the physical stacking dimension: top/bottom normally and left/right when inverted. Visible clipped
 bounds would produce incorrect sizes for tracks partially outside the viewport.
 The helper parameter named y therefore represents the stacking coordinate, not
 necessarily a vertical screen position.</p>
@@ -168,8 +169,8 @@ configuration limits before either is stored. In scrolling mode, dragging
 changes only the preceding track’s requested height; it does not preserve the
 pair’s combined physical size. Both paths schedule remapping rather than drawing
 immediately, and pixel rounding can shift the resulting boundary by one pixel.</p>
-<p>Track-list scrolling is separate from every data-axis viewport. Fractions use
-the visible physical range and an extent no smaller than that range. A query
+<p><a class="reference internal" href="track-reference.html#c.TrackViewOp" title="TrackViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackViewOp()</span></code></a> manages track-list scrolling, separate from every data-axis
+viewport. <a class="reference internal" href="track-reference.html#c.TrackViewFractions" title="TrackViewFractions"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackViewFractions()</span></code></a> computes fractions using the visible physical range and an extent no smaller than that range. A query
 ensures layout is current. Moveto addresses the total extent; a page advances
 90 percent of the visible range and a unit advances 20 pixels. Nonfinite
 requests or computed offsets are rejected before updating the stored offset.
@@ -177,7 +178,7 @@ Fitted layout always stores a zero offset for successful scrolling requests.</p>
 </section>
 <section id="notification-lifetime-boundary">
 <h2>Notification lifetime boundary<a class="headerlink" href="#notification-lifetime-boundary" title="Link to this heading">¶</a></h2>
-<p>The scrollbar notifier runs after drawing and suppresses exports. It caches
+<p><a class="reference internal" href="track-reference.html#c.NotifyTrackScrollbar" title="NotifyTrackScrollbar"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyTrackScrollbar()</span></code></a> runs after drawing and suppresses exports. It caches
 changed fractions before evaluating a duplicated command prefix, so a callback
 that triggers another draw without changing fractions does not notify forever.
 An empty prefix is a no-op after caching. Prefix syntax has already been

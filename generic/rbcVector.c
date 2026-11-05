@@ -1738,6 +1738,9 @@ error:
  *
  * Clears the command token before calling Rbc_VectorFree, avoiding deletion of
  * the same command again. Called by Tcl; no record access follows destruction.
+ *
+ * @param[in,out] clientData Vector record owned by the deleted instance command; cleared command token prevents
+ *   recursive deletion.
  */
 static void VectorInstDeleteProc(ClientData clientData) {
     VectorObject *vPtr = clientData;
@@ -1920,6 +1923,9 @@ int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr) {
  * interface does not propagate unset/write/trace status or preserve the Tcl
  * result. No vector values are changed or client notification requested here;
  * user-trace side effects are not rolled back.
+ *
+ * @param[in,out] vPtr Borrowed live vector record on its owning interpreter thread; this call does not transfer
+ *   ownership.
  */
 void Rbc_VectorFlushCache(VectorObject *vPtr) {
     Tcl_Interp *interp = vPtr->interp;
@@ -1964,6 +1970,13 @@ void Rbc_VectorFlushCache(VectorObject *vPtr) {
  * a failure does not restore the old mapping or undo user trace effects.
  * This changes the Tcl access surface, not vector storage or command identity.
  * Callers must not infer that preservation keeps destroyed storage valid.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in,out] vPtr Borrowed live vector record on its owning interpreter thread; this call does not transfer
+ *   ownership.
+ * @param[in] name Borrowed array name, copied before callbacks; NULL or empty removes the current mapping.
+ *   Parentheses are rejected.
  */
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name) {
     const char *result;
@@ -3033,6 +3046,15 @@ void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size l
  * callback changes to the array cannot invalidate a complex pair. Callback
  * effects are not rolled back. Errors are retained Tcl objects for traces
  * registered with TCL_TRACE_RESULT_OBJECT.
+ *
+ * @param[in,out] clientData Borrowed traced vector record; the wrapper preserves its allocation, not destroyed
+ *   numeric storage.
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] part1 Borrowed array variable name supplied by Tcl for this trace invocation.
+ * @param[in] part2 Borrowed element index text, or NULL for a whole-array operation.
+ * @param[in] flags Tcl trace operation and namespace flags; error results follow TCL_TRACE_RESULT_OBJECT
+ *   ownership.
  */
 static char *VectorVarTraceImpl(ClientData clientData, Tcl_Interp *interp, char *part1, char *part2, int flags) {
     Rbc_VectorIndexProc *indexProc;
@@ -3249,6 +3271,15 @@ error:
  * does not retain destroyed numeric storage; the implementation checks state
  * again before access after callbacks. Returns an owned trace-error object or
  * NULL, releasing both preservation references on every exit.
+ *
+ * @param[in,out] clientData Borrowed traced vector record; the wrapper preserves its allocation, not destroyed
+ *   numeric storage.
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] part1 Borrowed array variable name supplied by Tcl for this trace invocation.
+ * @param[in] part2 Borrowed element index text, or NULL for a whole-array operation.
+ * @param[in] flags Tcl trace operation and namespace flags; error results follow TCL_TRACE_RESULT_OBJECT
+ *   ownership.
  */
 static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *part1, char *part2, int flags) {
     VectorObject *vPtr = clientData;
@@ -3268,6 +3299,12 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
  * NULL input returns NULL without initializing the output. Otherwise initializes the caller DString,
  * preserves an already absolute spelling, or prefixes the current namespace. Returns borrowed DString
  * storage that the caller must free. Does not create or validate namespace existence.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] name Borrowed name, or NULL to return without initializing fullName.
+ * @param[out] fullName Caller-owned DString initialized for non-NULL name; caller frees it after using the
+ *   returned buffer.
  */
 static char *BuildQualifiedName(Tcl_Interp *interp, const char *name, Tcl_DString *fullName) {
     Tcl_Namespace *nsPtr;
@@ -3300,6 +3337,12 @@ static char *BuildQualifiedName(Tcl_Interp *interp, const char *name, Tcl_DStrin
  * namespace and returns a tail pointer into the borrowed input. Does not create namespaces, parse
  * vector ranges or validate the tail. Output pointers are meaningful only on TCL_OK; a missing
  * namespace returns TCL_ERROR without constructing a vector-specific diagnostic.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] qualName Borrowed NUL-terminated name, possibly unqualified or empty.
+ * @param[out] nsPtrPtr Required borrowed namespace output on success; NULL denotes an unqualified name.
+ * @param[out] namePtrPtr Required tail output pointing into qualName on success; no string is allocated.
  */
 static int ParseQualifiedName(Tcl_Interp *interp, const char *qualName, Tcl_Namespace **nsPtrPtr,
                               const char **namePtrPtr) {
@@ -3354,6 +3397,11 @@ static int ParseQualifiedName(Tcl_Interp *interp, const char *qualName, Tcl_Name
  * Initializes the caller DString and returns its borrowed buffer, adding exactly the join separator
  * for the global namespace. Requires a live namespace and readable tail; does not parse or normalize a
  * qualified tail. Caller releases the DString.
+ *
+ * @param[in] nsPtr Borrowed live namespace supplying its absolute fullName.
+ * @param[in] name Borrowed unqualified NUL-terminated tail; not parsed or normalized.
+ * @param[out] resultPtr Caller-owned DString initialized here; caller frees it after using the borrowed return
+ *   buffer.
  */
 static char *GetQualifiedName(Tcl_Namespace *nsPtr, const char *name, Tcl_DString *resultPtr) {
     Tcl_DStringInit(resultPtr);
@@ -3371,6 +3419,10 @@ static char *GetQualifiedName(Tcl_Namespace *nsPtr, const char *name, Tcl_DStrin
  * Explicit namespace syntax restricts lookup to that namespace. Otherwise flags select current
  * namespace first and optional global fallback. Returns a borrowed vector or NULL, without changing
  * its index selection. Range syntax belongs to higher-level parsing, not this lookup helper.
+ *
+ * @param[in] dataPtr Borrowed live per-interpreter vector registry; lookup does not transfer ownership.
+ * @param[in] name Borrowed literal registry name; no range suffix is parsed.
+ * @param[in] flags NS_SEARCH_CURRENT and NS_SEARCH_GLOBAL bits for unqualified lookup, in that order.
  */
 static VectorObject *GetVectorObject(VectorInterpData *dataPtr, const char *name, int flags) {
     const char *vecName;
@@ -3829,6 +3881,18 @@ int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) 
  * if still alive. The output pointer is untouched on failure. Retains and checks
  * the identity across callbacks; does not explicitly publish the initial resize.
  * Existing-object changes and callback effects are not rolled back.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] vecName Borrowed registry name or `#auto` request, resolved by Rbc_VectorCreate.
+ * @param[in] cmdName Borrowed command name, or NULL to omit command setup.
+ * @param[in] varName Borrowed array mapping name, or NULL to omit mapping setup; passed unchanged to
+ *   Rbc_VectorCreate.
+ * @param[in] initialSize Nonnegative element count; zero leaves an existing length unchanged, positive values
+ *   request resizing.
+ * @param[in] type RBC_VECTOR_REAL or RBC_VECTOR_COMPLEX; existing vectors must have the requested type.
+ * @param[out] vecPtrPtr Optional borrowed vector output, written only on success; no client retention token is
+ *   created.
  */
 int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
                       Tcl_Size initialSize, Rbc_VectorType type, Rbc_Vector **vecPtrPtr) {

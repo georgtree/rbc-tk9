@@ -122,7 +122,7 @@ repicking rules, and :doc:`scroll-reference` for the shared contracts.
 Integer conversion boundary
 ----------------------------
 
-``ClampScrollValue`` is documented in :doc:`scroll-reference`. Its input must
+:c:func:`ClampScrollValue` is documented in :doc:`scroll-reference`. Its input must
 not be NaN. It saturates outside the integer range and otherwise truncates
 toward zero; it does not apply the selected viewport policy. The legacy parser
 first truncates/saturates the requested delta, then separately adds and clamps

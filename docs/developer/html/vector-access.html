@@ -100,9 +100,9 @@ initial write still leaves the requested name recorded, although RBC’s trace
 is installed only on a successful write. Errors are therefore not evidence
 that no mapping metadata changed. Reentrant mapping changes are detected and
 reported rather than overwritten by the outer operation.</p>
-<p>The mapped-array trace now retains the vector record and interpreter throughout
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorVarTrace" title="VectorVarTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorVarTrace()</span></code></a> retains the vector record and interpreter throughout
 the access, including conversion, cache flushing and immediate notification.
-Writes copy the input Tcl object before conversion, so replacement or removal
+<a class="reference internal" href="vector-storage-private-reference.html#c.VectorVarTraceImpl" title="VectorVarTraceImpl"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorVarTraceImpl()</span></code></a> copies the input Tcl object before conversion, so replacement or removal
 of the source array entry cannot invalidate a complex pair being converted.
 Before committing, the trace checks that the vector survives, remains writable,
 and has the same storage pointer, length, capacity and offset as before value
@@ -195,6 +195,23 @@ full update. Neither publication helper flushes mapped arrays or enforces
 read-only state. Immediate observers can destroy the vector, so a caller that
 continues accessing it must preserve and revalidate the object.</p>
 </section>
+<section id="literal-registry-lookup-and-temporary-names">
+<h2>Literal registry lookup and temporary names<a class="headerlink" href="#literal-registry-lookup-and-temporary-names" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.GetVectorObject" title="GetVectorObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetVectorObject()</span></code></a> performs literal registry lookup without changing
+selection. <a class="reference internal" href="vector-storage-private-reference.html#c.ParseQualifiedName" title="ParseQualifiedName"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseQualifiedName()</span></code></a> returns a borrowed namespace and a tail
+pointer into the input; these are not independently allocated names. Explicit
+namespace syntax prevents the current/global fallback used for unqualified
+names. No lookup helper creates a missing namespace.</p>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.BuildQualifiedName" title="BuildQualifiedName"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildQualifiedName()</span></code></a> and <a class="reference internal" href="vector-storage-private-reference.html#c.GetQualifiedName" title="GetQualifiedName"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetQualifiedName()</span></code></a> initialize a caller
+DString and return its borrowed buffer. The caller frees the DString after use;
+it must not free the returned character pointer separately. A NULL name passed
+to BuildQualifiedName is exceptional: the DString is not initialized at all.</p>
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorSortIndex" title="Rbc_VectorSortIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex()</span></code></a> creates an owned permutation of storage indices,
+not a reordered vector or a Tcl list. Every key vector must contain the first
+vector’s selected indices. The helper rejects complex keys but does not check
+matching lengths. The caller frees the permutation with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>, including
+the non-NULL allocation returned for an empty successful selection.</p>
+</section>
 </section>
 
 
@@ -213,6 +230,7 @@ continues accessing it must preserve and revalidate the object.</p>
 <li><a class="reference internal" href="#value-objects">Value objects</a></li>
 <li><a class="reference internal" href="#index-parsing-branches-and-caller-obligations">Index parsing branches and caller obligations</a></li>
 <li><a class="reference internal" href="#finite-extrema-and-low-level-writes">Finite extrema and low-level writes</a></li>
+<li><a class="reference internal" href="#literal-registry-lookup-and-temporary-names">Literal registry lookup and temporary names</a></li>
 </ul>
 </li>
 </ul>

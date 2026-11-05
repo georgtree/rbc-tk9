@@ -654,7 +654,14 @@ Qualifies the name in the current namespace; #auto selects an unused registry an
 <dt class="sig sig-object c" id="c.VectorInstDeleteProc">
 <span class="target" id="group__vector__storage__private_1gabf1716ee4b2e679be3d6b083086d7700"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorInstDeleteProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorInstDeleteProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy a vector when its instance command is deleted. </p>
-<p>Clears the command token before calling Rbc_VectorFree, avoiding deletion of the same command again. Called by Tcl; no record access follows destruction. </p>
+<p>Clears the command token before calling Rbc_VectorFree, avoiding deletion of the same command again. Called by Tcl; no record access follows destruction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Vector record owned by the deleted instance command; cleared command token prevents recursive deletion. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -893,42 +900,101 @@ Requires a real vector whose caller has already changed only the stated inclusiv
 <dt class="sig sig-object c" id="c.VectorVarTraceImpl">
 <span class="target" id="group__vector__storage__private_1ga9b363efe07646826becc67c1cbd09236"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">VectorVarTraceImpl</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">part1</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">part2</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorVarTraceImpl" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Perform one mapped-array access while the wrapper retains its owners. </p>
-<p>Reads materialize copied values; writes stage conversion before committing an inclusive interval; unsets compact storage and publish a full update. Value and index expressions may execute Tcl. Revalidate liveness, writability and storage layout before writing, and retain a private conversion object so callback changes to the array cannot invalidate a complex pair. Callback effects are not rolled back. Errors are retained Tcl objects for traces registered with TCL_TRACE_RESULT_OBJECT. </p>
+<p>Reads materialize copied values; writes stage conversion before committing an inclusive interval; unsets compact storage and publish a full update. Value and index expressions may execute Tcl. Revalidate liveness, writability and storage layout before writing, and retain a private conversion object so callback changes to the array cannot invalidate a complex pair. Callback effects are not rolled back. Errors are retained Tcl objects for traces registered with TCL_TRACE_RESULT_OBJECT.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed traced vector record; the wrapper preserves its allocation, not destroyed numeric storage. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid throughout the call. </p></li>
+<li><p><strong>part1</strong> – <strong>[in]</strong> Borrowed array variable name supplied by Tcl for this trace invocation. </p></li>
+<li><p><strong>part2</strong> – <strong>[in]</strong> Borrowed element index text, or NULL for a whole-array operation. </p></li>
+<li><p><strong>flags</strong> – <strong>[in]</strong> Tcl trace operation and namespace flags; error results follow TCL_TRACE_RESULT_OBJECT ownership. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.VectorVarTrace">
 <span class="target" id="group__vector__storage__private_1ga595d2caf0d352a17bffd50534a44ab80"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">VectorVarTrace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">part1</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">part2</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorVarTrace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Retain the vector and interpreter for the complete variable trace. </p>
-<p>Keeps the record alive across index/value expressions, array traces, custom index procedures, storage release and immediate observer notification. This does not retain destroyed numeric storage; the implementation checks state again before access after callbacks. Returns an owned trace-error object or NULL, releasing both preservation references on every exit. </p>
+<p>Keeps the record alive across index/value expressions, array traces, custom index procedures, storage release and immediate observer notification. This does not retain destroyed numeric storage; the implementation checks state again before access after callbacks. Returns an owned trace-error object or NULL, releasing both preservation references on every exit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Borrowed traced vector record; the wrapper preserves its allocation, not destroyed numeric storage. </p></li>
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid throughout the call. </p></li>
+<li><p><strong>part1</strong> – <strong>[in]</strong> Borrowed array variable name supplied by Tcl for this trace invocation. </p></li>
+<li><p><strong>part2</strong> – <strong>[in]</strong> Borrowed element index text, or NULL for a whole-array operation. </p></li>
+<li><p><strong>flags</strong> – <strong>[in]</strong> Tcl trace operation and namespace flags; error results follow TCL_TRACE_RESULT_OBJECT ownership. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.BuildQualifiedName">
 <span class="target" id="group__vector__storage__private_1ga261996d7571c79b28393c74573c14e2a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">BuildQualifiedName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fullName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BuildQualifiedName" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build an absolute name relative to the current namespace. </p>
-<p>NULL input returns NULL without initializing the output. Otherwise initializes the caller DString, preserves an already absolute spelling, or prefixes the current namespace. Returns borrowed DString storage that the caller must free. Does not create or validate namespace existence. </p>
+<p>NULL input returns NULL without initializing the output. Otherwise initializes the caller DString, preserves an already absolute spelling, or prefixes the current namespace. Returns borrowed DString storage that the caller must free. Does not create or validate namespace existence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid throughout the call. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed name, or NULL to return without initializing fullName. </p></li>
+<li><p><strong>fullName</strong> – <strong>[out]</strong> Caller-owned DString initialized for non-NULL name; caller frees it after using the returned buffer. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.ParseQualifiedName">
 <span class="target" id="group__vector__storage__private_1ga977a6475d7d3fc2944bcc1b8527908e1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseQualifiedName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">qualName</span></span>, <span class="n"><span class="pre">Tcl_Namespace</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nsPtrPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">namePtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseQualifiedName" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Split a name at its final namespace separator. </p>
-<p>Without a separator, returns a NULL namespace and the original name. Otherwise resolves the namespace and returns a tail pointer into the borrowed input. Does not create namespaces, parse vector ranges or validate the tail. Output pointers are meaningful only on TCL_OK; a missing namespace returns TCL_ERROR without constructing a vector-specific diagnostic. </p>
+<p>Without a separator, returns a NULL namespace and the original name. Otherwise resolves the namespace and returns a tail pointer into the borrowed input. Does not create namespaces, parse vector ranges or validate the tail. Output pointers are meaningful only on TCL_OK; a missing namespace returns TCL_ERROR without constructing a vector-specific diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid throughout the call. </p></li>
+<li><p><strong>qualName</strong> – <strong>[in]</strong> Borrowed NUL-terminated name, possibly unqualified or empty. </p></li>
+<li><p><strong>nsPtrPtr</strong> – <strong>[out]</strong> Required borrowed namespace output on success; NULL denotes an unqualified name. </p></li>
+<li><p><strong>namePtrPtr</strong> – <strong>[out]</strong> Required tail output pointing into qualName on success; no string is allocated. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetQualifiedName">
 <span class="target" id="group__vector__storage__private_1ga86b27a3018e16cba33920612ad8726c0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetQualifiedName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Namespace</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetQualifiedName" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Join a known namespace and an unqualified tail. </p>
-<p>Initializes the caller DString and returns its borrowed buffer, adding exactly the join separator for the global namespace. Requires a live namespace and readable tail; does not parse or normalize a qualified tail. Caller releases the DString. </p>
+<p>Initializes the caller DString and returns its borrowed buffer, adding exactly the join separator for the global namespace. Requires a live namespace and readable tail; does not parse or normalize a qualified tail. Caller releases the DString.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsPtr</strong> – <strong>[in]</strong> Borrowed live namespace supplying its absolute fullName. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed unqualified NUL-terminated tail; not parsed or normalized. </p></li>
+<li><p><strong>resultPtr</strong> – <strong>[out]</strong> Caller-owned DString initialized here; caller frees it after using the borrowed return buffer. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetVectorObject">
 <span class="target" id="group__vector__storage__private_1gab0dc5ba8735200ffc7a4c504c0426ba9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetVectorObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetVectorObject" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolve a literal vector registry name with controlled namespace search. </p>
-<p>Explicit namespace syntax restricts lookup to that namespace. Otherwise flags select current namespace first and optional global fallback. Returns a borrowed vector or NULL, without changing its index selection. Range syntax belongs to higher-level parsing, not this lookup helper. </p>
+<p>Explicit namespace syntax restricts lookup to that namespace. Otherwise flags select current namespace first and optional global fallback. Returns a borrowed vector or NULL, without changing its index selection. Range syntax belongs to higher-level parsing, not this lookup helper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataPtr</strong> – <strong>[in]</strong> Borrowed live per-interpreter vector registry; lookup does not transfer ownership. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed literal registry name; no range suffix is parsed. </p></li>
+<li><p><strong>flags</strong> – <strong>[in]</strong> NS_SEARCH_CURRENT and NS_SEARCH_GLOBAL bits for unqualified lookup, in that order. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -985,7 +1051,20 @@ Captures the owned name and flags, clears arrayName before removing the RBC trac
 <dt class="sig sig-object c" id="c.Rbc_CreateVector2">
 <span class="target" id="group__vector__storage__private_1ga0c536c45a764e5f270405b5bf78c6aff"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateVector2</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cmdName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">varName</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">initialSize</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateVector2" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create or reuse a typed vector with explicit command and array names. </p>
-<p>Validates nonnegative initialSize and real/complex type, then delegates to Rbc_VectorCreate. A positive size resizes; zero leaves an existing vector length unchanged. Writes an optional borrowed output pointer on success. Returns a Tcl status; initial resize failure removes a newly created identity if still alive. The output pointer is untouched on failure. Retains and checks the identity across callbacks; does not explicitly publish the initial resize. Existing-object changes and callback effects are not rolled back. </p>
+<p>Validates nonnegative initialSize and real/complex type, then delegates to Rbc_VectorCreate. A positive size resizes; zero leaves an existing vector length unchanged. Writes an optional borrowed output pointer on success. Returns a Tcl status; initial resize failure removes a newly created identity if still alive. The output pointer is untouched on failure. Retains and checks the identity across callbacks; does not explicitly publish the initial resize. Existing-object changes and callback effects are not rolled back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid throughout the call. </p></li>
+<li><p><strong>vecName</strong> – <strong>[in]</strong> Borrowed registry name or <code class="docutils literal notranslate"><span class="pre">#auto</span></code> request, resolved by Rbc_VectorCreate. </p></li>
+<li><p><strong>cmdName</strong> – <strong>[in]</strong> Borrowed command name, or NULL to omit command setup. </p></li>
+<li><p><strong>varName</strong> – <strong>[in]</strong> Borrowed array mapping name, or NULL to omit mapping setup; passed unchanged to Rbc_VectorCreate. </p></li>
+<li><p><strong>initialSize</strong> – <strong>[in]</strong> Nonnegative element count; zero leaves an existing length unchanged, positive values request resizing. </p></li>
+<li><p><strong>type</strong> – <strong>[in]</strong> RBC_VECTOR_REAL or RBC_VECTOR_COMPLEX; existing vectors must have the requested type. </p></li>
+<li><p><strong>vecPtrPtr</strong> – <strong>[out]</strong> Optional borrowed vector output, written only on success; no client retention token is created. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

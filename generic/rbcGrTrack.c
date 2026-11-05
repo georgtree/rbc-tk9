@@ -188,6 +188,9 @@ void Rbc_LayoutTracks(Graph *graphPtr) {
  * Clears old chain links and on-screen flags without destroying axes, then appends each track axis in
  * its configured order. Borrows tracks and their retained axis references. Requests a world reset and
  * deferred redraw; caller must have committed valid ownership first.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
  */
 static void SyncTrackAxes(Graph *graphPtr) {
     Rbc_Chain *chain = graphPtr->axisChain[1];
@@ -219,6 +222,11 @@ static void SyncTrackAxes(Graph *graphPtr) {
  * Removes bindings, destroys local grid and legend state, clears axis ownership and releases retained
  * axis references. Frees the axis array, name and record. Does not unlink the track from the graph
  * list or validate element/marker dependencies; callers perform those steps before destruction.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
+ * @param[in,out] track Detached owned track with element/marker dependencies already removed; record and owned
+ *   resources are freed.
  */
 static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
     Tcl_Size i;
@@ -244,6 +252,11 @@ static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
  * @brief Resolve a track option using shared component metadata.
  * Borrows the Tcl object and option specification. Returns a standard Tcl result and writes the index
  * on success; the shared resolver owns diagnostics and accepted option-name syntax.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] obj Borrowed option-name object; shared metadata determines accepted abbreviations.
+ * @param[out] indexPtr Required specification-index output, meaningful only on TCL_OK.
  */
 static int TrackOptionIndex(Tcl_Interp *interp, Tcl_Obj *obj, int *indexPtr) {
     return Rbc_GetComponentOptionIndex(interp, obj, trackOptionSpecs, "track option", indexPtr);
@@ -255,6 +268,9 @@ static int TrackOptionIndex(Tcl_Interp *interp, Tcl_Obj *obj, int *indexPtr) {
  * Returns a new unretained Tcl object, or NULL for an unknown option. Uses live weights/heights,
  * including sash changes, and builds the axis-name list in configured order. Requires valid bar-mode
  * state; neither caches values nor transfers axis ownership.
+ *
+ * @param[in] track Borrowed live track with valid scalar fields and retained axes.
+ * @param[in] option Borrowed canonical option spelling; unknown names return NULL.
  */
 static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
     Tcl_Obj *result;
@@ -290,6 +306,9 @@ static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
  * Requires a validated specification index. Supplies TrackOption current state to the shared metadata
  * helper, so values changed by dragging remain visible. Returns a new Tcl object; the track and static
  * specification remain borrowed.
+ *
+ * @param[in] track Borrowed live track supplying current option values.
+ * @param[in] index Validated zero-based trackOptionSpecs index, excluding the terminator.
  */
 static Tcl_Obj *TrackOptionInfo(RbcTrack *track, int index) {
     const Tk_OptionSpec *spec = trackOptionSpecs + index;
@@ -306,6 +325,12 @@ static Tcl_Obj *TrackOptionInfo(RbcTrack *track, int index) {
  * Acquire new axis references before releasing old ones, including axes retained
  * in both lists. On error, discard the temporary array and retain track settings.
  * The caller synchronizes axis display order and schedules redraw after success.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
+ * @param[in,out] track Borrowed live track belonging to graphPtr; its record is not retained by this helper.
+ * @param[in] objc Nonnegative number of option/value objects, excluding command words; odd counts are rejected.
+ * @param[in] objv Borrowed array of objc Tcl objects; option values are parsed without retaining the array.
  */
 static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int barMode = track->barMode;
@@ -468,6 +493,13 @@ error:
  * the effective options. Temporary option objects and the option table are
  * released on all exits. The caller owns the unlinked track and handles failed
  * creation; this helper does not insert it into the graph.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
+ * @param[in,out] track Caller-owned unlinked track initialized with valid defaults and name; caller cleans it
+ *   up on failure.
+ * @param[in] objc Nonnegative number of option/value objects, excluding command words; odd counts are rejected.
+ * @param[in] objv Borrowed array of objc Tcl objects; option values are parsed without retaining the array.
  */
 static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
     TrackDefaults defaults = {0};
@@ -534,6 +566,10 @@ done:
  * Reject unknown, missing or duplicate names without changing the list. On
  * success, preserve object identity and rebuild the track Y-axis display chain,
  * marking the graph for remapping and eventual redraw. Borrow namesObj.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
+ * @param[in] namesObj Borrowed Tcl list containing every existing track name exactly once.
  */
 static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
     Tcl_Obj **names;
@@ -584,6 +620,9 @@ static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
  * @brief Read the unclipped start along the track stacking dimension.
  * Selects worldLeft for inverted layouts and worldTop otherwise. This is physical layout geometry, not
  * a data-axis minimum or a clipped visible boundary.
+ *
+ * @param[in] graphPtr Borrowed graph supplying the inversion flag; layout must already be current.
+ * @param[in] track Borrowed track whose unclipped world bounds are current.
  */
 static int TrackStart(Graph *graphPtr, RbcTrack *track) {
     return graphPtr->inverted ? track->worldLeft : track->worldTop;
@@ -594,6 +633,9 @@ static int TrackStart(Graph *graphPtr, RbcTrack *track) {
  * @brief Read the unclipped end along the track stacking dimension.
  * Selects worldRight for inverted layouts and worldBottom otherwise. Pair with TrackStart when
  * calculating sash gaps or full track sizes, including partly offscreen tracks.
+ *
+ * @param[in] graphPtr Borrowed graph supplying the inversion flag; layout must already be current.
+ * @param[in] track Borrowed track whose unclipped world bounds are current.
  */
 static int TrackEnd(Graph *graphPtr, RbcTrack *track) {
     return graphPtr->inverted ? track->worldRight : track->worldBottom;
@@ -660,6 +702,13 @@ void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportConte
  * op. Scroll mode changes only the first track requested height, clamped to its minimum and the height
  * limit. Fit mode redistributes the adjacent weight sum above their minima; compressed minima cannot
  * resize. Validates positive weights before commit, then requests remapping and redraw.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
+ * @param[in,out] track Borrowed track with a non-NULL next neighbor and current world bounds; adjacent weights
+ *   may change.
+ * @param[in] y Requested sash midpoint in widget pixels along the stacking dimension: Y normally, X when
+ *   inverted.
  */
 static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
     RbcTrack *next = track->next;
@@ -706,6 +755,10 @@ static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
  * Uses the physical stacking range, bounded below by one, and an extent at least that range. Clamps a
  * local offset without changing graph state; fitted mode uses zero. Writes both output doubles and
  * does not query or change data-axis limits.
+ *
+ * @param[in] graphPtr Borrowed graph with current physical range, stack extent and scroll offset.
+ * @param[out] first Required first visible fraction output in [0,1].
+ * @param[out] last Required last visible fraction output in [0,1], distinct from first.
  */
 static void TrackViewFractions(Graph *graphPtr, double *first, double *last) {
     double range = MAX(1, graphPtr->inverted ? graphPtr->hRange : graphPtr->vRange);
@@ -722,6 +775,14 @@ static void TrackViewFractions(Graph *graphPtr, double *first, double *last) {
  * fractions. Moveto uses total extent, pages use 90 percent of the visible range and units use 20
  * pixels. Rejects nonfinite requested/computed offsets before commit. Fitted mode stores zero;
  * successful mutations request a world reset and deferred redraw.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] objc Full command argument count, at least three; three queries and larger counts request
+ *   scrolling.
+ * @param[in] objv Borrowed full command vector; scroll arguments begin at index three.
  */
 static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double first, last, value, offset;
@@ -769,6 +830,9 @@ static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * fractions, preserves graph/interpreter and restores interpreter state after global evaluation.
  * Reports failures in the background. The callback may delete the widget; no graph fields are accessed
  * after evaluation.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
  */
 static void NotifyTrackScrollbar(Graph *graphPtr) {
     Tcl_Obj *command;
@@ -834,6 +898,13 @@ void Rbc_NotifyTrackView(Graph *graphPtr) {
  * markers. Successful deletion releases local components, bindings and axis
  * references, then synchronizes the axis chain and schedules redraw. The
  * enclosing command owns graph lifetime; this is not widget teardown.
+ *
+ * @param[in,out] graphPtr Borrowed live owning graph; track ownership and component resources must be valid on
+ *   its Tk thread.
+ * @param[in,out] interp Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid
+ *   throughout the call.
+ * @param[in] objc Nonnegative count of track-name objects only; zero is a successful no-op.
+ * @param[in] objv Borrowed array of objc track names; duplicates are ignored after validation.
  */
 static int DeleteTracks(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcTrack **tracks, **slot;

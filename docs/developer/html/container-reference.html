@@ -140,28 +140,59 @@
 <dt class="sig sig-object c" id="c.FindString">
 <span class="target" id="group__list__internals_1gaee28d9110a4d03960bdbcda9312840c6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">FindString</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first node with equal string-key contents. </p>
-<p>Requires a valid string-key list and non-NULL NUL-terminated key. Checks the first byte before strcmp while traversing head to tail. Returns a borrowed node or NULL without mutation, allocation or retention. </p>
+<p>Requires a valid string-key list and non-NULL NUL-terminated key. Checks the first byte before strcmp while traversing head to tail. Returns a borrowed node or NULL without mutation, allocation or retention.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>listPtr</strong> – <strong>[in]</strong> Borrowed live list with key representation matching this lookup helper; membership is not changed. </p></li>
+<li><p><strong>key</strong> – <strong>[in]</strong> Borrowed non-NULL NUL-terminated string whose contents are compared. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindOneWord">
 <span class="target" id="group__list__internals_1ga090bd1514bd7f3788290c82589cda49d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindOneWord</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindOneWord" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first node with the same pointer-sized key value. </p>
-<p>Requires a valid one-word-key list. Compares identity, not pointed-to contents; NULL is a valid key value. Returns a borrowed first match or NULL. Does not dereference keys or change membership/payload ownership. </p>
+<p>Requires a valid one-word-key list. Compares identity, not pointed-to contents; NULL is a valid key value. Returns a borrowed first match or NULL. Does not dereference keys or change membership/payload ownership.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>listPtr</strong> – <strong>[in]</strong> Borrowed live list with key representation matching this lookup helper; membership is not changed. </p></li>
+<li><p><strong>key</strong> – <strong>[in]</strong> Pointer-sized identity key; NULL is valid and pointed-to memory is never read. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FindArray">
 <span class="target" id="group__list__internals_1gae9bbf9428558c7569416ad62e3f61acf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindArray</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">listPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindArray" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find the first node with equal integer-array key bytes. </p>
-<p>Requires a valid list whose type is the key’s int count and a readable key buffer of that size. Invalid count or byte-size overflow panics. Uses memcmp on copied native int bytes, not text or portable serialization. Returns a borrowed first match or NULL without mutation or allocation. </p>
+<p>Requires a valid list whose type is the key’s int count and a readable key buffer of that size. Invalid count or byte-size overflow panics. Uses memcmp on copied native int bytes, not text or portable serialization. Returns a borrowed first match or NULL without mutation or allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>listPtr</strong> – <strong>[in]</strong> Borrowed live list with key representation matching this lookup helper; membership is not changed. </p></li>
+<li><p><strong>key</strong> – <strong>[in]</strong> Borrowed readable bytes for listPtr-&gt;type native ints, compared without alignment-dependent dereferencing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.FreeNode">
 <span class="target" id="group__list__internals_1ga8b7438bc589cf872ad0a24b7239bb476"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeNode</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_ListNodeStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nodePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeNode" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Free a node allocation and its inline copied key. </p>
-<p>Caller must already have removed the node from membership, or be disposing of a never-inserted record. Does not unlink, adjust list count or free payloads or one-word key targets. All pointers into the node become invalid. </p>
+<p>Caller must already have removed the node from membership, or be disposing of a never-inserted record. Does not unlink, adjust list count or free payloads or one-word key targets. All pointers into the node become invalid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodePtr</strong> – <strong>[inout]</strong> Owned detached node allocation; freed without unlinking or releasing its borrowed payload. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

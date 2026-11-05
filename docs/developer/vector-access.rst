@@ -68,9 +68,9 @@ is installed only on a successful write. Errors are therefore not evidence
 that no mapping metadata changed. Reentrant mapping changes are detected and
 reported rather than overwritten by the outer operation.
 
-The mapped-array trace now retains the vector record and interpreter throughout
+:c:func:`VectorVarTrace` retains the vector record and interpreter throughout
 the access, including conversion, cache flushing and immediate notification.
-Writes copy the input Tcl object before conversion, so replacement or removal
+:c:func:`VectorVarTraceImpl` copies the input Tcl object before conversion, so replacement or removal
 of the source array entry cannot invalidate a complex pair being converted.
 Before committing, the trace checks that the vector survives, remains writable,
 and has the same storage pointer, length, capacity and offset as before value
@@ -173,3 +173,23 @@ range query must scan the whole vector. Invalid notification bounds become a
 full update. Neither publication helper flushes mapped arrays or enforces
 read-only state. Immediate observers can destroy the vector, so a caller that
 continues accessing it must preserve and revalidate the object.
+
+Literal registry lookup and temporary names
+-------------------------------------------
+
+:c:func:`GetVectorObject` performs literal registry lookup without changing
+selection. :c:func:`ParseQualifiedName` returns a borrowed namespace and a tail
+pointer into the input; these are not independently allocated names. Explicit
+namespace syntax prevents the current/global fallback used for unqualified
+names. No lookup helper creates a missing namespace.
+
+:c:func:`BuildQualifiedName` and :c:func:`GetQualifiedName` initialize a caller
+DString and return its borrowed buffer. The caller frees the DString after use;
+it must not free the returned character pointer separately. A NULL name passed
+to BuildQualifiedName is exceptional: the DString is not initialized at all.
+
+:c:func:`Rbc_VectorSortIndex` creates an owned permutation of storage indices,
+not a reordered vector or a Tcl list. Every key vector must contain the first
+vector's selected indices. The helper rejects complex keys but does not check
+matching lengths. The caller frees the permutation with ``ckfree``, including
+the non-NULL allocation returned for an empty successful selection.

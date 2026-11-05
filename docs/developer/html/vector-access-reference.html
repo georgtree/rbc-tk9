@@ -55,7 +55,14 @@ validation before storage access.</p>
 <p>Discard cached Tcl array entries while retaining vector data.</p>
 <p>Preserves the vector and interpreter across variable traces. Reinstalls the end entry and RBC trace only while the same mapping remains live. This void helper does not notify clients, report trace errors, or save the Tcl result.</p>
 <p>Discard cached array elements while retaining the current mapping.</p>
-<p>Return immediately for an unmapped/destroying vector or deleted interpreter. Otherwise preserve the record and interpreter, copy the mapping name/flags, remove RBC’s trace and unset the array. User traces can destroy or remap the vector. Recreate the end entry and reinstall RBC’s trace only while the saved association still matches, rechecking after each callback-capable write. Release the copied name and preservation references on completion. The void interface does not propagate unset/write/trace status or preserve the Tcl result. No vector values are changed or client notification requested here; user-trace side effects are not rolled back. </p>
+<p>Return immediately for an unmapped/destroying vector or deleted interpreter. Otherwise preserve the record and interpreter, copy the mapping name/flags, remove RBC’s trace and unset the array. User traces can destroy or remap the vector. Recreate the end entry and reinstall RBC’s trace only while the saved association still matches, rechecking after each callback-capable write. Release the copied name and preservation references on completion. The void interface does not propagate unset/write/trace status or preserve the Tcl result. No vector values are changed or client notification requested here; user-trace side effects are not rolled back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Borrowed live vector record on its owning interpreter thread; this call does not transfer ownership. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -90,7 +97,16 @@ Prefers the longest existing name at a balanced-parenthesis boundary, so parenth
 <p>Replace a vector array mapping with callback-aware lifetime checks.</p>
 <p>An empty or NULL name unmaps; parentheses in mapping names are rejected. Unsets the old mapping and target variable, creates an end entry, and installs RBC traces. Preserves the vector/interpreter and checks destruction or reentrant remapping after trace-capable operations. Returns TCL_OK or TCL_ERROR; failure does not restore the previous mapping.</p>
 <p>Replace or remove a vector’s mapped Tcl array.</p>
-<p>Borrow the live vector, interpreter and name; NULL or empty names request unmapping. Reject parentheses before changing an existing association. Copy the requested name and preserve the vector/interpreter while unmapping the old array, unsetting the target variable and creating its end entry. After callback boundaries, reject destruction or a competing reentrant mapping. On a successful initial write install RBC’s read/write/unset trace. Store the requested name even when that initial write fails, and return its Tcl status; a failure does not restore the old mapping or undo user trace effects. This changes the Tcl access surface, not vector storage or command identity. Callers must not infer that preservation keeps destroyed storage valid. </p>
+<p>Borrow the live vector, interpreter and name; NULL or empty names request unmapping. Reject parentheses before changing an existing association. Copy the requested name and preserve the vector/interpreter while unmapping the old array, unsetting the target variable and creating its end entry. After callback boundaries, reject destruction or a competing reentrant mapping. On a successful initial write install RBC’s read/write/unset trace. Store the requested name even when that initial write fails, and return its Tcl status; a failure does not restore the old mapping or undo user trace effects. This changes the Tcl access surface, not vector storage or command identity. Callers must not infer that preservation keeps destroyed storage valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup, evaluation and diagnostics; caller keeps it valid throughout the call. </p></li>
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Borrowed live vector record on its owning interpreter thread; this call does not transfer ownership. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Borrowed array name, copied before callbacks; NULL or empty removes the current mapping. Parentheses are rejected. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">

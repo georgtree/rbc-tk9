@@ -184,6 +184,18 @@ Array keys are native-memory representations, not a portable byte encoding.
 Lookup returns a borrowed node; it adds no protection against deletion by a
 later callback. <code class="docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey</span></code> uses this same first-match rule.</p>
 </section>
+<section id="private-key-lookup-contracts">
+<h2>Private key lookup contracts<a class="headerlink" href="#private-key-lookup-contracts" title="Link to this heading">¶</a></h2>
+<p>The list’s key representation selects the lookup helper. <a class="reference internal" href="container-reference.html#c.FindString" title="FindString"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindString()</span></code></a>
+compares NUL-terminated contents, <a class="reference internal" href="container-reference.html#c.FindOneWord" title="FindOneWord"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindOneWord()</span></code></a> compares pointer-sized
+identity (including NULL), and <a class="reference internal" href="container-reference.html#c.FindArray" title="FindArray"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindArray()</span></code></a> compares the copied bytes of
+exactly the configured number of native integers. They return borrowed nodes
+and do not retain payloads. A key representation mismatch is a caller error,
+not a conversion request.</p>
+<p><a class="reference internal" href="container-reference.html#c.FreeNode" title="FreeNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeNode()</span></code></a> only releases the detached allocation and its inline key.
+It does not unlink a node, adjust a list count, or free the client payload or
+a one-word key target. Membership changes belong to the enclosing list API.</p>
+</section>
 </section>
 
 
@@ -203,6 +215,7 @@ later callback. <code class="docutils literal notranslate"><span class="pre">Rb_
 <li><a class="reference internal" href="#borrowed-pointers-and-traversal">Borrowed pointers and traversal</a></li>
 <li><a class="reference internal" href="#sorting-and-positional-lookup">Sorting and positional lookup</a></li>
 <li><a class="reference internal" href="#insertion-and-lookup-contracts">Insertion and lookup contracts</a></li>
+<li><a class="reference internal" href="#private-key-lookup-contracts">Private key lookup contracts</a></li>
 </ul>
 </li>
 </ul>

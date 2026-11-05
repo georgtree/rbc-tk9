@@ -43,9 +43,8 @@
             
   <section id="implementation-overview">
 <h1>Implementation overview<a class="headerlink" href="#implementation-overview" title="Link to this heading">¶</a></h1>
-<p>The installed C interface is primarily the vector API in <code class="docutils literal notranslate"><span class="pre">rbc.h</span></code> and
-<code class="docutils literal notranslate"><span class="pre">rbcVector.h</span></code>, with generated declarations and stubs. Renderer interfaces
-are private; adding a renderer declaration does not add a public stub entry.</p>
+<p>The installed C interface is primarily the vector API in <code class="docutils literal notranslate"><span class="pre">rbc.h</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcVector.h</span></code>, with generated declarations and
+stubs. Renderer interfaces are private; adding a renderer declaration does not add a public stub entry.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 24.0%" />
@@ -100,45 +99,37 @@ and the distinction between mapping and clipping.</p>
 <p>See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a> for interpolation kernels, vector outputs and trace smoothing.</p>
 <section id="supporting-modules">
 <h2>Supporting modules<a class="headerlink" href="#supporting-modules" title="Link to this heading">¶</a></h2>
-<p>See <a class="reference internal" href="utility-ownership.html"><span class="doc">Allocation, strings and interned names</span></a> for allocation, UID references and scratch strings;
-<a class="reference internal" href="command-dispatch.html"><span class="doc">Typed command dispatch</span></a> for typed operation tables; and <a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a>
-for parser commit rules, expression callbacks and numeric compatibility limits.</p>
+<p>See <a class="reference internal" href="utility-ownership.html"><span class="doc">Allocation, strings and interned names</span></a> for allocation, UID references and scratch strings; <a class="reference internal" href="command-dispatch.html"><span class="doc">Typed command dispatch</span></a> for typed
+operation tables; and <a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a> for parser commit rules, expression callbacks and numeric compatibility
+limits.</p>
 <p>See <a class="reference internal" href="containers.html"><span class="doc">Chains and keyed lists</span></a> for chain/list payload ownership and mutation rules.</p>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGeometry.c</span></code> contains geometry algorithms without graph state or drawing.
-See <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a> for clipping boundaries, hit testing and simplification.
-<code class="docutils literal notranslate"><span class="pre">rbcScroll.c</span></code> parses scroll requests and computes viewports; callers retain
-widget mutation and redraw responsibilities. See <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for request
-parsing, axis/track viewport policy and scrollbar notification. <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> owns common option
-conversion and rollback helpers. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for resource lookup,
-transaction boundaries and the distinction between option and derived resources. <code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code> contains shared Tk/Xlib services
-used outside graph rendering too, rather than a universal renderer backend.</p>
-<p><code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code> is Windows/Tk compatibility infrastructure used by renderers,
-image and tile code. It owns private Tk drawable/DC integration and Xlib
-emulation. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for backend boundaries.</p>
-<p>See <a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for private GC ownership, native identifiers and
-window instance associations. See <a class="reference internal" href="winop-internals.html"><span class="doc">Window and photo command implementation</span></a> for standalone window
-and photo commands, and <a class="reference internal" href="eps-canvas.html"><span class="doc">EPS canvas item implementation</span></a> for the legacy canvas item. These
-services are outside the graph renderer lifecycle even when they reuse shared
-pixel or PostScript helpers.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGeometry.c</span></code> contains geometry algorithms without graph state or drawing.  See <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a> for clipping
+boundaries, hit testing and simplification.  <code class="docutils literal notranslate"><span class="pre">rbcScroll.c</span></code> parses scroll requests and computes viewports; callers
+retain widget mutation and redraw responsibilities. See <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for request parsing, axis/track viewport policy
+and scrollbar notification. <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> owns common option conversion and rollback helpers. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>
+for resource lookup, transaction boundaries and the distinction between option and derived resources. <code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code>
+contains shared Tk/Xlib services used outside graph rendering too, rather than a universal renderer backend.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code> is Windows/Tk compatibility infrastructure used by renderers, image and tile code. It owns private Tk
+drawable/DC integration and Xlib emulation. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for backend boundaries.</p>
+<p>See <a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for private GC ownership, native identifiers and window instance associations. See
+<a class="reference internal" href="winop-internals.html"><span class="doc">Window and photo command implementation</span></a> for standalone window and photo commands, and <a class="reference internal" href="eps-canvas.html"><span class="doc">EPS canvas item implementation</span></a> for the legacy canvas item. These
+services are outside the graph renderer lifecycle even when they reuse shared pixel or PostScript helpers.</p>
 </section>
 <section id="lifetime-and-callbacks">
 <h2>Lifetime and callbacks<a class="headerlink" href="#lifetime-and-callbacks" title="Link to this heading">¶</a></h2>
-<p>A borrowed pointer does not keep a graph, component, Tcl object or Tk resource
-alive. Callers retain that responsibility. Tcl callbacks can reconfigure or
-delete the owning widget; call sites invoking user code must preserve the
-appropriate state and revalidate it before continuing.</p>
-<p>Rendering is synchronous and used on the owning Tk thread. The interface does
-not provide worker-thread drawing or context synchronization. An internal
-renderer run callback does not authorize arbitrary Tcl reentry.</p>
-<p>See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for widget scheduling, callback cancellation and
-the two phases of destruction. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for borrowed numeric storage and observer lifetime.
-Detailed component destruction contracts remain with their owning modules.</p>
+<p>A borrowed pointer does not keep a graph, component, Tcl object or Tk resource alive. Callers retain that
+responsibility. Tcl callbacks can reconfigure or delete the owning widget; call sites invoking user code must preserve
+the appropriate state and revalidate it before continuing.</p>
+<p>Rendering is synchronous and used on the owning Tk thread. The interface does not provide worker-thread drawing or
+context synchronization. An internal renderer run callback does not authorize arbitrary Tcl reentry.</p>
+<p>See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for widget scheduling, callback cancellation and the two phases of destruction. See
+<a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for borrowed numeric storage and observer lifetime.  Detailed component destruction contracts remain with
+their owning modules.</p>
 </section>
 <section id="object-interaction">
 <h2>Object interaction<a class="headerlink" href="#object-interaction" title="Link to this heading">¶</a></h2>
-<p>See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for component hit priority, per-family tag identities,
-legend entry contexts and callback lifetime. Generic event dispatch does not
-interpret component layouts; graph and legend pickers supply those decisions.</p>
+<p>See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for component hit priority, per-family tag identities, legend entry contexts and callback
+lifetime. Generic event dispatch does not interpret component layouts; graph and legend pickers supply those decisions.</p>
 </section>
 </section>
 

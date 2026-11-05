@@ -112,7 +112,7 @@ matching node. These documentation changes do not rename private functions or
 alter container behavior.
 
 Insertion and lookup contracts
--------------------------------
+------------------------------
 
 The C reference includes all creation, insertion and positional-lookup entry
 points as well as the private key-search helpers. Allocation uses Tcl's fatal
@@ -151,3 +151,17 @@ nodes can therefore change which duplicate is found without changing any key.
 Array keys are native-memory representations, not a portable byte encoding.
 Lookup returns a borrowed node; it adds no protection against deletion by a
 later callback. ``Rb_ListDeleteNodeByKey`` uses this same first-match rule.
+
+Private key lookup contracts
+----------------------------
+
+The list's key representation selects the lookup helper. :c:func:`FindString`
+compares NUL-terminated contents, :c:func:`FindOneWord` compares pointer-sized
+identity (including NULL), and :c:func:`FindArray` compares the copied bytes of
+exactly the configured number of native integers. They return borrowed nodes
+and do not retain payloads. A key representation mismatch is a caller error,
+not a conversion request.
+
+:c:func:`FreeNode` only releases the detached allocation and its inline key.
+It does not unlink a node, adjust a list count, or free the client payload or
+a one-word key target. Membership changes belong to the enclosing list API.

@@ -32,6 +32,10 @@ static void FreeNode (struct Rbc_ListNodeStruct *nodePtr);
  * Requires a valid string-key list and non-NULL NUL-terminated key. Checks the
  * first byte before strcmp while traversing head to tail. Returns a borrowed
  * node or NULL without mutation, allocation or retention.
+ *
+ * @param[in] listPtr Borrowed live list with key representation matching this lookup helper; membership is not
+ *   changed.
+ * @param[in] key Borrowed non-NULL NUL-terminated string whose contents are compared.
  */
 static struct Rbc_ListNodeStruct *FindString(struct Rbc_ListStruct *listPtr, const char *key) {
     register struct Rbc_ListNodeStruct *nodePtr;
@@ -53,6 +57,10 @@ static struct Rbc_ListNodeStruct *FindString(struct Rbc_ListStruct *listPtr, con
  * Requires a valid one-word-key list. Compares identity, not pointed-to contents;
  * NULL is a valid key value. Returns a borrowed first match or NULL. Does not
  * dereference keys or change membership/payload ownership.
+ *
+ * @param[in] listPtr Borrowed live list with key representation matching this lookup helper; membership is not
+ *   changed.
+ * @param[in] key Pointer-sized identity key; NULL is valid and pointed-to memory is never read.
  */
 static Rbc_ListNode FindOneWord(struct Rbc_ListStruct *listPtr, const char *key) {
     register struct Rbc_ListNodeStruct *nodePtr;
@@ -73,6 +81,11 @@ static Rbc_ListNode FindOneWord(struct Rbc_ListStruct *listPtr, const char *key)
  * buffer of that size. Invalid count or byte-size overflow panics. Uses memcmp
  * on copied native int bytes, not text or portable serialization. Returns a
  * borrowed first match or NULL without mutation or allocation.
+ *
+ * @param[in] listPtr Borrowed live list with key representation matching this lookup helper; membership is not
+ *   changed.
+ * @param[in] key Borrowed readable bytes for listPtr->type native ints, compared without alignment-dependent
+ *   dereferencing.
  */
 static Rbc_ListNode FindArray(struct Rbc_ListStruct *listPtr, const char *key) {
     struct Rbc_ListNodeStruct *nodePtr;
@@ -100,6 +113,9 @@ static Rbc_ListNode FindArray(struct Rbc_ListStruct *listPtr, const char *key) {
  * Caller must already have removed the node from membership, or be disposing
  * of a never-inserted record. Does not unlink, adjust list count or free payloads
  * or one-word key targets. All pointers into the node become invalid.
+ *
+ * @param[in,out] nodePtr Owned detached node allocation; freed without unlinking or releasing its borrowed
+ *   payload.
  */
 static void FreeNode(struct Rbc_ListNodeStruct *nodePtr) { ckfree((char *)nodePtr); }
 
