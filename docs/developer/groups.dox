@@ -337,6 +337,14 @@
  * @ingroup rbc_pdf
  */
 
+/** @addtogroup ps_token_lifetime
+ * @ingroup rbc_postscript
+ */
+
+/** @addtogroup ps_token_output
+ * @ingroup rbc_postscript
+ */
+
 /** @addtogroup ps_legacy_primitives
  * @ingroup rbc_postscript
  */

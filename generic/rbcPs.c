@@ -1,3 +1,9 @@
+/** @defgroup ps_token_lifetime PostScript token lifetime and buffers
+ * Private ownership and borrowed buffer accessors.
+ */
+/** @defgroup ps_token_output PostScript syntax and prolog appending
+ * Private append services; framing and delivery remain with the graph command.
+ */
 /**
  * @file rbcPs.c
  * @brief Private PostScript token, conversion and legacy drawing services.
@@ -34,11 +40,16 @@ static const char *NameOfAtom(Tk_Window tkwin, Atom atom);
 static void TextLayoutToPostScript(struct PsTokenStruct *tokenPtr, int x, int y, TextLayout *textPtr);
 
 /**
+ * @ingroup ps_token_lifetime
  * Allocate an empty, color-mode PostScript token.
  *
  * The caller owns the token and releases it with Rbc_ReleasePsToken(). The
  * interpreter and window are borrowed; this function does not preserve them.
  * Font and color mapping variable names initially are NULL.
+ *
+ * @param[in] interp Interpreter borrowed for later diagnostics and mapping lookups; see @ref
+ *    rbc_interp_argument.
+ * @param[in] tkwin Tk window borrowed for font, color and display information throughout token use.
  */
 PsToken Rbc_GetPsToken(Tcl_Interp *interp, Tk_Window tkwin) {
     struct PsTokenStruct *tokenPtr;
@@ -54,10 +65,13 @@ PsToken Rbc_GetPsToken(Tcl_Interp *interp, Tk_Window tkwin) {
 }
 
 /**
+ * @ingroup ps_token_lifetime
  * Release a non-NULL token and its output buffer.
  *
  * Borrowed interpreter, window and mapping variable names are not released.
  * All pointers returned into the token become invalid.
+ *
+ * @param[in] tokenPtr Owned non-NULL token to release; all pointers into its buffers become invalid.
  */
 void Rbc_ReleasePsToken(struct PsTokenStruct *tokenPtr) {
     Tcl_DStringFree(&(tokenPtr->dString));
@@ -65,26 +79,39 @@ void Rbc_ReleasePsToken(struct PsTokenStruct *tokenPtr) {
 }
 
 /**
+ * @ingroup ps_token_lifetime
  * Return the borrowed, NUL-terminated output buffer.
  *
  * Do not free the result. Appending output may relocate it; releasing the
  * token invalidates it. This accessor does not finalize a document.
+ *
+ * @param[in] tokenPtr Live token whose output buffer is borrowed until the next relocating append or release.
  */
 char *Rbc_PostScriptFromToken(struct PsTokenStruct *tokenPtr) { return Tcl_DStringValue(&(tokenPtr->dString)); }
 
 /**
+ * @ingroup ps_token_lifetime
  * Return borrowed mutable scratch storage of PSTOKEN_BUFSIZ + 1 bytes.
  *
  * Formatting and prolog reads reuse this storage. It is not the output buffer
  * and must not be retained across those operations or token release.
+ *
+ * @param[in] tokenPtr Live token whose reusable scratch storage is borrowed; contents are not initialized by
+ *    this accessor.
  */
 char *Rbc_ScratchBufferFromToken(struct PsTokenStruct *tokenPtr) { return tokenPtr->scratchArr; }
 
 /**
+ * @ingroup ps_token_output
  * Append a sequence of NUL-terminated strings, ending with a NULL pointer.
  *
  * Strings are copied without escaping. Callers supply PostScript syntax and
  * must not pass binary data or pointers invalidated by output growth.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] ... NUL-terminated C strings followed by a pointer-valued NULL sentinel; strings must survive
+ *    output growth.
  */
 void Rbc_AppendToPostScript(struct PsTokenStruct *tokenPtr, ...) {
     va_list argList;
@@ -102,11 +129,18 @@ void Rbc_AppendToPostScript(struct PsTokenStruct *tokenPtr, ...) {
 }
 
 /**
+ * @ingroup ps_token_output
  * Append printf-formatted PostScript, using scratch storage or a temporary
  * allocation when the formatted result exceeds the scratch capacity.
  *
  * This void helper does not report a formatting failure to the interpreter.
  * It performs no PostScript string escaping.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] fmt Borrowed printf format, not aliased with scratch storage overwritten by formatting.
+ * @param[in] ... Arguments matching the format; referenced strings must remain readable during formatting and
+ *    output growth.
  */
 void Rbc_FormatToPostScript(struct PsTokenStruct *tokenPtr, const char *fmt, ...) {
     va_list argList;
@@ -134,12 +168,19 @@ void Rbc_FormatToPostScript(struct PsTokenStruct *tokenPtr, const char *fmt, ...
 }
 
 /**
+ * @ingroup ps_token_output
  * Append escaped PostScript literal-string contents from Tcl UTF text.
  *
  * A negative length selects strlen; otherwise length is a byte count ending
  * at a character boundary. NULL input is ignored. The caller supplies the
  * surrounding parentheses. Delimiters, controls and non-ASCII characters use
  * octal escapes; characters above ISO-8859-1 are replaced with a space.
+ *
+ * @param[inout] psToken Live borrowed PostScript token receiving output.
+ * @param[in] string Borrowed Tcl UTF text, or NULL to append nothing; must remain readable across output
+ *    appends.
+ * @param[in] length UTF byte count ending at a character boundary, or negative to use strlen; not a character
+ *    count.
  */
 void Rbc_AppendPostScriptString(PsToken psToken, const char *string, Tcl_Size length) {
     const char *src;
@@ -179,6 +220,7 @@ void Rbc_AppendPostScriptString(PsToken psToken, const char *string, Tcl_Size le
 }
 
 /**
+ * @ingroup ps_token_output
  * Append a text prolog from fileName relative to the rbc::library variable.
  *
  * Return TCL_ERROR for library lookup, open or read failure, with an
@@ -186,6 +228,10 @@ void Rbc_AppendPostScriptString(PsToken psToken, const char *string, Tcl_Size le
  * rolled back. The channel is closed, but its close status is not propagated.
  * Reads overwrite token scratch storage. Tcl variable and channel operations
  * may execute callbacks; the enclosing export owns lifetime protection.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] fileName Borrowed NUL-terminated prolog filename appended to the global rbc::library directory.
  */
 int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
     Tcl_Channel channel;
@@ -245,6 +291,10 @@ int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
  *
  * Uses only the upper eight bits of each 16-bit component, divided by 255.
  * Emits no color-setting operator and performs no variable lookup.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] colorPtr Non-NULL borrowed color; only the upper eight bits of each RGB component are emitted.
  */
 static void XColorToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr) {
     /*
@@ -264,6 +314,10 @@ static void XColorToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr)
  * fall back to RGB conversion. Variable reads may run traces; the enclosing
  * caller must protect token, interpreter and borrowed input lifetimes.
  * This void helper neither reports lookup failure nor rolls back output.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] colorPtr Non-NULL borrowed color; keep it valid across optional mapping-variable traces.
  */
 void Rbc_BackgroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr) {
     /* If the color name exists in Tcl array variable, use that translation */
@@ -288,6 +342,10 @@ void Rbc_BackgroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr
  * the same trace/lifetime requirements. Found values are executable source,
  * not escaped color names. Otherwise the prolog controls color, greyscale
  * and monochrome conversion. No graphics-state save is emitted.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] colorPtr Non-NULL borrowed color; keep it valid across optional mapping-variable traces.
  */
 void Rbc_ForegroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr) {
     /* If the color name exists in Tcl array variable, use that translation */
@@ -310,6 +368,8 @@ void Rbc_ForegroundToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr
  *
  * Swaps adjacent bits, pairs and nibbles. No allocation or output state is
  * involved; bitmap serializers use it to place the first pixel in bit seven.
+ *
+ * @param[in] byte Eight-bit value whose bit positions are reversed.
  */
 INLINE static unsigned char ReverseBits(unsigned char byte) {
     byte = ((byte >> 1) & 0x55) | ((byte << 1) & 0xaa);
@@ -324,6 +384,9 @@ INLINE static unsigned char ReverseBits(unsigned char byte) {
  *
  * string must have at least two writable bytes. No NUL terminator is written;
  * callers add delimiters, line breaks or a terminator separately.
+ *
+ * @param[in] byte Byte to encode as two uppercase hexadecimal digits.
+ * @param[out] string At least two writable bytes; no terminating NUL is added.
  */
 INLINE static void ByteToHex(unsigned char byte, char *string) {
     static char hexDigits[] = "0123456789ABCDEF";
@@ -343,6 +406,13 @@ INLINE static void ByteToHex(unsigned char byte, char *string) {
  * Releases the DIB bytes after emission. Acquisition failure writes a Windows
  * debug message and returns without payload or Tcl error. A caller that has
  * already emitted image operators must not assume output is complete.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] display Display owning the borrowed bitmap.
+ * @param[in] bitmap Live borrowed depth-one bitmap; not freed by this helper.
+ * @param[in] width Positive bitmap width in pixels, matching the captured bitmap.
+ * @param[in] height Positive bitmap height in pixels, matching the captured bitmap.
  */
 void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap, int width,
                                 int height) {
@@ -411,6 +481,13 @@ void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display
  * hex and wrapping after batches of thirty complete bytes, then destroys
  * the XImage. A failed capture returns without appending a payload, matching
  * the Windows failure policy. No Tcl status is returned.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] display Display owning the borrowed bitmap.
+ * @param[in] bitmap Live borrowed depth-one bitmap; not freed by this helper.
+ * @param[in] width Positive bitmap width in pixels, matching the captured bitmap.
+ * @param[in] height Positive bitmap height in pixels, matching the captured bitmap.
  */
 void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap, int width,
                                 int height) {
@@ -476,6 +553,14 @@ void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display
  * data lines, not a Tcl status; caller sizes must keep this int count valid.
  * The image is unchanged. No image operator or surrounding hex delimiters
  * are emitted; prefix must not alias storage invalidated by DString growth.
+ *
+ * @param[in] image Borrowed readable image; RGB output ignores alpha, and one-component output assumes
+ *    greyscale already computed.
+ * @param[in] nComponents Three for RGB or one for complemented red-channel samples; other values append
+ *    nothing.
+ * @param[inout] resultPtr Caller-initialized DString receiving hex text and line separators.
+ * @param[in] prefix NUL-terminated prefix for each physical data line; must not alias storage relocated by
+ *    result growth.
  */
 int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *resultPtr, char *prefix) {
     char string[10];
@@ -548,6 +633,9 @@ int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *r
  *
  * Requires a live Tk window. The returned name belongs to Tk and must not
  * be freed. The helper does not acquire a font or allocate output storage.
+ *
+ * @param[in] tkwin Live window selecting the Tk display/atom cache.
+ * @param[in] atom Atom whose Tk-owned name is requested.
  */
 static const char *NameOfAtom(Tk_Window tkwin, Atom atom) {
     const char *result;
@@ -655,6 +743,10 @@ static const size_t nFontNames = sizeof(psFontMap) / sizeof(psFontMap[0]);
  * If the full name starts with the original family, its remaining typeface
  * is appended after a dash with spaces and dashes removed. Success replaces
  * resultPtr and returns a borrowed pointer into it. No font is released here.
+ *
+ * @param[in] tkwin Live window used to resolve property atom names.
+ * @param[in] fontPtr Borrowed valid X font structure with the required name/family/foundry properties.
+ * @param[inout] resultPtr Initialized DString replaced on success; returned name borrows this buffer.
  */
 static const char *XFontStructToPostScript(Tk_Window tkwin, XFontStruct *fontPtr, Tcl_DString *resultPtr) {
     Atom atom;
@@ -749,6 +841,9 @@ static const char *XFontStructToPostScript(Tk_Window tkwin, XFontStruct *fontPtr
  *
  * Appends SetBgColor operands only; it does not erase or fill any region.
  * It bypasses the optional Tcl color map and does not restore prior color.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
  */
 void Rbc_ClearBackgroundToPostScript(struct PsTokenStruct *tokenPtr) {
     Rbc_AppendToPostScript(tokenPtr, " 1.0 1.0 1.0 SetBgColor\n", (char *)NULL);
@@ -761,6 +856,10 @@ void Rbc_ClearBackgroundToPostScript(struct PsTokenStruct *tokenPtr) {
  * CapNotLast and CapButt both map to butt; positive X11 values are reduced
  * by one. The caller supplies a valid cap enumeration; no range validation
  * or graphics-state restoration is performed.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] capStyle Valid X cap-style enumeration; CapNotLast and CapButt both produce butt caps.
  */
 void Rbc_CapStyleToPostScript(struct PsTokenStruct *tokenPtr, int capStyle) {
     /*
@@ -779,6 +878,10 @@ void Rbc_CapStyleToPostScript(struct PsTokenStruct *tokenPtr, int capStyle) {
  *
  * X11 and PostScript share miter=0, round=1 and bevel=2. The caller must
  * supply a valid enumeration; the previous setting is not restored.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] joinStyle Valid X join-style enumeration, directly compatible with PostScript.
  */
 void Rbc_JoinStyleToPostScript(struct PsTokenStruct *tokenPtr, int joinStyle) {
     /*
@@ -793,6 +896,10 @@ void Rbc_JoinStyleToPostScript(struct PsTokenStruct *tokenPtr, int joinStyle) {
  *
  * Zero and negative inputs become one rather than a PostScript hairline.
  * Width is expressed in the current user coordinate system.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] lineWidth Integer width in current user units; values below one are clamped to one.
  */
 void Rbc_LineWidthToPostScript(struct PsTokenStruct *tokenPtr, int lineWidth) {
     if (lineWidth < 1) {
@@ -808,6 +915,10 @@ void Rbc_LineWidthToPostScript(struct PsTokenStruct *tokenPtr, int lineWidth) {
  * A NULL pointer or empty values array emits a solid-line dash array.
  * A non-NULL values array must contain a zero terminator. The stored dash
  * offset is not emitted; this helper always uses phase zero.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] dashesPtr Borrowed zero-terminated byte pattern, or NULL for solid lines; offset is ignored.
  */
 void Rbc_LineDashesToPostScript(struct PsTokenStruct *tokenPtr, Rbc_Dashes *dashesPtr) {
 
@@ -829,6 +940,14 @@ void Rbc_LineDashesToPostScript(struct PsTokenStruct *tokenPtr, Rbc_Dashes *dash
  * Borrows all inputs and inherits the foreground color-map callback boundary.
  * Finally defines an empty DashesProc in the current dictionary. This is
  * not a scoped state change; subsequent strokes use the emitted attributes.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] colorPtr Non-NULL borrowed color; keep it valid across optional mapping-variable traces.
+ * @param[in] lineWidth Integer width in current user units; values below one are clamped to one.
+ * @param[in] dashesPtr Borrowed zero-terminated byte pattern, or NULL for solid lines; offset is ignored.
+ * @param[in] capStyle Valid X cap-style enumeration; CapNotLast and CapButt both produce butt caps.
+ * @param[in] joinStyle Valid X join-style enumeration, directly compatible with PostScript.
  */
 void Rbc_LineAttributesToPostScript(struct PsTokenStruct *tokenPtr, XColor *colorPtr, int lineWidth,
                                     Rbc_Dashes *dashesPtr, int capStyle, int joinStyle) {
@@ -847,6 +966,13 @@ void Rbc_LineAttributesToPostScript(struct PsTokenStruct *tokenPtr, XColor *colo
  * Receives already mapped coordinates and dimensions. The prolog Box starts
  * a fresh closed path; fill consumes it. No color, clipping or validation
  * is added, and no outline is stroked.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] x Finite mapped horizontal position in the current PostScript user coordinate system.
+ * @param[in] y Finite mapped vertical position in the current PostScript user coordinate system.
+ * @param[in] width Rectangle width in mapped user units; caller supplies valid bounded geometry.
+ * @param[in] height Rectangle height in mapped user units; caller supplies valid bounded geometry.
  */
 void Rbc_RectangleToPostScript(struct PsTokenStruct *tokenPtr, double x, double y, int width, int height) {
     Rbc_FormatToPostScript(tokenPtr, "%g %g %d %d Box fill\n\n", x, y, width, height);
@@ -858,6 +984,13 @@ void Rbc_RectangleToPostScript(struct PsTokenStruct *tokenPtr, double x, double 
  *
  * Uses the prolog Box procedure. The caller decides whether to fill, stroke
  * or clip the resulting path and supplies valid mapped dimensions.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] x Finite mapped horizontal position in the current PostScript user coordinate system.
+ * @param[in] y Finite mapped vertical position in the current PostScript user coordinate system.
+ * @param[in] width Rectangle width in mapped user units; caller supplies valid bounded geometry.
+ * @param[in] height Rectangle height in mapped user units; caller supplies valid bounded geometry.
  */
 void Rbc_RegionToPostScript(struct PsTokenStruct *tokenPtr, double x, double y, int width, int height) {
     Rbc_FormatToPostScript(tokenPtr, "%g %g %d %d Box\n\n", x, y, width, height);
@@ -871,6 +1004,11 @@ void Rbc_RegionToPostScript(struct PsTokenStruct *tokenPtr, double x, double y, 
  * For a positive count, screenPts must contain that many points. Emits one
  * moveto and remaining lineto operations, with no stroke, close, clipping
  * or path-size splitting. Numeric inputs must be suitable for PostScript.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] screenPts Borrowed array of nScreenPts mapped finite vertices when the count is positive.
+ * @param[in] nScreenPts Vertex count; nonpositive counts leave output and the current path unchanged.
  */
 void Rbc_PathToPostScript(struct PsTokenStruct *tokenPtr, register Point2D *screenPts, Tcl_Size nScreenPts) {
     register Point2D *pointPtr, *endPtr;
@@ -896,6 +1034,11 @@ void Rbc_PathToPostScript(struct PsTokenStruct *tokenPtr, register Point2D *scre
  * an explicit line back to the first point, closes it and calls the prolog
  * Fill procedure. Unlike built-in fill, Fill preserves the path. This helper
  * does not validate polygon area, split large paths or select a color.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] screenPts Borrowed array of nScreenPts mapped finite vertices when the count is positive.
+ * @param[in] nScreenPts Vertex count; nonpositive counts append nothing; polygon validity is not checked.
  */
 void Rbc_PolygonToPostScript(struct PsTokenStruct *tokenPtr, Point2D *screenPts, Tcl_Size nScreenPts) {
     if (nScreenPts <= 0) {
@@ -914,6 +1057,11 @@ void Rbc_PolygonToPostScript(struct PsTokenStruct *tokenPtr, Point2D *screenPts,
  * No initial newpath is emitted, so callers must ensure there is no pending
  * path to stroke along with the first segment. Requires DashesProc to be
  * defined. Each stroke consumes its path and restarts the dash pattern.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] segPtr Borrowed array of nSegments integer segments when the count is positive.
+ * @param[in] nSegments Number of segment records; nonpositive counts append nothing.
  */
 void Rbc_SegmentsToPostScript(struct PsTokenStruct *tokenPtr, register XSegment *segPtr, int nSegments) {
     register int i;
@@ -931,6 +1079,11 @@ void Rbc_SegmentsToPostScript(struct PsTokenStruct *tokenPtr, register XSegment 
  *
  * Delegates each entry to Rbc_RectangleToPostScript; nonpositive counts
  * append nothing. No outline, color selection or clipping is supplied.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] rectArr Borrowed array of nRects mapped integer rectangles when the count is positive.
+ * @param[in] nRects Number of rectangle records; nonpositive counts append nothing.
  */
 void Rbc_RectanglesToPostScript(struct PsTokenStruct *tokenPtr, XRectangle rectArr[], int nRects) {
     register int i;
@@ -954,6 +1107,16 @@ void Rbc_RectanglesToPostScript(struct PsTokenStruct *tokenPtr, XRectangle rectA
  * or background-color selection. Emits bottom/right rectangles and a
  * top/left polygon; does not fill the whole interior or restore color/path.
  * Color-map reads inherit the enclosing export callback requirements.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] border Borrowed live Tk border compatible with the token window.
+ * @param[in] x Finite mapped horizontal position in the current PostScript user coordinate system.
+ * @param[in] y Finite mapped vertical position in the current PostScript user coordinate system.
+ * @param[in] width Rectangle width in mapped user units; caller supplies valid bounded geometry.
+ * @param[in] height Rectangle height in mapped user units; caller supplies valid bounded geometry.
+ * @param[in] borderWidth Nonnegative band width with representable doubling and inset arithmetic.
+ * @param[in] relief Tk relief selecting solid, raised, sunken, groove, ridge or flat band treatment.
  */
 void Rbc_Draw3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder border, double x, double y, int width,
                                      int height, int borderWidth, int relief) {
@@ -1041,6 +1204,16 @@ void Rbc_Draw3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder
  * SetBgColor semantics before the fill, then delegates border geometry to
  * Rbc_Draw3DRectangleToPostScript. Inherits that helper arithmetic and
  * lifetime requirements; border omission does not undo the initial fill.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] border Borrowed live Tk border compatible with the token window.
+ * @param[in] x Finite mapped horizontal position in the current PostScript user coordinate system.
+ * @param[in] y Finite mapped vertical position in the current PostScript user coordinate system.
+ * @param[in] width Rectangle width in mapped user units; caller supplies valid bounded geometry.
+ * @param[in] height Rectangle height in mapped user units; caller supplies valid bounded geometry.
+ * @param[in] borderWidth Nonnegative band width with representable doubling and inset arithmetic.
+ * @param[in] relief Tk relief applied after filling the entire background rectangle.
  */
 void Rbc_Fill3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder border, double x, double y, int width,
                                      int height, int borderWidth, int relief) {
@@ -1065,6 +1238,12 @@ void Rbc_Fill3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder
  * the current path, emits bitmap data and calls prolog StippleFill before
  * restoring state. Requires a valid current path and registered Tk bitmap.
  * Bitmap acquisition failure has no status return and is not rolled back.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] display Display owning the borrowed bitmap.
+ * @param[in] bitmap Borrowed registered Tk bitmap with valid dimensions; repeated within the current path
+ *    clip.
  */
 void Rbc_StippleToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap) {
     int width, height;
@@ -1087,6 +1266,13 @@ void Rbc_StippleToPostScript(struct PsTokenStruct *tokenPtr, Display *display, P
  * Uses an eight-bit image matrix with negative vertical scale. No Tcl error
  * status is returned. The row-byte count is formatted as size_t without
  * narrowing to int.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[inout] image Borrowed valid image; noncolor modes replace RGB values with greyscale in place, and all
+ *    modes ignore alpha.
+ * @param[in] x Finite mapped horizontal position in the current PostScript user coordinate system.
+ * @param[in] y Finite mapped vertical position in the current PostScript user coordinate system.
  */
 void Rbc_ColorImageToPostScript(struct PsTokenStruct *tokenPtr, Rbc_ColorImage image, double x, double y) {
     int width, height;
@@ -1128,6 +1314,12 @@ void Rbc_ColorImageToPostScript(struct PsTokenStruct *tokenPtr, Rbc_ColorImage i
  * instead emits a comment and a grey background rectangle of the same size.
  * The fallback changes background color without restoring it and does not
  * report a Tcl error. This is capture of native pixels, not widget commands.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] tkwin Live window with native pixels available for capture at its current dimensions.
+ * @param[in] x Finite mapped horizontal position in the current PostScript user coordinate system.
+ * @param[in] y Finite mapped vertical position in the current PostScript user coordinate system.
  */
 void Rbc_WindowToPostScript(struct PsTokenStruct *tokenPtr, Tk_Window tkwin, double x, double y) {
     Rbc_ColorImage image;
@@ -1155,6 +1347,12 @@ void Rbc_WindowToPostScript(struct PsTokenStruct *tokenPtr, Tk_Window tkwin, dou
  * so greyscale conversion does not modify the original photo. Requires a
  * valid photo handle; no conversion failure status is propagated. Inherits
  * the serializer alpha omission and positioning conventions.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] photo Valid borrowed Tk photo; a temporary image copy absorbs any greyscale conversion.
+ * @param[in] x Finite mapped horizontal position in the current PostScript user coordinate system.
+ * @param[in] y Finite mapped vertical position in the current PostScript user coordinate system.
  */
 void Rbc_PhotoToPostScript(struct PsTokenStruct *tokenPtr, Tk_PhotoHandle photo, double x, double y) {
     Rbc_ColorImage image;
@@ -1179,6 +1377,11 @@ void Rbc_PhotoToPostScript(struct PsTokenStruct *tokenPtr, Tk_PhotoHandle photo,
  * Releases temporary Tcl descriptions, split lists and DStrings. No glyphs
  * are embedded. Variable reads can execute traces; enclosing export code
  * owns callback lifetime protection. This void helper does not report failure.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] font Borrowed Tk font, kept valid across optional font-map variable traces; no program is
+ *    embedded.
  */
 void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
 #ifndef WIN32
@@ -1284,6 +1487,11 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
  * literal contents and its measured width with DrawAdjText. Coordinates add
  * x/y to fragment baselines in Tcl_WideInt and emit the full sum, avoiding
  * signed int overflow. Does not choose fonts, colors or transforms.
+ *
+ * @param[inout] psToken Live borrowed PostScript token receiving output.
+ * @param[in] x Horizontal offset added to fragment baselines using wide arithmetic.
+ * @param[in] y Vertical offset added to fragment baselines using wide arithmetic.
+ * @param[in] textPtr Borrowed layout with live UTF fragment strings, byte counts and measured screen widths.
  */
 static void TextLayoutToPostScript(PsToken psToken, int x, int y, TextLayout *textPtr) {
     TextFragment *fragPtr;
@@ -1315,6 +1523,14 @@ static void TextLayoutToPostScript(PsToken psToken, int x, int y, TextLayout *te
  * BeginText/EndText save and restore graphics state; style fields are not
  * modified. Font/color array traces require enclosing lifetime protection,
  * including the borrowed string retained by layout fragments.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] string Borrowed NUL-terminated Tcl UTF text; NULL/empty emits nothing; must survive mapping
+ *    traces.
+ * @param[in] tsPtr Borrowed style and live font/colors; theta is unchanged and must satisfy FMOD/ROUND bounds.
+ * @param[in] x Finite horizontal anchor coordinate in mapped user units.
+ * @param[in] y Finite vertical anchor coordinate in mapped user units.
  */
 void Rbc_TextToPostScript(struct PsTokenStruct *tokenPtr, char *string, TextStyle *tsPtr, double x, double y) {
     double theta;
@@ -1363,6 +1579,11 @@ void Rbc_TextToPostScript(struct PsTokenStruct *tokenPtr, char *string, TextStyl
  * boundary and restarts at the shared endpoint.
  * Stroke boundaries retain connected positions but restart stroke/dash
  * processing. Requires a previously defined DashesProc; borrows the array.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] pointPtr Borrowed array of nPoints mapped integer vertices when the count is at least two.
+ * @param[in] nPoints Vertex count; fewer than two appends nothing.
  */
 void Rbc_LineToPostScript(struct PsTokenStruct *tokenPtr, register XPoint *pointPtr, int nPoints) {
     register int i;
@@ -1393,6 +1614,13 @@ void Rbc_LineToPostScript(struct PsTokenStruct *tokenPtr, register XPoint *point
  * Paints set bits with the current color; unset bits remain unpainted.
  * The caller supplies finite usable scale factors. Capture failures are not
  * returned or rolled back, and no bitmap resource is transferred.
+ *
+ * @param[inout] tokenPtr Live borrowed PostScript token receiving output; caller owns document framing, prolog
+ *    and lifetime.
+ * @param[in] display Display owning the borrowed bitmap.
+ * @param[in] bitmap Borrowed registered Tk bitmap, drawn as a one-bit mask centered on the current origin.
+ * @param[in] scaleX Finite usable horizontal scale factor, yielding a nonsingular image transform.
+ * @param[in] scaleY Finite usable vertical scale factor, yielding a nonsingular image transform.
  */
 void Rbc_BitmapToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pixmap bitmap, double scaleX,
                             double scaleY) {
@@ -1419,6 +1647,10 @@ void Rbc_BitmapToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pi
  * retained by Fill from being stroked accidentally. Requires a defined
  * DashesProc and a readable borrowed array of nSegments entries. No numeric
  * validation, clipping or state restoration is performed.
+ *
+ * @param[inout] psToken Live borrowed PostScript token receiving output.
+ * @param[in] segPtr Borrowed array of nSegments finite mapped floating segments when the count is positive.
+ * @param[in] nSegments Number of segment records; nonpositive counts append nothing.
  */
 void Rbc_2DSegmentsToPostScript(PsToken psToken, register Segment2D *segPtr, Tcl_Size nSegments) {
     register Segment2D *endPtr;

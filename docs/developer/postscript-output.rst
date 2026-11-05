@@ -14,10 +14,10 @@ file delivery and the Windows EPS preview wrapper.
 Token ownership
 ---------------
 
-``Rbc_GetPsToken`` allocates a token with an empty DString, NULL font/color map
+:c:func:`Rbc_GetPsToken` allocates a token with an empty DString, NULL font/color map
 names and color output selected. Its interpreter and Tk window are borrowed.
 The command assigns mapping variable names from its PostScript configuration;
-the token does not own those strings. ``Rbc_ReleasePsToken`` frees the DString
+the token does not own those strings. :c:func:`Rbc_ReleasePsToken` frees the DString
 and token, but none of these borrowed objects.
 
 During ``GraphToPostScript``, the shared export context's ``buffer`` points to
@@ -90,7 +90,7 @@ color-array entry instead supplies raw PostScript code and bypasses these
 operators. A lookup may execute a read trace, so this is a callback boundary,
 not just a color-table read. The enclosing export must protect borrowed
 lifetimes; the void color helpers do not expose lookup errors or undo output.
-``Rbc_ClearBackgroundToPostScript`` merely selects white: it clears no pixels.
+:c:func:`rbcPsPrimitives.Rbc_ClearBackgroundToPostScript` merely selects white: it clears no pixels.
 
 Line attributes have their own compatibility rules: zero-width lines become
 one user unit, CapNotLast maps to butt, and dash phase is always zero. The
@@ -103,19 +103,20 @@ Callers that need a dash-background pass must define it after that setup.
 
    * - Helper
      - Effect on the current path
-   * - Region
+   * - :c:func:`rbcPsPrimitives.Rbc_RegionToPostScript`
      - Starts a closed Box without painting.
-   * - Rectangle / rectangles
+   * - :c:func:`rbcPsPrimitives.Rbc_RectangleToPostScript` /
+       :c:func:`rbcPsPrimitives.Rbc_RectanglesToPostScript`
      - Starts each Box and consumes it with built-in fill.
-   * - Path
+   * - :c:func:`rbcPsPrimitives.Rbc_PathToPostScript`
      - Starts an open path; does not paint or split it.
-   * - Polygon
+   * - :c:func:`rbcPsPrimitives.Rbc_PolygonToPostScript`
      - Closes a new path and calls Fill, which preserves the path.
-   * - Integer segments
+   * - :c:func:`rbcPsPrimitives.Rbc_SegmentsToPostScript`
      - Does not clear an existing path before the first stroke.
-   * - Floating segments
+   * - :c:func:`rbcPsPrimitives.Rbc_2DSegmentsToPostScript`
      - Starts with newpath so a previous retained polygon is not stroked.
-   * - Integer polyline
+   * - :c:func:`rbcPsPrimitives.Rbc_LineToPostScript`
      - Starts a new path; strokes and restarts at shared batching endpoints.
 
 Nonpositive point or segment counts append nothing, leaving any existing path
@@ -133,7 +134,7 @@ the 1500-component boundary.
 Relief rectangles
 -----------------
 
-``Rbc_Draw3DRectangleToPostScript`` draws only border bands. It initializes Tk's
+:c:func:`rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript` draws only border bands. It initializes Tk's
 light-border GC before querying shadow colors, so export need not wait for a
 screen draw. Bottom and right strips are rectangles; the top/left band is a
 polygon. Raised and sunken relief exchange the light and dark sides. Groove
@@ -143,7 +144,7 @@ widths retain the existing integer split and inset rules.
 The helper omits borders if either dimension is smaller than twice the border
 width. Inputs must keep that multiplication and inset arithmetic representable;
 this is not an arbitrary-size geometry validator. Colors and the final polygon
-path remain selected after emission. ``Rbc_Fill3DRectangleToPostScript`` first
+path remain selected after emission. :c:func:`rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript` first
 fills the whole background, then invokes the border helper: skipping the border
 does not skip the fill. Border colors use background conversion, preserving the
 monochrome policy rather than treating relief bands as foreground strokes.
@@ -151,7 +152,7 @@ monochrome policy rather than treating relief bands as foreground strokes.
 Text and fill limitations
 -------------------------
 
-``Rbc_AppendPostScriptString`` emits literal-string contents, not the enclosing
+:c:func:`Rbc_AppendPostScriptString` emits literal-string contents, not the enclosing
 parentheses. It decodes Tcl UTF text, escapes delimiters and controls, and
 encodes ISO-8859-1 characters with octal escapes where needed. Characters
 outside that repertoire become spaces. This path does not use the SVG/PDF
@@ -175,16 +176,16 @@ Their inputs and temporary resources have distinct ownership:
 
    * - Entry point
      - Input and temporary image lifetime
-   * - ColorImageToPsData
+   * - :c:func:`rbcPsRaster.Rbc_ColorImageToPsData`
      - Borrows the image unchanged; appends to an initialized DString.
-   * - ColorImageToPostScript
+   * - :c:func:`rbcPsRaster.Rbc_ColorImageToPostScript`
      - Borrows the image, but modifies its RGB bytes in noncolor mode.
-   * - PhotoToPostScript
+   * - :c:func:`rbcPsRaster.Rbc_PhotoToPostScript`
      - Copies the photo into a temporary color image, then frees the copy.
-   * - WindowToPostScript
+   * - :c:func:`rbcPsRaster.Rbc_WindowToPostScript`
      - Owns and frees a native capture, or draws a grey rectangle on failure.
 
-``Rbc_ColorImageToPsData`` traverses rows from bottom to top. RGB output emits
+:c:func:`rbcPsRaster.Rbc_ColorImageToPsData` traverses rows from bottom to top. RGB output emits
 red, green and blue bytes. Its one-component branch emits the bitwise complement
 of the red channel; it does not itself calculate luminance. The outer serializer
 first calls ``Rbc_ColorImageToGreyscale`` for noncolor output, modifying the
@@ -195,7 +196,7 @@ so transparent samples are neither omitted nor composited with a background.
 Data lines hold at most sixty hex digits, prefixed by the supplied string and a
 space. Wrapping continues across image rows; the final partial line also gets a
 newline. The return value counts emitted data lines, not success/failure.
-Unsupported component counts append nothing and return zero. ``ByteToHex``
+Unsupported component counts append nothing and return zero. :c:func:`rbcPsRaster.ByteToHex`
 writes exactly two uppercase digits without a NUL terminator.
 
 The image program defines ``tmpStr`` as a row-sized input buffer and places an
@@ -213,7 +214,7 @@ Bitmap acquisition and payloads
 
 Bitmap payloads are angle-bracket hex strings. Each row is packed separately,
 with the first pixel in the high bit and unused tail bits zero. This differs
-from the continuous byte stream of a color image. ``ReverseBits`` implements
+from the continuous byte stream of a color image. :c:func:`rbcPsRaster.ReverseBits` implements
 the bit-order conversion; wrapping counts complete output bytes.
 
 .. list-table:: Native bitmap capture
@@ -236,9 +237,9 @@ outer emitter to discard partially written operators when acquisition fails.
 These limitations are separate from the drawable capture fallback used for
 window export.
 
-``Rbc_BitmapToPostScript`` centers the scaled mask at the current origin and
+:c:func:`rbcPsRaster.Rbc_BitmapToPostScript` centers the scaled mask at the current origin and
 paints set bits in the current color inside a saved graphics state. It leaves
-unset bits unpainted. ``Rbc_StippleToPostScript`` instead clips to the current
+unset bits unpainted. :c:func:`rbcPsRaster.Rbc_StippleToPostScript` instead clips to the current
 path and repeats the bitmap through the prolog's ``StippleFill`` procedure.
 Both require a registered Tk bitmap because they query its dimensions with
 ``Tk_SizeOfBitmap``. Neither supplies an independent error channel or rolls
@@ -247,7 +248,7 @@ back a partially emitted program.
 Legacy font selection
 ---------------------
 
-``Rbc_FontToPostScript`` chooses a name and point size for the prolog's
+:c:func:`rbcPsText.Rbc_FontToPostScript` chooses a name and point size for the prolog's
 ``SetFont``. It does not embed font programs or resolve fallback glyphs per
 character. Font selection follows this order:
 
@@ -294,7 +295,7 @@ SVG/PDF font embedding uses the separate machinery in :doc:`text-fonts`.
 Text transforms and fragment widths
 -----------------------------------
 
-``Rbc_TextToPostScript`` builds a borrowed-string layout, computes the rotated
+:c:func:`rbcPsText.Rbc_TextToPostScript` builds a borrowed-string layout, computes the rotated
 box, translates the requested anchor to that box's center, and emits BeginText.
 The prolog saves graphics state, translates to the center, rotates by the
 negative angle, then translates to the unrotated layout origin. Font selection
@@ -404,3 +405,60 @@ parentheses or backslashes. Check failures with a missing prolog separately
 from successful output. Keep page framing and delivery in ``rbcGrPs.c``;
 component code should request renderer operations rather than assemble a new
 PostScript document.
+
+Parameter and return-value boundaries
+-------------------------------------
+
+The token helpers operate on one caller-owned document buffer. The pointer from
+:c:func:`Rbc_PostScriptFromToken` is borrowed and can move on the next append;
+:c:func:`Rbc_ScratchBufferFromToken` is separate reusable storage overwritten by
+formatting and prolog reads. Neither accessor returns an independent copy.
+Do not feed either buffer back into an operation that overwrites or relocates
+it before consuming the input.
+
+:c:func:`Rbc_AppendToPostScript` takes NUL-terminated strings and a pointer-valued
+NULL sentinel. :c:func:`Rbc_AppendPostScriptString` instead accepts an explicit
+UTF byte count ending on a character boundary and escapes literal contents.
+It is still a text converter, not a binary append or general Unicode font
+encoder. Its caller supplies the parentheses.
+
+.. list-table:: Counts, outputs and omission
+   :header-rows: 1
+   :widths: 31 35 34
+
+   * - Helper
+     - Count or output contract
+     - Failure/omission contract
+   * - :c:func:`Rbc_FileToPostScript`
+     - Appends a text prolog; returns a Tcl status.
+     - Partial output remains on read failure; close status is not propagated.
+   * - :c:func:`rbcPsRaster.Rbc_ColorImageToPsData`
+     - Returns the number of physical hex-data lines appended.
+     - Unsupported component counts return zero, not ``TCL_ERROR``.
+   * - :c:func:`rbcPsRaster.ByteToHex`
+     - Writes exactly two bytes.
+     - Caller provides storage and any NUL terminator.
+   * - :c:func:`rbcPsRaster.Rbc_BitmapDataToPostScript`
+     - Width/height are positive bitmap pixel dimensions, not byte counts.
+     - Capture failure returns void without a payload; earlier operators remain.
+   * - :c:func:`rbcPsPrimitives.Rbc_LineToPostScript`
+     - Count is the number of vertices, not segments.
+     - Fewer than two vertices emits nothing.
+   * - :c:func:`rbcPsPrimitives.Rbc_2DSegmentsToPostScript`
+     - Count is the number of independent segment records.
+     - Nonpositive count emits nothing, including no initial path reset.
+
+The foreground/background helpers require a non-NULL color. Their mapping
+lookups can run Tcl traces, and mapped values are raw PostScript programs.
+:c:func:`rbcPsPrimitives.XColorToPostScript` is the narrower pure conversion:
+it emits RGB operands without a lookup or color-setting operator. These are
+separate contracts, not interchangeable ways to set color safely during reentry.
+
+Native resources remain borrowed. In particular,
+:c:func:`rbcPsRaster.Rbc_ColorImageToPostScript` may mutate the caller's image in
+noncolor mode, whereas :c:func:`rbcPsRaster.Rbc_PhotoToPostScript` and
+:c:func:`rbcPsRaster.Rbc_WindowToPostScript` own temporary images that they free.
+:c:func:`rbcPsText.TextLayoutToPostScript` borrows fragments and adds baseline
+offsets; it neither selects a font nor anchors a layout. The enclosing
+:c:func:`rbcPsText.Rbc_TextToPostScript` owns those operations and its temporary
+layout, while leaving the caller's style unchanged.

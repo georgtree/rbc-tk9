@@ -4,21 +4,17 @@ PostScript token C reference
 These private services are declared in ``rbcPs.h`` and implemented in
 ``rbcPs.c``. See :doc:`postscript-output` for ownership and prolog requirements.
 
-.. doxygenfunction:: Rbc_GetPsToken
+Token allocation and borrowed buffers
+-------------------------------------
 
-.. doxygenfunction:: Rbc_ReleasePsToken
+.. doxygengroup:: ps_token_lifetime
+   :members:
 
-.. doxygenfunction:: Rbc_PostScriptFromToken
+Appending syntax and loading prologs
+------------------------------------
 
-.. doxygenfunction:: Rbc_ScratchBufferFromToken
-
-.. doxygenfunction:: Rbc_AppendToPostScript
-
-.. doxygenfunction:: Rbc_FormatToPostScript
-
-.. doxygenfunction:: Rbc_AppendPostScriptString
-
-.. doxygenfunction:: Rbc_FileToPostScript
+.. doxygengroup:: ps_token_output
+   :members:
 
 Legacy drawing primitives
 -------------------------

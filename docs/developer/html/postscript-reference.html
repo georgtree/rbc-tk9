@@ -46,50 +46,149 @@
 <h1>PostScript token C reference<a class="headerlink" href="#postscript-token-c-reference" title="Link to this heading">¶</a></h1>
 <p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcPs.h</span></code> and implemented in
 <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code>. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for ownership and prolog requirements.</p>
+<section id="token-allocation-and-borrowed-buffers">
+<h2>Token allocation and borrowed buffers<a class="headerlink" href="#token-allocation-and-borrowed-buffers" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__ps__token__lifetime"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PostScript</span> <span class="pre">token</span> <span class="pre">lifetime</span> <span class="pre">and</span> <span class="pre">buffers</span></span></dt>
+<dd><p>Private ownership and borrowed buffer accessors. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetPsToken">
-<span class="target" id="rbc_ps_8h_1a849f9a8f69b5062d5d4742d96c78eb1b"></span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPsToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPsToken" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__ps__token__lifetime_1ga849f9a8f69b5062d5d4742d96c78eb1b"></span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPsToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPsToken" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocate an empty, color-mode PostScript token. </p>
-<p>The caller owns the token and releases it with Rbc_ReleasePsToken(). The interpreter and window are borrowed; this function does not preserve them. Font and color mapping variable names initially are NULL. </p>
+<p>The caller owns the token and releases it with <a class="reference internal" href="#group__ps__token__lifetime_1gabbb94d607ad4395bd1260efe9c9d5a72"><span class="std std-ref">Rbc_ReleasePsToken()</span></a>. The interpreter and window are borrowed; this function does not preserve them. Font and color mapping variable names initially are NULL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter borrowed for later diagnostics and mapping lookups; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Tk window borrowed for font, color and display information throughout token use. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ReleasePsToken">
-<span class="target" id="rbc_ps_8h_1a00fbca318043d8c065bb063d8659063c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleasePsToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleasePsToken" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span class="target" id="group__ps__token__lifetime_1gabbb94d607ad4395bd1260efe9c9d5a72"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleasePsToken</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleasePsToken" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a non-NULL token and its output buffer. </p>
+<p>Borrowed interpreter, window and mapping variable names are not released. All pointers returned into the token become invalid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[in]</strong> Owned non-NULL token to release; all pointers into its buffers become invalid. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PostScriptFromToken">
-<span class="target" id="rbc_ps_8h_1a0d4d74d894f0e131d8996ff7b1c693b2"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PostScriptFromToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PostScriptFromToken" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span class="target" id="group__ps__token__lifetime_1gac0fcec12c69d367470111f6009e34cf8"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PostScriptFromToken</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PostScriptFromToken" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the borrowed, NUL-terminated output buffer. </p>
+<p>Do not free the result. Appending output may relocate it; releasing the token invalidates it. This accessor does not finalize a document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[in]</strong> Live token whose output buffer is borrowed until the next relocating append or release. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ScratchBufferFromToken">
-<span class="target" id="rbc_ps_8h_1abd4f1793fdea725db7dbdc5b8886cf89"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScratchBufferFromToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ScratchBufferFromToken" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span class="target" id="group__ps__token__lifetime_1gaef7a8f4b2fec804dd7bf6e9a15628e8b"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScratchBufferFromToken</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ScratchBufferFromToken" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return borrowed mutable scratch storage of PSTOKEN_BUFSIZ + 1 bytes. </p>
+<p>Formatting and prolog reads reuse this storage. It is not the output buffer and must not be retained across those operations or token release.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[in]</strong> Live token whose reusable scratch storage is borrowed; contents are not initialized by this accessor. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
+</div>
+</dd></dl>
+
+</section>
+<section id="appending-syntax-and-loading-prologs">
+<h2>Appending syntax and loading prologs<a class="headerlink" href="#appending-syntax-and-loading-prologs" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__ps__token__output"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PostScript</span> <span class="pre">syntax</span> <span class="pre">and</span> <span class="pre">prolog</span> <span class="pre">appending</span></span></dt>
+<dd><p>Private append services; framing and delivery remain with the graph command. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_AppendToPostScript">
-<span class="target" id="rbc_ps_8h_1a225d5149418d7b444bc33e4e74daa768"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span class="target" id="group__ps__token__output_1ga46496be4d3ca68308f22e6c34b1b389d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a sequence of NUL-terminated strings, ending with a NULL pointer. </p>
+<p>Strings are copied without escaping. Callers supply PostScript syntax and must not pass binary data or pointers invalidated by output growth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>...</strong> – <strong>[in]</strong> NUL-terminated C strings followed by a pointer-valued NULL sentinel; strings must survive output growth. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FormatToPostScript">
-<span class="target" id="rbc_ps_8h_1aa3f34d600b0aba4cd6bca8bd20cc404b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FormatToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FormatToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span class="target" id="group__ps__token__output_1gad8fbea3edd75780a5d325fb6b7bccedc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FormatToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FormatToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append printf-formatted PostScript, using scratch storage or a temporary allocation when the formatted result exceeds the scratch capacity. </p>
+<p>This void helper does not report a formatting failure to the interpreter. It performs no PostScript string escaping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>fmt</strong> – <strong>[in]</strong> Borrowed printf format, not aliased with scratch storage overwritten by formatting. </p></li>
+<li><p><strong>...</strong> – <strong>[in]</strong> Arguments matching the format; referenced strings must remain readable during formatting and output growth. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_AppendPostScriptString">
-<span class="target" id="rbc_ps_8h_1adff5323446f8be58d575a47f91e91324"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendPostScriptString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendPostScriptString" title="Link to this definition">¶</a><br /></dt>
+<span class="target" id="group__ps__token__output_1gadff5323446f8be58d575a47f91e91324"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendPostScriptString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendPostScriptString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append escaped PostScript literal-string contents from Tcl UTF text. </p>
-<p>A negative length selects strlen; otherwise length is a byte count ending at a character boundary. NULL input is ignored. The caller supplies the surrounding parentheses. Delimiters, controls and non-ASCII characters use octal escapes; characters above ISO-8859-1 are replaced with a space. </p>
+<p>A negative length selects strlen; otherwise length is a byte count ending at a character boundary. NULL input is ignored. The caller supplies the surrounding parentheses. Delimiters, controls and non-ASCII characters use octal escapes; characters above ISO-8859-1 are replaced with a space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed Tcl UTF text, or NULL to append nothing; must remain readable across output appends. </p></li>
+<li><p><strong>length</strong> – <strong>[in]</strong> UTF byte count ending at a character boundary, or negative to use strlen; not a character count. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FileToPostScript">
-<span class="target" id="rbc_ps_8h_1a30fe970592cb025cd2e4963e1c7b3ef4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FileToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FileToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span class="target" id="group__ps__token__output_1ga6e4e5155ecca095c3d322ba7b6c7fa9f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FileToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FileToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a text prolog from fileName relative to the rbc::library variable. </p>
+<p>Return TCL_ERROR for library lookup, open or read failure, with an interpreter diagnostic; otherwise return TCL_OK. Partial output is not rolled back. The channel is closed, but its close status is not propagated. Reads overwrite token scratch storage. Tcl variable and channel operations may execute callbacks; the enclosing export owns lifetime protection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>fileName</strong> – <strong>[in]</strong> Borrowed NUL-terminated prolog filename appended to the global rbc::library directory. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
+</div>
+</dd></dl>
+
+</section>
 <section id="legacy-drawing-primitives">
 <h2>Legacy drawing primitives<a class="headerlink" href="#legacy-drawing-primitives" title="Link to this heading">¶</a></h2>
 <dl>
@@ -102,133 +201,312 @@
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.XColorToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga436d602509d874b964aa17533d619d26"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">XColorToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.XColorToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append three normalized RGB operands from a borrowed XColor. </p>
-<p>Uses only the upper eight bits of each 16-bit component, divided by 255. Emits no color-setting operator and performs no variable lookup. </p>
+<p>Uses only the upper eight bits of each 16-bit component, divided by 255. Emits no color-setting operator and performs no variable lookup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; only the upper eight bits of each RGB component are emitted. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_BackgroundToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga61df7cd906fb79e39fe9a9737cbb34f6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BackgroundToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_BackgroundToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append mapped background code or RGB operands followed by SetBgColor. </p>
-<p>If colorVarName is set, look up the color name in that Tcl array and append a found value verbatim, bypassing the default operator. Missing entries fall back to RGB conversion. Variable reads may run traces; the enclosing caller must protect token, interpreter and borrowed input lifetimes. This void helper neither reports lookup failure nor rolls back output. </p>
+<p>If colorVarName is set, look up the color name in that Tcl array and append a found value verbatim, bypassing the default operator. Missing entries fall back to RGB conversion. Variable reads may run traces; the enclosing caller must protect token, interpreter and borrowed input lifetimes. This void helper neither reports lookup failure nor rolls back output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; keep it valid across optional mapping-variable traces. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_ForegroundToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga115a1903fcb61e4b95de4208a3faf773"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ForegroundToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_ForegroundToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append mapped foreground code or RGB operands followed by SetFgColor. </p>
-<p>Uses the same optional Tcl color-array lookup as background output, with the same trace/lifetime requirements. Found values are executable source, not escaped color names. Otherwise the prolog controls color, greyscale and monochrome conversion. No graphics-state save is emitted. </p>
+<p>Uses the same optional Tcl color-array lookup as background output, with the same trace/lifetime requirements. Found values are executable source, not escaped color names. Otherwise the prolog controls color, greyscale and monochrome conversion. No graphics-state save is emitted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; keep it valid across optional mapping-variable traces. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_ClearBackgroundToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1gad1f166b1760466e492a7b047e8ac9d70"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ClearBackgroundToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_ClearBackgroundToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select white through the prolog background-color operator. </p>
-<p>Appends SetBgColor operands only; it does not erase or fill any region. It bypasses the optional Tcl color map and does not restore prior color. </p>
+<p>Appends SetBgColor operands only; it does not erase or fill any region. It bypasses the optional Tcl color map and does not restore prior color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_CapStyleToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1gae8a78f5e6e3faf2bc54b3a1c09943e27"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CapStyleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_CapStyleToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an X11-to-PostScript line-cap conversion. </p>
-<p>CapNotLast and CapButt both map to butt; positive X11 values are reduced by one. The caller supplies a valid cap enumeration; no range validation or graphics-state restoration is performed. </p>
+<p>CapNotLast and CapButt both map to butt; positive X11 values are reduced by one. The caller supplies a valid cap enumeration; no range validation or graphics-state restoration is performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>capStyle</strong> – <strong>[in]</strong> Valid X cap-style enumeration; CapNotLast and CapButt both produce butt caps. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_JoinStyleToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga790136d5db467b5b9dbfa2303bfc368e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_JoinStyleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_JoinStyleToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append the join enumeration directly to setlinejoin. </p>
-<p>X11 and PostScript share miter=0, round=1 and bevel=2. The caller must supply a valid enumeration; the previous setting is not restored. </p>
+<p>X11 and PostScript share miter=0, round=1 and bevel=2. The caller must supply a valid enumeration; the previous setting is not restored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> Valid X join-style enumeration, directly compatible with PostScript. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_LineWidthToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga1e0f8dbe69992ac41f0cb9a7cb0ea3c5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineWidthToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_LineWidthToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an integer line width, clamped to at least one. </p>
-<p>Zero and negative inputs become one rather than a PostScript hairline. Width is expressed in the current user coordinate system. </p>
+<p>Zero and negative inputs become one rather than a PostScript hairline. Width is expressed in the current user coordinate system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>lineWidth</strong> – <strong>[in]</strong> Integer width in current user units; values below one are clamped to one. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_LineDashesToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga29f17294772b429d9240c29e4bc25dcf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineDashesToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_LineDashesToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a zero-terminated byte dash list with zero phase. </p>
-<p>A NULL pointer or empty values array emits a solid-line dash array. A non-NULL values array must contain a zero terminator. The stored dash offset is not emitted; this helper always uses phase zero. </p>
+<p>A NULL pointer or empty values array emits a solid-line dash array. A non-NULL values array must contain a zero terminator. The stored dash offset is not emitted; this helper always uses phase zero.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>dashesPtr</strong> – <strong>[in]</strong> Borrowed zero-terminated byte pattern, or NULL for solid lines; offset is ignored. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_LineAttributesToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga0842dd3c1bd85748ecdd06e50a1e0478"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineAttributesToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_LineAttributesToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append join, cap, foreground, width and dashes in that order. </p>
-<p>Borrows all inputs and inherits the foreground color-map callback boundary. Finally defines an empty DashesProc in the current dictionary. This is not a scoped state change; subsequent strokes use the emitted attributes. </p>
+<p>Borrows all inputs and inherits the foreground color-map callback boundary. Finally defines an empty DashesProc in the current dictionary. This is not a scoped state change; subsequent strokes use the emitted attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>colorPtr</strong> – <strong>[in]</strong> Non-NULL borrowed color; keep it valid across optional mapping-variable traces. </p></li>
+<li><p><strong>lineWidth</strong> – <strong>[in]</strong> Integer width in current user units; values below one are clamped to one. </p></li>
+<li><p><strong>dashesPtr</strong> – <strong>[in]</strong> Borrowed zero-terminated byte pattern, or NULL for solid lines; offset is ignored. </p></li>
+<li><p><strong>capStyle</strong> – <strong>[in]</strong> Valid X cap-style enumeration; CapNotLast and CapButt both produce butt caps. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> Valid X join-style enumeration, directly compatible with PostScript. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_RectangleToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1gaa33caeebf48a846cb877961e142bbf39"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RectangleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_RectangleToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a Box followed by the built-in fill operator. </p>
-<p>Receives already mapped coordinates and dimensions. The prolog Box starts a fresh closed path; fill consumes it. No color, clipping or validation is added, and no outline is stroked. </p>
+<p>Receives already mapped coordinates and dimensions. The prolog Box starts a fresh closed path; fill consumes it. No color, clipping or validation is added, and no outline is stroked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_RegionToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga8e234c0bcf79a98a487e81c6c9e92d5d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RegionToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_RegionToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a fresh closed rectangular path without painting it. </p>
-<p>Uses the prolog Box procedure. The caller decides whether to fill, stroke or clip the resulting path and supplies valid mapped dimensions. </p>
+<p>Uses the prolog Box procedure. The caller decides whether to fill, stroke or clip the resulting path and supplies valid mapped dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_PathToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga2cf14f70a32aef4e205d3bde2d0a7a82"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PathToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">screenPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nScreenPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_PathToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a new open path from borrowed floating-point vertices. </p>
-<p>A nonpositive count appends nothing and leaves the prior path untouched. For a positive count, screenPts must contain that many points. Emits one moveto and remaining lineto operations, with no stroke, close, clipping or path-size splitting. Numeric inputs must be suitable for PostScript. </p>
+<p>A nonpositive count appends nothing and leaves the prior path untouched. For a positive count, screenPts must contain that many points. Emits one moveto and remaining lineto operations, with no stroke, close, clipping or path-size splitting. Numeric inputs must be suitable for PostScript.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>screenPts</strong> – <strong>[in]</strong> Borrowed array of nScreenPts mapped finite vertices when the count is positive. </p></li>
+<li><p><strong>nScreenPts</strong> – <strong>[in]</strong> Vertex count; nonpositive counts leave output and the current path unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_PolygonToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga31286e8e21724b7f92677905cf1d55a3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PolygonToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">screenPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nScreenPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_PolygonToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Close and fill a borrowed floating-point polygon through Fill. </p>
-<p>Nonpositive counts append nothing. Otherwise builds a fresh path, adds an explicit line back to the first point, closes it and calls the prolog Fill procedure. Unlike built-in fill, Fill preserves the path. This helper does not validate polygon area, split large paths or select a color. </p>
+<p>Nonpositive counts append nothing. Otherwise builds a fresh path, adds an explicit line back to the first point, closes it and calls the prolog Fill procedure. Unlike built-in fill, Fill preserves the path. This helper does not validate polygon area, split large paths or select a color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>screenPts</strong> – <strong>[in]</strong> Borrowed array of nScreenPts mapped finite vertices when the count is positive. </p></li>
+<li><p><strong>nScreenPts</strong> – <strong>[in]</strong> Vertex count; nonpositive counts append nothing; polygon validity is not checked. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_SegmentsToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga1a524913561e260e00460f93c778c1ec"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SegmentsToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">XSegment</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_SegmentsToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append independent integer segments with DashesProc stroke. </p>
-<p>Borrows nSegments XSegment entries; nonpositive counts append nothing. No initial newpath is emitted, so callers must ensure there is no pending path to stroke along with the first segment. Requires DashesProc to be defined. Each stroke consumes its path and restarts the dash pattern. </p>
+<p>Borrows nSegments XSegment entries; nonpositive counts append nothing. No initial newpath is emitted, so callers must ensure there is no pending path to stroke along with the first segment. Requires DashesProc to be defined. Each stroke consumes its path and restarts the dash pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>segPtr</strong> – <strong>[in]</strong> Borrowed array of nSegments integer segments when the count is positive. </p></li>
+<li><p><strong>nSegments</strong> – <strong>[in]</strong> Number of segment records; nonpositive counts append nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_RectanglesToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga06c4715550d94d5dcd20c61a8bd567a5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RectanglesToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">XRectangle</span></span><span class="w"> </span><span class="n"><span class="pre">rectArr</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_RectanglesToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill each borrowed integer rectangle with the current color. </p>
-<p>Delegates each entry to Rbc_RectangleToPostScript; nonpositive counts append nothing. No outline, color selection or clipping is supplied. </p>
+<p>Delegates each entry to Rbc_RectangleToPostScript; nonpositive counts append nothing. No outline, color selection or clipping is supplied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>rectArr</strong> – <strong>[in]</strong> Borrowed array of nRects mapped integer rectangles when the count is positive. </p></li>
+<li><p><strong>nRects</strong> – <strong>[in]</strong> Number of rectangle records; nonpositive counts append nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga5f3e967a1d293375a3d2b7dfb68258ef"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Draw3DRectangleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append the border bands of a Tk relief rectangle. </p>
-<p>Borrows a live border and the token window. Requires nonnegative bounded dimensions and borderWidth with representable integer arithmetic. Returns without output if either dimension is smaller than twice borderWidth. Initializes Tk shadow colors before querying them. Groove and ridge use two recursive half-width relief bands; raised and sunken swap light/dark top-left and bottom-right colors. Other cases retain the existing solid or background-color selection. Emits bottom/right rectangles and a top/left polygon; does not fill the whole interior or restore color/path. Color-map reads inherit the enclosing export callback requirements. </p>
+<p>Borrows a live border and the token window. Requires nonnegative bounded dimensions and borderWidth with representable integer arithmetic. Returns without output if either dimension is smaller than twice borderWidth. Initializes Tk shadow colors before querying them. Groove and ridge use two recursive half-width relief bands; raised and sunken swap light/dark top-left and bottom-right colors. Other cases retain the existing solid or background-color selection. Emits bottom/right rectangles and a top/left polygon; does not fill the whole interior or restore color/path. Color-map reads inherit the enclosing export callback requirements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed live Tk border compatible with the token window. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Nonnegative band width with representable doubling and inset arithmetic. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief selecting solid, raised, sunken, groove, ridge or flat band treatment. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga6ff1625cce6b13dac16f518f3ba78f72"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Fill3DRectangleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill the background rectangle, then append its relief border. </p>
-<p>Borrows the border and token window. Selects its background with SetBgColor semantics before the fill, then delegates border geometry to Rbc_Draw3DRectangleToPostScript. Inherits that helper arithmetic and lifetime requirements; border omission does not undo the initial fill. </p>
+<p>Borrows the border and token window. Selects its background with SetBgColor semantics before the fill, then delegates border geometry to Rbc_Draw3DRectangleToPostScript. Inherits that helper arithmetic and lifetime requirements; border omission does not undo the initial fill.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed live Tk border compatible with the token window. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Rectangle width in mapped user units; caller supplies valid bounded geometry. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Rectangle height in mapped user units; caller supplies valid bounded geometry. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Nonnegative band width with representable doubling and inset arithmetic. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief applied after filling the entire background rectangle. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_LineToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1ga9046927136b9c2d7910c5cdaff360844"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_LineToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a stroked integer polyline with bounded path batches. </p>
-<p>Counts below two are no-ops, without reading the point array or changing the output. Otherwise pointPtr must contain nPoints readable entries. Starts a new path, then emits DashesProc stroke at each PS_MAXPATH boundary and restarts at the shared endpoint. Stroke boundaries retain connected positions but restart stroke/dash processing. Requires a previously defined DashesProc; borrows the array. </p>
+<p>Counts below two are no-ops, without reading the point array or changing the output. Otherwise pointPtr must contain nPoints readable entries. Starts a new path, then emits DashesProc stroke at each PS_MAXPATH boundary and restarts at the shared endpoint. Stroke boundaries retain connected positions but restart stroke/dash processing. Requires a previously defined DashesProc; borrows the array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>pointPtr</strong> – <strong>[in]</strong> Borrowed array of nPoints mapped integer vertices when the count is at least two. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Vertex count; fewer than two appends nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsPrimitives.Rbc_2DSegmentsToPostScript">
 <span class="target" id="group__ps__legacy__primitives_1gab4427ace194bd2c3a8db4c9b228cd64c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_2DSegmentsToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsPrimitives.Rbc_2DSegmentsToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append independent floating segments after clearing any pending path. </p>
-<p>Nonpositive counts append nothing. Otherwise starts with newpath, then emits each segment followed by DashesProc stroke. This prevents a path retained by Fill from being stroked accidentally. Requires a defined DashesProc and a readable borrowed array of nSegments entries. No numeric validation, clipping or state restoration is performed. </p>
+<p>Nonpositive counts append nothing. Otherwise starts with newpath, then emits each segment followed by DashesProc stroke. This prevents a path retained by Fill from being stroked accidentally. Requires a defined DashesProc and a readable borrowed array of nSegments entries. No numeric validation, clipping or state restoration is performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output. </p></li>
+<li><p><strong>segPtr</strong> – <strong>[in]</strong> Borrowed array of nSegments finite mapped floating segments when the count is positive. </p></li>
+<li><p><strong>nSegments</strong> – <strong>[in]</strong> Number of segment records; nonpositive counts append nothing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -250,63 +528,149 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dt class="sig sig-object c" id="c.rbcPsRaster.ReverseBits">
 <span class="target" id="group__ps__raster__encoding_1ga697b80e079190b7c26e8f2169cf6995f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReverseBits</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">byte</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.ReverseBits" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a byte with its eight bit positions reversed. </p>
-<p>Swaps adjacent bits, pairs and nibbles. No allocation or output state is involved; bitmap serializers use it to place the first pixel in bit seven. </p>
+<p>Swaps adjacent bits, pairs and nibbles. No allocation or output state is involved; bitmap serializers use it to place the first pixel in bit seven.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>byte</strong> – <strong>[in]</strong> Eight-bit value whose bit positions are reversed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.ByteToHex">
 <span class="target" id="group__ps__raster__encoding_1ga4a76860f6196739e1928ae1df227d35a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ByteToHex</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">byte</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.ByteToHex" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Write two uppercase hexadecimal digits into caller-owned storage. </p>
-<p>string must have at least two writable bytes. No NUL terminator is written; callers add delimiters, line breaks or a terminator separately. </p>
+<p>string must have at least two writable bytes. No NUL terminator is written; callers add delimiters, line breaks or a terminator separately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>byte</strong> – <strong>[in]</strong> Byte to encode as two uppercase hexadecimal digits. </p></li>
+<li><p><strong>string</strong> – <strong>[out]</strong> At least two writable bytes; no terminating NUL is added. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_BitmapDataToPostScript">
 <span class="target" id="group__ps__raster__encoding_1gae87bd79f6b3ee448ee52aa8ce7823c53"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BitmapDataToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_BitmapDataToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an X11 depth-one bitmap as a PostScript hex string. </p>
-<p>Borrows a valid bitmap and token with positive matching dimensions. Captures plane one with XGetImage, reads rows top-to-bottom with XGetPixel, and packs the first pixel into the high bit of each output byte. Partial bytes are zero-padded per row. Emits angle-bracket delimiters, uppercase hex and wrapping after batches of thirty complete bytes, then destroys the XImage. A failed capture returns without appending a payload, matching the Windows failure policy. No Tcl status is returned. </p>
+<p>Borrows a valid bitmap and token with positive matching dimensions. Captures plane one with XGetImage, reads rows top-to-bottom with XGetPixel, and packs the first pixel into the high bit of each output byte. Partial bytes are zero-padded per row. Emits angle-bracket delimiters, uppercase hex and wrapping after batches of thirty complete bytes, then destroys the XImage. A failed capture returns without appending a payload, matching the Windows failure policy. No Tcl status is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>display</strong> – <strong>[in]</strong> Display owning the borrowed bitmap. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Live borrowed depth-one bitmap; not freed by this helper. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive bitmap width in pixels, matching the captured bitmap. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive bitmap height in pixels, matching the captured bitmap. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_ColorImageToPsData">
 <span class="target" id="group__ps__raster__encoding_1ga5d7a13c45008515f0be2baae267e07d6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToPsData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nComponents</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">prefix</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_ColorImageToPsData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append bottom-to-top raster samples as wrapped hexadecimal text. </p>
-<p>Borrows a valid image, initialized result DString and NUL-terminated prefix. Three components emit RGB bytes; one component emits the complement of each red byte, assuming greyscale conversion was already performed. Other component counts append nothing and return zero. Alpha is ignored. Each physical data line starts with prefix plus a space, holds up to sixty hex digits, and ends with a newline, including a partial final line. Row boundaries do not force line breaks. Returns the number of appended data lines, not a Tcl status; caller sizes must keep this int count valid. The image is unchanged. No image operator or surrounding hex delimiters are emitted; prefix must not alias storage invalidated by DString growth. </p>
+<p>Borrows a valid image, initialized result DString and NUL-terminated prefix. Three components emit RGB bytes; one component emits the complement of each red byte, assuming greyscale conversion was already performed. Other component counts append nothing and return zero. Alpha is ignored. Each physical data line starts with prefix plus a space, holds up to sixty hex digits, and ends with a newline, including a partial final line. Row boundaries do not force line breaks. Returns the number of appended data lines, not a Tcl status; caller sizes must keep this int count valid. The image is unchanged. No image operator or surrounding hex delimiters are emitted; prefix must not alias storage invalidated by DString growth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> – <strong>[in]</strong> Borrowed readable image; RGB output ignores alpha, and one-component output assumes greyscale already computed. </p></li>
+<li><p><strong>nComponents</strong> – <strong>[in]</strong> Three for RGB or one for complemented red-channel samples; other values append nothing. </p></li>
+<li><p><strong>resultPtr</strong> – <strong>[inout]</strong> Caller-initialized DString receiving hex text and line separators. </p></li>
+<li><p><strong>prefix</strong> – <strong>[in]</strong> NUL-terminated prefix for each physical data line; must not alias storage relocated by result growth. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_StippleToPostScript">
 <span class="target" id="group__ps__raster__encoding_1ga6ac5fb34bf9586110751948097a3b2ae"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_StippleToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_StippleToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill the current clipping shape with a borrowed Tk bitmap pattern. </p>
-<p>Queries bitmap dimensions, saves graphics state, intersects the clip with the current path, emits bitmap data and calls prolog StippleFill before restoring state. Requires a valid current path and registered Tk bitmap. Bitmap acquisition failure has no status return and is not rolled back. </p>
+<p>Queries bitmap dimensions, saves graphics state, intersects the clip with the current path, emits bitmap data and calls prolog StippleFill before restoring state. Requires a valid current path and registered Tk bitmap. Bitmap acquisition failure has no status return and is not rolled back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>display</strong> – <strong>[in]</strong> Display owning the borrowed bitmap. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed registered Tk bitmap with valid dimensions; repeated within the current path clip. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_ColorImageToPostScript">
 <span class="target" id="group__ps__raster__encoding_1gac2e4f92c426779d2dec0614b6448e59d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_ColorImageToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a positioned RGB or greyscale raster image program. </p>
-<p>Borrows a valid image and token; does not release the image. Color mode selects three-component colorimage; other modes convert image RGB values to greyscale in place and emit complemented red samples through image. Alpha is not composited or encoded. Translation and scaling are enclosed in gsave/grestore, but tmpStr is a dictionary definition, not saved state. Uses an eight-bit image matrix with negative vertical scale. No Tcl error status is returned. The row-byte count is formatted as size_t without narrowing to int. </p>
+<p>Borrows a valid image and token; does not release the image. Color mode selects three-component colorimage; other modes convert image RGB values to greyscale in place and emit complemented red samples through image. Alpha is not composited or encoded. Translation and scaling are enclosed in gsave/grestore, but tmpStr is a dictionary definition, not saved state. Uses an eight-bit image matrix with negative vertical scale. No Tcl error status is returned. The row-byte count is formatted as size_t without narrowing to int.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>image</strong> – <strong>[inout]</strong> Borrowed valid image; noncolor modes replace RGB values with greyscale in place, and all modes ignore alpha. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_WindowToPostScript">
 <span class="target" id="group__ps__raster__encoding_1ga1a02c0fef6de55fd33ec301342b12809"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_WindowToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_WindowToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Capture a window into an owned temporary image and serialize it. </p>
-<p>Borrows a live window and token; captures its current dimensions at GAMMA. On success frees the temporary image after serialization. A failed capture instead emits a comment and a grey background rectangle of the same size. The fallback changes background color without restoring it and does not report a Tcl error. This is capture of native pixels, not widget commands. </p>
+<p>Borrows a live window and token; captures its current dimensions at GAMMA. On success frees the temporary image after serialization. A failed capture instead emits a comment and a grey background rectangle of the same size. The fallback changes background color without restoring it and does not report a Tcl error. This is capture of native pixels, not widget commands.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Live window with native pixels available for capture at its current dimensions. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_PhotoToPostScript">
 <span class="target" id="group__ps__raster__encoding_1ga0df8a05c300f8649b23b85171ffe3b3d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_PhotoToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a Tk photo into a temporary color image and serialize it. </p>
-<p>Borrows the photo and token. Releases the temporary image after output, so greyscale conversion does not modify the original photo. Requires a valid photo handle; no conversion failure status is propagated. Inherits the serializer alpha omission and positioning conventions. </p>
+<p>Borrows the photo and token. Releases the temporary image after output, so greyscale conversion does not modify the original photo. Requires a valid photo handle; no conversion failure status is propagated. Inherits the serializer alpha omission and positioning conventions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>photo</strong> – <strong>[in]</strong> Valid borrowed Tk photo; a temporary image copy absorbs any greyscale conversion. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite mapped horizontal position in the current PostScript user coordinate system. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite mapped vertical position in the current PostScript user coordinate system. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsRaster.Rbc_BitmapToPostScript">
 <span class="target" id="group__ps__raster__encoding_1gac3fca3262eed09fcbe43b81f48cfca26"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BitmapToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsRaster.Rbc_BitmapToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit a scaled bitmap mask centered on the current origin. </p>
-<p>Borrows a registered Tk bitmap and token. Queries dimensions, translates by negative half scaled width and positive half scaled height, then scales by scaled width and negative scaled height. Emits a byte-packed one-bit imagemask with true polarity, restoring graphics state afterward. Paints set bits with the current color; unset bits remain unpainted. The caller supplies finite usable scale factors. Capture failures are not returned or rolled back, and no bitmap resource is transferred. </p>
+<p>Borrows a registered Tk bitmap and token. Queries dimensions, translates by negative half scaled width and positive half scaled height, then scales by scaled width and negative scaled height. Emits a byte-packed one-bit imagemask with true polarity, restoring graphics state afterward. Paints set bits with the current color; unset bits remain unpainted. The caller supplies finite usable scale factors. Capture failures are not returned or rolled back, and no bitmap resource is transferred.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>display</strong> – <strong>[in]</strong> Display owning the borrowed bitmap. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed registered Tk bitmap, drawn as a one-bit mask centered on the current origin. </p></li>
+<li><p><strong>scaleX</strong> – <strong>[in]</strong> Finite usable horizontal scale factor, yielding a nonsingular image transform. </p></li>
+<li><p><strong>scaleY</strong> – <strong>[in]</strong> Finite usable vertical scale factor, yielding a nonsingular image transform. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -329,35 +693,81 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 <dt class="sig sig-object c" id="c.rbcPsText.NameOfAtom">
 <span class="target" id="group__ps__text__mapping_1gad0ab4c209fadaf482b7f39cc00c23df0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NameOfAtom</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Atom</span></span><span class="w"> </span><span class="n"><span class="pre">atom</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.NameOfAtom" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Borrow an X11 atom name, translating Tk’s bad-atom sentinel to NULL. </p>
-<p>Requires a live Tk window. The returned name belongs to Tk and must not be freed. The helper does not acquire a font or allocate output storage. </p>
+<p>Requires a live Tk window. The returned name belongs to Tk and must not be freed. The helper does not acquire a font or allocate output storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Live window selecting the Tk display/atom cache. </p></li>
+<li><p><strong>atom</strong> – <strong>[in]</strong> Atom whose Tk-owned name is requested. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsText.XFontStructToPostScript">
 <span class="target" id="group__ps__text__mapping_1ga6daf8c88f8b0fdf0e2353e93c2c9df80"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">XFontStructToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">XFontStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fontPtr</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.XFontStructToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build a legacy PostScript name from borrowed X11 font properties. </p>
-<p>Requires an initialized result DString and a valid XFontStruct. Missing FULL_NAME, FOUNDRY or FAMILY_NAME returns NULL without replacing the result. Adobe families are kept; other foundries remove an optional ITC prefix and use an exact case-insensitive alias match, defaulting to Helvetica. If the full name starts with the original family, its remaining typeface is appended after a dash with spaces and dashes removed. Success replaces resultPtr and returns a borrowed pointer into it. No font is released here. </p>
+<p>Requires an initialized result DString and a valid XFontStruct. Missing FULL_NAME, FOUNDRY or FAMILY_NAME returns NULL without replacing the result. Adobe families are kept; other foundries remove an optional ITC prefix and use an exact case-insensitive alias match, defaulting to Helvetica. If the full name starts with the original family, its remaining typeface is appended after a dash with spaces and dashes removed. Success replaces resultPtr and returns a borrowed pointer into it. No font is released here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Live window used to resolve property atom names. </p></li>
+<li><p><strong>fontPtr</strong> – <strong>[in]</strong> Borrowed valid X font structure with the required name/family/foundry properties. </p></li>
+<li><p><strong>resultPtr</strong> – <strong>[inout]</strong> Initialized DString replaced on success; returned name borrows this buffer. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsText.Rbc_FontToPostScript">
 <span class="target" id="group__ps__text__mapping_1ga19ed065006a9dc976ba8cb2081bf3a3b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.Rbc_FontToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a PostScript font name and size using the legacy fallback chain. </p>
-<p>Borrows the token and Tk font. A found font-map array entry takes priority: its first list element supplies the raw font name; exactly two elements with an integer second element supply the size. Otherwise size remains twelve, including one-element entries. Parse errors do not stop output. Without a mapped entry, recognized family prefixes use Tk_PostscriptFontName. Other X11 families attempt XLoadQueryFont and property-based mapping, freeing the loaded font after copying its name into a temporary DString. Windows skips this attempt. Final fallback is Helvetica-Bold, normally at size twelve. Releases temporary Tcl descriptions, split lists and DStrings. No glyphs are embedded. Variable reads can execute traces; enclosing export code owns callback lifetime protection. This void helper does not report failure. </p>
+<p>Borrows the token and Tk font. A found font-map array entry takes priority: its first list element supplies the raw font name; exactly two elements with an integer second element supply the size. Otherwise size remains twelve, including one-element entries. Parse errors do not stop output. Without a mapped entry, recognized family prefixes use Tk_PostscriptFontName. Other X11 families attempt XLoadQueryFont and property-based mapping, freeing the loaded font after copying its name into a temporary DString. Windows skips this attempt. Final fallback is Helvetica-Bold, normally at size twelve. Releases temporary Tcl descriptions, split lists and DStrings. No glyphs are embedded. Variable reads can execute traces; enclosing export code owns callback lifetime protection. This void helper does not report failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>font</strong> – <strong>[in]</strong> Borrowed Tk font, kept valid across optional font-map variable traces; no program is embedded. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsText.TextLayoutToPostScript">
 <span class="target" id="group__ps__text__mapping_1ga62358dc4b2fcffb10c34798928b14fd6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextLayoutToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.TextLayoutToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append nonempty layout fragments as adjusted PostScript text. </p>
-<p>Borrows a live token and layout. Empty fragments are skipped, avoiding the prolog division by string length. Each other fragment uses escaped Latin-1 literal contents and its measured width with DrawAdjText. Coordinates add x/y to fragment baselines in Tcl_WideInt and emit the full sum, avoiding signed int overflow. Does not choose fonts, colors or transforms. </p>
+<p>Borrows a live token and layout. Empty fragments are skipped, avoiding the prolog division by string length. Each other fragment uses escaped Latin-1 literal contents and its measured width with DrawAdjText. Coordinates add x/y to fragment baselines in Tcl_WideInt and emit the full sum, avoiding signed int overflow. Does not choose fonts, colors or transforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>psToken</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal offset added to fragment baselines using wide arithmetic. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical offset added to fragment baselines using wide arithmetic. </p></li>
+<li><p><strong>textPtr</strong> – <strong>[in]</strong> Borrowed layout with live UTF fragment strings, byte counts and measured screen widths. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcPsText.Rbc_TextToPostScript">
 <span class="target" id="group__ps__text__mapping_1ga451f78009e0f1965e41d677d186e803b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TextToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.Rbc_TextToPostScript" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append anchored, optionally shadowed text under a saved transform. </p>
-<p>NULL or empty strings append nothing. Borrows the string, style and Tk resources; allocates and frees a temporary layout. Requires finite bounded geometry and angles compatible with FMOD and ROUND. The bounding-box calculation normalizes the remainder into [0, 360), while BeginText receives the original style angle. Selects the font, optional positive-offset shadow, then active or normal foreground. Does not implement native disabled/emphasis two-pass relief. BeginText/EndText save and restore graphics state; style fields are not modified. Font/color array traces require enclosing lifetime protection, including the borrowed string retained by layout fragments. </p>
+<p>NULL or empty strings append nothing. Borrows the string, style and Tk resources; allocates and frees a temporary layout. Requires finite bounded geometry and angles compatible with FMOD and ROUND. The bounding-box calculation normalizes the remainder into [0, 360), while BeginText receives the original style angle. Selects the font, optional positive-offset shadow, then active or normal foreground. Does not implement native disabled/emphasis two-pass relief. BeginText/EndText save and restore graphics state; style fields are not modified. Font/color array traces require enclosing lifetime protection, including the borrowed string retained by layout fragments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokenPtr</strong> – <strong>[inout]</strong> Live borrowed PostScript token receiving output; caller owns document framing, prolog and lifetime. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated Tcl UTF text; NULL/empty emits nothing; must survive mapping traces. </p></li>
+<li><p><strong>tsPtr</strong> – <strong>[in]</strong> Borrowed style and live font/colors; theta is unchanged and must satisfy FMOD/ROUND bounds. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Finite horizontal anchor coordinate in mapped user units. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Finite vertical anchor coordinate in mapped user units. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -515,14 +925,20 @@ Windows goes directly to the final fallback when family recognition fails.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">PostScript token C reference</a><ul>
+<li><a class="reference internal" href="#token-allocation-and-borrowed-buffers">Token allocation and borrowed buffers</a><ul>
 <li><a class="reference internal" href="#c.Rbc_GetPsToken"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPsToken()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ReleasePsToken"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleasePsToken()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PostScriptFromToken"><code class="docutils literal notranslate"><span class="pre">Rbc_PostScriptFromToken()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ScratchBufferFromToken"><code class="docutils literal notranslate"><span class="pre">Rbc_ScratchBufferFromToken()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#appending-syntax-and-loading-prologs">Appending syntax and loading prologs</a><ul>
 <li><a class="reference internal" href="#c.Rbc_AppendToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_AppendToPostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_FormatToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_FormatToPostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_AppendPostScriptString"><code class="docutils literal notranslate"><span class="pre">Rbc_AppendPostScriptString()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_FileToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_FileToPostScript()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#legacy-drawing-primitives">Legacy drawing primitives</a><ul>
 <li><a class="reference internal" href="#c.rbcPsPrimitives.XColorToPostScript"><code class="docutils literal notranslate"><span class="pre">XColorToPostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcPsPrimitives.Rbc_BackgroundToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_BackgroundToPostScript()</span></code></a></li>
