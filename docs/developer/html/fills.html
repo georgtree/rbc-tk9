@@ -72,9 +72,9 @@ images. See <a class="reference internal" href="images-tiles.html"><span class="
 </section>
 <section id="ordinary-area-geometry">
 <h2>Ordinary area geometry<a class="headerlink" href="#ordinary-area-geometry" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">MapLine</span></code> clears old geometry, maps the source points, applies smoothing and
-any explicit geometric reduction, then calls <code class="docutils literal notranslate"><span class="pre">MapFillArea</span></code>. Configured area
-fills exclude the pixel-density decimation path; explicit <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> remains
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.MapLine" title="rbcGrLineMapping.MapLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineMapping.MapLine()</span></code></a> clears old geometry, maps the source points, applies
+smoothing and any explicit geometric reduction, then calls <code class="docutils literal notranslate"><span class="pre">MapFillArea</span></code>. Configured
+area fills exclude the pixel-density decimation path; explicit <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> remains
 separate. See <a class="reference internal" href="decimation.html"><span class="doc">Line decimation and source identity</span></a> and <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a>.</p>
 <p>The area stores one polygon in <code class="docutils literal notranslate"><span class="pre">fillPts</span></code>/<code class="docutils literal notranslate"><span class="pre">nFillPts</span></code>. If the mapped input has
 a <code class="docutils literal notranslate"><span class="pre">breakBefore</span></code> array, no area is produced: joining separate runs into one
@@ -152,12 +152,12 @@ must not be assumed to describe the ordinary area mapper.</p>
 annotations. These fills are element-level resources, rather than per-point
 palette styles. Picking remains based on the element’s trace/symbol geometry;
 the fill polygon does not introduce a separate interior-hit operation.</p>
-<p><code class="docutils literal notranslate"><span class="pre">DrawLineFill</span></code> borrows the polygons and resources. A tile takes precedence
-over a pattern; a tile without a pixmap suppresses output. With Cairo selected,
-<code class="docutils literal notranslate"><span class="pre">DrawRenderedFill</span></code> first attempts a photo tile or an opacity-aware pattern.
-The tile path uses image transparency and does not receive the area/band opacity
-argument. Failed or unsupported Cairo rendering falls back to a native fill
-context. Native pattern filling retains its non-blended behavior. Do not infer
+<p><code class="docutils literal notranslate"><span class="pre">DrawLineFill</span></code> borrows the polygons and resources. A tile takes precedence over a
+pattern; a tile without a pixmap suppresses output. With Cairo selected,
+<a class="reference internal" href="element-reference.html#c.rbcGrLineOutput.DrawRenderedFill" title="rbcGrLineOutput.DrawRenderedFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOutput.DrawRenderedFill()</span></code></a> first attempts a photo tile or an
+opacity-aware pattern. The tile path uses image transparency and does not receive the
+area/band opacity argument. Failed or unsupported Cairo rendering falls back to a native
+fill context. Native pattern filling retains its non-blended behavior. Do not infer
 identical transparency support merely from the common polygon interface.</p>
 <p>Export builds <code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillStyle</span></code> and uses export fill contexts with the
 mapped geometry. It preserves area-before-band ordering and supplies tiles

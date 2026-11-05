@@ -1648,6 +1648,12 @@ static int ComplexDivide(double nr, double ni, double dr, double di, double *rea
  * the key/value on success. Allocates the key object and returns the Tcl
  * status. Does not write interpreter variables or invoke their traces.
  * The caller owns result lifetime and must supply an unshared dictionary.
+ *
+ * @param[in,out] interp Borrowed interpreter for dictionary diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] resultObjPtr Borrowed unshared result dictionary; inserted fields are retained, and earlier
+ *   fields survive a later error.
+ * @param[in] name Required NUL-terminated dictionary key, copied into a new Tcl string.
+ * @param[in] valueObjPtr Borrowed value object; the dictionary acquires a reference on successful insertion.
  */
 static int SetClosestInfoObj(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, Tcl_Obj *valueObjPtr) {
     return Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj(name, -1), valueObjPtr);
@@ -1660,6 +1666,12 @@ static int SetClosestInfoObj(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const ch
  * Constructs a Tcl double and delegates dictionary insertion. Returns the
  * insertion status; the result dictionary owns the inserted object on success.
  * Does not format the number through a string or publish an array variable.
+ *
+ * @param[in,out] interp Borrowed interpreter for dictionary diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] resultObjPtr Borrowed unshared result dictionary; inserted fields are retained, and earlier
+ *   fields survive a later error.
+ * @param[in] name Required NUL-terminated dictionary key, copied into a new Tcl string.
+ * @param[in] value Double value copied into a new Tcl object without string formatting.
  */
 static int SetClosestInfoDouble(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, double value) {
     return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewDoubleObj(value));
@@ -1671,6 +1683,12 @@ static int SetClosestInfoDouble(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const
  *
  * Copies the NUL-terminated value into a Tcl string and returns dictionary
  * insertion status. Borrows the result dictionary and does not publish variables.
+ *
+ * @param[in,out] interp Borrowed interpreter for dictionary diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] resultObjPtr Borrowed unshared result dictionary; inserted fields are retained, and earlier
+ *   fields survive a later error.
+ * @param[in] name Required NUL-terminated dictionary key, copied into a new Tcl string.
+ * @param[in] value Required borrowed NUL-terminated value string, copied into a new Tcl object.
  */
 static int SetClosestInfoString(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, const char *value) {
     return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewStringObj(value, -1));
@@ -1683,6 +1701,13 @@ static int SetClosestInfoString(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const
  * Creates two Tcl doubles and a list in real, imaginary order, then inserts
  * that list into the borrowed result dictionary. Returns the insertion status.
  * No RBC vector is created and no variable traces are run.
+ *
+ * @param[in,out] interp Borrowed interpreter for dictionary diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] resultObjPtr Borrowed unshared result dictionary; inserted fields are retained, and earlier
+ *   fields survive a later error.
+ * @param[in] name Required NUL-terminated dictionary key, copied into a new Tcl string.
+ * @param[in] real Real component stored at list index zero.
+ * @param[in] imag Imaginary component stored at list index one.
  */
 static int SetClosestInfoPair(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, double real, double imag) {
     Tcl_Obj *objv[2];
@@ -4224,6 +4249,9 @@ static int LineNeedsPixelDecimation(Graph *graphPtr, Line *linePtr) {
  * Frees the block array and zeros the complete cache record. Borrowed X/Y
  * source arrays are neither freed nor retained. Does not clear element change
  * metadata, map geometry or deliver vector notifications.
+ *
+ * @param[in,out] linePtr Live line whose owned summary blocks and cache identity are discarded; source arrays
+ *   are not freed.
  */
 static void InvalidateLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
@@ -4249,6 +4277,9 @@ static void InvalidateLineDecimateCache(Line *linePtr) {
  * repeated attempts until invalidation. Size/allocation failure likewise
  * returns FALSE with an unsupported built cache. TRUE means summaries exist,
  * not that current logarithmic axes accept the source domain.
+ *
+ * @param[in,out] linePtr Line in Cartesian X/Y mode with synchronized source arrays; old summaries are
+ *   discarded before building new ones.
  */
 static int BuildLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
@@ -4380,6 +4411,10 @@ unsupported:
  * nonpositive count before modifying summaries. Returns FALSE without changing
  * the block on invalid input or inconsistent positivity accounting. On success
  * updates block/global counts and allPositiveY. Does not inspect X or allocate.
+ *
+ * @param[in,out] linePtr Line with supported cache, unchanged X and refreshed Y storage; one block and global
+ *   positivity counts may change.
+ * @param[in] blockIndex Zero-based block index; an invalid index returns FALSE without updating summaries.
  */
 static int RebuildLineDecimateYBlock(Line *linePtr, Tcl_Size blockIndex) {
     LineDecimateCache *cachePtr;
@@ -4450,7 +4485,10 @@ static int RebuildLineDecimateYBlock(Line *linePtr, Tcl_Size blockIndex) {
 
 /**
  * @ingroup line_cache_internals
- * @brief Ensure source summaries exist and fit the current log domains.
+ * @brief Ensure Cartesian X/Y summaries exist and fit the current log domains.
+ *
+ * Rejects converted polar and complex input before inspecting cache arrays;
+ * original-sample picking must scan those representations through their adapter.
  *
  * Invalidates built state when source pointers or paired count differ, then
  * builds once if necessary. Returns FALSE for unsupported summaries or a log
@@ -4458,11 +4496,23 @@ static int RebuildLineDecimateYBlock(Line *linePtr, Tcl_Size blockIndex) {
  * cache for later linear-axis reuse. Pointer/count checks do not detect in-place
  * writes; notification-driven refresh/invalidation remains required. May allocate
  * summaries but does not synchronize vectors or consume change metadata.
+ *
+ * @param[in,out] linePtr Line with synchronized source storage and prepared axes; Cartesian X/Y summaries may
+ *   be rebuilt, other representations return FALSE.
  */
 static int EnsureLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
     Tcl_Size nPoints;
 
+    /*
+     * Source picking can reach this helper after geometric reduction even
+     * when pixel decimation was disabled. Raw X/Y cache bounds do not
+     * describe converted polar or complex samples. In complex mode the
+     * point count can also exceed the retained, unused X/Y arrays.
+     */
+    if ((linePtr->dataMode != LINE_DATA_XY) || (linePtr->dataCoordinates != LINE_COORDINATES_CARTESIAN)) {
+        return FALSE;
+    }
     cachePtr = &linePtr->decimateCache;
     nPoints = NumberOfPoints(&linePtr->core);
     /*
@@ -4584,6 +4634,12 @@ static int RefreshLineDecimateCache(Line *linePtr) {
  * Uses whole aligned block summaries and scans boundary fragments. Strict
  * comparisons preserve the earliest source index on ties. Writes min/max
  * indices, performs no allocation, and does not validate the caller's range.
+ *
+ * @param[in] linePtr Borrowed line with valid current summaries and their live Y array.
+ * @param[in] first Inclusive first source index, at least zero and no greater than last.
+ * @param[in] last Inclusive last source index, less than the cached point count.
+ * @param[out] minIndexPtr Required earliest-minimum source-index output, distinct from maxIndexPtr.
+ * @param[out] maxIndexPtr Required earliest-maximum source-index output, distinct from minIndexPtr.
  */
 static void GetCachedRangeExtrema(Line *linePtr, Tcl_Size first, Tcl_Size last, Tcl_Size *minIndexPtr,
                                   Tcl_Size *maxIndexPtr) {
@@ -4632,6 +4688,14 @@ static void GetCachedRangeExtrema(Line *linePtr, Tcl_Size first, Tcl_Size last, 
  * writing bucketPtr for nonfinite mapped abscissa. Values outside pixelMin/pixelMax
  * use sentinel buckets one unit beyond the respective boundary; inside values
  * use truncation toward zero, not floor. Does not modify the cache.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] linePtr Borrowed line with a valid cached X array and prepared X axis.
+ * @param[in] index Valid zero-based index into the cached source arrays; bounds are not checked here.
+ * @param[in] pixelMin Lower finite physical screen-coordinate bound for buckets, no greater than pixelMax.
+ * @param[in] pixelMax Upper finite physical screen-coordinate bound for buckets, no less than pixelMin.
+ * @param[out] bucketPtr Required physical pixel-bucket output; unchanged when mapping returns FALSE.
  */
 static int GetCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size index, double pixelMin, double pixelMax,
                                 double *bucketPtr) {
@@ -4661,6 +4725,16 @@ static int GetCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size index, 
  * Searches after first, returning nPoints when no later bucket exists. Sets okPtr
  * TRUE on success. If mapping fails, sets it FALSE and returns an intermediate
  * bound that callers must not use as a valid bucket boundary. No allocation.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] linePtr Borrowed line with valid cached X storage and monotonic mapped bucket order.
+ * @param[in] first Valid source index in the current bucket; search begins at first plus one.
+ * @param[in] currentBucket Physical bucket containing first, obtained with the same viewport bounds.
+ * @param[in] direction Positive for increasing mapped buckets, negative for decreasing; zero is not supported.
+ * @param[in] pixelMin Lower finite physical screen-coordinate bound for buckets, no greater than pixelMax.
+ * @param[in] pixelMax Upper finite physical screen-coordinate bound for buckets, no less than pixelMin.
+ * @param[out] okPtr Required status output; use the returned source boundary only when TRUE.
  */
 static Tcl_Size FindNextCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size first, double currentBucket,
                                           int direction, double pixelMin, double pixelMax, int *okPtr) {
@@ -4697,6 +4771,9 @@ static Tcl_Size FindNextCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Si
  * symbols/labels also require full centers; explicit active selections can map
  * independently. This is a semantic gate, not a density or cache-validity test.
  * Borrows line/pen state and makes no changes.
+ *
+ * @param[in] linePtr Borrowed configured line with source lengths, palette, normal/active pens and activation
+ *   state available.
  */
 static int CanPreMapDecimateLine(Line *linePtr) {
     Element *elemPtr;
@@ -4753,6 +4830,10 @@ static int CanPreMapDecimateLine(Line *linePtr) {
  * changes reject retention. An exact pending range beginning at or beyond
  * nPoints permits retention even if vector storage relocated. Does not compare
  * values or validate the full range; relies on truthful producer notifications.
+ *
+ * @param[in] vPtr Borrowed synchronized source slot and its accumulated change metadata.
+ * @param[in] cachedValues Previous borrowed array identity; compared as a pointer, never dereferenced.
+ * @param[in] nPoints Length of the previously cached prefix; exact changes must start at or beyond this index.
  */
 static int CanRetainLineDecimatePrefix(const ElemVector *vPtr, const double *cachedValues, Tcl_Size nPoints) {
     if (!vPtr->changePending) {
@@ -4782,6 +4863,10 @@ static int CanRetainLineDecimatePrefix(const ElemVector *vPtr, const double *cac
  * break-before flag. Fewer than two points succeed. Uses physical screen roles
  * for inversion, without modifying input or allocating. Caller supplies finite
  * mapped points; this helper is not a nonfinite-value validator.
+ *
+ * @param[in] graphPtr Borrowed graph supplying the inversion flag.
+ * @param[in] mapPtr Borrowed finite mapped points and optional break-before flags; each run is checked
+ *   independently.
  */
 static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr) {
     Tcl_Size i;
@@ -4823,6 +4908,15 @@ static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr) {
  * Sorts first/min/max/last indices and appends each distinct candidate, advancing
  * countPtr. Caller must provide enough output capacity; no bounds check or
  * allocation occurs. Deduplicates within this bucket only.
+ *
+ * @param[in] first First source index of this bucket.
+ * @param[in] minIndex Source index of the bucket minimum; may coincide with another representative.
+ * @param[in] maxIndex Source index of the bucket maximum; may coincide with another representative.
+ * @param[in] last Last source index of this bucket, inclusive.
+ * @param[in,out] selected Caller-owned index array with space for up to four more entries; capacity is not
+ *   checked.
+ * @param[in,out] countPtr Required current output length, advanced for each emitted representative; initially
+ *   within destination capacity.
  */
 static void AppendPixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxIndex, Tcl_Size last, Tcl_Size *selected,
                               Tcl_Size *countPtr) {
@@ -4885,6 +4979,18 @@ INLINE static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double 
  * of a new run when prior output exists. Returns FALSE on exhaustion, leaving
  * any preceding appends and updated count intact; caller must discard or handle
  * that partial result. Does not allocate or deduplicate against earlier buckets.
+ *
+ * @param[in] first First source index of this bucket.
+ * @param[in] minIndex Source index of the bucket minimum; may coincide with another representative.
+ * @param[in] maxIndex Source index of the bucket maximum; may coincide with another representative.
+ * @param[in] last Last source index of this bucket, inclusive.
+ * @param[in] startsRun Nonzero marks the first emitted representative as a new run when earlier output exists.
+ * @param[in] capacity Nonnegative number of entries allocated in both output arrays.
+ * @param[in,out] selected Writable index array of capacity entries; partial appends remain on FALSE.
+ * @param[in,out] selectedBreakBefore Writable parallel array of capacity break flags; each appended index
+ *   receives a flag.
+ * @param[in,out] countPtr Required current output length, advanced for each emitted representative; initially
+ *   within destination capacity.
  */
 static int AppendSourcePixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxIndex, Tcl_Size last, int startsRun,
                                    Tcl_Size capacity, Tcl_Size *selected, unsigned char *selectedBreakBefore,
@@ -5277,6 +5383,16 @@ static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapIn
  * nonfinite mapping returns FALSE, and outputs must then be ignored. Success
  * may be empty. Does not apply a query distance metric: callers decide whether
  * pruning by mapped data X is valid for their search.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] linePtr Borrowed line with supported monotonic-X cache and current source storage.
+ * @param[in] low Inclusive screen-abscissa bound; low/high are ordered locally if reversed.
+ * @param[in] high Other inclusive screen-abscissa bound; neither argument is a source-data value.
+ * @param[out] firstPtr Required first index of the half-open source interval; initialized to zero and usable
+ *   only on TRUE.
+ * @param[out] lastPtr Required separate one-past-last source index; may equal first for an empty result. Use
+ *   only on TRUE.
  */
 static int GetCachedSourceRangeForAbscissa(Graph *graphPtr, Line *linePtr, double low, double high, Tcl_Size *firstPtr,
                                            Tcl_Size *lastPtr) {
@@ -5678,6 +5794,10 @@ static int BuildCachedPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr,
  * Allocates replacement block storage only when more blocks are needed, then
  * commits pointers, counts, direction and positivity summaries. FALSE requests
  * caller invalidation; it does not report a Tcl error or clear change metadata.
+ *
+ * @param[in,out] linePtr Line with supported summaries and synchronized X/Y slots carrying exact
+ *   prefix-preservation metadata.
+ * @param[in] nPoints New paired source count, readable in both current X/Y arrays; shrinkage is rejected.
  */
 static int GrowLineDecimateCache(Line *linePtr, Tcl_Size nPoints) {
     LineDecimateCache *cachePtr;
@@ -6775,6 +6895,9 @@ fallback:
  *
  * Frees owned screen points, source indices and optional break flags, then
  * zeros the complete MapInfo. The record itself remains caller-owned.
+ *
+ * @param[in,out] mapPtr Initialized caller-owned map, possibly empty; owned arrays are freed and the complete
+ *   record is zeroed.
  */
 static void FreeMapRun(MapInfo *mapPtr) {
     if (mapPtr->screenPts != NULL) {
@@ -6799,6 +6922,13 @@ static void FreeMapRun(MapInfo *mapPtr) {
  * the interval represents one continuous run. Returns FALSE for nonpositive
  * length, byte-count overflow or attempted-allocation failure, cleaning partial
  * storage. Borrows and does not modify the source.
+ *
+ * @param[in] srcPtr Borrowed mapped point/index arrays containing the entire requested continuous interval.
+ * @param[in] first Zero-based first mapped-point offset; bounds and continuity are caller-validated.
+ * @param[in] length Number of mapped entries to copy; nonpositive values fail, and first plus length must fit
+ *   the source.
+ * @param[out] dstPtr Fresh nonowning map, distinct from srcPtr; initialized here and receives owned arrays on
+ *   TRUE.
  */
 static int CopyMapRun(const MapInfo *srcPtr, Tcl_Size first, Tcl_Size length, MapInfo *dstPtr) {
     size_t pointBytes;
@@ -7027,6 +7157,9 @@ fallback:
  * Returns zero for a NULL pen or SYMBOL_NONE, otherwise size plus twice
  * the outline width and two pixels for rounding. Borrows the pen and does
  * not compute exact symbol bounds or allocate storage.
+ *
+ * @param[in] penPtr Borrowed symbol pen, or NULL for zero padding.
+ * @param[in] size Already scaled symbol size in pixels, used with outline width to bound its reach.
  */
 static double SymbolPadding(LinePen *penPtr, int size) {
     if ((penPtr == NULL) || (penPtr->symbol.type == SYMBOL_NONE)) {
@@ -7044,6 +7177,12 @@ static double SymbolPadding(LinePen *penPtr, int size) {
  * normal symbol arrays, so the active pen must contribute. Calls ScaleSymbol,
  * which may capture axis-range baselines. Returns conservative center bounds;
  * actual drawing still requires clipping to the plot viewport.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] linePtr Live line with palette and active pens; symbol scaling may update axis-range
+ *   baselines.
+ * @param[out] extsPtr Required conservative symbol-center rectangle in mapped pixels; not a rendering clip.
  */
 static void GetSymbolMapExtents(Graph *graphPtr, Line *linePtr, Extents2D *extsPtr) {
     Rbc_ChainLink *linkPtr;
@@ -7083,6 +7222,13 @@ static void GetSymbolMapExtents(Graph *graphPtr, Line *linePtr, Extents2D *extsP
  * new arrays and count when any centers survive; otherwise frees candidates.
  * Empty input, checked-size failure or attempted-allocation failure leaves
  * existing line fields unchanged. Does not clip the symbol shapes themselves.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] linePtr Line whose previous symbol arrays have been released; receives new owned center/index
+ *   arrays and may update scale baselines.
+ * @param[in] mapPtr Borrowed source-ordered mapped points with parallel original indices and optional break
+ *   flags; not modified.
  */
 static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
@@ -7137,6 +7283,11 @@ static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  * points can share an original index. Compacts symbol points and indices in
  * place without changing capacity. Sets pointMapOmitted if any centers are
  * removed so exact picking can search source samples instead.
+ *
+ * @param[in,out] linePtr Line with source-ordered symbol arrays; compacts them in place and sets
+ *   pointMapOmitted when any center is removed.
+ * @param[in] mapPtr Borrowed reduced trace map in source order with exact coordinates and original indices; no
+ *   ownership transfer.
  */
 static void FilterReducedSymbols(Line *linePtr, const MapInfo *mapPtr) {
     Tcl_Size i;
@@ -7278,6 +7429,13 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
  * Transfers arrays only when segments survive; frees empty candidates.
  * Insufficient points, size failure or attempted-allocation failure leaves
  * line fields unchanged. Does not apply the line trace-direction filter.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] linePtr Line whose previous strip arrays have been released; receives owned
+ *   independent-segment and source-index arrays.
+ * @param[in] mapPtr Borrowed source-ordered mapped points with parallel original indices and optional break
+ *   flags; not modified.
  */
 static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
@@ -7345,6 +7503,11 @@ static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  * Size failure returns without mutation; ordinary allocation uses ckalloc.
  * Run source-order filtering before this operation. Trace chains are not
  * reordered here.
+ *
+ * @param[in,out] linePtr Mapped line with a nonempty palette; arrays may be reordered and replaced, and styles
+ *   receive borrowed slices.
+ * @param[in] dataToStyle Borrowed source-index-to-style array covering every mapped index; may be NULL only for
+ *   a single-style palette.
  */
 static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
     LinePenStyle *stylePtr;
@@ -7534,6 +7697,9 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
  * Returns a bit mask for sides strictly outside the rectangle. Points on
  * its edges are inside. Borrows both arguments without mutation; callers
  * supply valid ordered extents and finite coordinates.
+ *
+ * @param[in] extsPtr Borrowed finite ordered clipping rectangle, inclusive at its edges.
+ * @param[in] p Borrowed finite point to classify, unchanged.
  */
 INLINE static int OutCode(Extents2D *extsPtr, Point2D *p) {
     int code;
@@ -7561,6 +7727,12 @@ INLINE static int OutCode(Extents2D *extsPtr, Point2D *p) {
  * Returns zero for an accepted segment and nonzero for rejection, opposite
  * to a conventional success predicate. May modify endpoints even when the
  * segment is ultimately rejected. Does not allocate or preserve originals.
+ *
+ * @param[in] extsPtr Borrowed finite ordered clipping rectangle.
+ * @param[in] code1 OutCode value computed for the current p and this rectangle.
+ * @param[in] code2 OutCode value computed for the current q and this rectangle.
+ * @param[in,out] p Writable finite first endpoint, distinct from q; clipping may change it even on rejection.
+ * @param[in,out] q Writable finite second endpoint, distinct from p; clipping may change it even on rejection.
  */
 static int ClipSegment(Extents2D *extsPtr, register int code1, register int code2, register Point2D *p,
                        register Point2D *q) {
@@ -7610,6 +7782,13 @@ static int ClipSegment(Extents2D *extsPtr, register int code1, register int code
  * Stores the starting map offset, creates the chain lazily and appends a new
  * trace. Uses ckalloc; FreeTraces owns the resulting arrays and record.
  * Does not transfer or modify the source map.
+ *
+ * @param[in,out] linePtr Line receiving a newly allocated trace record; its trace chain is created lazily if
+ *   absent.
+ * @param[in] start First mapped offset of a valid interval; retained in the trace as its start.
+ * @param[in] length Positive number of mapped entries to copy; caller must ensure allocation-safe sizes and
+ *   source bounds.
+ * @param[in] mapPtr Borrowed source map; indices may be NULL, in which case map offsets become source indices.
  */
 static void SaveTrace(Line *linePtr, Tcl_Size start, Tcl_Size length, MapInfo *mapPtr) {
     LineTrace *tracePtr;
@@ -7675,6 +7854,11 @@ static void FreeTraces(Line *linePtr) {
  * undoes X-axis descending direction. This coordinate is for trace-direction
  * comparisons, not an inverse transform or recovered data value. Borrows all
  * arguments and performs no allocation.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] linePtr Borrowed line supplying the prepared X axis and its descending flag.
+ * @param[in] pointPtr Borrowed finite mapped point in graph-window coordinates.
  */
 static double TraceAbscissa(Graph *graphPtr, Line *linePtr, const Point2D *pointPtr) {
     double value;
@@ -7716,6 +7900,12 @@ static double TraceAbscissa(Graph *graphPtr, Line *linePtr, const Point2D *point
  * restored after saving an accepted clipped exit, but the map is not generally
  * preserved. SaveTrace copies surviving geometry into line-owned storage.
  * Call fill and source-coordinate filtering before this destructive stage.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] linePtr Line with a cleared trace chain receiving copies of surviving clipped runs.
+ * @param[in,out] mapPtr Nonempty temporary map with writable points and parallel indices; clipping can
+ *   overwrite coordinates.
  */
 static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size start;
@@ -8300,6 +8490,11 @@ static void FilterLineErrorBars(Line *linePtr, PenStyle **dataToStyle) {
  * maps eligible XY error bars, filters them and finally merges palette slices.
  * Individual helpers define allocation fallbacks; this void operation is not
  * an all-or-nothing transaction and does not emit Tcl diagnostics.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] elemPtr Live line-family core with synchronized source arrays and pending change metadata;
+ *   existing mapped geometry is discarded.
  */
 static void MapLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
@@ -8485,6 +8680,13 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
  * Delegates to Rbc_GetClosestPointOnSegment using a double-precision query.
  * Borrows endpoints and writes the nearest segment point to t. Returns the
  * pixel distance, including endpoint clamping, without modifying endpoints.
+ *
+ * @param[in] x Horizontal query coordinate in screen pixels.
+ * @param[in] y Vertical query coordinate in screen pixels.
+ * @param[in] p Borrowed finite first segment endpoint, unchanged.
+ * @param[in] q Borrowed finite second segment endpoint, unchanged.
+ * @param[out] t Required separate closest-point output in screen pixels; always written for valid finite
+ *   inputs.
  */
 static double DistanceToLine(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     Point2D sample;
@@ -8503,6 +8705,13 @@ static double DistanceToLine(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
  * distance from the query. Near-vertical segments choose the nearer endpoint
  * in Y, with ties choosing q; near-horizontal segments use their constant Y.
  * This is a trace intersection metric, not point-search X distance.
+ *
+ * @param[in] x Horizontal query coordinate in screen pixels.
+ * @param[in] y Vertical query coordinate in screen pixels.
+ * @param[in] p Borrowed finite first segment endpoint, unchanged.
+ * @param[in] q Borrowed finite second segment endpoint, unchanged.
+ * @param[out] t Required separate closest-point output in screen pixels; unchanged when the query lies outside
+ *   the relevant endpoint span.
  */
 static double DistanceToX(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     double dx, dy;
@@ -8554,6 +8763,13 @@ static double DistanceToX(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
  * distance from the query. Near-horizontal segments choose the nearer endpoint
  * in X, with ties choosing q; near-vertical segments use their constant X.
  * Borrows endpoints and does not allocate.
+ *
+ * @param[in] x Horizontal query coordinate in screen pixels.
+ * @param[in] y Vertical query coordinate in screen pixels.
+ * @param[in] p Borrowed finite first segment endpoint, unchanged.
+ * @param[in] q Borrowed finite second segment endpoint, unchanged.
+ * @param[out] t Required separate closest-point output in screen pixels; unchanged when the query lies outside
+ *   the relevant endpoint span.
  */
 static double DistanceToY(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     double dx, dy;
@@ -8606,6 +8822,15 @@ static double DistanceToY(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
  * and the inverse-mapped closest coordinate in the borrowed search record.
  * Returns TRUE only if it improves the incoming distance; ties retain the
  * previous candidate. Requires current trace geometry and prepared axes.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] linePtr Borrowed line with current mapped geometry and synchronized source slots; no ownership is
+ *   transferred.
+ * @param[in,out] searchPtr Initialized query and best-hit record; only a strictly closer candidate replaces its
+ *   distance, element, index and coordinate.
+ * @param[in] distProc Required script-free segment metric; must write its closest point whenever the returned
+ *   distance can improve the query.
  */
 static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc) {
     Rbc_ChainLink *linkPtr;
@@ -8648,6 +8873,15 @@ static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
  * Commits a strict improvement to the search record, inverse-mapping the hit
  * coordinate and reporting the segment's retained source index. Returns FALSE
  * without changing the record if no segment improves it. Borrows geometry.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] linePtr Borrowed line with current mapped geometry and synchronized source slots; no ownership is
+ *   transferred.
+ * @param[in,out] searchPtr Initialized query and best-hit record; only a strictly closer candidate replaces its
+ *   distance, element, index and coordinate.
+ * @param[in] distProc Required script-free segment metric; must write its closest point whenever the returned
+ *   distance can improve the query.
  */
 static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc) {
     Point2D closest, b;
@@ -8687,6 +8921,11 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
  * use absolute screen X and Y distances respectively. Strict improvements
  * retain source indices and recover data coordinates from the source adapter.
  * Requires current mapped arrays and source data; does not synchronize them.
+ *
+ * @param[in] linePtr Borrowed line with current mapped geometry and synchronized source slots; no ownership is
+ *   transferred.
+ * @param[in,out] searchPtr Initialized query and best-hit record; only a strictly closer candidate replaces its
+ *   distance, element, index and coordinate.
  */
 static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
     Point2D *pointPtr;
@@ -8747,6 +8986,13 @@ static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
  * Candidate pruning uses the screen coordinate onto which data X maps:
  * SEARCH_X normally, SEARCH_Y when inverted, or SEARCH_BOTH in either
  * orientation. Other directional queries must search the full source range.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] linePtr Live line with synchronized source arrays and current mapping state; source picking
+ *   may allocate or replace cache summaries.
+ * @param[in,out] searchPtr Initialized query and best-hit record; only a strictly closer candidate replaces its
+ *   distance, element, index and coordinate.
  */
 static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr) {
     Extents2D exts;
@@ -8849,6 +9095,13 @@ static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *se
  * Uses retained mapped centers unless pointMapOmitted requests an original
  * source search. Borrows all inputs and updates the search record only through
  * the selected helper. The source path may allocate a decimation cache.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] linePtr Live line with synchronized source arrays and current mapping state; source picking
+ *   may allocate or replace cache summaries.
+ * @param[in,out] searchPtr Initialized query and best-hit record; only a strictly closer candidate replaces its
+ *   distance, element, index and coordinate.
  */
 static void ClosestPoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr) {
     if (!linePtr->pointMapOmitted) {
@@ -8870,6 +9123,11 @@ static void ClosestPoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPt
  * Ordinary XY input uses vector extrema, finding a positive minimum when a
  * log axis requires it, and expands the result for error bars. Does not use
  * smoothed or decimated screen geometry, allocate, or synchronize source data.
+ *
+ * @param[in] elemPtr Borrowed line-family core with synchronized source values/extrema, error data and prepared
+ *   axis policies.
+ * @param[out] extsPtr Required source-coordinate bounds, initialized to empty sentinels even when no valid
+ *   samples exist.
  */
 static void GetLineExtents(Element *elemPtr, Extents2D *extsPtr) {
     Line *linePtr;
@@ -9330,6 +9588,13 @@ error:
  * geometry by element class. Directional trace searches fall back to points
  * when no segment improves the incoming result; SEARCH_BOTH does not.
  * Requires current geometry and the owning graph/track viewport.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] elemPtr Live line-family element with current geometry and sources; source picking may rebuild
+ *   its cache.
+ * @param[in,out] searchPtr Initialized query and best-hit record; only a strictly closer candidate replaces its
+ *   distance, element, index and coordinate.
  */
 static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
@@ -9377,6 +9642,14 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
  * Otherwise inserts the value at the reported source index, even for an
  * interpolated geometric hit. Does not interpolate the parameter, synchronize
  * the vector, or publish interpreter variables. Returns dictionary status.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the interpreter for dictionary diagnostics.
+ * @param[in] linePtr Borrowed line with current mapped geometry and synchronized source slots; no ownership is
+ *   transferred.
+ * @param[in] searchPtr Borrowed completed hit with original source index and plotted Cartesian coordinate; not
+ *   modified.
+ * @param[in,out] resultObjPtr Borrowed unshared result dictionary; inserted fields are retained, and earlier
+ *   fields survive a later error.
  */
 static int AppendLineParamClosestInfo(Graph *graphPtr, Line *linePtr, const ClosestSearch *searchPtr,
                                       Tcl_Obj *resultObjPtr) {
@@ -9417,6 +9690,13 @@ static int AppendLineParamClosestInfo(Graph *graphPtr, Line *linePtr, const Clos
  * Delegates to AppendLineParamClosestInfo using the borrowed hit record and
  * writable result dictionary. No array traces run during this collection phase.
  * The common closest handler owns later publication and dictionary lifetime.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the interpreter for dictionary diagnostics.
+ * @param[in] elemPtr Borrowed line-family core with current geometry, sources and configured pens.
+ * @param[in] searchPtr Borrowed completed hit with original source index and plotted Cartesian coordinate; not
+ *   modified.
+ * @param[in,out] resultObjPtr Borrowed unshared result dictionary; inserted fields are retained, and earlier
+ *   fields survive a later error.
  */
 static int LineClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *resultObjPtr) {
     return AppendLineParamClosestInfo(graphPtr, LINE_FROM_CORE(elemPtr), searchPtr, resultObjPtr);
@@ -9437,6 +9717,13 @@ static int LineClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearc
  * hit, except param which follows the source index. Returns the first Tcl
  * dictionary error without rolling back preceding fields. Does not publish
  * variables or invoke application callbacks.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the interpreter for dictionary diagnostics.
+ * @param[in] elemPtr Borrowed line-family core with current geometry, sources and configured pens.
+ * @param[in] searchPtr Borrowed completed hit with original source index and plotted Cartesian coordinate; not
+ *   modified.
+ * @param[in,out] resultObjPtr Borrowed unshared result dictionary; inserted fields are retained, and earlier
+ *   fields survive a later error.
  */
 static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *resultObjPtr) {
     Line *linePtr;
@@ -9595,6 +9882,14 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
  * width and dashes, resolving default off-dash color to the trace color.
  * Draws every stored polyline and ends the context. A NULL context silently
  * skips drawing. Geometry and pen ownership remain with the element.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in] linePtr Borrowed line with current mapped geometry and synchronized source slots; no ownership is
+ *   transferred.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
  */
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
     Rbc_RenderContext *ctx;
@@ -9621,6 +9916,14 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
  * default off-dash color, begins a strip stroke, submits the segment batch and
  * ends the context. A NULL context skips the batch. Does not remap geometry
  * or retain the array beyond the call.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] segments Borrowed array of count mapped segments, unchanged and not retained after drawing.
+ * @param[in] count Nonnegative number of readable entries in the supplied geometry array.
  */
 static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
                                Tcl_Size count) {
@@ -9641,6 +9944,10 @@ static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penP
  * segment geometry using native proportions and integer rounding. Returns
  * FALSE for unsupported types, including bitmap and none; such output is not
  * a usable template. Borrows no persistent storage and performs no allocation.
+ *
+ * @param[in] type Symbol discriminator; NONE, BITMAP and unsupported values return FALSE.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[out] shape Required caller-owned template, zeroed before dispatch; use only on TRUE.
  */
 static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *shape) {
     int i;
@@ -9732,6 +10039,17 @@ static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *sh
  * nonpositive count is successfully handled without drawing. Resolves default
  * fill to trace color and uses explicit drawable dimensions when supplied.
  * Draws all centers without symbol-interval filtering, then ends the context.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[in] count Nonnegative number of readable entries in the supplied geometry array.
+ * @param[in] points Borrowed array of count mapped points; retained only for this call.
+ * @param[in] targetWidth Positive explicit drawable width, or zero to use the graph target.
+ * @param[in] targetHeight Positive explicit drawable height when targetWidth is positive; otherwise zero.
  */
 static int DrawRenderedPoints(Graph *graphPtr, Drawable drawable, LinePen *penPtr, int size, Tcl_Size count,
                               const Point2D *points, int targetWidth, int targetHeight) {
@@ -9769,6 +10087,19 @@ static int DrawRenderedPoints(Graph *graphPtr, Drawable drawable, LinePen *penPt
  * selected centers in batches of 256, advancing the shared symbol counter only
  * for plot drawing with a positive interval. Explicit drawable targets bypass
  * that interval. Ends the context and returns TRUE after handling the pass.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in,out] linePtr Live line supplying the shared symbol interval/counter; plot drawing advances the
+ *   counter, explicit targets bypass it.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[in] nPoints Nonnegative number of readable point entries.
+ * @param[in] points Borrowed array of nPoints mapped centers in the destination coordinate system.
+ * @param[in] targetWidth Positive explicit drawable width, or zero to use the graph target.
+ * @param[in] targetHeight Positive explicit drawable height when targetWidth is positive; otherwise zero.
  */
 static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                      Tcl_Size nPoints, const Point2D *points, int targetWidth, int targetHeight) {
@@ -9855,6 +10186,19 @@ static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *l
  * centers. Uses batches of 256 and advances the line counter once for the
  * whole input when an interval is active. Ends the context and returns TRUE;
  * geometry and pen resources remain borrowed.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in,out] linePtr Live line supplying the shared symbol interval/counter; drawing may advance the
+ *   counter.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[in] nSymbolPts Nonnegative number of readable symbol-center entries, and of parallel indices when
+ *   supplied.
+ * @param[in] symbolPts Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after
+ *   drawing.
  */
 static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                Tcl_Size nSymbolPts, const Point2D *symbolPts) {
@@ -9919,6 +10263,14 @@ static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr
  * width for renderer stroke setup while retaining the native GC. Begins and
  * ends one segment context; NULL context skips drawing. Borrows all arrays
  * and pen resources and does not apply symbol sampling here.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] segments Borrowed array of count mapped segments, unchanged and not retained after drawing.
+ * @param[in] count Nonnegative number of readable entries in the supplied geometry array.
  */
 static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
                                   Tcl_Size count) {
@@ -9939,6 +10291,19 @@ static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *p
  * and counter. Submits borrowed centers through a native symbol context,
  * ends it and copies the updated style counter back to the line. Does not
  * establish a plot clip; callers must supply an appropriate target/clip.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in,out] linePtr Live line supplying the shared symbol interval/counter; drawing may advance the
+ *   counter.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[in] nSymbolPts Nonnegative number of readable symbol-center entries, and of parallel indices when
+ *   supplied.
+ * @param[in] symbolPts Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after
+ *   drawing.
  */
 static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                  Tcl_Size nSymbolPts, Point2D *symbolPts) {
@@ -9969,6 +10334,19 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
  * clip context and its target drawable, then end clip and context. Empty clips
  * skip drawing. Borrows centers and pen resources; helpers may advance the
  * line's shared sampling counter.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in,out] linePtr Live line supplying the shared symbol interval/counter; drawing may advance the
+ *   counter.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[in] nSymbolPts Nonnegative number of readable symbol-center entries, and of parallel indices when
+ *   supplied.
+ * @param[in] symbolPts Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after
+ *   drawing.
  */
 static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                         Tcl_Size nSymbolPts, Point2D *symbolPts) {
@@ -10026,6 +10404,17 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
  * if context creation fails. Symbols try tiny points, bitmap rendering and
  * geometric templates before native fallback. Does not establish a plot clip
  * or remap source data; width/height describe the legend target.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in,out] elemPtr Live line-family element supplying its normal pen; native fallback can update its
+ *   symbol counter.
+ * @param[in] x Legend sample center X in target pixels.
+ * @param[in] y Legend sample center Y in target pixels.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[in] width Positive width of the legend drawable in pixels.
+ * @param[in] height Positive height of the legend drawable in pixels.
  */
 static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size, int width,
                        int height) {
@@ -10086,6 +10475,23 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
  * keep drawing records, arrays and pens stable, and callbacks must not mutate
  * drawing state or enter nested event processing. This loop adds no lifetime
  * or reentrancy guard.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in] linePtr Borrowed line with synchronized source slots and current viewport; owner and arrays must
+ *   survive every label callback.
+ * @param[in] penPtr Borrowed value-label pen; formatting objects and text resources must remain stable during
+ *   callbacks.
+ * @param[in] nSymbolPts Nonnegative number of readable symbol-center entries, and of parallel indices when
+ *   supplied.
+ * @param[in] symbolPts Borrowed nSymbolPts mapped centers, stable throughout callbacks; screen or export
+ *   mapping must match the destination.
+ * @param[in] pointToData Borrowed parallel array of nSymbolPts original source indices, stable throughout label
+ *   callbacks.
+ * @param[in] interval Sampling interval; values at most one select every center.
+ * @param[in] offset Nonnegative number of preceding centers in the palette traversal, used to continue label
+ *   sampling across slices.
  */
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset) {
@@ -10141,6 +10547,12 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
  * whole mapped trace or strip plus symbols/labels; zero draws nothing.
  * Uses the scaled active symbol size. Does not draw fills or error bars.
  * Value-label callbacks have the same stability requirements as DrawValues.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in,out] elemPtr Live mapped line-family core; active geometry and symbol-scale baselines may be
+ *   refreshed. Keep resources stable during label callbacks.
  */
 static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
@@ -10197,6 +10609,21 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
  * is recovered from the native GC. PATTERN_SOLID becomes no renderer stipple.
  * Forwards pattern opacity; tile transparency comes from the image itself.
  * Borrows geometry/resources and returns whether the renderer handled the fill.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in] points Borrowed mapped polygon of count vertices; clipping and mapping are caller
+ *   responsibilities.
+ * @param[in] count Nonnegative number of readable entries in the supplied geometry array.
+ * @param[in] foreground Borrowed resolved fill color, or NULL to recover the foreground from gc.
+ * @param[in] background Borrowed optional pattern background color; NULL selects transparent stippling.
+ * @param[in] gc Borrowed native fill GC used to recover a missing foreground; must be valid if that fallback is
+ *   needed.
+ * @param[in] tile Borrowed tile client, or NULL; a supplied tile takes precedence over pattern and opacity.
+ * @param[in] stipple Borrowed pattern bitmap, PATTERN_SOLID, or None to decline an untiled fill.
+ * @param[in] opacity Validated finite pattern opacity in 0..1; tile drawing instead uses the image
+ *   transparency.
  */
 static int DrawRenderedFill(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                              XColor *foreground, XColor *background, GC gc, Rbc_Tile tile,
@@ -10268,6 +10695,9 @@ static void DrawLineFill(Graph *graphPtr, Drawable drawable, const Point2D *poin
  * palette symbol counts and returns integer division by the requested maximum.
  * Zero and one both select all centers in normal use. This is a density
  * interval, not a strict maximum-count guarantee. Does not mutate the line.
+ *
+ * @param[in] linePtr Borrowed line with current per-style symbol counts and requested maximum; no counters are
+ *   changed.
  */
 static Tcl_Size SymbolInterval(Line *linePtr) {
     Tcl_Size total = 0;
@@ -10297,6 +10727,12 @@ static Tcl_Size SymbolInterval(Line *linePtr) {
  *
  * Borrows mapped geometry and configured resources. Label callbacks require
  * stable drawing state; this function does not protect iteration from mutation.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in] drawable Borrowed compatible window or pixmap destination; coordinates use its drawing origin.
+ * @param[in,out] elemPtr Live mapped line-family core; symbol interval/counter change during traversal. Keep
+ *   arrays, palette and pens stable during label callbacks.
  */
 static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     LinePen *normalPenPtr;
@@ -10368,6 +10804,21 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
  * interval greater than one, requires a writable counter, advances it for
  * every input and submits selected centers. Otherwise submits the full batch
  * without touching the counter, which may be NULL. Ends the context.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export mapping.
+ *   This call does not end the document.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
+ * @param[in] nSymbolPts Nonnegative number of readable symbol-center entries, and of parallel indices when
+ *   supplied.
+ * @param[in] symbolPts Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after
+ *   drawing.
+ * @param[in] interval Sampling interval; values at most one select every center.
+ * @param[in,out] counterPtr Sampling position across preceding batches; required for interval greater than one,
+ *   otherwise unused and may be NULL.
  */
 static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts, Tcl_Size interval, Tcl_Size *counterPtr) {
@@ -10417,6 +10868,15 @@ static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen
  * trace width increased by two and butt/miter stroke settings, then exports
  * one centered symbol without sampling. Borrows the pen and export context;
  * does not use the screen legend's two-segment construction.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export mapping.
+ *   This call does not end the document.
+ * @param[in] elemPtr Borrowed line-family core with current geometry, sources and configured pens.
+ * @param[in] x Legend center X in export-mapped coordinates.
+ * @param[in] y Legend center Y in export-mapped coordinates.
+ * @param[in] size Symbol size in mapped pixels, already scaled and bounded by the caller.
  */
 static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y, int size) {
     LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
@@ -10443,6 +10903,11 @@ static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element 
  * Uses trace color, width and dashes with butt caps and miter joins, then
  * sets the optional off-dash background. Returns the renderer context for the
  * caller to end. Does not own the pen or alter mapped geometry.
+ *
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export mapping.
+ *   This call does not end the document.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
  */
 static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen *penPtr) {
     Rbc_RenderContext *ctx;
@@ -10460,6 +10925,13 @@ static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen 
  * Begins a line export context, submits each borrowed trace polyline in chain
  * order and ends the context. Does not resample, remap or take ownership of
  * trace arrays; export preparation must supply the desired geometry.
+ *
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export mapping.
+ *   This call does not end the document.
+ * @param[in] linePtr Borrowed line with current mapped geometry and synchronized source slots; no ownership is
+ *   transferred.
+ * @param[in] penPtr Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the
+ *   pen.
  */
 static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr) {
     Rbc_ChainLink *linkPtr;
@@ -10484,6 +10956,22 @@ static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
  * Label callbacks may execute Tcl and require stable element, pen and mapping
  * storage. Does not guard against callback mutation or nested event processing.
  * Ends the output context; owns neither the export destination nor input arrays.
+ *
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export mapping.
+ *   This call does not end the document.
+ * @param[in] linePtr Borrowed line with synchronized source slots and current viewport; owner and arrays must
+ *   survive every label callback.
+ * @param[in] penPtr Borrowed value-label pen; formatting objects and text resources must remain stable during
+ *   callbacks.
+ * @param[in] nSymbolPts Nonnegative number of readable symbol-center entries, and of parallel indices when
+ *   supplied.
+ * @param[in] symbolPts Borrowed nSymbolPts mapped centers, stable throughout callbacks; screen or export
+ *   mapping must match the destination.
+ * @param[in] pointToData Borrowed parallel array of nSymbolPts original source indices, stable throughout label
+ *   callbacks.
+ * @param[in] interval Sampling interval; values at most one select every center.
+ * @param[in] offset Nonnegative number of preceding centers in the palette traversal, used to continue label
+ *   sampling across slices.
  */
 static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset) {
@@ -10533,6 +11021,13 @@ static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
  * symbols and labels for the whole element. Zero count or absent pen emits
  * nothing. Uses scaled active size and no symbol sampling. Does not export
  * active fills/error bars. Label callbacks require stable drawing resources.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export mapping.
+ *   This call does not end the document.
+ * @param[in,out] elemPtr Live mapped line-family core; active geometry and symbol-scale baselines may be
+ *   refreshed. Keep resources stable during label callbacks.
  */
 static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Line *linePtr;
@@ -10591,6 +11086,13 @@ static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
  * Borrows geometry already prepared for export; does not disable decimation
  * or remap here. Backend-specific fill behavior remains in the renderer.
  * Value-label callbacks require stable drawing state throughout traversal.
+ *
+ * @param[in] graphPtr Borrowed owning graph with the element or track viewport and axis mappings already
+ *   installed.
+ * @param[in,out] exportPtr Borrowed document output context; geometry must already match its export mapping.
+ *   This call does not end the document.
+ * @param[in] elemPtr Borrowed line-family core already mapped for export; all geometry, palette and pen storage
+ *   must remain stable during label callbacks.
  */
 static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);

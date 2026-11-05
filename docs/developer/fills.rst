@@ -36,9 +36,9 @@ images. See :doc:`images-tiles` for tile notification and resource lifetime.
 Ordinary area geometry
 ----------------------
 
-``MapLine`` clears old geometry, maps the source points, applies smoothing and
-any explicit geometric reduction, then calls ``MapFillArea``. Configured area
-fills exclude the pixel-density decimation path; explicit ``-reduce`` remains
+:c:func:`rbcGrLineMapping.MapLine` clears old geometry, maps the source points, applies
+smoothing and any explicit geometric reduction, then calls ``MapFillArea``. Configured
+area fills exclude the pixel-density decimation path; explicit ``-reduce`` remains
 separate. See :doc:`decimation` and :doc:`splines`.
 
 The area stores one polygon in ``fillPts``/``nFillPts``. If the mapped input has
@@ -121,12 +121,12 @@ annotations. These fills are element-level resources, rather than per-point
 palette styles. Picking remains based on the element's trace/symbol geometry;
 the fill polygon does not introduce a separate interior-hit operation.
 
-``DrawLineFill`` borrows the polygons and resources. A tile takes precedence
-over a pattern; a tile without a pixmap suppresses output. With Cairo selected,
-``DrawRenderedFill`` first attempts a photo tile or an opacity-aware pattern.
-The tile path uses image transparency and does not receive the area/band opacity
-argument. Failed or unsupported Cairo rendering falls back to a native fill
-context. Native pattern filling retains its non-blended behavior. Do not infer
+``DrawLineFill`` borrows the polygons and resources. A tile takes precedence over a
+pattern; a tile without a pixmap suppresses output. With Cairo selected,
+:c:func:`rbcGrLineOutput.DrawRenderedFill` first attempts a photo tile or an
+opacity-aware pattern. The tile path uses image transparency and does not receive the
+area/band opacity argument. Failed or unsupported Cairo rendering falls back to a native
+fill context. Native pattern filling retains its non-blended behavior. Do not infer
 identical transparency support merely from the common polygon interface.
 
 Export builds ``Rbc_RenderFillStyle`` and uses export fill contexts with the

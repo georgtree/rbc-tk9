@@ -29,7 +29,7 @@ namespace eval polar.element {
         .polar1 axis configure x -min -2 -max 2
         .polar1 axis configure y -min -2 -max 2
         .polar1 element create Element1 -cdata z -symbol circle
-        update idletasks
+        update
     } -body {
         lassign [.polar1 transform 1 0] x y
         set found [ .polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
@@ -1127,6 +1127,69 @@ namespace eval polar.element {
         unset -nocomplain info
         destroy .polar1
     } -result {1 1 20.0 xy}
+
+    foreach inverted {0 1} {
+        test RBC.polar.element.closest.A.32.[expr {$inverted + 1}] {
+            reduced polar-coordinate symbols still pick an omitted original sample
+        } -setup {
+            polar .polar1 -width 400 -height 400 -invertxy $inverted
+            pack .polar1
+            .polar1 axis configure x -min 0 -max 4
+            .polar1 axis configure y -min -2 -max 2
+            .polar1 element create Element1 -xdata {0 0 0} -ydata {1 2 3} \
+                -datacoordinates polar -symbol circle -symbolpoints reduced -reduce 1
+            update
+        } -body {
+            # The middle collinear point is absent from reduced symbol geometry.
+            # Its Cartesian X=2 differs from every raw angle (zero).
+            lassign [.polar1 transform 2 0] x y
+            set result {}
+            foreach along [list both [expr {$inverted ? "y" : "x"}]] {
+                unset -nocomplain info
+                set found [.polar1 element closest $x $y info -along $along \
+                    -interpolate no -halo 2 Element1]
+                lappend result [expr {$found && $info(index) == 1 && \
+                    abs($info(x)-2.0) < 1e-10 && abs($info(y)) < 1e-10}]
+            }
+            set result
+        } -cleanup {
+            unset -nocomplain info
+            destroy .polar1
+        } -result {1 1}
+
+        foreach retainedCount {1 3} {
+            test RBC.polar.element.closest.A.33.[expr {$inverted * 2 + ($retainedCount == 3) + 1}] {
+                reduced complex symbols never use retained XY arrays for source picking
+            } -setup {
+                vector create z -type complex
+                z set {{1 0} {2 0} {3 0}}
+                polar .polar1 -width 400 -height 400 -invertxy $inverted
+                pack .polar1
+                .polar1 axis configure x -min 0 -max 4
+                .polar1 axis configure y -min -2 -max 2
+                set xy [expr {$retainedCount == 1 ? {9 9} : {9 9 10 9 11 9}}]
+                # Ordinary arrays remain retained, but -cdata is the active source.
+                .polar1 element create Element1 -data $xy -cdata z -symbol circle \
+                    -symbolpoints reduced -reduce 1
+                update
+            } -body {
+                lassign [.polar1 transform 2 0] x y
+                set result {}
+                foreach along [list both [expr {$inverted ? "y" : "x"}]] {
+                    unset -nocomplain info
+                    set found [.polar1 element closest $x $y info -along $along \
+                        -interpolate no -halo 2 Element1]
+                    lappend result [expr {$found && $info(index) == 1 && \
+                        abs($info(x)-2.0) < 1e-10 && abs($info(y)) < 1e-10}]
+                }
+                set result
+            } -cleanup {
+                unset -nocomplain info
+                destroy .polar1
+                vector destroy z
+            } -result {1 1}
+        }
+    }
 
 	cleanupTests
 }

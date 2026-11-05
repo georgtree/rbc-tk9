@@ -46,12 +46,12 @@ Mapping paths and fallback
      - Maps source points first, then reduces eligible monotonic mapped runs.
        Failure or no benefit retains the existing mapped arrays.
 
-Pre-map reduction is more restrictive than general pixel reduction. Normal
-symbols, value labels and error-bar arrays require full point/style mapping.
-An all-active selection with symbols or labels also prevents the pre-map path;
-explicit active indices can be mapped separately. The single-pen fast path
-avoids allocating a source-sized style map, but still attaches strip segments
-to the pen through ``MergePens``.
+Pre-map reduction is more restrictive than general pixel reduction. Normal symbols,
+value labels and error-bar arrays require full point/style mapping. An all-active
+selection with symbols or labels also prevents the pre-map path; explicit active indices
+can be mapped separately. The single-pen fast path avoids allocating a source-sized
+style map, but still attaches strip segments to the pen through
+:c:func:`rbcGrLineMapping.MergePens`.
 
 Each pixel bucket retains first, minimum, maximum and last representatives in
 original source order, removing duplicate representatives. Inverted axes change
@@ -119,62 +119,79 @@ remains separate. Export restoration remaps the screen afterward; see
 Cache state and borrowed storage
 --------------------------------
 
-BuildLineDecimateCache first releases old summaries, then records source pointers,
-paired point count and built state. Built does not mean supported: empty input,
-allocation failure, nonfinite data or changes in source-X direction can leave a built
-but unsupported record. This prevents repeated construction attempts for the
-same observed source identity. InvalidateLineDecimateCache releases only owned
-blocks and clears the record; it never owns or prolongs the source arrays.
+:c:func:`rbcGrLineCache.BuildLineDecimateCache` first releases old summaries, then
+records source pointers, paired point count and built state. Built does not mean
+supported: empty input, allocation failure, nonfinite data or changes in source-X
+direction can leave a built but unsupported record. This prevents repeated construction
+attempts for the same observed source identity.
+:c:func:`rbcGrLineCache.InvalidateLineDecimateCache` releases only owned blocks and
+clears the record; it never owns or prolongs the source arrays.
 
-EnsureLineDecimateCache detects pointer/count changes as a secondary safeguard.
-In-place changes with unchanged identity still require notifications and refresh.
-Its logarithmic-domain checks are separate from support: nonpositive data can
-remain summarized for linear axes while a log axis temporarily rejects the cache.
+:c:func:`rbcGrLineCache.EnsureLineDecimateCache` detects pointer/count changes as a
+secondary safeguard. In-place changes with unchanged identity still require
+notifications and refresh. Its logarithmic-domain checks are separate from support:
+nonpositive data can remain summarized for linear axes while a log axis temporarily
+rejects the cache.
 
-RebuildLineDecimateYBlock scans one block before changing its summary, preserving
-the earliest equal minimum/maximum. Global nonpositive-Y accounting is adjusted
-by removing the old block contribution and adding the new one. A refresh over
-several blocks is not an all-block transaction: failure requests invalidation,
+:c:func:`rbcGrLineCache.RebuildLineDecimateYBlock` scans one block before changing its
+summary, preserving the earliest equal minimum/maximum. Global nonpositive-Y accounting
+is adjusted by removing the old block contribution and adding the new one. A refresh
+over several blocks is not an all-block transaction: failure requests invalidation,
 including when preceding blocks were already rebuilt.
 
 Growth and prefix proof
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-CanRetainLineDecimatePrefix trusts exact change metadata rather than comparing
-values. Without a notification it requires pointer equality; an exact range wholly
-beyond the cached prefix permits relocated storage. Full or unknown changes reject
-retention. The vector producer must report all writes correctly.
+:c:func:`rbcGrLineCache.CanRetainLineDecimatePrefix` trusts exact change metadata rather
+than comparing values. Without a notification it requires pointer equality; an exact
+range wholly beyond the cached prefix permits relocated storage. Full or unknown changes
+reject retention. The vector producer must report all writes correctly.
 
-GrowLineDecimateCache validates newly paired samples and ordering before extending
-summaries. It rebuilds a partial old final block because appended samples can
-change its extrema. If only the longer input grew, paired count may be unchanged;
-rebinding source pointers still matters for a later append to the shorter input.
-Failure asks the caller to invalidate, and does not itself consume change flags.
+:c:func:`rbcGrLineCache.GrowLineDecimateCache` validates newly paired samples and
+ordering before extending summaries. It rebuilds a partial old final block because
+appended samples can change its extrema. If only the longer input grew, paired count may
+be unchanged; rebinding source pointers still matters for a later append to the shorter
+input. Failure asks the caller to invalidate, and does not itself consume change flags.
 
 Bucket and range contracts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GetCachedRangeExtrema takes an inclusive, nonempty source range and uses aligned
-whole blocks plus boundary scans. GetCachedSourceRangeForAbscissa instead returns
-a half-open source-index interval for inclusive screen-coordinate bounds. These
-range conventions are deliberately different. Equal mapped endpoint coordinates
-produce either the whole source range or an empty range.
+:c:func:`rbcGrLineCache.GetCachedRangeExtrema` takes an inclusive, nonempty source range
+and uses aligned whole blocks plus boundary scans.
+:c:func:`rbcGrLineCache.GetCachedSourceRangeForAbscissa` instead returns a half-open
+source-index interval for inclusive screen-coordinate bounds. These range conventions
+are deliberately different. Equal mapped endpoint coordinates produce either the whole
+source range or an empty range.
 
-GetCachedPixelBucket truncates visible coordinates toward zero and uses one
-sentinel bucket beyond each viewport bound. FindNextCachedPixelBucket requires
-monotonic bucket ordering and a nonzero direction. Its result is usable only when
-its explicit success flag is true; a failed mapping can return an intermediate
-search bound.
+:c:func:`rbcGrLineCache.GetCachedPixelBucket` truncates visible coordinates toward zero
+and uses one sentinel bucket beyond each viewport bound.
+:c:func:`rbcGrLineCache.FindNextCachedPixelBucket` requires monotonic bucket ordering
+and a nonzero direction. Its result is usable only when its explicit success flag is
+true; a failed mapping can return an intermediate search bound.
 
-Representative append helpers sort first/minimum/maximum/last source indices and
-remove duplicates within that bucket. AppendPixelBucket relies on caller capacity.
-AppendSourcePixelBucket checks each write but can fail after partial appends, so
-its FALSE return is not an unchanged-output guarantee. Break flags mark the first
-representative of a later run; duplicates across distinct buckets are not removed
-by these helpers.
+Representative append helpers sort first/minimum/maximum/last source indices and remove
+duplicates within that bucket. :c:func:`rbcGrLineCache.AppendPixelBucket` relies on
+caller capacity. :c:func:`rbcGrLineCache.AppendSourcePixelBucket` checks each write but
+can fail after partial appends, so its FALSE return is not an unchanged-output
+guarantee. Break flags mark the first representative of a later run; duplicates across
+distinct buckets are not removed by these helpers.
 
-CanPreMapDecimateLine is only an eligibility check. It excludes normal symbols,
-value labels and error data because they require full center/style mappings.
-Explicit active selections can be mapped independently, whereas whole-element
-active symbols or labels require retained centers. Density and cache validity
-remain separate decisions.
+:c:func:`rbcGrLineCache.CanPreMapDecimateLine` is only an eligibility check. It excludes
+normal symbols, value labels and error data because they require full center/style
+mappings. Explicit active selections can be mapped independently, whereas whole-element
+active symbols or labels require retained centers. Density and cache validity remain
+separate decisions.
+Converted source representations
+--------------------------------
+
+:c:func:`rbcGrLineCache.EnsureLineDecimateCache` accepts only Cartesian X/Y
+sources. Geometric reduction with ``-symbolpoints reduced`` can send polar or
+complex elements to :c:func:`rbcGrLinePicking.ClosestSourcePoint` even though
+automatic pixel decimation is disabled for them. These inputs require the full
+source-adapter scan: a monotonic raw angle array does not establish monotonic
+Cartesian X, and retained ordinary X/Y arrays do not represent active complex
+samples. Their lengths can also be shorter than the complex point count.
+
+The cache gate runs before inspecting those arrays. Cartesian X/Y inputs retain
+the existing cache and metric-based pruning; converted inputs still recover
+original indices and coordinates, including samples omitted from reduced symbols.

@@ -637,11 +637,11 @@ record as well as the chain. :c:func:`rbcGrLineGeometry.ResetLine` retains sourc
 subscriptions, pens, activation indices and the source decimation cache. Explicit active
 selections become pending again for the next mapping pass.
 
-Error-bar filtering takes place before MergePens reorders palette geometry.
-:c:func:`rbcGrLineGeometry.FilterLineErrorBars` selects source indices using the same
-palette traversal and symbol interval policy, then compacts both error-bar arrays in
-place. Shafts and caps follow their source point together; allocation capacity is
-unchanged.
+Error-bar filtering takes place before :c:func:`rbcGrLineMapping.MergePens` reorders
+palette geometry. :c:func:`rbcGrLineGeometry.FilterLineErrorBars` selects source indices
+using the same palette traversal and symbol interval policy, then compacts both
+error-bar arrays in place. Shafts and caps follow their source point together;
+allocation capacity is unchanged.
 
 :c:func:`rbcGrLineGeometry.DestroyLine` additionally releases subscriptions, pen
 references, the decimation cache, palette, tags and fill resources. Common lifecycle
@@ -656,12 +656,12 @@ caller remains responsible for arranging layout and redraw.
 Line mapping pipeline
 ---------------------
 
-MapLine runs with the graph's axes and viewport already prepared. It consumes
-pending vector-change metadata after refreshing or invalidating source-domain
-decimation summaries, then resets old drawing geometry. Error-band mapping
-precedes center-line mapping. Cached and uncached pre-map reduction are attempted
-only when eligible and sufficiently dense; full point mapping is the fallback.
-See :doc:`decimation` for the source-summary and picking contracts.
+:c:func:`rbcGrLineMapping.MapLine` runs with the graph's axes and viewport already
+prepared. It consumes pending vector-change metadata after refreshing or invalidating
+source-domain decimation summaries, then resets old drawing geometry. Error-band mapping
+precedes center-line mapping. Cached and uncached pre-map reduction are attempted only
+when eligible and sufficiently dense; full point mapping is the fallback. See
+:doc:`decimation` for the source-summary and picking contracts.
 
 Normal symbol centers are copied before smoothing or trace reduction. Their
 mapping bounds include conservative padding from every palette pen and the
@@ -672,13 +672,14 @@ Explicit active symbols are mapped separately.
 Smoothing, gaps and symbol selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GenerateSplineRuns copies each continuous run and smooths it independently,
-then joins the arrays while restoring break flags. Runs shorter than three
-points stay unchanged. An individual generator can fall back for one run while
-others remain smoothed. Failure to allocate or combine the temporary runs keeps
-the original complete map and sets effective smoothing to linear. The requested
-option remains unchanged. FreeMapRun releases temporary arrays and clears their
-record; CopyMapRun requires an unused destination and a valid source interval.
+GenerateSplineRuns copies each continuous run and smooths it independently, then joins
+the arrays while restoring break flags. Runs shorter than three points stay unchanged.
+An individual generator can fall back for one run while others remain smoothed. Failure
+to allocate or combine the temporary runs keeps the original complete map and sets
+effective smoothing to linear. The requested option remains unchanged.
+:c:func:`rbcGrLineMapping.FreeMapRun` releases temporary arrays and clears their record;
+:c:func:`rbcGrLineMapping.CopyMapRun` requires an unused destination and a valid source
+interval.
 
 After smoothing, the mapper applies pixel-density reduction where appropriate,
 then tolerance reduction. Reduced-symbol mode matches both original index and
@@ -690,24 +691,27 @@ source order and must precede palette grouping.
 Clipping and palette grouping
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Area filling occurs before connected-trace clipping because MapTraces can change
-its temporary input coordinates. Trace breaks respect missing-data boundaries,
-clipping and the requested increasing/decreasing data-X direction. TraceAbscissa
-accounts for inverted and descending axes; it is an ordering coordinate, not an
-inverse transform. ClipSegment modifies endpoints and returns zero for acceptance.
-SaveTrace copies each surviving run into independently owned trace storage.
+Area filling occurs before connected-trace clipping because
+:c:func:`rbcGrLineMapping.MapTraces` can change its temporary input coordinates. Trace
+breaks respect missing-data boundaries, clipping and the requested increasing/decreasing
+data-X direction. :c:func:`rbcGrLineMapping.TraceAbscissa` accounts for inverted and
+descending axes; it is an ordering coordinate, not an inverse transform.
+:c:func:`rbcGrLineMapping.ClipSegment` modifies endpoints and returns zero for
+acceptance. :c:func:`rbcGrLineMapping.SaveTrace` copies each surviving run into
+independently owned trace storage.
 
-MapStrip instead clips adjacent pairs independently, skips gap crossings and
-associates each segment with its starting source index. The element class selects
-this representation even in a trackgraph containing both line and strip elements.
-MapStrip does not apply the connected-line trace-direction filter.
+:c:func:`rbcGrLineMapping.MapStrip` instead clips adjacent pairs independently, skips
+gap crossings and associates each segment with its starting source index. The element
+class selects this representation even in a trackgraph containing both line and strip
+elements. :c:func:`rbcGrLineMapping.MapStrip` does not apply the connected-line
+trace-direction filter.
 
-The general mapping path computes palette sizes, maps eligible XY error bars,
-filters error bars to match selected symbols, and calls MergePens last. With
-multiple styles, MergePens reorders arrays by palette order while preserving
-order inside each style. Style pointers are borrowed slices of line-owned
-allocations, not independently allocated geometry. A single style borrows the
-existing arrays directly. The restricted pre-map path uses this single-style
+The general mapping path computes palette sizes, maps eligible XY error bars, filters
+error bars to match selected symbols, and calls :c:func:`rbcGrLineMapping.MergePens`
+last. With multiple styles, :c:func:`rbcGrLineMapping.MergePens` reorders arrays by
+palette order while preserving order inside each style. Style pointers are borrowed
+slices of line-owned allocations, not independently allocated geometry. A single style
+borrows the existing arrays directly. The restricted pre-map path uses this single-style
 case without allocating a source-sized style map.
 
 Mapping is not a transaction over the entire element. Old geometry is discarded
@@ -718,20 +722,20 @@ until a candidate is ready.
 Source extents
 ~~~~~~~~~~~~~~
 
-GetLineExtents computes bounds from source data rather than reduced or smoothed
-screen geometry. Ordinary XY bounds include error bars and account for positive
-minimums on log axes. Complex input and polar-coordinate input instead use a
-symmetric square enclosing the maximum Cartesian radius. No valid data leaves
-empty sentinel bounds; the caller owns source synchronization and axis reset.
+:c:func:`rbcGrLineMapping.GetLineExtents` computes bounds from source data rather than
+reduced or smoothed screen geometry. Ordinary XY bounds include error bars and account
+for positive minimums on log axes. Complex input and polar-coordinate input instead use
+a symmetric square enclosing the maximum Cartesian radius. No valid data leaves empty
+sentinel bounds; the caller owns source synchronization and axis reset.
 
 Line-family picking and metadata
 --------------------------------
 
-ClosestLine chooses points or mapped segments. Automatic mode uses segments
-when the normal pen has positive trace width and the element has more than one
-point. Strip elements search independent segments; line and polar elements
-search connected trace chains. Both need current geometry and the correct graph
-or track viewport. These helpers do not synchronize pending source changes.
+:c:func:`rbcGrLinePicking.ClosestLine` chooses points or mapped segments. Automatic mode
+uses segments when the normal pen has positive trace width and the element has more than
+one point. Strip elements search independent segments; line and polar elements search
+connected trace chains. Both need current geometry and the correct graph or track
+viewport. These helpers do not synchronize pending source changes.
 
 Point and trace metrics
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -742,12 +746,13 @@ inside the unpadded plot rectangle participate, even when a symbol whose center
 is outside could contribute visible pixels. Hits recover original source indices
 and data coordinates. Strict comparisons preserve the earlier candidate on ties.
 
-Directional interpolated picking has different semantics. DistanceToX intersects
-a segment at the query's screen X coordinate and measures vertical distance;
-DistanceToY intersects at screen Y and measures horizontal distance. A query
-outside the corresponding endpoint span cannot hit that segment. Near-vertical
-or near-horizontal degenerate cases select the nearer endpoint where needed.
-Euclidean interpolation instead finds the nearest point on the finite segment.
+Directional interpolated picking has different semantics.
+:c:func:`rbcGrLinePicking.DistanceToX` intersects a segment at the query's screen X
+coordinate and measures vertical distance; :c:func:`rbcGrLinePicking.DistanceToY`
+intersects at screen Y and measures horizontal distance. A query outside the
+corresponding endpoint span cannot hit that segment. Near-vertical or near-horizontal
+degenerate cases select the nearer endpoint where needed. Euclidean interpolation
+instead finds the nearest point on the finite segment.
 
 Interpolated results inverse-map the selected screen coordinate, but their index
 belongs to the segment's retained source start. A directional segment search that
@@ -757,11 +762,11 @@ both-direction segment search has no such fallback.
 Source picking after reduction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ClosestPoint uses retained centers unless pointMapOmitted requests a source
-search. ClosestSourcePoint maps original samples on demand, rejecting nonfinite
-coordinates and centers outside the viewport. Cached monotonic source X can
-restrict candidate ranges, but the range restriction must be justified by the
-actual screen-distance metric.
+:c:func:`rbcGrLinePicking.ClosestPoint` uses retained centers unless pointMapOmitted
+requests a source search. :c:func:`rbcGrLinePicking.ClosestSourcePoint` maps original
+samples on demand, rejecting nonfinite coordinates and centers outside the viewport.
+Cached monotonic source X can restrict candidate ranges, but the range restriction must
+be justified by the actual screen-distance metric.
 
 Pruning is valid for both-direction queries in either orientation. For a
 single-direction query it is valid only for screen X in normal graphs and screen
@@ -772,17 +777,17 @@ Axis descending settings change the range-search ordering, not this eligibility.
 Collect before publishing
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-LineClosestInfo collects an optional parallel parameter value. It skips pending
-parameter-vector notifications, mismatched lengths and invalid indices rather
-than dereferencing stale storage. For an interpolated hit, param remains the
-source-index value; it is not geometrically interpolated.
+:c:func:`rbcGrLinePicking.LineClosestInfo` collects an optional parallel parameter
+value. It skips pending parameter-vector notifications, mismatched lengths and invalid
+indices rather than dereferencing stale storage. For an interpolated hit, param remains
+the source-index value; it is not geometrically interpolated.
 
-PolarClosestInfo derives radius and normalized radian angle from the final
-Cartesian hit, plus the source representation name. Smith results also include
-gamma, reference impedance, and convertible normalized and physical impedance
-and admittance. Exact open/short singularities are represented with positive infinity; other
-failed conversions omit their respective fields. Parameter
-metadata follows the source index while these geometric fields follow the hit.
+:c:func:`rbcGrLinePicking.PolarClosestInfo` derives radius and normalized radian angle
+from the final Cartesian hit, plus the source representation name. Smith results also
+include gamma, reference impedance, and convertible normalized and physical impedance
+and admittance. Exact open/short singularities are represented with positive infinity;
+other failed conversions omit their respective fields. Parameter metadata follows the
+source index while these geometric fields follow the hit.
 
 The SetClosestInfo helpers build dictionary entries, including two-double lists
 for complex pairs. They do not write Tcl variables or run array traces. The
@@ -793,20 +798,21 @@ Tcl status; previously inserted dictionary fields are not rolled back.
 Screen stroke adapters
 ~~~~~~~~~~~~~~~~~~~~~~
 
-DrawTraces batches connected polylines through one trace stroke context;
-DrawRenderedStrips submits an independent segment batch through one strip stroke
-context. Both borrow mapped geometry and pen resources, resolve the default
-off-dash color, and end a successfully created context. Context creation failure
-skips drawing. These adapters neither map source data nor own persistent arrays.
+:c:func:`rbcGrLinePicking.DrawTraces` batches connected polylines through one trace
+stroke context; :c:func:`rbcGrLinePicking.DrawRenderedStrips` submits an independent
+segment batch through one strip stroke context. Both borrow mapped geometry and pen
+resources, resolve the default off-dash color, and end a successfully created context.
+Context creation failure skips drawing. These adapters neither map source data nor own
+persistent arrays.
 
 Line symbols and output dispatch
 --------------------------------
 
-Normal screen drawing and export use the same broad order: area fill,
-uncertainty band, strokes, then per-style error bars, symbols and labels.
-Independent strips use palette pens; connected trace chains use the normal pen.
-Drawing consumes mapped geometry. In particular, NormalLineExport does not itself
-remap or disable decimation: export preparation owns that responsibility.
+Normal screen drawing and export use the same broad order: area fill, uncertainty band,
+strokes, then per-style error bars, symbols and labels. Independent strips use palette
+pens; connected trace chains use the normal pen. Drawing consumes mapped geometry. In
+particular, :c:func:`rbcGrLineOutput.NormalLineExport` does not itself remap or disable
+decimation: export preparation owns that responsibility.
 
 Active output is separate. Explicit active indices draw symbols and labels only,
 refreshing their geometry when pending. Whole-element activation also draws the
@@ -816,17 +822,17 @@ active pen and its scaled symbol size.
 Symbol selection and fallback
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SymbolInterval divides total palette center count by the requested maximum.
-It supplies a density interval, not a strict count cap. Normal output advances
-a shared counter across palette slices; styles without symbols still contribute
-their center count. Label selection uses a matching interval and slice offset.
-The screen path resets its interval after the normal pass; export uses local
+:c:func:`rbcGrLineOutput.SymbolInterval` divides total palette center count by the
+requested maximum. It supplies a density interval, not a strict count cap. Normal output
+advances a shared counter across palette slices; styles without symbols still contribute
+their center count. Label selection uses a matching interval and slice offset. The
+screen path resets its interval after the normal pass; export uses local
 interval/counter variables. Active export bypasses sampling.
 
-DrawSymbols tries tiny Cairo points, Cairo bitmap symbols, then Cairo geometric
-symbols before native fallback. Tiny points use fill color only and bypass the
-interval. Geometric fill and outline passes start from the same counter so they
-select identical centers; the counter advances once for the entire pass.
+:c:func:`rbcGrLineOutput.DrawSymbols` tries tiny Cairo points, Cairo bitmap symbols,
+then Cairo geometric symbols before native fallback. Tiny points use fill color only and
+bypass the interval. Geometric fill and outline passes start from the same counter so
+they select identical centers; the counter advances once for the entire pass.
 Segment-shaped symbols have no fill and retain hairline behavior.
 
 Bitmap drawing scales bitmap and optional mask once per pass. A transparent
@@ -834,32 +840,32 @@ background uses the bitmap as its own mask. Renderer setup captures image data
 before temporary pixmaps are freed; selected centers are submitted in bounded
 batches. Explicit drawable targets, used for legends, bypass plot sampling.
 
-Native fallback skips clip setup for wholly interior batches. If conservative
-symbol bounds cross the plot boundary, it uses the screen clip adapter and its
-target drawable. DrawSymbolsUnclipped only translates pen resources into native
+Native fallback skips clip setup for wholly interior batches. If conservative symbol
+bounds cross the plot boundary, it uses the screen clip adapter and its target drawable.
+:c:func:`rbcGrLineOutput.DrawSymbolsUnclipped` only translates pen resources into native
 renderer style and propagates the sampling counter; it does not establish a clip.
 
-GetRenderedSymbolShape retains native proportions and integer template rounding.
-None and bitmap symbols do not have a geometric template. Screen legend samples
-use explicitly sized targets and their own fallback sequence. Export legends use
-a single thicker trace segment, whereas the screen trace sample uses two adjacent
-segments; their constructions should not be assumed identical.
+:c:func:`rbcGrLineOutput.GetRenderedSymbolShape` retains native proportions and integer
+template rounding. None and bitmap symbols do not have a geometric template. Screen
+legend samples use explicitly sized targets and their own fallback sequence. Export
+legends use a single thicker trace segment, whereas the screen trace sample uses two
+adjacent segments; their constructions should not be assumed identical.
 
 Fills and labels
 ~~~~~~~~~~~~~~~~
 
-DrawRenderedFill attempts Cairo output and reports whether it handled the fill.
-Tiles take precedence over patterns, including when a tile cannot be rendered;
-it does not expose the pattern underneath. DrawLineFill owns subsequent native
-fallback and suppresses an empty tile. Pattern opacity is separate from tile
-image transparency. Export fill policy is delegated to its backend. See
-:doc:`fills` for the resource and geometry contracts.
+:c:func:`rbcGrLineOutput.DrawRenderedFill` attempts Cairo output and reports whether it
+handled the fill. Tiles take precedence over patterns, including when a tile cannot be
+rendered; it does not expose the pattern underneath. DrawLineFill owns subsequent native
+fallback and suppresses an empty tile. Pattern opacity is separate from tile image
+transparency. Export fill policy is delegated to its backend. See :doc:`fills` for the
+resource and geometry contracts.
 
-DrawValues and ValuesExport filter centers against the unpadded viewport, select
-source indices and obtain retained label objects through Rbc_GetElementValueLabel.
-Each object is released after drawing or skipping an empty label. Screen labels
-check offset coordinates against integer limits and convert to integers; export
-labels retain double coordinates.
+:c:func:`rbcGrLineOutput.DrawValues` and :c:func:`rbcGrLineOutput.ValuesExport` filter
+centers against the unpadded viewport, select source indices and obtain retained label
+objects through Rbc_GetElementValueLabel. Each object is released after drawing or
+skipping an empty label. Screen labels check offset coordinates against integer limits
+and convert to integers; export labels retain double coordinates.
 
 These loops borrow arrays, pens and element records across label-command calls.
 The existing restriction on mutating drawing state or entering nested event loops

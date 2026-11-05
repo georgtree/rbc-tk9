@@ -1764,14 +1764,31 @@ The C namespace below only disambiguates documentation names.</p>
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.FreeMapRun">
 <span class="target" id="group__line__mapping__pipeline_1ga700eca9efcc0861bf9588e347af21d16"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeMapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.FreeMapRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a temporary map run and clear its record. </p>
-<p>Frees owned screen points, source indices and optional break flags, then zeros the complete MapInfo. The record itself remains caller-owned. </p>
+<p>Frees owned screen points, source indices and optional break flags, then zeros the complete MapInfo. The record itself remains caller-owned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mapPtr</strong> – <strong>[inout]</strong> Initialized caller-owned map, possibly empty; owned arrays are freed and the complete record is zeroed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.CopyMapRun">
 <span class="target" id="group__line__mapping__pipeline_1gac16f3a1f7db2d0fc8a90146ca92bd648"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyMapRun</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.CopyMapRun" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy one continuous source interval into an empty temporary map. </p>
-<p>The caller supplies a valid first/length range and an unused destination. Zeros the destination before allocating; does not release previous contents. Copies points and original indices, deliberately omitting break flags because the interval represents one continuous run. Returns FALSE for nonpositive length, byte-count overflow or attempted-allocation failure, cleaning partial storage. Borrows and does not modify the source. </p>
+<p>The caller supplies a valid first/length range and an unused destination. Zeros the destination before allocating; does not release previous contents. Copies points and original indices, deliberately omitting break flags because the interval represents one continuous run. Returns FALSE for nonpositive length, byte-count overflow or attempted-allocation failure, cleaning partial storage. Borrows and does not modify the source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>srcPtr</strong> – <strong>[in]</strong> Borrowed mapped point/index arrays containing the entire requested continuous interval. </p></li>
+<li><p><strong>first</strong> – <strong>[in]</strong> Zero-based first mapped-point offset; bounds and continuity are caller-validated. </p></li>
+<li><p><strong>length</strong> – <strong>[in]</strong> Number of mapped entries to copy; nonpositive values fail, and first plus length must fit the source. </p></li>
+<li><p><strong>dstPtr</strong> – <strong>[out]</strong> Fresh nonowning map, distinct from srcPtr; initialized here and receives owned arrays on TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1797,35 +1814,78 @@ Requires a nonempty map with break flags. Copies each run, applies the selected 
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.SymbolPadding">
 <span class="target" id="group__line__mapping__pipeline_1ga925aa9a9632ff62b7bba43bf9ec19e9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolPadding</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.SymbolPadding" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return conservative pixel reach for a symbol. </p>
-<p>Returns zero for a NULL pen or SYMBOL_NONE, otherwise size plus twice the outline width and two pixels for rounding. Borrows the pen and does not compute exact symbol bounds or allocate storage. </p>
+<p>Returns zero for a NULL pen or SYMBOL_NONE, otherwise size plus twice the outline width and two pixels for rounding. Borrows the pen and does not compute exact symbol bounds or allocate storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed symbol pen, or NULL for zero padding. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Already scaled symbol size in pixels, used with outline width to bound its reach. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.GetSymbolMapExtents">
 <span class="target" id="group__line__mapping__pipeline_1ga0d4aeb495ce3f6b70856944d9d8d9b37"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSymbolMapExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.GetSymbolMapExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Expand mapping extents to retain partially visible symbols. </p>
-<p>Starts from Rbc_GraphExtents and expands all sides by the largest padding among palette pens and the active pen. Whole-element activation can reuse normal symbol arrays, so the active pen must contribute. Calls ScaleSymbol, which may capture axis-range baselines. Returns conservative center bounds; actual drawing still requires clipping to the plot viewport. </p>
+<p>Starts from Rbc_GraphExtents and expands all sides by the largest padding among palette pens and the active pen. Whole-element activation can reuse normal symbol arrays, so the active pen must contribute. Calls ScaleSymbol, which may capture axis-range baselines. Returns conservative center bounds; actual drawing still requires clipping to the plot viewport.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line with palette and active pens; symbol scaling may update axis-range baselines. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[out]</strong> Required conservative symbol-center rectangle in mapped pixels; not a rendering clip. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.MapSymbols">
 <span class="target" id="group__line__mapping__pipeline_1ga17b06e4602588f25bab40e025214e645"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapSymbols" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy visible candidate centers and original indices into the line. </p>
-<p>Borrows a source-ordered map and filters centers through expanded symbol extents. The caller must have cleared old symbol storage first. Transfers new arrays and count when any centers survive; otherwise frees candidates. Empty input, checked-size failure or attempted-allocation failure leaves existing line fields unchanged. Does not clip the symbol shapes themselves. </p>
+<p>Borrows a source-ordered map and filters centers through expanded symbol extents. The caller must have cleared old symbol storage first. Transfers new arrays and count when any centers survive; otherwise frees candidates. Empty input, checked-size failure or attempted-allocation failure leaves existing line fields unchanged. Does not clip the symbol shapes themselves.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line whose previous symbol arrays have been released; receives new owned center/index arrays and may update scale baselines. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[in]</strong> Borrowed source-ordered mapped points with parallel original indices and optional break flags; not modified. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.FilterReducedSymbols">
 <span class="target" id="group__line__mapping__pipeline_1ga39c309c6604b9deb9cc237cead39cccb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FilterReducedSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.FilterReducedSymbols" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Retain original symbol centers that survived trace reduction. </p>
-<p>Requires both mappings in source order, before MergePens. Matches both source index and exact screen coordinates, since inserted step/spline points can share an original index. Compacts symbol points and indices in place without changing capacity. Sets pointMapOmitted if any centers are removed so exact picking can search source samples instead. </p>
+<p>Requires both mappings in source order, before MergePens. Matches both source index and exact screen coordinates, since inserted step/spline points can share an original index. Compacts symbol points and indices in place without changing capacity. Sets pointMapOmitted if any centers are removed so exact picking can search source samples instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line with source-ordered symbol arrays; compacts them in place and sets pointMapOmitted when any center is removed. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[in]</strong> Borrowed reduced trace map in source order with exact coordinates and original indices; no ownership transfer. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.MapStrip">
 <span class="target" id="group__line__mapping__pipeline_1ga0d5203f20c0c0ff31646a1efce9e3df9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapStrip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapStrip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build independent clipped segments for a strip element. </p>
-<p>Borrows mapped points and skips pairs crossing a break flag. Clips each remaining adjacent pair against graph extents and records the starting point’s source index. Requires old strip storage to be cleared by the caller. Transfers arrays only when segments survive; frees empty candidates. Insufficient points, size failure or attempted-allocation failure leaves line fields unchanged. Does not apply the line trace-direction filter. </p>
+<p>Borrows mapped points and skips pairs crossing a break flag. Clips each remaining adjacent pair against graph extents and records the starting point’s source index. Requires old strip storage to be cleared by the caller. Transfers arrays only when segments survive; frees empty candidates. Insufficient points, size failure or attempted-allocation failure leaves line fields unchanged. Does not apply the line trace-direction filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line whose previous strip arrays have been released; receives owned independent-segment and source-index arrays. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[in]</strong> Borrowed source-ordered mapped points with parallel original indices and optional break flags; not modified. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1833,35 +1893,81 @@ Requires a nonempty map with break flags. Copies each run, applies the selected 
 <span class="target" id="group__line__mapping__pipeline_1ga07769a11cc611274f3f8441d3e12a083"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MergePens</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataToStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MergePens" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Group mapped geometry into palette-owned views of line storage. </p>
 <p>Requires a nonempty palette. For one style, attaches existing arrays without allocation and permits a NULL dataToStyle. For multiple styles, requires every source index to map to a valid palette style. Validates all byte counts before changing slices, then reorders strips, symbols and X/Y error segments with their parallel original-index arrays.</p>
-<p>Preserves order within each style and frees replaced backing arrays. Style pointers borrow slices; the line owns the complete allocations. Size failure returns without mutation; ordinary allocation uses ckalloc. Run source-order filtering before this operation. Trace chains are not reordered here. </p>
+<p>Preserves order within each style and frees replaced backing arrays. Style pointers borrow slices; the line owns the complete allocations. Size failure returns without mutation; ordinary allocation uses ckalloc. Run source-order filtering before this operation. Trace chains are not reordered here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Mapped line with a nonempty palette; arrays may be reordered and replaced, and styles receive borrowed slices. </p></li>
+<li><p><strong>dataToStyle</strong> – <strong>[in]</strong> Borrowed source-index-to-style array covering every mapped index; may be NULL only for a single-style palette. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.OutCode">
 <span class="target" id="group__line__mapping__pipeline_1ga01b5e212578829727e4978417e9c0522"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OutCode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.OutCode" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Classify a finite point relative to a clipping rectangle. </p>
-<p>Returns a bit mask for sides strictly outside the rectangle. Points on its edges are inside. Borrows both arguments without mutation; callers supply valid ordered extents and finite coordinates. </p>
+<p>Returns a bit mask for sides strictly outside the rectangle. Points on its edges are inside. Borrows both arguments without mutation; callers supply valid ordered extents and finite coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed finite ordered clipping rectangle, inclusive at its edges. </p></li>
+<li><p><strong>p</strong> – <strong>[in]</strong> Borrowed finite point to classify, unchanged. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.ClipSegment">
 <span class="target" id="group__line__mapping__pipeline_1gaed4de34447f60b74c7e42853e8fd407c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipSegment</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">code1</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">code2</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.ClipSegment" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Clip segment endpoints in place using supplied outcodes. </p>
-<p>Borrows a valid rectangle and writable finite endpoints with matching outcodes. Iteratively intersects outside endpoints with rectangle edges. Returns zero for an accepted segment and nonzero for rejection, opposite to a conventional success predicate. May modify endpoints even when the segment is ultimately rejected. Does not allocate or preserve originals. </p>
+<p>Borrows a valid rectangle and writable finite endpoints with matching outcodes. Iteratively intersects outside endpoints with rectangle edges. Returns zero for an accepted segment and nonzero for rejection, opposite to a conventional success predicate. May modify endpoints even when the segment is ultimately rejected. Does not allocate or preserve originals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extsPtr</strong> – <strong>[in]</strong> Borrowed finite ordered clipping rectangle. </p></li>
+<li><p><strong>code1</strong> – <strong>[in]</strong> OutCode value computed for the current p and this rectangle. </p></li>
+<li><p><strong>code2</strong> – <strong>[in]</strong> OutCode value computed for the current q and this rectangle. </p></li>
+<li><p><strong>p</strong> – <strong>[inout]</strong> Writable finite first endpoint, distinct from q; clipping may change it even on rejection. </p></li>
+<li><p><strong>q</strong> – <strong>[inout]</strong> Writable finite second endpoint, distinct from p; clipping may change it even on rejection. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.SaveTrace">
 <span class="target" id="group__line__mapping__pipeline_1ga915660a9cb73a84ae6838ba6bccfa492"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SaveTrace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">start</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.SaveTrace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an owned copy of a mapped interval to the trace chain. </p>
-<p>Caller supplies a valid interval and allocation-safe length. Copies points and source indices; if no index array exists, uses positions in the map. Stores the starting map offset, creates the chain lazily and appends a new trace. Uses ckalloc; FreeTraces owns the resulting arrays and record. Does not transfer or modify the source map. </p>
+<p>Caller supplies a valid interval and allocation-safe length. Copies points and source indices; if no index array exists, uses positions in the map. Stores the starting map offset, creates the chain lazily and appends a new trace. Uses ckalloc; FreeTraces owns the resulting arrays and record. Does not transfer or modify the source map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line receiving a newly allocated trace record; its trace chain is created lazily if absent. </p></li>
+<li><p><strong>start</strong> – <strong>[in]</strong> First mapped offset of a valid interval; retained in the trace as its start. </p></li>
+<li><p><strong>length</strong> – <strong>[in]</strong> Positive number of mapped entries to copy; caller must ensure allocation-safe sizes and source bounds. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[in]</strong> Borrowed source map; indices may be NULL, in which case map offsets become source indices. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineMapping.TraceAbscissa">
 <span class="target" id="group__line__mapping__pipeline_1gae88681692df69e1475bd9f7741f8690e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TraceAbscissa</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.TraceAbscissa" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return a screen-derived coordinate ordered by increasing data X. </p>
-<p>Uses screen X normally and negated screen Y for inverted graphs, then undoes X-axis descending direction. This coordinate is for trace-direction comparisons, not an inverse transform or recovered data value. Borrows all arguments and performs no allocation. </p>
+<p>Uses screen X normally and negated screen Y for inverted graphs, then undoes X-axis descending direction. This coordinate is for trace-direction comparisons, not an inverse transform or recovered data value. Borrows all arguments and performs no allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line supplying the prepared X axis and its descending flag. </p></li>
+<li><p><strong>pointPtr</strong> – <strong>[in]</strong> Borrowed finite mapped point in graph-window coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1869,7 +1975,16 @@ Requires a nonempty map with break flags. Copies each run, applies the selected 
 <span class="target" id="group__line__mapping__pipeline_1ga75619fd6bda8494dce7445f94734df62"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapTraces</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapTraces" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Split and clip a mapped polyline into owned drawable traces. </p>
 <p>Requires a nonempty writable map. Break flags prevent testing nonexistent connecting segments. Trace direction is measured in data-X order, including inverted and descending axes. Rejected segments and clipped exits split traces; only runs with at least two points are saved.</p>
-<p>Clipping mutates temporary map coordinates. An outside following point is restored after saving an accepted clipped exit, but the map is not generally preserved. SaveTrace copies surviving geometry into line-owned storage. Call fill and source-coordinate filtering before this destructive stage. </p>
+<p>Clipping mutates temporary map coordinates. An outside following point is restored after saving an accepted clipped exit, but the map is not generally preserved. SaveTrace copies surviving geometry into line-owned storage. Call fill and source-coordinate filtering before this destructive stage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line with a cleared trace chain receiving copies of surviving clipped runs. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[inout]</strong> Nonempty temporary map with writable points and parallel indices; clipping can overwrite coordinates. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1877,7 +1992,15 @@ Requires a nonempty map with break flags. Copies each run, applies the selected 
 <span class="target" id="group__line__mapping__pipeline_1ga629b337db1d21ee27b7ad55c66d36ab7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rebuild line-family drawing geometry in the current graph viewport. </p>
 <p>Borrows the element and graph with axes/viewports prepared by the caller. Refreshes or invalidates pending source-decimation summaries, consumes change metadata and resets old mapped geometry before early exits. Builds the error band, chooses cached/pre-map/full mapping, retains symbol centers, then applies smoothing, density/tolerance reduction and area fill. Dispatches strip segments versus connected traces by element class.</p>
-<p>Frees temporary map storage after geometry copies are made. The restricted pre-map path marks pointMapOmitted and attaches the single palette style without a source-sized style map. The general path computes style sizes, maps eligible XY error bars, filters them and finally merges palette slices. Individual helpers define allocation fallbacks; this void operation is not an all-or-nothing transaction and does not emit Tcl diagnostics. </p>
+<p>Frees temporary map storage after geometry copies are made. The restricted pre-map path marks pointMapOmitted and attaches the single palette style without a source-sized style map. The general path computes style sizes, maps eligible XY error bars, filters them and finally merges palette slices. Individual helpers define allocation fallbacks; this void operation is not an all-or-nothing transaction and does not emit Tcl diagnostics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Live line-family core with synchronized source arrays and pending change metadata; existing mapped geometry is discarded. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1885,7 +2008,15 @@ Requires a nonempty map with break flags. Copies each run, applies the selected 
 <span class="target" id="group__line__mapping__pipeline_1gac0b3fe497d3ca6e91207ec0cd692441c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLineExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.GetLineExtents" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute source-domain bounds for axis ranging. </p>
 <p>Initializes empty sentinel extents. Complex data or polar-coordinate input is converted pointwise to Cartesian coordinates and enclosed in a symmetric square using the largest finite-point radius; radius overflow clamps to DBL_MAX. No valid points retain the empty sentinel bounds.</p>
-<p>Ordinary XY input uses vector extrema, finding a positive minimum when a log axis requires it, and expands the result for error bars. Does not use smoothed or decimated screen geometry, allocate, or synchronize source data. </p>
+<p>Ordinary XY input uses vector extrema, finding a positive minimum when a log axis requires it, and expands the result for error bars. Does not use smoothed or decimated screen geometry, allocate, or synchronize source data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed line-family core with synchronized source values/extrema, error data and prepared axis policies. </p></li>
+<li><p><strong>extsPtr</strong> – <strong>[out]</strong> Required source-coordinate bounds, initialized to empty sentinels even when no valid samples exist. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1907,70 +2038,172 @@ This namespace only disambiguates private documentation symbols.</p>
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.SetClosestInfoObj">
 <span class="target" id="group__line__picking__rendering_1gae794ba62d10eab00443a3137e3eee2e1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetClosestInfoObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valueObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.SetClosestInfoObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Insert a named value into a closest-result dictionary. </p>
-<p>Borrows the writable result dictionary and value; Tcl_DictObjPut retains the key/value on success. Allocates the key object and returns the Tcl status. Does not write interpreter variables or invoke their traces. The caller owns result lifetime and must supply an unshared dictionary. </p>
+<p>Borrows the writable result dictionary and value; Tcl_DictObjPut retains the key/value on success. Allocates the key object and returns the Tcl status. Does not write interpreter variables or invoke their traces. The caller owns result lifetime and must supply an unshared dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for dictionary diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>resultObjPtr</strong> – <strong>[inout]</strong> Borrowed unshared result dictionary; inserted fields are retained, and earlier fields survive a later error. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Required NUL-terminated dictionary key, copied into a new Tcl string. </p></li>
+<li><p><strong>valueObjPtr</strong> – <strong>[in]</strong> Borrowed value object; the dictionary acquires a reference on successful insertion. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.SetClosestInfoDouble">
 <span class="target" id="group__line__picking__rendering_1gab009f352e9591587f8488ad735458aca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetClosestInfoDouble</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.SetClosestInfoDouble" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a double-valued closest-result field. </p>
-<p>Constructs a Tcl double and delegates dictionary insertion. Returns the insertion status; the result dictionary owns the inserted object on success. Does not format the number through a string or publish an array variable. </p>
+<p>Constructs a Tcl double and delegates dictionary insertion. Returns the insertion status; the result dictionary owns the inserted object on success. Does not format the number through a string or publish an array variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for dictionary diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>resultObjPtr</strong> – <strong>[inout]</strong> Borrowed unshared result dictionary; inserted fields are retained, and earlier fields survive a later error. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Required NUL-terminated dictionary key, copied into a new Tcl string. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Double value copied into a new Tcl object without string formatting. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.SetClosestInfoString">
 <span class="target" id="group__line__picking__rendering_1ga5487106db931f8faabf081e9308ed8cc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetClosestInfoString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.SetClosestInfoString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a string-valued closest-result field. </p>
-<p>Copies the NUL-terminated value into a Tcl string and returns dictionary insertion status. Borrows the result dictionary and does not publish variables. </p>
+<p>Copies the NUL-terminated value into a Tcl string and returns dictionary insertion status. Borrows the result dictionary and does not publish variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for dictionary diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>resultObjPtr</strong> – <strong>[inout]</strong> Borrowed unshared result dictionary; inserted fields are retained, and earlier fields survive a later error. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Required NUL-terminated dictionary key, copied into a new Tcl string. </p></li>
+<li><p><strong>value</strong> – <strong>[in]</strong> Required borrowed NUL-terminated value string, copied into a new Tcl object. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.SetClosestInfoPair">
 <span class="target" id="group__line__picking__rendering_1ga76e3f4264e1b6a343f12e02754bc8663"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetClosestInfoPair</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">real</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">imag</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.SetClosestInfoPair" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a real/imaginary pair as a two-element Tcl list. </p>
-<p>Creates two Tcl doubles and a list in real, imaginary order, then inserts that list into the borrowed result dictionary. Returns the insertion status. No RBC vector is created and no variable traces are run. </p>
+<p>Creates two Tcl doubles and a list in real, imaginary order, then inserts that list into the borrowed result dictionary. Returns the insertion status. No RBC vector is created and no variable traces are run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for dictionary diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>resultObjPtr</strong> – <strong>[inout]</strong> Borrowed unshared result dictionary; inserted fields are retained, and earlier fields survive a later error. </p></li>
+<li><p><strong>name</strong> – <strong>[in]</strong> Required NUL-terminated dictionary key, copied into a new Tcl string. </p></li>
+<li><p><strong>real</strong> – <strong>[in]</strong> Real component stored at list index zero. </p></li>
+<li><p><strong>imag</strong> – <strong>[in]</strong> Imaginary component stored at list index one. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.DistanceToLine">
 <span class="target" id="group__line__picking__rendering_1ga241ce399011f35bc0f9cac05cadec4a3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DistanceToLine</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">t</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.DistanceToLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Measure Euclidean distance from a pixel query to a segment. </p>
-<p>Delegates to Rbc_GetClosestPointOnSegment using a double-precision query. Borrows endpoints and writes the nearest segment point to t. Returns the pixel distance, including endpoint clamping, without modifying endpoints. </p>
+<p>Delegates to Rbc_GetClosestPointOnSegment using a double-precision query. Borrows endpoints and writes the nearest segment point to t. Returns the pixel distance, including endpoint clamping, without modifying endpoints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal query coordinate in screen pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical query coordinate in screen pixels. </p></li>
+<li><p><strong>p</strong> – <strong>[in]</strong> Borrowed finite first segment endpoint, unchanged. </p></li>
+<li><p><strong>q</strong> – <strong>[in]</strong> Borrowed finite second segment endpoint, unchanged. </p></li>
+<li><p><strong>t</strong> – <strong>[out]</strong> Required separate closest-point output in screen pixels; always written for valid finite inputs. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.DistanceToX">
 <span class="target" id="group__line__picking__rendering_1ga34eb8a59feebba64e39d48f121b8bb11"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DistanceToX</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">t</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.DistanceToX" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intersect a segment with the query screen X coordinate. </p>
-<p>Returns DBL_MAX without writing t when X is outside the endpoint span. Otherwise writes the intersection and returns its absolute screen Y distance from the query. Near-vertical segments choose the nearer endpoint in Y, with ties choosing q; near-horizontal segments use their constant Y. This is a trace intersection metric, not point-search X distance. </p>
+<p>Returns DBL_MAX without writing t when X is outside the endpoint span. Otherwise writes the intersection and returns its absolute screen Y distance from the query. Near-vertical segments choose the nearer endpoint in Y, with ties choosing q; near-horizontal segments use their constant Y. This is a trace intersection metric, not point-search X distance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal query coordinate in screen pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical query coordinate in screen pixels. </p></li>
+<li><p><strong>p</strong> – <strong>[in]</strong> Borrowed finite first segment endpoint, unchanged. </p></li>
+<li><p><strong>q</strong> – <strong>[in]</strong> Borrowed finite second segment endpoint, unchanged. </p></li>
+<li><p><strong>t</strong> – <strong>[out]</strong> Required separate closest-point output in screen pixels; unchanged when the query lies outside the relevant endpoint span. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.DistanceToY">
 <span class="target" id="group__line__picking__rendering_1ga23ebef3f10c9b4fce0f5e91d3e65a9bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DistanceToY</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">t</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.DistanceToY" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Intersect a segment with the query screen Y coordinate. </p>
-<p>Returns DBL_MAX without writing t when Y is outside the endpoint span. Otherwise writes the intersection and returns its absolute screen X distance from the query. Near-horizontal segments choose the nearer endpoint in X, with ties choosing q; near-vertical segments use their constant X. Borrows endpoints and does not allocate. </p>
+<p>Returns DBL_MAX without writing t when Y is outside the endpoint span. Otherwise writes the intersection and returns its absolute screen X distance from the query. Near-horizontal segments choose the nearer endpoint in X, with ties choosing q; near-vertical segments use their constant X. Borrows endpoints and does not allocate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – <strong>[in]</strong> Horizontal query coordinate in screen pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Vertical query coordinate in screen pixels. </p></li>
+<li><p><strong>p</strong> – <strong>[in]</strong> Borrowed finite first segment endpoint, unchanged. </p></li>
+<li><p><strong>q</strong> – <strong>[in]</strong> Borrowed finite second segment endpoint, unchanged. </p></li>
+<li><p><strong>t</strong> – <strong>[out]</strong> Required separate closest-point output in screen pixels; unchanged when the query lies outside the relevant endpoint span. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.ClosestTrace">
 <span class="target" id="group__line__picking__rendering_1ga72b57d7ea12e0349e2c0745b41e35994"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestTrace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span>, <span class="n"><span class="pre">DistanceProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">distProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.ClosestTrace" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Search connected mapped traces for a strict distance improvement. </p>
-<p>Calls the supplied script-free distance function on each consecutive pair. On improvement, stores element, distance, the segment start’s source index and the inverse-mapped closest coordinate in the borrowed search record. Returns TRUE only if it improves the incoming distance; ties retain the previous candidate. Requires current trace geometry and prepared axes. </p>
+<p>Calls the supplied script-free distance function on each consecutive pair. On improvement, stores element, distance, the segment start’s source index and the inverse-mapped closest coordinate in the borrowed search record. Returns TRUE only if it improves the incoming distance; ties retain the previous candidate. Requires current trace geometry and prepared axes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with current mapped geometry and synchronized source slots; no ownership is transferred. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[inout]</strong> Initialized query and best-hit record; only a strictly closer candidate replaces its distance, element, index and coordinate. </p></li>
+<li><p><strong>distProc</strong> – <strong>[in]</strong> Required script-free segment metric; must write its closest point whenever the returned distance can improve the query. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.ClosestStrip">
 <span class="target" id="group__line__picking__rendering_1ga2ec11a9340a083072cc17934a94c5c1e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestStrip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span>, <span class="n"><span class="pre">DistanceProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">distProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.ClosestStrip" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Search independent mapped segments for a closer interpolated hit. </p>
-<p>Uses the supplied distance callback and the parallel stripToData array. Commits a strict improvement to the search record, inverse-mapping the hit coordinate and reporting the segment’s retained source index. Returns FALSE without changing the record if no segment improves it. Borrows geometry. </p>
+<p>Uses the supplied distance callback and the parallel stripToData array. Commits a strict improvement to the search record, inverse-mapping the hit coordinate and reporting the segment’s retained source index. Returns FALSE without changing the record if no segment improves it. Borrows geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with current mapped geometry and synchronized source slots; no ownership is transferred. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[inout]</strong> Initialized query and best-hit record; only a strictly closer candidate replaces its distance, element, index and coordinate. </p></li>
+<li><p><strong>distProc</strong> – <strong>[in]</strong> Required script-free segment metric; must write its closest point whenever the returned distance can improve the query. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.ClosestMappedPoint">
 <span class="target" id="group__line__picking__rendering_1ga0f3b4a05e17983b1eb1892acc12dba02"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestMappedPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.ClosestMappedPoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Search retained original centers inside the plot rectangle. </p>
-<p>Ignores centers outside unpadded graph extents even if part of their symbol could be visible. SEARCH_BOTH uses Euclidean distance; SEARCH_X and SEARCH_Y use absolute screen X and Y distances respectively. Strict improvements retain source indices and recover data coordinates from the source adapter. Requires current mapped arrays and source data; does not synchronize them. </p>
+<p>Ignores centers outside unpadded graph extents even if part of their symbol could be visible. SEARCH_BOTH uses Euclidean distance; SEARCH_X and SEARCH_Y use absolute screen X and Y distances respectively. Strict improvements retain source indices and recover data coordinates from the source adapter. Requires current mapped arrays and source data; does not synchronize them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with current mapped geometry and synchronized source slots; no ownership is transferred. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[inout]</strong> Initialized query and best-hit record; only a strictly closer candidate replaces its distance, element, index and coordinate. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1978,35 +2211,82 @@ This namespace only disambiguates private documentation symbols.</p>
 <span class="target" id="group__line__picking__rendering_1ga5087bad8ac99a829b20e525ee195d54c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestSourcePoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.ClosestSourcePoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Search original samples when mapped centers were omitted. </p>
 <p>Maps finite source samples on demand and applies the same viewport and point-distance rules as ClosestMappedPoint. May build/use the decimation cache to restrict the source interval, then commits only a strict improvement. Reads source data without invoking Tcl callbacks.</p>
-<p>Candidate pruning uses the screen coordinate onto which data X maps: SEARCH_X normally, SEARCH_Y when inverted, or SEARCH_BOTH in either orientation. Other directional queries must search the full source range. </p>
+<p>Candidate pruning uses the screen coordinate onto which data X maps: SEARCH_X normally, SEARCH_Y when inverted, or SEARCH_BOTH in either orientation. Other directional queries must search the full source range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line with synchronized source arrays and current mapping state; source picking may allocate or replace cache summaries. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[inout]</strong> Initialized query and best-hit record; only a strictly closer candidate replaces its distance, element, index and coordinate. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.ClosestPoint">
 <span class="target" id="group__line__picking__rendering_1ga5ca2d6a594db6198daa74dc401fb7803"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.ClosestPoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch exact point picking according to map completeness. </p>
-<p>Uses retained mapped centers unless pointMapOmitted requests an original source search. Borrows all inputs and updates the search record only through the selected helper. The source path may allocate a decimation cache. </p>
+<p>Uses retained mapped centers unless pointMapOmitted requests an original source search. Borrows all inputs and updates the search record only through the selected helper. The source path may allocate a decimation cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line with synchronized source arrays and current mapping state; source picking may allocate or replace cache summaries. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[inout]</strong> Initialized query and best-hit record; only a strictly closer candidate replaces its distance, element, index and coordinate. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.ClosestLine">
 <span class="target" id="group__line__picking__rendering_1gad288f951a9eab085f7ee1bc715d207cf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.ClosestLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select point or interpolated picking for a line-family element. </p>
-<p>SEARCH_AUTO selects traces only with more than one point and positive normal-pen trace width. Point mode uses ClosestPoint; trace mode chooses an intersection or Euclidean metric and dispatches strip versus connected geometry by element class. Directional trace searches fall back to points when no segment improves the incoming result; SEARCH_BOTH does not. Requires current geometry and the owning graph/track viewport. </p>
+<p>SEARCH_AUTO selects traces only with more than one point and positive normal-pen trace width. Point mode uses ClosestPoint; trace mode chooses an intersection or Euclidean metric and dispatches strip versus connected geometry by element class. Directional trace searches fall back to points when no segment improves the incoming result; SEARCH_BOTH does not. Requires current geometry and the owning graph/track viewport.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Live line-family element with current geometry and sources; source picking may rebuild its cache. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[inout]</strong> Initialized query and best-hit record; only a strictly closer candidate replaces its distance, element, index and coordinate. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.AppendLineParamClosestInfo">
 <span class="target" id="group__line__picking__rendering_1ga6dfd14bcaef31aa780edefacd166078b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendLineParamClosestInfo</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.AppendLineParamClosestInfo" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a safe source-index parameter value when available. </p>
-<p>Omits param without error while a named parameter vector has pending notification, lengths differ, storage is absent, or the hit index is invalid. Otherwise inserts the value at the reported source index, even for an interpolated geometric hit. Does not interpolate the parameter, synchronize the vector, or publish interpreter variables. Returns dictionary status. </p>
+<p>Omits param without error while a named parameter vector has pending notification, lengths differ, storage is absent, or the hit index is invalid. Otherwise inserts the value at the reported source index, even for an interpolated geometric hit. Does not interpolate the parameter, synchronize the vector, or publish interpreter variables. Returns dictionary status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the interpreter for dictionary diagnostics. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with current mapped geometry and synchronized source slots; no ownership is transferred. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[in]</strong> Borrowed completed hit with original source index and plotted Cartesian coordinate; not modified. </p></li>
+<li><p><strong>resultObjPtr</strong> – <strong>[inout]</strong> Borrowed unshared result dictionary; inserted fields are retained, and earlier fields survive a later error. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.LineClosestInfo">
 <span class="target" id="group__line__picking__rendering_1ga045a6bdd2b6af9f60716011e1df5fce2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineClosestInfo</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.LineClosestInfo" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Collect optional line/strip parameter metadata. </p>
-<p>Delegates to AppendLineParamClosestInfo using the borrowed hit record and writable result dictionary. No array traces run during this collection phase. The common closest handler owns later publication and dictionary lifetime. </p>
+<p>Delegates to AppendLineParamClosestInfo using the borrowed hit record and writable result dictionary. No array traces run during this collection phase. The common closest handler owns later publication and dictionary lifetime.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the interpreter for dictionary diagnostics. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed line-family core with current geometry, sources and configured pens. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[in]</strong> Borrowed completed hit with original source index and plotted Cartesian coordinate; not modified. </p></li>
+<li><p><strong>resultObjPtr</strong> – <strong>[inout]</strong> Borrowed unshared result dictionary; inserted fields are retained, and earlier fields survive a later error. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2014,21 +2294,52 @@ This namespace only disambiguates private documentation symbols.</p>
 <span class="target" id="group__line__picking__rendering_1gac300bbfe3603b8b7cc42720e12447ef3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarClosestInfo</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.PolarClosestInfo" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Collect polar or Smith metadata from the plotted hit coordinate. </p>
 <p>Appends optional source-index param first. Finite Cartesian hit coordinates produce radius, a nonnegative radian angle normalized below a full turn, and source dataFormat. A zero radius produces zero angle. Nonfinite hit coordinates omit these fields without error.</p>
-<p>Smith representation additionally inserts gamma and z0, then normalized and physical impedance/admittance when their conversion succeeds. Impedance scales by z0 and admittance divides by z0. Metadata describes the geometric hit, except param which follows the source index. Returns the first Tcl dictionary error without rolling back preceding fields. Does not publish variables or invoke application callbacks. </p>
+<p>Smith representation additionally inserts gamma and z0, then normalized and physical impedance/admittance when their conversion succeeds. Impedance scales by z0 and admittance divides by z0. Metadata describes the geometric hit, except param which follows the source index. Returns the first Tcl dictionary error without rolling back preceding fields. Does not publish variables or invoke application callbacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the interpreter for dictionary diagnostics. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed line-family core with current geometry, sources and configured pens. </p></li>
+<li><p><strong>searchPtr</strong> – <strong>[in]</strong> Borrowed completed hit with original source index and plotted Cartesian coordinate; not modified. </p></li>
+<li><p><strong>resultObjPtr</strong> – <strong>[inout]</strong> Borrowed unshared result dictionary; inserted fields are retained, and earlier fields survive a later error. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.DrawTraces">
 <span class="target" id="group__line__picking__rendering_1gadd28ccb3971dfa9301defdfa7ef027ec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTraces</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.DrawTraces" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw connected traces through one screen stroke context. </p>
-<p>Borrows the pen and line geometry. Begins a trace stroke using GC, color, width and dashes, resolving default off-dash color to the trace color. Draws every stored polyline and ends the context. A NULL context silently skips drawing. Geometry and pen ownership remain with the element. </p>
+<p>Borrows the pen and line geometry. Begins a trace stroke using GC, color, width and dashes, resolving default off-dash color to the trace color. Draws every stored polyline and ends the context. A NULL context silently skips drawing. Geometry and pen ownership remain with the element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with current mapped geometry and synchronized source slots; no ownership is transferred. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLinePicking.DrawRenderedStrips">
 <span class="target" id="group__line__picking__rendering_1ga2140b9d73f3826eb37ea9b1eb91d15ab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedStrips</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLinePicking.DrawRenderedStrips" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw independent segments through one screen stroke context. </p>
-<p>Borrows the pen and segment array for the duration of the call. Resolves default off-dash color, begins a strip stroke, submits the segment batch and ends the context. A NULL context skips the batch. Does not remap geometry or retain the array beyond the call. </p>
+<p>Borrows the pen and segment array for the duration of the call. Resolves default off-dash color, begins a strip stroke, submits the segment batch and ends the context. A NULL context skips the batch. Does not remap geometry or retain the array beyond the call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed array of count mapped segments, unchanged and not retained after drawing. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of readable entries in the supplied geometry array. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -2049,14 +2360,37 @@ These are private adapters; the namespace below is documentation-only.</p>
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.GetRenderedSymbolShape">
 <span class="target" id="group__line__output__dispatch_1gadeeda395c9ceaf27acf3f6aee1423a22"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRenderedSymbolShape</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SymbolType</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderShape" title="Rbc_RenderShape"><span class="n"><span class="pre">Rbc_RenderShape</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shape</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.GetRenderedSymbolShape" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build an origin-centered geometric symbol template. </p>
-<p>Zeros the caller-owned shape and fills circle, polygon or independent segment geometry using native proportions and integer rounding. Returns FALSE for unsupported types, including bitmap and none; such output is not a usable template. Borrows no persistent storage and performs no allocation. </p>
+<p>Zeros the caller-owned shape and fills circle, polygon or independent segment geometry using native proportions and integer rounding. Returns FALSE for unsupported types, including bitmap and none; such output is not a usable template. Borrows no persistent storage and performs no allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> – <strong>[in]</strong> Symbol discriminator; NONE, BITMAP and unsupported values return FALSE. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>shape</strong> – <strong>[out]</strong> Required caller-owned template, zeroed before dispatch; use only on TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.DrawRenderedPoints">
 <span class="target" id="group__line__output__dispatch_1ga3d2c03683bb4caecd67b4f2f54e973ac"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedPoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawRenderedPoints" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Handle tiny Cairo symbols as filled points. </p>
-<p>Returns FALSE unless Cairo is selected and size is below three, or when context creation fails, allowing fallback. A missing effective fill color or nonpositive count is successfully handled without drawing. Resolves default fill to trace color and uses explicit drawable dimensions when supplied. Draws all centers without symbol-interval filtering, then ends the context. </p>
+<p>Returns FALSE unless Cairo is selected and size is below three, or when context creation fails, allowing fallback. A missing effective fill color or nonpositive count is successfully handled without drawing. Resolves default fill to trace color and uses explicit drawable dimensions when supplied. Draws all centers without symbol-interval filtering, then ends the context.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of readable entries in the supplied geometry array. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed array of count mapped points; retained only for this call. </p></li>
+<li><p><strong>targetWidth</strong> – <strong>[in]</strong> Positive explicit drawable width, or zero to use the graph target. </p></li>
+<li><p><strong>targetHeight</strong> – <strong>[in]</strong> Positive explicit drawable height when targetWidth is positive; otherwise zero. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2064,7 +2398,22 @@ These are private adapters; the namespace below is documentation-only.</p>
 <span class="target" id="group__line__output__dispatch_1ga7e2e7d26a2a59b3cad2d869e16a805fd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedBitmapSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawRenderedBitmapSymbols" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw a Cairo bitmap-symbol pass with shared scaled resources. </p>
 <p>Requires Cairo, a bitmap symbol, size at least three, positive count and an effective foreground. Scales bitmap and optional mask once. Transparent background uses the bitmap itself as mask. Releases temporary pixmaps after context creation; renderer setup captures the required image data.</p>
-<p>Returns FALSE on ineligibility or setup failure for caller fallback. Submits selected centers in batches of 256, advancing the shared symbol counter only for plot drawing with a positive interval. Explicit drawable targets bypass that interval. Ends the context and returns TRUE after handling the pass. </p>
+<p>Returns FALSE on ineligibility or setup failure for caller fallback. Submits selected centers in batches of 256, advancing the shared symbol counter only for plot drawing with a positive interval. Explicit drawable targets bypass that interval. Ends the context and returns TRUE after handling the pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line supplying the shared symbol interval/counter; plot drawing advances the counter, explicit targets bypass it. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Nonnegative number of readable point entries. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed array of nPoints mapped centers in the destination coordinate system. </p></li>
+<li><p><strong>targetWidth</strong> – <strong>[in]</strong> Positive explicit drawable width, or zero to use the graph target. </p></li>
+<li><p><strong>targetHeight</strong> – <strong>[in]</strong> Positive explicit drawable height when targetWidth is positive; otherwise zero. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2072,21 +2421,58 @@ These are private adapters; the namespace below is documentation-only.</p>
 <span class="target" id="group__line__output__dispatch_1ga96b0011f3c9634caa4512ce0a2d6219e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawRenderedSymbols" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw geometric Cairo symbols in fill and outline passes. </p>
 <p>Returns FALSE for non-Cairo, tiny/unsupported shapes or failed context creation. Resolves default colors from the trace pen. Segment symbols omit fill and retain a hairline outline even at configured width zero.</p>
-<p>Each pass starts from the same counter so fill and outline select identical centers. Uses batches of 256 and advances the line counter once for the whole input when an interval is active. Ends the context and returns TRUE; geometry and pen resources remain borrowed. </p>
+<p>Each pass starts from the same counter so fill and outline select identical centers. Uses batches of 256 and advances the line counter once for the whole input when an interval is active. Ends the context and returns TRUE; geometry and pen resources remain borrowed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line supplying the shared symbol interval/counter; drawing may advance the counter. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of readable symbol-center entries, and of parallel indices when supplied. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.DrawRenderedErrorBars">
 <span class="target" id="group__line__output__dispatch_1ga1dc5378649627d42b75f44fa0614fdf5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedErrorBars</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawRenderedErrorBars" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Submit solid screen error-bar segments through a stroke context. </p>
-<p>Resolves default error-bar color to trace color and uses at least unit width for renderer stroke setup while retaining the native GC. Begins and ends one segment context; NULL context skips drawing. Borrows all arrays and pen resources and does not apply symbol sampling here. </p>
+<p>Resolves default error-bar color to trace color and uses at least unit width for renderer stroke setup while retaining the native GC. Begins and ends one segment context; NULL context skips drawing. Borrows all arrays and pen resources and does not apply symbol sampling here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed array of count mapped segments, unchanged and not retained after drawing. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of readable entries in the supplied geometry array. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.DrawSymbolsUnclipped">
 <span class="target" id="group__line__output__dispatch_1ga07ea1a4b503c60cb7cff5fc36bb77311"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawSymbolsUnclipped</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawSymbolsUnclipped" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch native symbol drawing and retain its sampling counter. </p>
-<p>Builds a temporary native style from the pen’s GCs, bitmap, mask, interval and counter. Submits borrowed centers through a native symbol context, ends it and copies the updated style counter back to the line. Does not establish a plot clip; callers must supply an appropriate target/clip. </p>
+<p>Builds a temporary native style from the pen’s GCs, bitmap, mask, interval and counter. Submits borrowed centers through a native symbol context, ends it and copies the updated style counter back to the line. Does not establish a plot clip; callers must supply an appropriate target/clip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line supplying the shared symbol interval/counter; drawing may advance the counter. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of readable symbol-center entries, and of parallel indices when supplied. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2094,14 +2480,41 @@ These are private adapters; the namespace below is documentation-only.</p>
 <span class="target" id="group__line__output__dispatch_1ga90d7881687ca3be2a6555e6a828a0110"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawSymbols" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw plot symbols with renderer fallbacks and boundary clipping. </p>
 <p>Skips empty arrays and SYMBOL_NONE. Tries tiny Cairo points, Cairo bitmaps and Cairo geometric symbols in order. If none handles the pass, bounds the plot rectangle by the drawable and checks conservative symbol padding.</p>
-<p>Wholly interior native batches draw directly. Boundary batches use a screen clip context and its target drawable, then end clip and context. Empty clips skip drawing. Borrows centers and pen resources; helpers may advance the line’s shared sampling counter. </p>
+<p>Wholly interior native batches draw directly. Boundary batches use a screen clip context and its target drawable, then end clip and context. Empty clips skip drawing. Borrows centers and pen resources; helpers may advance the line’s shared sampling counter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line supplying the shared symbol interval/counter; drawing may advance the counter. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of readable symbol-center entries, and of parallel indices when supplied. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after drawing. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.DrawSymbol">
 <span class="target" id="group__line__output__dispatch_1ga2d7f1e46b4b3e17486906d958543d12d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawSymbol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawSymbol" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw one legend sample into an explicitly sized drawable. </p>
-<p>Uses the normal pen to draw a trace sample and optional centered symbol. The trace uses two adjacent segments, with a native legend-line fallback if context creation fails. Symbols try tiny points, bitmap rendering and geometric templates before native fallback. Does not establish a plot clip or remap source data; width/height describe the legend target. </p>
+<p>Uses the normal pen to draw a trace sample and optional centered symbol. The trace uses two adjacent segments, with a native legend-line fallback if context creation fails. Symbols try tiny points, bitmap rendering and geometric templates before native fallback. Does not establish a plot clip or remap source data; width/height describe the legend target.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Live line-family element supplying its normal pen; native fallback can update its symbol counter. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Legend sample center X in target pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Legend sample center Y in target pixels. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Positive width of the legend drawable in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Positive height of the legend drawable in pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2109,28 +2522,75 @@ These are private adapters; the namespace below is documentation-only.</p>
 <span class="target" id="group__line__output__dispatch_1ga4a7378a3a2ddf516a21e7a8bbcae9ef1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointToData</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">interval</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawValues" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Render sampled value labels at mapped centers on screen. </p>
 <p>Borrows point and parallel source-index arrays. Applies interval/offset selection and unpadded viewport filtering before obtaining source values. Rbc_GetElementValueLabel returns one retained Tcl object per label; this routine releases it even when empty. Offset positions outside integer range are skipped; accepted coordinates are converted to integers for screen text.</p>
-<p>Owns and ends one text context. Label commands can run Tcl: callers must keep drawing records, arrays and pens stable, and callbacks must not mutate drawing state or enter nested event processing. This loop adds no lifetime or reentrancy guard. </p>
+<p>Owns and ends one text context. Label commands can run Tcl: callers must keep drawing records, arrays and pens stable, and callbacks must not mutate drawing state or enter nested event processing. This loop adds no lifetime or reentrancy guard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with synchronized source slots and current viewport; owner and arrays must survive every label callback. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed value-label pen; formatting objects and text resources must remain stable during callbacks. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of readable symbol-center entries, and of parallel indices when supplied. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed nSymbolPts mapped centers, stable throughout callbacks; screen or export mapping must match the destination. </p></li>
+<li><p><strong>pointToData</strong> – <strong>[in]</strong> Borrowed parallel array of nSymbolPts original source indices, stable throughout label callbacks. </p></li>
+<li><p><strong>interval</strong> – <strong>[in]</strong> Sampling interval; values at most one select every center. </p></li>
+<li><p><strong>offset</strong> – <strong>[in]</strong> Nonnegative number of preceding centers in the palette traversal, used to continue label sampling across slices. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.DrawActiveLine">
 <span class="target" id="group__line__output__dispatch_1gaa7ba9bc60e7cf6d33b3422c2b5caa872"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawActiveLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawActiveLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw explicit active points or the whole active element. </p>
-<p>Returns when there is no active pen. Positive active count refreshes pending active geometry and draws its symbols/labels only. Negative count draws the whole mapped trace or strip plus symbols/labels; zero draws nothing. Uses the scaled active symbol size. Does not draw fills or error bars. Value-label callbacks have the same stability requirements as DrawValues. </p>
+<p>Returns when there is no active pen. Positive active count refreshes pending active geometry and draws its symbols/labels only. Negative count draws the whole mapped trace or strip plus symbols/labels; zero draws nothing. Uses the scaled active symbol size. Does not draw fills or error bars. Value-label callbacks have the same stability requirements as DrawValues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Live mapped line-family core; active geometry and symbol-scale baselines may be refreshed. Keep resources stable during label callbacks. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.DrawRenderedFill">
 <span class="target" id="group__line__output__dispatch_1ga4b50e6f3c0eaf33dd28209a517e3e0e5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedFill</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawRenderedFill" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Attempt a Cairo tile or pattern fill before native fallback. </p>
-<p>Returns FALSE outside Cairo. A supplied tile takes precedence: obtains its photo block and delegates tile drawing, without trying the pattern if that fails. With no tile, None stipple declines the operation; missing foreground is recovered from the native GC. PATTERN_SOLID becomes no renderer stipple. Forwards pattern opacity; tile transparency comes from the image itself. Borrows geometry/resources and returns whether the renderer handled the fill. </p>
+<p>Returns FALSE outside Cairo. A supplied tile takes precedence: obtains its photo block and delegates tile drawing, without trying the pattern if that fails. With no tile, None stipple declines the operation; missing foreground is recovered from the native GC. PATTERN_SOLID becomes no renderer stipple. Forwards pattern opacity; tile transparency comes from the image itself. Borrows geometry/resources and returns whether the renderer handled the fill.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped polygon of count vertices; clipping and mapping are caller responsibilities. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Nonnegative number of readable entries in the supplied geometry array. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed resolved fill color, or NULL to recover the foreground from gc. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Borrowed optional pattern background color; NULL selects transparent stippling. </p></li>
+<li><p><strong>gc</strong> – <strong>[in]</strong> Borrowed native fill GC used to recover a missing foreground; must be valid if that fallback is needed. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Borrowed tile client, or NULL; a supplied tile takes precedence over pattern and opacity. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Borrowed pattern bitmap, PATTERN_SOLID, or None to decline an untiled fill. </p></li>
+<li><p><strong>opacity</strong> – <strong>[in]</strong> Validated finite pattern opacity in 0..1; tile drawing instead uses the image transparency. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.SymbolInterval">
 <span class="target" id="group__line__output__dispatch_1gab2c60f1db6faa8d01820e4a102f29756"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolInterval</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.SymbolInterval" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Compute the shared screen/export symbol sampling interval. </p>
-<p>Returns zero when no positive requested maximum exists. Otherwise sums palette symbol counts and returns integer division by the requested maximum. Zero and one both select all centers in normal use. This is a density interval, not a strict maximum-count guarantee. Does not mutate the line. </p>
+<p>Returns zero when no positive requested maximum exists. Otherwise sums palette symbol counts and returns integer division by the requested maximum. Zero and one both select all centers in normal use. This is a density interval, not a strict maximum-count guarantee. Does not mutate the line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with current per-style symbol counts and requested maximum; no counters are changed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2138,35 +2598,87 @@ These are private adapters; the namespace below is documentation-only.</p>
 <span class="target" id="group__line__output__dispatch_1gaf5191f40c72c2594a7693fcc47a0bc96"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawNormalLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.DrawNormalLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Draw mapped fills, strokes and palette annotations on screen. </p>
 <p>Draws area then error-band polygons, followed by palette strip strokes or the normal-pen connected traces. Initializes shared symbol interval/counter, then draws each style’s enabled error bars, symbols and value labels. Styles without symbols still advance the interval counter; label offsets track the parallel source-index slices. Resets symbolInterval on completion.</p>
-<p>Borrows mapped geometry and configured resources. Label callbacks require stable drawing state; this function does not protect iteration from mutation. </p>
+<p>Borrows mapped geometry and configured resources. Label callbacks require stable drawing state; this function does not protect iteration from mutation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Borrowed compatible window or pixmap destination; coordinates use its drawing origin. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Live mapped line-family core; symbol interval/counter change during traversal. Keep arrays, palette and pens stable during label callbacks. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.SymbolsExport">
 <span class="target" id="group__line__output__dispatch_1ga4fbfb462df1d41a487a22a3903ddb8cd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolsExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">interval</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">counterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.SymbolsExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export sampled symbols using a resolved renderer symbol style. </p>
-<p>Borrows pen and center arrays, skipping none/empty symbols. Resolves default colors and passes bitmap/mask and size to an export-symbol context. For interval greater than one, requires a writable counter, advances it for every input and submits selected centers. Otherwise submits the full batch without touching the counter, which may be NULL. Ends the context. </p>
+<p>Borrows pen and center arrays, skipping none/empty symbols. Resolves default colors and passes bitmap/mask and size to an export-symbol context. For interval greater than one, requires a writable counter, advances it for every input and submits selected centers. Otherwise submits the full batch without touching the counter, which may be NULL. Ends the context.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export mapping. This call does not end the document. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of readable symbol-center entries, and of parallel indices when supplied. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed array of nSymbolPts mapped centers; remains unchanged and is not retained after drawing. </p></li>
+<li><p><strong>interval</strong> – <strong>[in]</strong> Sampling interval; values at most one select every center. </p></li>
+<li><p><strong>counterPtr</strong> – <strong>[inout]</strong> Sampling position across preceding batches; required for interval greater than one, otherwise unused and may be NULL. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.SymbolExport">
 <span class="target" id="group__line__output__dispatch_1ga41a83a8fca988ca4eb179d38e03b76f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.SymbolExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export a normal-pen legend sample. </p>
-<p>Emits an optional trace segment spanning twice the supplied size, with trace width increased by two and butt/miter stroke settings, then exports one centered symbol without sampling. Borrows the pen and export context; does not use the screen legend’s two-segment construction. </p>
+<p>Emits an optional trace segment spanning twice the supplied size, with trace width increased by two and butt/miter stroke settings, then exports one centered symbol without sampling. Borrows the pen and export context; does not use the screen legend’s two-segment construction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export mapping. This call does not end the document. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed line-family core with current geometry, sources and configured pens. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Legend center X in export-mapped coordinates. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Legend center Y in export-mapped coordinates. </p></li>
+<li><p><strong>size</strong> – <strong>[in]</strong> Symbol size in mapped pixels, already scaled and bounded by the caller. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.BeginLineExport">
 <span class="target" id="group__line__output__dispatch_1ga0c97b26665554c09daf0569e4767899c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">BeginLineExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.BeginLineExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create an export stroke context for a line pen. </p>
-<p>Uses trace color, width and dashes with butt caps and miter joins, then sets the optional off-dash background. Returns the renderer context for the caller to end. Does not own the pen or alter mapped geometry. </p>
+<p>Uses trace color, width and dashes with butt caps and miter joins, then sets the optional off-dash background. Returns the renderer context for the caller to end. Does not own the pen or alter mapped geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export mapping. This call does not end the document. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.TracesExport">
 <span class="target" id="group__line__output__dispatch_1gaae0eceebcfaaa92332dd30e9d429b20b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TracesExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.TracesExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export all connected traces through one pen stroke context. </p>
-<p>Begins a line export context, submits each borrowed trace polyline in chain order and ends the context. Does not resample, remap or take ownership of trace arrays; export preparation must supply the desired geometry. </p>
+<p>Begins a line export context, submits each borrowed trace polyline in chain order and ends the context. Does not resample, remap or take ownership of trace arrays; export preparation must supply the desired geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export mapping. This call does not end the document. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with current mapped geometry and synchronized source slots; no ownership is transferred. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed configured line pen; colors, GCs, bitmap and text resources remain owned by the pen. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2174,14 +2686,37 @@ These are private adapters; the namespace below is documentation-only.</p>
 <span class="target" id="group__line__output__dispatch_1gab7ab3fa6d9e17f72a2b5f3d443c73095"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ValuesExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSymbolPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointToData</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">interval</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.ValuesExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export sampled labels using double-precision mapped positions. </p>
 <p>Applies the same interval/offset, viewport and source-value filtering as screen labels. Creates one output context and releases each retained label object after use. Exports center plus offset without screen integer conversion.</p>
-<p>Label callbacks may execute Tcl and require stable element, pen and mapping storage. Does not guard against callback mutation or nested event processing. Ends the output context; owns neither the export destination nor input arrays. </p>
+<p>Label callbacks may execute Tcl and require stable element, pen and mapping storage. Does not guard against callback mutation or nested event processing. Ends the output context; owns neither the export destination nor input arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export mapping. This call does not end the document. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with synchronized source slots and current viewport; owner and arrays must survive every label callback. </p></li>
+<li><p><strong>penPtr</strong> – <strong>[in]</strong> Borrowed value-label pen; formatting objects and text resources must remain stable during callbacks. </p></li>
+<li><p><strong>nSymbolPts</strong> – <strong>[in]</strong> Nonnegative number of readable symbol-center entries, and of parallel indices when supplied. </p></li>
+<li><p><strong>symbolPts</strong> – <strong>[in]</strong> Borrowed nSymbolPts mapped centers, stable throughout callbacks; screen or export mapping must match the destination. </p></li>
+<li><p><strong>pointToData</strong> – <strong>[in]</strong> Borrowed parallel array of nSymbolPts original source indices, stable throughout label callbacks. </p></li>
+<li><p><strong>interval</strong> – <strong>[in]</strong> Sampling interval; values at most one select every center. </p></li>
+<li><p><strong>offset</strong> – <strong>[in]</strong> Nonnegative number of preceding centers in the palette traversal, used to continue label sampling across slices. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.ActiveLineExport">
 <span class="target" id="group__line__output__dispatch_1gadc85513cf6a7d50be99fbecff07fda9c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ActiveLineExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.ActiveLineExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export explicit active symbols or whole-element highlighting. </p>
-<p>With an active pen, positive active count refreshes pending active geometry and exports symbols/labels. Negative count exports available strips/traces, symbols and labels for the whole element. Zero count or absent pen emits nothing. Uses scaled active size and no symbol sampling. Does not export active fills/error bars. Label callbacks require stable drawing resources. </p>
+<p>With an active pen, positive active count refreshes pending active geometry and exports symbols/labels. Negative count exports available strips/traces, symbols and labels for the whole element. Zero count or absent pen emits nothing. Uses scaled active size and no symbol sampling. Does not export active fills/error bars. Label callbacks require stable drawing resources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export mapping. This call does not end the document. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[inout]</strong> Live mapped line-family core; active geometry and symbol-scale baselines may be refreshed. Keep resources stable during label callbacks. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -2189,7 +2724,16 @@ These are private adapters; the namespace below is documentation-only.</p>
 <span class="target" id="group__line__output__dispatch_1ga661c20082a5014203295afad24bc3a8e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalLineExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.NormalLineExport" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Export mapped fills, strokes and palette annotations in order. </p>
 <p>Exports area then error-band polygons through fill contexts, including tile, pattern and opacity policy handled by the backend. Exports palette strip strokes or normal-pen connected traces, then enabled error bars, symbols and labels per style. Shares a local symbol interval/counter across styles and keeps label source-index offsets aligned with palette slices.</p>
-<p>Borrows geometry already prepared for export; does not disable decimation or remap here. Backend-specific fill behavior remains in the renderer. Value-label callbacks require stable drawing state throughout traversal. </p>
+<p>Borrows geometry already prepared for export; does not disable decimation or remap here. Backend-specific fill behavior remains in the renderer. Value-label callbacks require stable drawing state throughout traversal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>exportPtr</strong> – <strong>[inout]</strong> Borrowed document output context; geometry must already match its export mapping. This call does not end the document. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed line-family core already mapped for export; all geometry, palette and pen storage must remain stable during label callbacks. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

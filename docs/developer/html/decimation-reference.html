@@ -157,7 +157,14 @@ complete mappings. The namespace is documentation-only.</p>
 <dt class="sig sig-object c" id="c.rbcGrLineCache.InvalidateLineDecimateCache">
 <span class="target" id="group__line__cache__internals_1gaf13382f88b0a7d67eb029df81ceacd0e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvalidateLineDecimateCache</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.InvalidateLineDecimateCache" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release owned summaries and reset cache identity. </p>
-<p>Frees the block array and zeros the complete cache record. Borrowed X/Y source arrays are neither freed nor retained. Does not clear element change metadata, map geometry or deliver vector notifications. </p>
+<p>Frees the block array and zeros the complete cache record. Borrowed X/Y source arrays are neither freed nor retained. Does not clear element change metadata, map geometry or deliver vector notifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live line whose owned summary blocks and cache identity are discarded; source arrays are not freed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -165,84 +172,207 @@ complete mappings. The namespace is documentation-only.</p>
 <span class="target" id="group__line__cache__internals_1ga2b9d7ea32fee8e943a5af420331b13ed"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BuildLineDecimateCache</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.BuildLineDecimateCache" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build source-domain summaries for one finite monotonic-X run. </p>
 <p>Invalidates the previous cache first, records current source identity and marks built even if construction fails. Borrows X/Y arrays and allocates one block summary per LINE_DECIMATE_BLOCK_SIZE samples. Equal X values are allowed; reversals or nonfinite coordinates make the run unsupported.</p>
-<p>Stores earliest source indices for tied Y extrema and positivity summaries. Unsupported data releases blocks but retains built/identity state, avoiding repeated attempts until invalidation. Size/allocation failure likewise returns FALSE with an unsupported built cache. TRUE means summaries exist, not that current logarithmic axes accept the source domain. </p>
+<p>Stores earliest source indices for tied Y extrema and positivity summaries. Unsupported data releases blocks but retains built/identity state, avoiding repeated attempts until invalidation. Size/allocation failure likewise returns FALSE with an unsupported built cache. TRUE means summaries exist, not that current logarithmic axes accept the source domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line in Cartesian X/Y mode with synchronized source arrays; old summaries are discarded before building new ones. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.RebuildLineDecimateYBlock">
 <span class="target" id="group__line__cache__internals_1ga89c68f9d0f748e2ca3239c7b63186e26"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RebuildLineDecimateYBlock</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">blockIndex</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.RebuildLineDecimateYBlock" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Recompute one existing block after a precise Y-only update. </p>
-<p>Requires a supported cache with current borrowed Y storage and unchanged X. Validates the block, scans finite Y values and computes earliest extrema and nonpositive count before modifying summaries. Returns FALSE without changing the block on invalid input or inconsistent positivity accounting. On success updates block/global counts and allPositiveY. Does not inspect X or allocate. </p>
+<p>Requires a supported cache with current borrowed Y storage and unchanged X. Validates the block, scans finite Y values and computes earliest extrema and nonpositive count before modifying summaries. Returns FALSE without changing the block on invalid input or inconsistent positivity accounting. On success updates block/global counts and allPositiveY. Does not inspect X or allocate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line with supported cache, unchanged X and refreshed Y storage; one block and global positivity counts may change. </p></li>
+<li><p><strong>blockIndex</strong> – <strong>[in]</strong> Zero-based block index; an invalid index returns FALSE without updating summaries. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.EnsureLineDecimateCache">
 <span class="target" id="group__line__cache__internals_1gaea617a5dfe4665dce2467d7df9e7c704"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EnsureLineDecimateCache</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.EnsureLineDecimateCache" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Ensure source summaries exist and fit the current log domains. </p>
-<p>Invalidates built state when source pointers or paired count differ, then builds once if necessary. Returns FALSE for unsupported summaries or a log axis whose source contains nonpositive values. Log rejection retains the cache for later linear-axis reuse. Pointer/count checks do not detect in-place writes; notification-driven refresh/invalidation remains required. May allocate summaries but does not synchronize vectors or consume change metadata. </p>
+<dd><p>Ensure Cartesian X/Y summaries exist and fit the current log domains. </p>
+<p>Rejects converted polar and complex input before inspecting cache arrays; original-sample picking must scan those representations through their adapter.</p>
+<p>Invalidates built state when source pointers or paired count differ, then builds once if necessary. Returns FALSE for unsupported summaries or a log axis whose source contains nonpositive values. Log rejection retains the cache for later linear-axis reuse. Pointer/count checks do not detect in-place writes; notification-driven refresh/invalidation remains required. May allocate summaries but does not synchronize vectors or consume change metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line with synchronized source storage and prepared axes; Cartesian X/Y summaries may be rebuilt, other representations return FALSE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.GetCachedRangeExtrema">
 <span class="target" id="group__line__cache__internals_1ga8b36f073b66db65b7f474d4e5b49c8fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCachedRangeExtrema</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minIndexPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxIndexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.GetCachedRangeExtrema" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find earliest Y extrema in an inclusive source range. </p>
-<p>Requires valid current cache summaries and 0 &lt;= first &lt;= last &lt; nPoints. Uses whole aligned block summaries and scans boundary fragments. Strict comparisons preserve the earliest source index on ties. Writes min/max indices, performs no allocation, and does not validate the caller’s range. </p>
+<p>Requires valid current cache summaries and 0 &lt;= first &lt;= last &lt; nPoints. Uses whole aligned block summaries and scans boundary fragments. Strict comparisons preserve the earliest source index on ties. Writes min/max indices, performs no allocation, and does not validate the caller’s range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with valid current summaries and their live Y array. </p></li>
+<li><p><strong>first</strong> – <strong>[in]</strong> Inclusive first source index, at least zero and no greater than last. </p></li>
+<li><p><strong>last</strong> – <strong>[in]</strong> Inclusive last source index, less than the cached point count. </p></li>
+<li><p><strong>minIndexPtr</strong> – <strong>[out]</strong> Required earliest-minimum source-index output, distinct from maxIndexPtr. </p></li>
+<li><p><strong>maxIndexPtr</strong> – <strong>[out]</strong> Required earliest-maximum source-index output, distinct from minIndexPtr. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.GetCachedPixelBucket">
 <span class="target" id="group__line__cache__internals_1ga45e1d749dd7dbe42588293a9265b0599"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCachedPixelBucket</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">pixelMin</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">pixelMax</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bucketPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.GetCachedPixelBucket" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Map a cached source index to a bounded physical pixel bucket. </p>
-<p>Requires a valid index and current axis/viewport state. Returns FALSE without writing bucketPtr for nonfinite mapped abscissa. Values outside pixelMin/pixelMax use sentinel buckets one unit beyond the respective boundary; inside values use truncation toward zero, not floor. Does not modify the cache. </p>
+<p>Requires a valid index and current axis/viewport state. Returns FALSE without writing bucketPtr for nonfinite mapped abscissa. Values outside pixelMin/pixelMax use sentinel buckets one unit beyond the respective boundary; inside values use truncation toward zero, not floor. Does not modify the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with a valid cached X array and prepared X axis. </p></li>
+<li><p><strong>index</strong> – <strong>[in]</strong> Valid zero-based index into the cached source arrays; bounds are not checked here. </p></li>
+<li><p><strong>pixelMin</strong> – <strong>[in]</strong> Lower finite physical screen-coordinate bound for buckets, no greater than pixelMax. </p></li>
+<li><p><strong>pixelMax</strong> – <strong>[in]</strong> Upper finite physical screen-coordinate bound for buckets, no less than pixelMin. </p></li>
+<li><p><strong>bucketPtr</strong> – <strong>[out]</strong> Required physical pixel-bucket output; unchanged when mapping returns FALSE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.FindNextCachedPixelBucket">
 <span class="target" id="group__line__cache__internals_1ga72e4522472d992265f9dd9095a5044e7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindNextCachedPixelBucket</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">currentBucket</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">direction</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">pixelMin</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">pixelMax</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">okPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.FindNextCachedPixelBucket" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Binary-search the first source index beyond the current bucket. </p>
-<p>Requires monotonic mapped buckets, a valid first index and nonzero direction. Searches after first, returning nPoints when no later bucket exists. Sets okPtr TRUE on success. If mapping fails, sets it FALSE and returns an intermediate bound that callers must not use as a valid bucket boundary. No allocation. </p>
+<p>Requires monotonic mapped buckets, a valid first index and nonzero direction. Searches after first, returning nPoints when no later bucket exists. Sets okPtr TRUE on success. If mapping fails, sets it FALSE and returns an intermediate bound that callers must not use as a valid bucket boundary. No allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with valid cached X storage and monotonic mapped bucket order. </p></li>
+<li><p><strong>first</strong> – <strong>[in]</strong> Valid source index in the current bucket; search begins at first plus one. </p></li>
+<li><p><strong>currentBucket</strong> – <strong>[in]</strong> Physical bucket containing first, obtained with the same viewport bounds. </p></li>
+<li><p><strong>direction</strong> – <strong>[in]</strong> Positive for increasing mapped buckets, negative for decreasing; zero is not supported. </p></li>
+<li><p><strong>pixelMin</strong> – <strong>[in]</strong> Lower finite physical screen-coordinate bound for buckets, no greater than pixelMax. </p></li>
+<li><p><strong>pixelMax</strong> – <strong>[in]</strong> Upper finite physical screen-coordinate bound for buckets, no less than pixelMin. </p></li>
+<li><p><strong>okPtr</strong> – <strong>[out]</strong> Required status output; use the returned source boundary only when TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.CanPreMapDecimateLine">
 <span class="target" id="group__line__cache__internals_1ga5ea209bf548a9eee8673a763a03aadd7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanPreMapDecimateLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.CanPreMapDecimateLine" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check whether full mapped center arrays may be omitted. </p>
-<p>First applies general pixel-decimation eligibility, then rejects normal symbols/value labels and any configured error-bar data. Whole-element active symbols/labels also require full centers; explicit active selections can map independently. This is a semantic gate, not a density or cache-validity test. Borrows line/pen state and makes no changes. </p>
+<p>First applies general pixel-decimation eligibility, then rejects normal symbols/value labels and any configured error-bar data. Whole-element active symbols/labels also require full centers; explicit active selections can map independently. This is a semantic gate, not a density or cache-validity test. Borrows line/pen state and makes no changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed configured line with source lengths, palette, normal/active pens and activation state available. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.CanRetainLineDecimatePrefix">
 <span class="target" id="group__line__cache__internals_1gad532fd46d33c2a45d215d2bc486dc862"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanRetainLineDecimatePrefix</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cachedValues</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.CanRetainLineDecimatePrefix" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check metadata proof that a cached source prefix is unchanged. </p>
-<p>With no pending change, requires the same source pointer. Full/unknown changes reject retention. An exact pending range beginning at or beyond nPoints permits retention even if vector storage relocated. Does not compare values or validate the full range; relies on truthful producer notifications. </p>
+<p>With no pending change, requires the same source pointer. Full/unknown changes reject retention. An exact pending range beginning at or beyond nPoints permits retention even if vector storage relocated. Does not compare values or validate the full range; relies on truthful producer notifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[in]</strong> Borrowed synchronized source slot and its accumulated change metadata. </p></li>
+<li><p><strong>cachedValues</strong> – <strong>[in]</strong> Previous borrowed array identity; compared as a pointer, never dereferenced. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> Length of the previously cached prefix; exact changes must start at or beyond this index. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.IsMonotonicMappedAbscissa">
 <span class="target" id="group__line__cache__internals_1ga0c936b9eaa1f885e48b4bb393788a82c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsMonotonicMappedAbscissa</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.IsMonotonicMappedAbscissa" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Check mapped data-X ordering independently within each run. </p>
-<p>Accepts either direction and repeated coordinates; resets direction at each break-before flag. Fewer than two points succeed. Uses physical screen roles for inversion, without modifying input or allocating. Caller supplies finite mapped points; this helper is not a nonfinite-value validator. </p>
+<p>Accepts either direction and repeated coordinates; resets direction at each break-before flag. Fewer than two points succeed. Uses physical screen roles for inversion, without modifying input or allocating. Caller supplies finite mapped points; this helper is not a nonfinite-value validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed graph supplying the inversion flag. </p></li>
+<li><p><strong>mapPtr</strong> – <strong>[in]</strong> Borrowed finite mapped points and optional break-before flags; each run is checked independently. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.AppendPixelBucket">
 <span class="target" id="group__line__cache__internals_1ga54493deec249f43354c8feb2db31d53a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendPixelBucket</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">minIndex</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">maxIndex</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">selected</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">countPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.AppendPixelBucket" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append distinct bucket representatives in source order. </p>
-<p>Sorts first/min/max/last indices and appends each distinct candidate, advancing countPtr. Caller must provide enough output capacity; no bounds check or allocation occurs. Deduplicates within this bucket only. </p>
+<p>Sorts first/min/max/last indices and appends each distinct candidate, advancing countPtr. Caller must provide enough output capacity; no bounds check or allocation occurs. Deduplicates within this bucket only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first</strong> – <strong>[in]</strong> First source index of this bucket. </p></li>
+<li><p><strong>minIndex</strong> – <strong>[in]</strong> Source index of the bucket minimum; may coincide with another representative. </p></li>
+<li><p><strong>maxIndex</strong> – <strong>[in]</strong> Source index of the bucket maximum; may coincide with another representative. </p></li>
+<li><p><strong>last</strong> – <strong>[in]</strong> Last source index of this bucket, inclusive. </p></li>
+<li><p><strong>selected</strong> – <strong>[inout]</strong> Caller-owned index array with space for up to four more entries; capacity is not checked. </p></li>
+<li><p><strong>countPtr</strong> – <strong>[inout]</strong> Required current output length, advanced for each emitted representative; initially within destination capacity. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.AppendSourcePixelBucket">
 <span class="target" id="group__line__cache__internals_1gae886afd4091d9b88bbfd3ccc8f86947b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendSourcePixelBucket</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">minIndex</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">maxIndex</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">startsRun</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">capacity</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">selected</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">selectedBreakBefore</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">countPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.AppendSourcePixelBucket" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append bounded source representatives with run-boundary flags. </p>
-<p>Sorts and deduplicates first/min/max/last within the bucket. Checks capacity before each append, setting a break flag only on the first emitted candidate of a new run when prior output exists. Returns FALSE on exhaustion, leaving any preceding appends and updated count intact; caller must discard or handle that partial result. Does not allocate or deduplicate against earlier buckets. </p>
+<p>Sorts and deduplicates first/min/max/last within the bucket. Checks capacity before each append, setting a break flag only on the first emitted candidate of a new run when prior output exists. Returns FALSE on exhaustion, leaving any preceding appends and updated count intact; caller must discard or handle that partial result. Does not allocate or deduplicate against earlier buckets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first</strong> – <strong>[in]</strong> First source index of this bucket. </p></li>
+<li><p><strong>minIndex</strong> – <strong>[in]</strong> Source index of the bucket minimum; may coincide with another representative. </p></li>
+<li><p><strong>maxIndex</strong> – <strong>[in]</strong> Source index of the bucket maximum; may coincide with another representative. </p></li>
+<li><p><strong>last</strong> – <strong>[in]</strong> Last source index of this bucket, inclusive. </p></li>
+<li><p><strong>startsRun</strong> – <strong>[in]</strong> Nonzero marks the first emitted representative as a new run when earlier output exists. </p></li>
+<li><p><strong>capacity</strong> – <strong>[in]</strong> Nonnegative number of entries allocated in both output arrays. </p></li>
+<li><p><strong>selected</strong> – <strong>[inout]</strong> Writable index array of capacity entries; partial appends remain on FALSE. </p></li>
+<li><p><strong>selectedBreakBefore</strong> – <strong>[inout]</strong> Writable parallel array of capacity break flags; each appended index receives a flag. </p></li>
+<li><p><strong>countPtr</strong> – <strong>[inout]</strong> Required current output length, advanced for each emitted representative; initially within destination capacity. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineCache.GetCachedSourceRangeForAbscissa">
 <span class="target" id="group__line__cache__internals_1gacae0bc398c93770d7631c8ee9398931b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCachedSourceRangeForAbscissa</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">low</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">high</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lastPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.GetCachedSourceRangeForAbscissa" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Find a half-open source range inside inclusive screen bounds. </p>
-<p>Requires a valid monotonic-X cache and prepared axes/viewport. Orders low/high, then binary-searches mapped endpoints in either direction. Equal mapped endpoints yield the full range or empty range. Initializes outputs to zero; nonfinite mapping returns FALSE, and outputs must then be ignored. Success may be empty. Does not apply a query distance metric: callers decide whether pruning by mapped data X is valid for their search. </p>
+<p>Requires a valid monotonic-X cache and prepared axes/viewport. Orders low/high, then binary-searches mapped endpoints in either direction. Equal mapped endpoints yield the full range or empty range. Initializes outputs to zero; nonfinite mapping returns FALSE, and outputs must then be ignored. Success may be empty. Does not apply a query distance metric: callers decide whether pruning by mapped data X is valid for their search.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph with the element or track viewport and axis mappings already installed. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with supported monotonic-X cache and current source storage. </p></li>
+<li><p><strong>low</strong> – <strong>[in]</strong> Inclusive screen-abscissa bound; low/high are ordered locally if reversed. </p></li>
+<li><p><strong>high</strong> – <strong>[in]</strong> Other inclusive screen-abscissa bound; neither argument is a source-data value. </p></li>
+<li><p><strong>firstPtr</strong> – <strong>[out]</strong> Required first index of the half-open source interval; initialized to zero and usable only on TRUE. </p></li>
+<li><p><strong>lastPtr</strong> – <strong>[out]</strong> Required separate one-past-last source index; may equal first for an empty result. Use only on TRUE. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -250,7 +380,15 @@ complete mappings. The namespace is documentation-only.</p>
 <span class="target" id="group__line__cache__internals_1ga0d3c3ed4957433078e09a37b3b02c2e4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GrowLineDecimateCache</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineCache.GrowLineDecimateCache" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Retain or extend summaries after proven source-tail growth. </p>
 <p>Requires built supported state, no shrinkage and metadata proving both cached prefixes unchanged. Pointer relocation is allowed with exact ranges. If paired count is unchanged, rebinds borrowed arrays without extending blocks.</p>
-<p>Validates new finite samples and X ordering before mutation. Rebuilds the old partial final block and any new blocks, preserving earliest tied extrema. Allocates replacement block storage only when more blocks are needed, then commits pointers, counts, direction and positivity summaries. FALSE requests caller invalidation; it does not report a Tcl error or clear change metadata. </p>
+<p>Validates new finite samples and X ordering before mutation. Rebuilds the old partial final block and any new blocks, preserving earliest tied extrema. Allocates replacement block storage only when more blocks are needed, then commits pointers, counts, direction and positivity summaries. FALSE requests caller invalidation; it does not report a Tcl error or clear change metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Line with supported summaries and synchronized X/Y slots carrying exact prefix-preservation metadata. </p></li>
+<li><p><strong>nPoints</strong> – <strong>[in]</strong> New paired source count, readable in both current X/Y arrays; shrinkage is rejected. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
