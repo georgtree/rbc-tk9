@@ -13,6 +13,12 @@
  *
  * Coordinates are mapped display pixels. Emits q/re/W/n; PdfClipEnd must balance the save. Common
  * renderer clip-depth tracking owns pairing, not this callback.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
  */
 static void PdfClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "q %d %d %d %d re W n\n", x, y, width, height);
@@ -22,6 +28,8 @@ static void PdfClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int he
  * @ingroup pdf_backend
  *
  * Emits Q only. Requires a matching begin; does not inspect or change common clip depth.
+ *
+ * @param[in,out] ctx Live Pdf context with a matching rectangular clip scope; common depth is not changed here.
  */
 static void PdfClipEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL); }
 
@@ -36,6 +44,10 @@ static void PdfClipEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(
  *
  * Converts 16-bit XColor components to unit values. A NULL color leaves the current color unchanged;
  * this helper does not save graphics state.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] color Optional borrowed Tk color; NULL leaves the current PDF color unchanged.
+ * @param[in] stroke Nonzero selects stroking RGB; zero selects nonstroking RGB.
  */
 static void PdfColor(Rbc_ExportContext *token, const XColor *color, int stroke) {
     if (color != NULL) {
@@ -50,6 +62,11 @@ static void PdfColor(Rbc_ExportContext *token, const XColor *color, int stroke) 
  *
  * Borrows count points in mapped pixels and optionally emits h. The caller supplies valid geometry,
  * chooses the fill rule and owns graphics-state scope.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
+ * @param[in] close Nonzero appends a close-path operator; zero leaves the path open.
  */
 static void PdfPath(Rbc_ExportContext *token, const Point2D *points, Tcl_Size count, int close) {
     Tcl_Size i;
@@ -67,6 +84,13 @@ static void PdfPath(Rbc_ExportContext *token, const Point2D *points, Tcl_Size co
  *
  * NULL color or nonpositive dimensions produce no output. Uses nonstroking RGB and restores the
  * previous graphics state.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
+ * @param[in] color Borrowed rectangle color; NULL emits no paint.
  */
 static void PdfRectangle(Rbc_ExportContext *token, double x, double y, double width, double height,
                          const XColor *color) {
@@ -85,6 +109,9 @@ static void PdfRectangle(Rbc_ExportContext *token, double x, double y, double wi
  * Requires normalized finite geometry with nonzero extent from the renderer dispatcher. Each piece
  * spans at most 90 degrees. Negates angles for screen Y, closes full ellipses and chords, and adds the
  * center for partial pieslices. Does not paint or change the transformation matrix.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] arc Borrowed normalized finite ellipse geometry with positive radii and nonzero extent.
  */
 static void PdfArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *arc) {
     double a = -arc->start * M_PI / 180.0;
@@ -115,6 +142,9 @@ static void PdfArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *ar
  *
  * The background pass selects the off-color and an empty dash pattern with zero offset. The foreground
  * pass uses the bounded dash array and its offset. The caller saves/restores graphics state.
+ *
+ * @param[in,out] ctx Live Pdf stroke context with configured color, width and dash state.
+ * @param[in] background Nonzero emits the solid off-color pass; zero selects cached foreground dashes.
  */
 static void PdfStrokeStyle(Rbc_RenderContext *ctx, int background) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
@@ -139,6 +169,10 @@ static void PdfStrokeStyle(Rbc_RenderContext *ctx, int background) {
  *
  * No foreground color or fewer than two points is a no-op. Each pass reconstructs the whole path and
  * has its own q/Q scope; the input array remains borrowed.
+ *
+ * @param[in,out] ctx Live Pdf stroke context with configured color, width and dash state.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PdfPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     int pass;
@@ -160,6 +194,10 @@ static void PdfPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
  *
  * Each segment delegates to PdfPolyline, including its background and foreground passes, before the
  * next segment. Does not combine the batch into one shared path.
+ *
+ * @param[in,out] ctx Live Pdf stroke context with configured color, width and dash state.
+ * @param[in] segments Borrowed mapped endpoint pairs readable for count Segment2D records.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PdfSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Tcl_Size i;
@@ -175,6 +213,9 @@ static void PdfSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
  *
  * No foreground color is a no-op. Rebuilds the arc for each dash-background/foreground pass and
  * balances graphics state for each pass.
+ *
+ * @param[in,out] ctx Live Pdf stroke context with configured color, width and dash state.
+ * @param[in] arc Borrowed normalized finite ellipse geometry with positive radii and nonzero extent.
  */
 static void PdfArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     int pass;
@@ -198,6 +239,11 @@ static void PdfArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
  * Borrows a valid XImage and optional same-sized mask. Emits runs where both images are set; NULL
  * color produces no output. Uses the current transform and graphics scope, paints once with f, and
  * does not release either image.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] bits Borrowed readable monochrome XImage supplying set pixels.
+ * @param[in] mask Optional borrowed same-sized XImage; only pixels set in both images are emitted.
+ * @param[in] color Borrowed paint color; omission follows this helper's format-specific policy.
  */
 static void PdfBitmapRuns(Rbc_ExportContext *token, XImage *bits, XImage *mask, const XColor *color) {
     int x, y;
@@ -232,6 +278,9 @@ static void PdfBitmapRuns(Rbc_ExportContext *token, XImage *bits, XImage *mask, 
  * error. Requires valid Tk channel offsets and row layout. Copies RGB bytes row by row and creates an
  * 8-bit grayscale SMask only if any alpha is nonopaque. Frees temporary DStrings; does not retain the
  * borrowed block or pixel pointer.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] block Borrowed readable Tk photo block with valid pitch, pixel size and RGB channel offsets.
  */
 static int PdfPhotoResource(Rbc_ExportContext *token, const Tk_PhotoImageBlock *block) {
     Tcl_DString rgb, alpha;
@@ -286,6 +335,13 @@ static int PdfPhotoResource(Rbc_ExportContext *token, const Tk_PhotoImageBlock *
  *
  * A zero resource ID is a no-op. Emits a locally saved matrix with negative image height to correct
  * raster orientation, then invokes the image XObject.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] id Document-local image object ID; zero emits nothing.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Image display width in pixels.
+ * @param[in] height Image display height in pixels; negated in the placement matrix to correct raster orientation.
  */
 static void PdfImageUse(Rbc_ExportContext *token, int id, double x, double y, int width, int height) {
     if (id) {
@@ -300,6 +356,9 @@ static void PdfImageUse(Rbc_ExportContext *token, int id, double x, double y, in
  * Borrows the image, checks that row pitch fits int, and describes Pix32 channel offsets without
  * copying the source first. Resource construction copies the pixels. Returns zero and records an
  * export error for excessive pitch; does not free the image.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] image Borrowed RBC color image with readable packed pixels; not freed by this helper.
  */
 static int PdfColorImageResource(Rbc_ExportContext *token, Rbc_ColorImage image) {
     Tk_PhotoImageBlock block;
@@ -329,6 +388,9 @@ static int PdfColorImageResource(Rbc_ExportContext *token, Rbc_ColorImage image)
  * temporary images. The pattern matrix includes page scale/Y reversal; tile origin also accounts for
  * graph ancestry. Caches the resource ID until the tile setter invalidates it. Zero means no pattern;
  * the enclosing export error remains authoritative.
+ *
+ * @param[in,out] ctx Live Pdf fill context with initialized fillStyle and any required graph/tile resources.
+ * @param[in] foreground Borrowed resolved pattern foreground color; not retained by the emitter.
  */
 static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
@@ -412,6 +474,8 @@ static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground)
  * uses an ExtGState ca resource. Pattern creation precedes path construction so resource emission
  * cannot consume the drawing path. The caller provides a q/Q scope; this helper is not a Tcl status
  * API.
+ *
+ * @param[in,out] ctx Live Pdf fill context with initialized fillStyle and any required graph/tile resources.
  */
 static int PdfFillStyle(Rbc_RenderContext *ctx) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
@@ -452,6 +516,10 @@ static int PdfFillStyle(Rbc_RenderContext *ctx) {
  *
  * Establishes fill resources before appending borrowed geometry. Always balances its local graphics
  * save, including when the style produces no fill.
+ *
+ * @param[in,out] ctx Live Pdf fill context with initialized fillStyle and any required graph/tile resources.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PdfFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "q\n", (char *)NULL);
@@ -468,6 +536,10 @@ static void PdfFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
  *
  * Uses the cached fill style, with shared pattern resource reuse across the batch. Geometry is already
  * mapped; no outline or clipping calculation is performed here.
+ *
+ * @param[in,out] ctx Live Pdf fill context with initialized fillStyle and any required graph/tile resources.
+ * @param[in] rectangles Borrowed mapped rectangle array readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PdfFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     Tcl_Size i;
@@ -487,6 +559,9 @@ static void PdfFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
  *
  * Prepares fill state before constructing the path and uses even-odd fill. The caller selects a
  * fillable arc style; the helper balances graphics state even if filling is disabled.
+ *
+ * @param[in,out] ctx Live Pdf fill context with initialized fillStyle and any required graph/tile resources.
+ * @param[in] arc Borrowed normalized closed ellipse segment; common dispatch excludes open arcs.
  */
 static void PdfFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "q\n", (char *)NULL);
@@ -506,6 +581,12 @@ static void PdfFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc)
  * before foreground, selecting active color when requested. Each glyph uses Tk prefix advance plus
  * fallback corrections; genuine zero-width glyphs retain their position. Font/width errors are
  * recorded on the export; this void emitter does not return a completed-document status.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] string Borrowed NUL-terminated Tcl UTF text consumed during the call.
+ * @param[in] style Borrowed text style with live font/color resources; layout and placement follow its fields.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
  */
 static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
@@ -605,6 +686,11 @@ static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
  *
  * A missing/unreadable photo records an export error. Does not destroy the photo or retain its pixel
  * block.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] photo Borrowed Tk photo handle, read synchronously.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
  */
 static void PdfPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
     Tk_PhotoImageBlock block;
@@ -622,6 +708,11 @@ static void PdfPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, dou
  *
  * Owns the capture returned by Rbc_RenderExportRasterImage and frees it after resource creation. A
  * NULL capture emits no image; consult the export error for failed captures.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] image Borrowed live Tk image; no ownership transfer.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
  */
 static void PdfTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
     Rbc_ColorImage captured = Rbc_RenderExportRasterImage(RENDER_EXPORT(ctx)->exportPtr, image);
@@ -639,6 +730,11 @@ static void PdfTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double 
  * Unmapped or empty windows are omitted. Owns and frees the captured color image; capture failure
  * records an export error. The caller decides whether window export is enabled. This captures pixels,
  * not a reconstructed widget or new clipping container.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] window Borrowed live Tk window; capture does not create or resize it.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
  */
 static void PdfWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double y) {
     Rbc_ColorImage captured;
@@ -662,6 +758,16 @@ static void PdfWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double
  * Missing bitmap/color or nonpositive dimensions are ignored. Acquires and destroys an XImage; failure
  * records an export error. The background selector is unused because the explicit color determines
  * painting. Translation is confined to a q/Q scope.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] display Borrowed display owning the source bitmap.
+ * @param[in] bitmap Borrowed one-bit pixmap readable over width by height pixels; None suppresses output.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Source bitmap width and mapped extent in pixels; nonpositive values emit nothing.
+ * @param[in] height Source bitmap height and mapped extent in pixels; nonpositive values emit nothing.
+ * @param[in] color Borrowed paint color; omission follows this helper's format-specific policy.
+ * @param[in] background Unused pass selector; the caller supplies the paint color explicitly.
  */
 static void PdfBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                           int height, const XColor *color, int background) {
@@ -686,6 +792,11 @@ static void PdfBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
  * @ingroup pdf_backend
  *
  * NULL color is a no-op. Borrows mapped points and isolates the RGB fill in a saved graphics scope.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] color Borrowed background color; NULL emits no paint.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PdfBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count) {
     if (color != NULL) {
@@ -702,6 +813,12 @@ static void PdfBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, co
  *
  * Creates a stack-local state borrowing the token and delegates to PdfBackgroundPolygon. The opacity
  * parameter is currently ignored; border callers pass opaque color.
+ *
+ * @param[in,out] token Borrowed initialized export document; output and resource/error state may be updated.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
+ * @param[in] color Borrowed paint color; omission follows this helper's format-specific policy.
+ * @param[in] opacity Unused; this border adapter always delegates opaque painting.
  */
 static void PdfPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size count, const XColor *color,
                        double opacity) {
@@ -720,6 +837,16 @@ static void PdfPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size
  * emits raised/sunken/solid edges; groove and ridge recurse into two half-width borders. Flat,
  * nonpositive or undersized borders omit the edges. Borrows the Tk border; does not allocate
  * replacement colors.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] border Borrowed Tk 3D border; lazy shadow-color initialization may occur.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
+ * @param[in] borderWidth Relief thickness in display pixels; caller keeps size arithmetic representable.
+ * @param[in] relief Tk relief constant.
+ * @param[in] fill Nonzero paints the interior before relief; zero requests edges only.
  */
 static void PdfBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                       int borderWidth, int relief, int fill) {
@@ -767,6 +894,12 @@ static void PdfBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, doub
  *
  * Clearing document output means white paint, not erasing to transparency. Nonpositive dimensions are
  * ignored by PdfRectangle.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
  */
 static void PdfClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
     XColor white;
@@ -781,6 +914,11 @@ static void PdfClearRectangle(Rbc_RenderContext *ctx, double x, double y, int wi
  *
  * NULL color selects opaque white; otherwise uses the supplied RGB color. Borrows the batch and does
  * not retain geometry.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] color Optional borrowed background color; NULL paints using the format clear-background policy.
+ * @param[in] rectangles Borrowed mapped rectangle array readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PdfBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color, const Rbc_RenderRectangle *rectangles,
                                     Tcl_Size count) {
@@ -801,6 +939,14 @@ static void PdfBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
  *
  * NULL background selects white. Ignores the font argument because text resolves its own resources.
  * Emits q/re/W/n after painting; PdfPlotEnd balances this separate plot scope.
+ *
+ * @param[in,out] ctx Live Pdf renderer context borrowing the active export document.
+ * @param[in] font Unused by this backend; retained for the common plot-operation signature.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
+ * @param[in] background Borrowed plot background color; NULL selects the format's clear-background policy.
  */
 static void PdfPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                          const XColor *background) {
@@ -818,6 +964,8 @@ static void PdfPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
  * @ingroup pdf_backend
  *
  * Requires a matching PdfPlotBegin. This Q is separate from common renderer clip-depth unwinding.
+ *
+ * @param[in,out] ctx Live Pdf context with a matching plot scope; common depth is not changed here.
  */
 static void PdfPlotEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL); }
 
@@ -831,6 +979,10 @@ static void PdfPlotEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(
  * center has a local transform; bitmap aspect ratio is preserved. Geometric symbols fill before
  * outlining, skinny symbols only stroke, and cross variants rotate the plus geometry. Borrows style
  * colors and handles throughout the call.
+ *
+ * @param[in,out] ctx Live Pdf symbol context with selected symbol style and document resources.
+ * @param[in] centers Borrowed mapped symbol centers readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PdfSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     const Rbc_RenderSymbolStyle *style = &RENDER_EXPORT(ctx)->vectorSymbol;

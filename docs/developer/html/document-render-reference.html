@@ -45,7 +45,10 @@
 <h1>Document renderer C reference<a class="headerlink" href="#document-renderer-c-reference" title="Link to this heading">¶</a></h1>
 <p>These are private implementation contracts, not installed C APIs. Component
 callers use <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>; these helpers borrow export state and have
-backend-specific preconditions. See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a>.</p>
+backend-specific preconditions. See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for linked
+comparisons of state, color and clipping policies. Parameter contracts distinguish
+borrowed geometry from document-owned resources; no callback here transfers
+ownership of the source image, font or mapped point array.</p>
 <section id="shared-export-support">
 <h2>Shared export support<a class="headerlink" href="#shared-export-support" title="Link to this heading">¶</a></h2>
 <dl>
@@ -147,224 +150,536 @@ backend-specific preconditions. See <a class="reference internal" href="document
 <dt class="sig sig-object c" id="c.PdfClipBegin">
 <span class="target" id="group__pdf__backend_1ga09f62e3508c3639efebca5bdeec344da"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfClipBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfClipBegin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Save graphics state and intersect a rectangular clip. </p>
-<p>Coordinates are mapped display pixels. Emits q/re/W/n; PdfClipEnd must balance the save. Common renderer clip-depth tracking owns pairing, not this callback. </p>
+<p>Coordinates are mapped display pixels. Emits q/re/W/n; PdfClipEnd must balance the save. Common renderer clip-depth tracking owns pairing, not this callback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfClipEnd">
 <span class="target" id="group__pdf__backend_1gaefffb428ae247c8f5f5ac12876edce3c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfClipEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfClipEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Restore one rectangular clipping scope. </p>
-<p>Emits Q only. Requires a matching begin; does not inspect or change common clip depth. </p>
+<p>Emits Q only. Requires a matching begin; does not inspect or change common clip depth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf context with a matching rectangular clip scope; common depth is not changed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfColor">
 <span class="target" id="group__pdf__backend_1gada2849bbaec6955b1af75b51c4923417"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfColor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">stroke</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfColor" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select DeviceRGB stroke or fill color. </p>
-<p>Converts 16-bit XColor components to unit values. A NULL color leaves the current color unchanged; this helper does not save graphics state. </p>
+<p>Converts 16-bit XColor components to unit values. A NULL color leaves the current color unchanged; this helper does not save graphics state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Optional borrowed Tk color; NULL leaves the current PDF color unchanged. </p></li>
+<li><p><strong>stroke</strong> – <strong>[in]</strong> Nonzero selects stroking RGB; zero selects nonstroking RGB. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPath">
 <span class="target" id="group__pdf__backend_1gae6dfcc1a67c88dfbfed652375486713c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPath</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">close</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPath" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append a polygonal path without painting it. </p>
-<p>Borrows count points in mapped pixels and optionally emits h. The caller supplies valid geometry, chooses the fill rule and owns graphics-state scope. </p>
+<p>Borrows count points in mapped pixels and optionally emits h. The caller supplies valid geometry, chooses the fill rule and owns graphics-state scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+<li><p><strong>close</strong> – <strong>[in]</strong> Nonzero appends a close-path operator; zero leaves the path open. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfRectangle">
 <span class="target" id="group__pdf__backend_1ga662c1aa0a9d583de5a740797652d21d9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint a positive-size solid rectangle in an isolated scope. </p>
-<p>NULL color or nonpositive dimensions produce no output. Uses nonstroking RGB and restores the previous graphics state. </p>
+<p>NULL color or nonpositive dimensions produce no output. Uses nonstroking RGB and restores the previous graphics state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed rectangle color; NULL emits no paint. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfArcPath">
 <span class="target" id="group__pdf__backend_1ga01a4d7c589725a4dc033fd9c99031518"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfArcPath</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfArcPath" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Append an elliptical arc using cubic Bezier pieces. </p>
-<p>Requires normalized finite geometry with nonzero extent from the renderer dispatcher. Each piece spans at most 90 degrees. Negates angles for screen Y, closes full ellipses and chords, and adds the center for partial pieslices. Does not paint or change the transformation matrix. </p>
+<p>Requires normalized finite geometry with nonzero extent from the renderer dispatcher. Each piece spans at most 90 degrees. Negates angles for screen Y, closes full ellipses and chords, and adds the center for partial pieslices. Does not paint or change the transformation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed normalized finite ellipse geometry with positive radii and nonzero extent. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfStrokeStyle">
 <span class="target" id="group__pdf__backend_1gad86b0027da8115b0339734eaff75dba5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfStrokeStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfStrokeStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit cached stroke color, width, cap, join and dashes. </p>
-<p>The background pass selects the off-color and an empty dash pattern with zero offset. The foreground pass uses the bounded dash array and its offset. The caller saves/restores graphics state. </p>
+<p>The background pass selects the off-color and an empty dash pattern with zero offset. The foreground pass uses the bounded dash array and its offset. The caller saves/restores graphics state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf stroke context with configured color, width and dash state. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Nonzero emits the solid off-color pass; zero selects cached foreground dashes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPolyline">
 <span class="target" id="group__pdf__backend_1gacf8fe828eefbf3c46c07d0513b00b397"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPolyline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke a connected path, optionally over a solid dash background. </p>
-<p>No foreground color or fewer than two points is a no-op. Each pass reconstructs the whole path and has its own q/Q scope; the input array remains borrowed. </p>
+<p>No foreground color or fewer than two points is a no-op. Each pass reconstructs the whole path and has its own q/Q scope; the input array remains borrowed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf stroke context with configured color, width and dash state. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfSegments">
 <span class="target" id="group__pdf__backend_1gac82a2f60303a8fdb799a0db2c13899ad"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke independent segments in their original painter order. </p>
-<p>Each segment delegates to PdfPolyline, including its background and foreground passes, before the next segment. Does not combine the batch into one shared path. </p>
+<p>Each segment delegates to PdfPolyline, including its background and foreground passes, before the next segment. Does not combine the batch into one shared path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf stroke context with configured color, width and dash state. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs readable for count Segment2D records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfArc">
 <span class="target" id="group__pdf__backend_1gad33e82e0a216a3b0364e19a94f8b7796"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke normalized arc geometry with the cached line style. </p>
-<p>No foreground color is a no-op. Rebuilds the arc for each dash-background/foreground pass and balances graphics state for each pass. </p>
+<p>No foreground color is a no-op. Rebuilds the arc for each dash-background/foreground pass and balances graphics state for each pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf stroke context with configured color, width and dash state. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed normalized finite ellipse geometry with positive radii and nonzero extent. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfBitmapRuns">
 <span class="target" id="group__pdf__backend_1ga06464d260aa4fddcdc75e8c9c047c643"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfBitmapRuns</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">XImage</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bits</span></span>, <span class="n"><span class="pre">XImage</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mask</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfBitmapRuns" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert set bitmap pixels into filled horizontal rectangles. </p>
-<p>Borrows a valid XImage and optional same-sized mask. Emits runs where both images are set; NULL color produces no output. Uses the current transform and graphics scope, paints once with f, and does not release either image. </p>
+<p>Borrows a valid XImage and optional same-sized mask. Emits runs where both images are set; NULL color produces no output. Uses the current transform and graphics scope, paints once with f, and does not release either image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>bits</strong> – <strong>[in]</strong> Borrowed readable monochrome XImage supplying set pixels. </p></li>
+<li><p><strong>mask</strong> – <strong>[in]</strong> Optional borrowed same-sized XImage; only pixels set in both images are emitted. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed paint color; omission follows this helper’s format-specific policy. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPhotoResource">
 <span class="target" id="group__pdf__backend_1ga3fc19bb78ded9cfa48c9109495610d5f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPhotoResource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPhotoResource" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy a Tk photo block into PDF RGB and optional alpha resources. </p>
-<p>Returns an image object ID, or zero for empty/invalid input. Invalid size/storage records an export error. Requires valid Tk channel offsets and row layout. Copies RGB bytes row by row and creates an 8-bit grayscale SMask only if any alpha is nonopaque. Frees temporary DStrings; does not retain the borrowed block or pixel pointer. </p>
+<p>Returns an image object ID, or zero for empty/invalid input. Invalid size/storage records an export error. Requires valid Tk channel offsets and row layout. Copies RGB bytes row by row and creates an 8-bit grayscale SMask only if any alpha is nonopaque. Frees temporary DStrings; does not retain the borrowed block or pixel pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>block</strong> – <strong>[in]</strong> Borrowed readable Tk photo block with valid pitch, pixel size and RGB channel offsets. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfImageUse">
 <span class="target" id="group__pdf__backend_1gae869359dfc77236966086c2b5f9b4015"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfImageUse</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">id</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfImageUse" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Place an image resource using top-left display coordinates. </p>
-<p>A zero resource ID is a no-op. Emits a locally saved matrix with negative image height to correct raster orientation, then invokes the image XObject. </p>
+<p>A zero resource ID is a no-op. Emits a locally saved matrix with negative image height to correct raster orientation, then invokes the image XObject.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>id</strong> – <strong>[in]</strong> Document-local image object ID; zero emits nothing. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Image display width in pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Image display height in pixels; negated in the placement matrix to correct raster orientation. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfColorImageResource">
 <span class="target" id="group__pdf__backend_1gac052c0ac1840e1af1e207e7b69face1c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfColorImageResource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfColorImageResource" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Adapt a packed RBC color image to the photo resource writer. </p>
-<p>Borrows the image, checks that row pitch fits int, and describes Pix32 channel offsets without copying the source first. Resource construction copies the pixels. Returns zero and records an export error for excessive pitch; does not free the image. </p>
+<p>Borrows the image, checks that row pitch fits int, and describes Pix32 channel offsets without copying the source first. Resource construction copies the pixels. Returns zero and records an export error for excessive pitch; does not free the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>image</strong> – <strong>[in]</strong> Borrowed RBC color image with readable packed pixels; not freed by this helper. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPattern">
 <span class="target" id="group__pdf__backend_1gad004600b41e0e3062637fd4bc64da26b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPattern</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPattern" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create or reuse this fill context’s colored tiling pattern. </p>
-<p>Uses a borrowed tile for backgroundOnly fills, otherwise a stipple bitmap. <a class="reference internal" href="image-tile-reference.html#struct_tile"><span class="std std-ref">Tile</span></a> photos use their pixel block; other Tk images use raster capture. Stipples become bitmap runs over an optional background. Restores token-&gt;buffer after constructing temporary pattern content and releases temporary images. The pattern matrix includes page scale/Y reversal; tile origin also accounts for graph ancestry. Caches the resource ID until the tile setter invalidates it. Zero means no pattern; the enclosing export error remains authoritative. </p>
+<p>Uses a borrowed tile for backgroundOnly fills, otherwise a stipple bitmap. <a class="reference internal" href="image-tile-reference.html#struct_tile"><span class="std std-ref">Tile</span></a> photos use their pixel block; other Tk images use raster capture. Stipples become bitmap runs over an optional background. Restores token-&gt;buffer after constructing temporary pattern content and releases temporary images. The pattern matrix includes page scale/Y reversal; tile origin also accounts for graph ancestry. Caches the resource ID until the tile setter invalidates it. Zero means no pattern; the enclosing export error remains authoritative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed resolved pattern foreground color; not retained by the emitter. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfFillStyle">
 <span class="target" id="group__pdf__backend_1ga697b3117ae38c5bddca734d6c7aa4d6a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfFillStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfFillStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare nonstroking opacity and solid or patterned fill state. </p>
-<p>Returns false for nonpositive opacity, missing solid color or unavailable pattern. Opacity below one uses an ExtGState ca resource. Pattern creation precedes path construction so resource emission cannot consume the drawing path. The caller provides a q/Q scope; this helper is not a Tcl status API. </p>
+<p>Returns false for nonpositive opacity, missing solid color or unavailable pattern. Opacity below one uses an ExtGState ca resource. Pattern creation precedes path construction so resource emission cannot consume the drawing path. The caller provides a q/Q scope; this helper is not a Tcl status API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfFillPolygon">
 <span class="target" id="group__pdf__backend_1ga7e5273d0aa7677618094b931951aa14b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfFillPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfFillPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill a closed polygon with the even-odd rule. </p>
-<p>Establishes fill resources before appending borrowed geometry. Always balances its local graphics save, including when the style produces no fill. </p>
+<p>Establishes fill resources before appending borrowed geometry. Always balances its local graphics save, including when the style produces no fill.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfFillRectangles">
 <span class="target" id="group__pdf__backend_1gaf60e329c0d0da53d5431052f6ea1c95e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfFillRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfFillRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill each supplied rectangle in a separate graphics scope. </p>
-<p>Uses the cached fill style, with shared pattern resource reuse across the batch. Geometry is already mapped; no outline or clipping calculation is performed here. </p>
+<p>Uses the cached fill style, with shared pattern resource reuse across the batch. Geometry is already mapped; no outline or clipping calculation is performed here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfFillArc">
 <span class="target" id="group__pdf__backend_1ga2ac673fc4e3d830d42fce9f50c59be4b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfFillArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfFillArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill normalized ellipse, chord or sector geometry. </p>
-<p>Prepares fill state before constructing the path and uses even-odd fill. The caller selects a fillable arc style; the helper balances graphics state even if filling is disabled. </p>
+<p>Prepares fill state before constructing the path and uses even-odd fill. The caller selects a fillable arc style; the helper balances graphics state even if filling is disabled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed normalized closed ellipse segment; common dispatch excludes open arcs. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfText">
 <span class="target" id="group__pdf__backend_1gab0aa3f1a68e7acd913e427e3cda53bba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfText</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfText" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit anchored, rotated text using document-local font resources. </p>
-<p>Owns and frees a temporary TextLayout. Resolves glyphs before output to widen zero-width Tk measurements when a fallback has positive advance, then recomputes justification. Emits shadow before foreground, selecting active color when requested. Each glyph uses Tk prefix advance plus fallback corrections; genuine zero-width glyphs retain their position. Font/width errors are recorded on the export; this void emitter does not return a completed-document status. </p>
+<p>Owns and frees a temporary TextLayout. Resolves glyphs before output to widen zero-width Tk measurements when a fallback has positive advance, then recomputes justification. Emits shadow before foreground, selecting active color when requested. Each glyph uses Tk prefix advance plus fallback corrections; genuine zero-width glyphs retain their position. Font/width errors are recorded on the export; this void emitter does not return a completed-document status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated Tcl UTF text consumed during the call. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed text style with live font/color resources; layout and placement follow its fields. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPhoto">
 <span class="target" id="group__pdf__backend_1ga14d0f1196c556296a913808d6c68c5ff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPhoto</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read a borrowed Tk photo and place its copied PDF resource. </p>
-<p>A missing/unreadable photo records an export error. Does not destroy the photo or retain its pixel block. </p>
+<p>A missing/unreadable photo records an export error. Does not destroy the photo or retain its pixel block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>photo</strong> – <strong>[in]</strong> Borrowed Tk photo handle, read synchronously. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfTkImage">
 <span class="target" id="group__pdf__backend_1gae1d252fde97bf9584b238193ce1c946a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfTkImage</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfTkImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Rasterize a non-photo Tk image and emit its PDF resource. </p>
-<p>Owns the capture returned by Rbc_RenderExportRasterImage and frees it after resource creation. A NULL capture emits no image; consult the export error for failed captures. </p>
+<p>Owns the capture returned by Rbc_RenderExportRasterImage and frees it after resource creation. A NULL capture emits no image; consult the export error for failed captures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>image</strong> – <strong>[in]</strong> Borrowed live Tk image; no ownership transfer. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfWindow">
 <span class="target" id="group__pdf__backend_1ga501e68a5d5d947ce0aac39a0a8761f77"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfWindow</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">window</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfWindow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Capture a mapped window at its current screen dimensions. </p>
-<p>Unmapped or empty windows are omitted. Owns and frees the captured color image; capture failure records an export error. The caller decides whether window export is enabled. This captures pixels, not a reconstructed widget or new clipping container. </p>
+<p>Unmapped or empty windows are omitted. Owns and frees the captured color image; capture failure records an export error. The caller decides whether window export is enabled. This captures pixels, not a reconstructed widget or new clipping container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>window</strong> – <strong>[in]</strong> Borrowed live Tk window; capture does not create or resize it. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfBitmapMask">
 <span class="target" id="group__pdf__backend_1ga30d3d40159b9a74fa86b0b0615f892ff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfBitmapMask</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfBitmapMask" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint a positioned one-bit mask as vector rectangles. </p>
-<p>Missing bitmap/color or nonpositive dimensions are ignored. Acquires and destroys an XImage; failure records an export error. The background selector is unused because the explicit color determines painting. Translation is confined to a q/Q scope. </p>
+<p>Missing bitmap/color or nonpositive dimensions are ignored. Acquires and destroys an XImage; failure records an export error. The background selector is unused because the explicit color determines painting. Translation is confined to a q/Q scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning the source bitmap. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit pixmap readable over width by height pixels; None suppresses output. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Source bitmap width and mapped extent in pixels; nonpositive values emit nothing. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Source bitmap height and mapped extent in pixels; nonpositive values emit nothing. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed paint color; omission follows this helper’s format-specific policy. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Unused pass selector; the caller supplies the paint color explicitly. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfBackgroundPolygon">
 <span class="target" id="group__pdf__backend_1ga53407c23c3f2e26c147cd1ec124af409"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfBackgroundPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfBackgroundPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint a solid even-odd background polygon. </p>
-<p>NULL color is a no-op. Borrows mapped points and isolates the RGB fill in a saved graphics scope. </p>
+<p>NULL color is a no-op. Borrows mapped points and isolates the RGB fill in a saved graphics scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed background color; NULL emits no paint. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPolygon">
 <span class="target" id="group__pdf__backend_1gad443b24042adb427d66a01215beda833"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPolygon</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Adapt border polygon output to a temporary export state. </p>
-<p>Creates a stack-local state borrowing the token and delegates to PdfBackgroundPolygon. The opacity parameter is currently ignored; border callers pass opaque color. </p>
+<p>Creates a stack-local state borrowing the token and delegates to PdfBackgroundPolygon. The opacity parameter is currently ignored; border callers pass opaque color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – <strong>[inout]</strong> Borrowed initialized export document; output and resource/error state may be updated. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed paint color; omission follows this helper’s format-specific policy. </p></li>
+<li><p><strong>opacity</strong> – <strong>[in]</strong> Unused; this border adapter always delegates opaque painting. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfBorder">
 <span class="target" id="group__pdf__backend_1gaab88024a5e516cbed581daffb2017649"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfBorder</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fill</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfBorder" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Approximate Tk relief using solid rectangles and a polygon. </p>
-<p>Obtains border colors after forcing lazy light-GC allocation. Optionally fills the interior, then emits raised/sunken/solid edges; groove and ridge recurse into two half-width borders. Flat, nonpositive or undersized borders omit the edges. Borrows the Tk border; does not allocate replacement colors. </p>
+<p>Obtains border colors after forcing lazy light-GC allocation. Optionally fills the interior, then emits raised/sunken/solid edges; groove and ridge recurse into two half-width borders. Flat, nonpositive or undersized borders omit the edges. Borrows the Tk border; does not allocate replacement colors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed Tk 3D border; lazy shadow-color initialization may occur. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Relief thickness in display pixels; caller keeps size arithmetic representable. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief constant. </p></li>
+<li><p><strong>fill</strong> – <strong>[in]</strong> Nonzero paints the interior before relief; zero requests edges only. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfClearRectangle">
 <span class="target" id="group__pdf__backend_1ga82a568560611fcf51f1ce55ed7e7751a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfClearRectangle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfClearRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint an opaque white rectangle. </p>
-<p>Clearing document output means white paint, not erasing to transparency. Nonpositive dimensions are ignored by PdfRectangle. </p>
+<p>Clearing document output means white paint, not erasing to transparency. Nonpositive dimensions are ignored by PdfRectangle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfBackgroundRectangles">
 <span class="target" id="group__pdf__backend_1gae195d894e631e517cde9b0ea55390fe8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfBackgroundRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfBackgroundRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint background rectangles in order. </p>
-<p>NULL color selects opaque white; otherwise uses the supplied RGB color. Borrows the batch and does not retain geometry. </p>
+<p>NULL color selects opaque white; otherwise uses the supplied RGB color. Borrows the batch and does not retain geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Optional borrowed background color; NULL paints using the format clear-background policy. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPlotBegin">
 <span class="target" id="group__pdf__backend_1ga5f98d85e3d9f5e2aa41c483d5b6bbeb4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPlotBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPlotBegin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint the plot background and open its clipping scope. </p>
-<p>NULL background selects white. Ignores the font argument because text resolves its own resources. Emits q/re/W/n after painting; PdfPlotEnd balances this separate plot scope. </p>
+<p>NULL background selects white. Ignores the font argument because text resolves its own resources. Emits q/re/W/n after painting; PdfPlotEnd balances this separate plot scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf renderer context borrowing the active export document. </p></li>
+<li><p><strong>font</strong> – <strong>[in]</strong> Unused by this backend; retained for the common plot-operation signature. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Borrowed plot background color; NULL selects the format’s clear-background policy. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfPlotEnd">
 <span class="target" id="group__pdf__backend_1ga1e43c93602955b90322b055b9eb72b62"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfPlotEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfPlotEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Close the saved plot clipping scope. </p>
-<p>Requires a matching PdfPlotBegin. This Q is separate from common renderer clip-depth unwinding. </p>
+<p>Requires a matching PdfPlotBegin. This Q is separate from common renderer clip-depth unwinding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf context with a matching plot scope; common depth is not changed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PdfSymbolPoints">
 <span class="target" id="group__pdf__backend_1gada4e12538355f2a60b8280594053cd39"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfSymbolPoints</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">centers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PdfSymbolPoints" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint symbol centers with legacy size corrections and painter order. </p>
-<p><a class="reference internal" href="bar-reference.html#struct_bar"><span class="std std-ref">Bar</span></a> samples delegate to rectangle fills. Bitmap symbols acquire their source/mask once per batch, require matching mask dimensions when used, and release both XImages on completion or failure. Each center has a local transform; bitmap aspect ratio is preserved. Geometric symbols fill before outlining, skinny symbols only stroke, and cross variants rotate the plus geometry. Borrows style colors and handles throughout the call. </p>
+<p><a class="reference internal" href="bar-reference.html#struct_bar"><span class="std std-ref">Bar</span></a> samples delegate to rectangle fills. Bitmap symbols acquire their source/mask once per batch, require matching mask dimensions when used, and release both XImages on completion or failure. Each center has a local transform; bitmap aspect ratio is preserved. Geometric symbols fill before outlining, skinny symbols only stroke, and cross variants rotate the plus geometry. Borrows style colors and handles throughout the call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Pdf symbol context with selected symbol style and document resources. </p></li>
+<li><p><strong>centers</strong> – <strong>[in]</strong> Borrowed mapped symbol centers readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -383,168 +698,401 @@ backend-specific preconditions. See <a class="reference internal" href="document
 <dt class="sig sig-object c" id="c.PostScriptClipBegin">
 <span class="target" id="group__postscript__backend_1gabe9386ca78e3a7d0bfcfbf8d87994009"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptClipBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptClipBegin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Open a saved rectangular PostScript clip. </p>
-<p>Emits gsave and a closed path followed by clip/newpath. Common renderer depth tracking owns pairing; PostScriptClipEnd closes this scope. </p>
+<p>Emits gsave and a closed path followed by clip/newpath. Common renderer depth tracking owns pairing; PostScriptClipEnd closes this scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptClipEnd">
 <span class="target" id="group__postscript__backend_1gab0e40bb9e42ce319bb2b71274e18c754"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptClipEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptClipEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Restore one rectangular PostScript clipping scope. </p>
-<p>Emits grestore without changing common clip depth. Requires a matching begin. </p>
+<p>Emits grestore without changing common clip depth. Requires a matching begin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript context with a matching rectangular clip scope; common depth is not changed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptPolyline">
 <span class="target" id="group__postscript__backend_1ga3ed66cbaf1f3629c81d2fd14b5f7d4bf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptPolyline" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke a connected path in bounded PostScript batches. </p>
-<p>Fewer than two points is a no-op. Splits at 1500 path components and restarts at the shared vertex. Invokes the current DashesProc before each foreground stroke; caller ordering must preserve that document-level definition. </p>
+<p>Fewer than two points is a no-op. Splits at 1500 path components and restarts at the shared vertex. Invokes the current DashesProc before each foreground stroke; caller ordering must preserve that document-level definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript stroke context with configured color, width and dash state. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptSegments">
 <span class="target" id="group__postscript__backend_1gae45ba4f3b8c7aff4416a422888da4f11"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptSegments" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delegate an independent segment batch to the legacy token. </p>
-<p>Positive counts pass borrowed mapped geometry to Rbc_2DSegmentsToPostScript. Does not own points or establish a new line style. </p>
+<p>Positive counts pass borrowed mapped geometry to Rbc_2DSegmentsToPostScript. Does not own points or establish a new line style.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript stroke context with configured color, width and dash state. </p></li>
+<li><p><strong>segments</strong> – <strong>[in]</strong> Borrowed mapped endpoint pairs readable for count Segment2D records. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptLineStyle">
 <span class="target" id="group__postscript__backend_1ga9a9facfb48f7f7087140995748a2b1c3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptLineStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptLineStyle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit cap and join settings immediately. </p>
-<p>Delegates to the legacy token conversion functions. Unlike PDF/SVG setters, this mutates the output graphics state rather than a cached style record. </p>
+<p>Delegates to the legacy token conversion functions. Unlike PDF/SVG setters, this mutates the output graphics state rather than a cached style record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>capStyle</strong> – <strong>[in]</strong> X/Tk line cap constant passed to the PostScript conversion helper. </p></li>
+<li><p><strong>joinStyle</strong> – <strong>[in]</strong> X/Tk line join constant passed to the PostScript conversion helper. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptDashBackground">
 <span class="target" id="group__postscript__backend_1gae4dbaa5c61ab1c381820fad4776c4836"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptDashBackground</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptDashBackground" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Define the document’s dash-background procedure. </p>
-<p>For a dashed stroke with a color, defines DashesProc to paint an undashed background inside gsave/grestore. Otherwise defines an empty procedure. Dictionary definitions are not scoped by gsave: emit a batch before another context changes this definition. </p>
+<p>For a dashed stroke with a color, defines DashesProc to paint an undashed background inside gsave/grestore. Otherwise defines an empty procedure. Dictionary definitions are not scoped by gsave: emit a batch before another context changes this definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Optional borrowed off-dash color; NULL installs an empty dash-background procedure. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptFillPath">
 <span class="target" id="group__postscript__backend_1ga92f3bba4f68fb5771695b359bcebc2a7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptFillPath</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptFillPath" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint the current path using legacy fill and stipple helpers. </p>
-<p>Paints an optional background via the prolog Fill procedure, then selects foreground. backgroundOnly returns after that selection. Otherwise paints stipple or solid fill. Borrows graph/display and style resources; does not apply fill opacity or image tiles. </p>
+<p>Paints an optional background via the prolog Fill procedure, then selects foreground. backgroundOnly returns after that selection. Otherwise paints stipple or solid fill. Borrows graph/display and style resources; does not apply fill opacity or image tiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptFillPolygon">
 <span class="target" id="group__postscript__backend_1ga5083b2a215ef9fe7dfead8d319805815"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptFillPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptFillPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Close and fill a supplied polygonal path. </p>
-<p>Delegates path creation to the legacy token and fill policy to PostScriptFillPath. The caller supplies valid mapped geometry and retains its storage. </p>
+<p>Delegates path creation to the legacy token and fill policy to PostScriptFillPath. The caller supplies valid mapped geometry and retains its storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptArcPath">
 <span class="target" id="group__postscript__backend_1ga0eca314265b7e158c95b6a4c6fd739ee"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptArcPath</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptArcPath" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Build an elliptical arc while restoring display-space line units. </p>
-<p>Requires normalized nonzero arc geometry. Saves the current matrix on the operand stack, constructs a scaled unit-circle arc, then restores the matrix without losing the path. Negated angles preserve screen-space orientation. Closes full ellipses/chords and joins partial pieslices to the center. </p>
+<p>Requires normalized nonzero arc geometry. Saves the current matrix on the operand stack, constructs a scaled unit-circle arc, then restores the matrix without losing the path. Negated angles preserve screen-space orientation. Closes full ellipses/chords and joins partial pieslices to the center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed normalized finite ellipse geometry with positive radii and nonzero extent. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptArc">
 <span class="target" id="group__postscript__backend_1gacc67ea79842cc4f3ff1ef0d0bfce3915"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Stroke an arc with the current dash-background procedure. </p>
-<p>Builds the path and invokes DashesProc before stroke. Does not independently establish line style. </p>
+<p>Builds the path and invokes DashesProc before stroke. Does not independently establish line style.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript stroke context with configured color, width and dash state. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed normalized finite ellipse geometry with positive radii and nonzero extent. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptFillArc">
 <span class="target" id="group__postscript__backend_1ga029f74d17b4c7937574194e7146fb875"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptFillArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptFillArc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Fill an arc with the legacy fill policy. </p>
-<p>Builds normalized geometry then delegates to PostScriptFillPath; does not emit an outline. </p>
+<p>Builds normalized geometry then delegates to PostScriptFillPath; does not emit an outline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+<li><p><strong>arc</strong> – <strong>[in]</strong> Borrowed normalized closed ellipse segment; common dispatch excludes open arcs. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptFillRectangles">
 <span class="target" id="group__postscript__backend_1ga33ce940dfd80f97b5996debbef287e6f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptFillRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptFillRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint mapped rectangles using legacy solid/stipple behavior. </p>
-<p>Stipple fills paint optional background then foreground, falling back to background color when foreground is absent. Solid rectangles require foreground. This path does not implement image tiles or opacity, and does not share every polygon backgroundOnly rule. </p>
+<p>Stipple fills paint optional background then foreground, falling back to background color when foreground is absent. Solid rectangles require foreground. This path does not implement image tiles or opacity, and does not share every polygon backgroundOnly rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript fill context with initialized fillStyle and any required graph/tile resources. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptSymbolPoints">
 <span class="target" id="group__postscript__backend_1gade3947468bcd49002a8c1ec013435da1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptSymbolPoints</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">centers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptSymbolPoints" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit centers using the context’s configured prolog macro. </p>
-<p>Requires symbol setup to have selected a valid macro and size and defined DrawSymbolProc. Emits centers in order without retaining them or redefining the procedure. </p>
+<p>Requires symbol setup to have selected a valid macro and size and defined DrawSymbolProc. Emits centers in order without retaining them or redefining the procedure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript symbol context with selected symbol style and document resources. </p></li>
+<li><p><strong>centers</strong> – <strong>[in]</strong> Borrowed mapped symbol centers readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptText">
 <span class="target" id="group__postscript__backend_1gae8df62f91586048aeaa79c4243952998"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptText</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptText" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delegate mapped text to the legacy PostScript text writer. </p>
-<p>Borrows the string and TextStyle. Uses token font/color maps and legacy encoding, not the PDF/SVG document font pipeline. </p>
+<p>Borrows the string and TextStyle. Uses token font/color maps and legacy encoding, not the PDF/SVG document font pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated Tcl UTF text consumed during the call. </p></li>
+<li><p><strong>style</strong> – <strong>[in]</strong> Borrowed text style with live font/color resources; layout and placement follow its fields. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptTkImage">
 <span class="target" id="group__postscript__backend_1gadd68c26dec050e33db0a98c602997e8d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptTkImage</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptTkImage" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Retain the legacy omission of non-photo Tk images. </p>
-<p>Intentionally emits nothing. Photo markers use PostScriptPhoto; generic Tk-image raster capture is not attempted here. </p>
+<p>Intentionally emits nothing. Photo markers use PostScriptPhoto; generic Tk-image raster capture is not attempted here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Unused; generic Tk images are intentionally omitted by this legacy callback. </p></li>
+<li><p><strong>image</strong> – <strong>[in]</strong> Unused; generic Tk images are intentionally omitted by this legacy callback. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Unused; generic Tk images are intentionally omitted by this legacy callback. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Unused; generic Tk images are intentionally omitted by this legacy callback. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptPhoto">
 <span class="target" id="group__postscript__backend_1ga659939e68800c0c6cdb3df2b141e796f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPhoto</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptPhoto" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delegate a non-NULL photo to the legacy image writer. </p>
-<p>Borrows the handle and emits at the supplied mapped origin. NULL is a no-op; does not use the PDF alpha-resource path. </p>
+<p>Borrows the handle and emits at the supplied mapped origin. NULL is a no-op; does not use the PDF alpha-resource path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>photo</strong> – <strong>[in]</strong> Borrowed Tk photo handle, read synchronously. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptWindow">
 <span class="target" id="group__postscript__backend_1ga9204fc2e20ef97f53f9f1588b2a8a686"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptWindow</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptWindow" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Delegate window capture to the legacy PostScript writer. </p>
-<p>Borrows the live window. Capture behavior and errors belong to Rbc_WindowToPostScript; this adapter does not introduce a clipping container. </p>
+<p>Borrows the live window. Capture behavior and errors belong to Rbc_WindowToPostScript; this adapter does not introduce a clipping container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window passed to the legacy capture writer. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptBackgroundPolygon">
 <span class="target" id="group__postscript__backend_1ga2e69ed43f2d5d64d59e35e93aea74b97"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptBackgroundPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptBackgroundPolygon" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select background color and emit a filled polygon. </p>
-<p>Uses the token’s background/color-map policy and borrows the mapped point array. Does not establish an independent saved graphics scope. </p>
+<p>Uses the token’s background/color-map policy and borrows the mapped point array. Does not establish an independent saved graphics scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed background color interpreted by the legacy PostScript color-map policy. </p></li>
+<li><p><strong>points</strong> – <strong>[in]</strong> Borrowed mapped point array readable for count vertices. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptBorder">
 <span class="target" id="group__postscript__backend_1ga4275545a2430e410175d779b74bec181"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptBorder</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fill</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptBorder" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Dispatch filled or outline-only Tk relief output. </p>
-<p>Borrows the border and delegates to the matching legacy 3D rectangle helper. Geometry and relief are already selected by the component. </p>
+<p>Borrows the border and delegates to the matching legacy 3D rectangle helper. Geometry and relief are already selected by the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>border</strong> – <strong>[in]</strong> Borrowed Tk 3D border; lazy shadow-color initialization may occur. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+<li><p><strong>borderWidth</strong> – <strong>[in]</strong> Relief thickness in display pixels; caller keeps size arithmetic representable. </p></li>
+<li><p><strong>relief</strong> – <strong>[in]</strong> Tk relief constant. </p></li>
+<li><p><strong>fill</strong> – <strong>[in]</strong> Nonzero paints the interior before relief; zero requests edges only. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptClearRectangle">
 <span class="target" id="group__postscript__backend_1ga6eecfe638e98d8e9132ff45b26edacfd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptClearRectangle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptClearRectangle" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint a rectangle using the token’s clear-background policy. </p>
-<p>Clearing emits paint through legacy helpers; it does not remove prior document content. </p>
+<p>Clearing emits paint through legacy helpers; it does not remove prior document content.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptBackgroundRectangles">
 <span class="target" id="group__postscript__backend_1ga8b34b03eb0463c473082194c6d49b7ba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptBackgroundRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptBackgroundRectangles" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Select one background and paint a rectangle batch. </p>
-<p>NULL color uses the clear-background policy. Otherwise selects background once, then emits all borrowed rectangles in order. </p>
+<p>NULL color uses the clear-background policy. Otherwise selects background once, then emits all borrowed rectangles in order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Optional borrowed background color; NULL paints using the format clear-background policy. </p></li>
+<li><p><strong>rectangles</strong> – <strong>[in]</strong> Borrowed mapped rectangle array readable for count entries. </p></li>
+<li><p><strong>count</strong> – <strong>[in]</strong> Number of geometry records, not bytes. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptPlotBegin">
 <span class="target" id="group__postscript__backend_1ga392e5885d2509de5869f291209e46e98"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPlotBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptPlotBegin" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Paint plot background and open its saved clipping scope. </p>
-<p>Selects the supplied font, constructs the region and paints via prolog Fill before gsave/clip. NULL background uses the token’s clear policy. PostScriptPlotEnd balances this plot scope. </p>
+<p>Selects the supplied font, constructs the region and paints via prolog Fill before gsave/clip. NULL background uses the token’s clear policy. PostScriptPlotEnd balances this plot scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>font</strong> – <strong>[in]</strong> Borrowed Tk font for plot setup. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Mapped rectangle width in display pixels. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Mapped rectangle height in display pixels. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Borrowed plot background color; NULL selects the format’s clear-background policy. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptPlotEnd">
 <span class="target" id="group__postscript__backend_1gae4c545a9839e1619d0ff8ea22424da22"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptPlotEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptPlotEnd" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Close the saved plot clipping scope. </p>
-<p>Emits grestore separately from the common renderer’s explicit clip-depth mechanism. Requires a matching plot begin. </p>
+<p>Emits grestore separately from the common renderer’s explicit clip-depth mechanism. Requires a matching plot begin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript context with a matching plot scope; common depth is not changed here. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PostScriptBitmapMask">
 <span class="target" id="group__postscript__backend_1ga001a2ba71bc35c144c51e46454ec4726"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptBitmapMask</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PostScriptBitmapMask" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Emit a translated and Y-corrected imagemask. </p>
-<p>Missing bitmap or nonpositive dimensions produce no output. Selects foreground/background according to the flag, emits bitmap bytes through the legacy helper and balances gsave/grestore. Borrows display, pixmap and color. </p>
+<p>Missing bitmap or nonpositive dimensions produce no output. Selects foreground/background according to the flag, emits bitmap bytes through the legacy helper and balances gsave/grestore. Borrows display, pixmap and color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[inout]</strong> Live Postscript renderer context borrowing the active export document. </p></li>
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display owning the source bitmap. </p></li>
+<li><p><strong>bitmap</strong> – <strong>[in]</strong> Borrowed one-bit pixmap readable over width by height pixels; None suppresses output. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Mapped destination X coordinate in display pixels. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Mapped destination Y coordinate in display pixels. </p></li>
+<li><p><strong>width</strong> – <strong>[in]</strong> Source bitmap width and mapped extent in pixels; nonpositive values emit nothing. </p></li>
+<li><p><strong>height</strong> – <strong>[in]</strong> Source bitmap height and mapped extent in pixels; nonpositive values emit nothing. </p></li>
+<li><p><strong>color</strong> – <strong>[in]</strong> Borrowed paint color; omission follows this helper’s format-specific policy. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Nonzero selects the legacy background-color policy; zero selects foreground. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

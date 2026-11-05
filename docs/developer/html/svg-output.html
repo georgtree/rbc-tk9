@@ -102,7 +102,7 @@ before returning, but does not roll back earlier rectangles.</p>
 <p>Arc geometry arrives normalized by the common dispatcher. Positive mathematical
 angles map upward in SVG screen coordinates. A full ellipse is represented by
 two arc commands with a close, avoiding a radial seam; a partial pieslice adds
-the center, while a chord closes directly between endpoints. <code class="docutils literal notranslate"><span class="pre">SvgArcPath</span></code>
+the center, while a chord closes directly between endpoints. <a class="reference internal" href="svg-reference.html#c.SvgArcPath" title="SvgArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgArcPath()</span></code></a>
 leaves the path element open for its caller to append fill or stroke attributes.</p>
 <p>Background clearing paints white rather than removing alpha. Relief borders
 force Tk’s lazy shadow-color allocation before reading colors, then approximate
@@ -125,7 +125,7 @@ resource and its dimensions remain cached until context destruction.</p>
 </section>
 <section id="strings-and-error-propagation">
 <h2>Strings and error propagation<a class="headerlink" href="#strings-and-error-propagation" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">SvgString</span></code> escapes ampersands, angle brackets and both quote characters.
+<p><a class="reference internal" href="svg-reference.html#c.SvgString" title="SvgString"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgString()</span></code></a> escapes ampersands, angle brackets and both quote characters.
 Other bytes are decoded as Tcl UTF characters and checked for prohibited XML
 characters. Errors are recorded on the export context; already emitted bytes
 are not removed. The helper expects valid readable Tcl UTF input, not arbitrary
@@ -137,7 +137,7 @@ an encoding helper has partially emitted XML and recorded an error.</p>
 </section>
 <section id="raster-encoding">
 <h2>Raster encoding<a class="headerlink" href="#raster-encoding" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">SvgPhotoBlock</span></code> emits an inline PNG data URI. It copies each source row using
+<p><a class="reference internal" href="svg-reference.html#c.SvgPhotoBlock" title="SvgPhotoBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a> emits an inline PNG data URI. It copies each source row using
 the Tk pitch and pixel layout, adds a zero PNG filter byte, and writes straight
 RGBA pixels. Unlike Cairo image surfaces, these channels are not premultiplied.
 A valid alpha offset distinct from RGB is used; otherwise alpha becomes 255.

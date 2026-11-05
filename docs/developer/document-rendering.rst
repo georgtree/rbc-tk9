@@ -64,7 +64,7 @@ construction can emit temporary paths, so reversing this order can consume the
 shape intended for painting. Polygon and arc fills use the even-odd rule;
 rectangle and geometric-symbol fills use their respective ordinary fill paths.
 
-``PdfPattern`` temporarily redirects the export buffer to a local DString,
+:c:func:`PdfPattern` temporarily redirects the export buffer to a local DString,
 builds a colored tiling pattern, restores the original buffer and registers the
 pattern with the PDF builder. The builder owns copied bytes; the renderer caches
 only its resource ID. Stipples become horizontal bitmap runs over an optional
@@ -166,3 +166,52 @@ or revalidate all borrowed resources across arbitrary custom image display
 callbacks. Do not infer protection against such destructive reentry from the
 export command's graph guard. This documentation patch does not change that
 behavior or the public C API.
+
+Backend parameter and scope contracts
+--------------------------------------
+
+The references describe mapped coordinates in display pixels, counts in geometry
+records and raster lengths in bytes. These units are not interchangeable.
+:c:func:`PdfPath` appends geometry without painting; :c:func:`SvgArcPath` opens an
+XML path that its caller must finish; :c:func:`PostScriptArcPath` leaves a path
+for a subsequent stroke or fill. None performs data-axis mapping.
+
+.. list-table:: Format-specific state policies
+   :header-rows: 1
+   :widths: 20 27 27 26
+
+   * - Operation
+     - SVG
+     - PDF
+     - PostScript
+   * - Stroke state
+     - :c:func:`SvgStrokeAttributes` emits cached attributes.
+     - :c:func:`PdfStrokeStyle` emits cached state inside a caller-owned scope.
+     - :c:func:`PostScriptLineStyle` emits state immediately;
+       :c:func:`PostScriptDashBackground` changes a document-wide procedure.
+   * - Missing color
+     - :c:func:`SvgColor` writes ``none``.
+     - :c:func:`PdfColor` leaves the current color unchanged.
+     - Callers use the legacy foreground/background mapping helpers.
+   * - Fill preparation
+     - :c:func:`SvgFillPattern` defines or reuses the context pattern.
+     - :c:func:`PdfFillStyle` prepares resources before path construction.
+     - :c:func:`PostScriptFillPath` uses legacy solid/stipple behavior.
+   * - Rectangular clip
+     - Pair :c:func:`SvgClipBegin` with :c:func:`SvgClipEnd`.
+     - Pair :c:func:`PdfClipBegin` with :c:func:`PdfClipEnd`.
+     - Pair :c:func:`PostScriptClipBegin` with :c:func:`PostScriptClipEnd`.
+
+The color row describes the low-level color helpers, not a universal rule for
+all primitives: individual polygon, rectangle and background callbacks have
+additional omission or fallback policies. Plot scopes are separate from explicit
+clip depth. Pair :c:func:`SvgPlotBegin`, :c:func:`PdfPlotBegin` or
+:c:func:`PostScriptPlotBegin` with its matching plot-end callback before ending
+the renderer context.
+
+Raster inputs stay borrowed. :c:func:`PdfPhotoResource` copies pixels into
+document resources, while :c:func:`PdfImageUse` places the resulting object ID.
+:c:func:`SvgPhotoBlock` emits an inline PNG using :c:func:`SvgPngChunk` and
+:c:func:`SvgBase64`. Byte-count and channel-layout requirements remain the
+caller's responsibility even where helpers check size limits. Returned resource
+IDs and handled flags do not replace the export document's error status.

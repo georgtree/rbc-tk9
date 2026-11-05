@@ -69,7 +69,7 @@ before returning, but does not roll back earlier rectangles.
 Arc geometry arrives normalized by the common dispatcher. Positive mathematical
 angles map upward in SVG screen coordinates. A full ellipse is represented by
 two arc commands with a close, avoiding a radial seam; a partial pieslice adds
-the center, while a chord closes directly between endpoints. ``SvgArcPath``
+the center, while a chord closes directly between endpoints. :c:func:`SvgArcPath`
 leaves the path element open for its caller to append fill or stroke attributes.
 
 Background clearing paints white rather than removing alpha. Relief borders
@@ -96,7 +96,7 @@ resource and its dimensions remain cached until context destruction.
 Strings and error propagation
 -----------------------------
 
-``SvgString`` escapes ampersands, angle brackets and both quote characters.
+:c:func:`SvgString` escapes ampersands, angle brackets and both quote characters.
 Other bytes are decoded as Tcl UTF characters and checked for prohibited XML
 characters. Errors are recorded on the export context; already emitted bytes
 are not removed. The helper expects valid readable Tcl UTF input, not arbitrary
@@ -110,7 +110,7 @@ an encoding helper has partially emitted XML and recorded an error.
 Raster encoding
 ---------------
 
-``SvgPhotoBlock`` emits an inline PNG data URI. It copies each source row using
+:c:func:`SvgPhotoBlock` emits an inline PNG data URI. It copies each source row using
 the Tk pitch and pixel layout, adds a zero PNG filter byte, and writes straight
 RGBA pixels. Unlike Cairo image surfaces, these channels are not premultiplied.
 A valid alpha offset distinct from RGB is used; otherwise alpha becomes 255.

@@ -22,6 +22,12 @@ typedef struct {
  *
  * Emits gsave and a closed path followed by clip/newpath. Common renderer depth tracking owns pairing;
  * PostScriptClipEnd closes this scope.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
  */
 static void PostScriptClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr,
@@ -34,6 +40,8 @@ static void PostScriptClipBegin(Rbc_RenderContext *ctx, int x, int y, int width,
  * @ingroup postscript_backend
  *
  * Emits grestore without changing common clip depth. Requires a matching begin.
+ *
+ * @param[in,out] ctx Live Postscript context with a matching rectangular clip scope; common depth is not changed here.
  */
 static void PostScriptClipEnd(Rbc_RenderContext *ctx) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "grestore\n", (char *)NULL);
@@ -47,6 +55,10 @@ static void PostScriptClipEnd(Rbc_RenderContext *ctx) {
  * Fewer than two points is a no-op. Splits at 1500 path components and restarts at the shared vertex.
  * Invokes the current DashesProc before each foreground stroke; caller ordering must preserve that
  * document-level definition.
+ *
+ * @param[in,out] ctx Live Postscript stroke context with configured color, width and dash state.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PostScriptPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Tcl_Size i;
@@ -77,6 +89,10 @@ static void PostScriptPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tc
  *
  * Positive counts pass borrowed mapped geometry to Rbc_2DSegmentsToPostScript. Does not own points or
  * establish a new line style.
+ *
+ * @param[in,out] ctx Live Postscript stroke context with configured color, width and dash state.
+ * @param[in] segments Borrowed mapped endpoint pairs readable for count Segment2D records.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PostScriptSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     if (count > 0) {
@@ -90,6 +106,10 @@ static void PostScriptSegments(Rbc_RenderContext *ctx, const Segment2D *segments
  *
  * Delegates to the legacy token conversion functions. Unlike PDF/SVG setters, this mutates the output
  * graphics state rather than a cached style record.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] capStyle X/Tk line cap constant passed to the PostScript conversion helper.
+ * @param[in] joinStyle X/Tk line join constant passed to the PostScript conversion helper.
  */
 static void PostScriptLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     Rbc_CapStyleToPostScript(POSTSCRIPT(ctx)->psToken, capStyle);
@@ -103,6 +123,9 @@ static void PostScriptLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinSt
  * For a dashed stroke with a color, defines DashesProc to paint an undashed background inside
  * gsave/grestore. Otherwise defines an empty procedure. Dictionary definitions are not scoped by
  * gsave: emit a batch before another context changes this definition.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] color Optional borrowed off-dash color; NULL installs an empty dash-background procedure.
  */
 static void PostScriptDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
     if (POSTSCRIPT(ctx)->postScriptDashed && (color != NULL)) {
@@ -123,6 +146,8 @@ static void PostScriptDashBackground(Rbc_RenderContext *ctx, const XColor *color
  * Paints an optional background via the prolog Fill procedure, then selects foreground. backgroundOnly
  * returns after that selection. Otherwise paints stipple or solid fill. Borrows graph/display and
  * style resources; does not apply fill opacity or image tiles.
+ *
+ * @param[in,out] ctx Live Postscript fill context with initialized fillStyle and any required graph/tile resources.
  */
 static void PostScriptFillPath(Rbc_RenderContext *ctx) {
     const Rbc_RenderFillStyle *style = &RENDER_EXPORT(ctx)->fillStyle;
@@ -148,6 +173,10 @@ static void PostScriptFillPath(Rbc_RenderContext *ctx) {
  *
  * Delegates path creation to the legacy token and fill policy to PostScriptFillPath. The caller
  * supplies valid mapped geometry and retains its storage.
+ *
+ * @param[in,out] ctx Live Postscript fill context with initialized fillStyle and any required graph/tile resources.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Rbc_PathToPostScript(POSTSCRIPT(ctx)->psToken, (Point2D *)points, count);
@@ -165,6 +194,9 @@ static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points,
  * Requires normalized nonzero arc geometry. Saves the current matrix on the operand stack, constructs
  * a scaled unit-circle arc, then restores the matrix without losing the path. Negated angles preserve
  * screen-space orientation. Closes full ellipses/chords and joins partial pieslices to the center.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] arc Borrowed normalized finite ellipse geometry with positive radii and nonzero extent.
  */
 static void PostScriptArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     Rbc_FormatToPostScript(POSTSCRIPT(ctx)->psToken,
@@ -186,6 +218,9 @@ static void PostScriptArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometr
  * @ingroup postscript_backend
  *
  * Builds the path and invokes DashesProc before stroke. Does not independently establish line style.
+ *
+ * @param[in,out] ctx Live Postscript stroke context with configured color, width and dash state.
+ * @param[in] arc Borrowed normalized finite ellipse geometry with positive radii and nonzero extent.
  */
 static void PostScriptArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     PostScriptArcPath(ctx, arc);
@@ -197,6 +232,9 @@ static void PostScriptArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *a
  * @ingroup postscript_backend
  *
  * Builds normalized geometry then delegates to PostScriptFillPath; does not emit an outline.
+ *
+ * @param[in,out] ctx Live Postscript fill context with initialized fillStyle and any required graph/tile resources.
+ * @param[in] arc Borrowed normalized closed ellipse segment; common dispatch excludes open arcs.
  */
 static void PostScriptFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     PostScriptArcPath(ctx, arc);
@@ -210,6 +248,10 @@ static void PostScriptFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometr
  * Stipple fills paint optional background then foreground, falling back to background color when
  * foreground is absent. Solid rectangles require foreground. This path does not implement image tiles
  * or opacity, and does not share every polygon backgroundOnly rule.
+ *
+ * @param[in,out] ctx Live Postscript fill context with initialized fillStyle and any required graph/tile resources.
+ * @param[in] rectangles Borrowed mapped rectangle array readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PostScriptFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     const Rbc_RenderFillStyle *style = &RENDER_EXPORT(ctx)->fillStyle;
@@ -239,6 +281,10 @@ static void PostScriptFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRec
  *
  * Requires symbol setup to have selected a valid macro and size and defined DrawSymbolProc. Emits
  * centers in order without retaining them or redefining the procedure.
+ *
+ * @param[in,out] ctx Live Postscript symbol context with selected symbol style and document resources.
+ * @param[in] centers Borrowed mapped symbol centers readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PostScriptSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     Tcl_Size i;
@@ -255,6 +301,12 @@ static void PostScriptSymbolPoints(Rbc_RenderContext *ctx, const Point2D *center
  *
  * Borrows the string and TextStyle. Uses token font/color maps and legacy encoding, not the PDF/SVG
  * document font pipeline.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] string Borrowed NUL-terminated Tcl UTF text consumed during the call.
+ * @param[in] style Borrowed text style with live font/color resources; layout and placement follow its fields.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
  */
 static void PostScriptText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_TextToPostScript(POSTSCRIPT(ctx)->psToken, string, style, x, y);
@@ -267,6 +319,11 @@ static void PostScriptText(Rbc_RenderContext *ctx, char *string, TextStyle *styl
  *
  * Intentionally emits nothing. Photo markers use PostScriptPhoto; generic Tk-image raster capture is
  * not attempted here.
+ *
+ * @param[in,out] ctx Unused; generic Tk images are intentionally omitted by this legacy callback.
+ * @param[in] image Unused; generic Tk images are intentionally omitted by this legacy callback.
+ * @param[in] x Unused; generic Tk images are intentionally omitted by this legacy callback.
+ * @param[in] y Unused; generic Tk images are intentionally omitted by this legacy callback.
  */
 static void PostScriptTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
     (void)ctx;
@@ -281,6 +338,11 @@ static void PostScriptTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, 
  *
  * Borrows the handle and emits at the supplied mapped origin. NULL is a no-op; does not use the PDF
  * alpha-resource path.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] photo Borrowed Tk photo handle, read synchronously.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
  */
 static void PostScriptPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
     if (photo != NULL) {
@@ -294,6 +356,11 @@ static void PostScriptPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double
  *
  * Borrows the live window. Capture behavior and errors belong to Rbc_WindowToPostScript; this adapter
  * does not introduce a clipping container.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] tkwin Borrowed live Tk window passed to the legacy capture writer.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
  */
 static void PostScriptWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y) {
     Rbc_WindowToPostScript(POSTSCRIPT(ctx)->psToken, tkwin, x, y);
@@ -305,6 +372,11 @@ static void PostScriptWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, 
  *
  * Uses the token's background/color-map policy and borrows the mapped point array. Does not establish
  * an independent saved graphics scope.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] color Borrowed background color interpreted by the legacy PostScript color-map policy.
+ * @param[in] points Borrowed mapped point array readable for count vertices.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PostScriptBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points,
                                         Tcl_Size count) {
@@ -318,6 +390,16 @@ static void PostScriptBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *co
  *
  * Borrows the border and delegates to the matching legacy 3D rectangle helper. Geometry and relief are
  * already selected by the component.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] border Borrowed Tk 3D border; lazy shadow-color initialization may occur.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
+ * @param[in] borderWidth Relief thickness in display pixels; caller keeps size arithmetic representable.
+ * @param[in] relief Tk relief constant.
+ * @param[in] fill Nonzero paints the interior before relief; zero requests edges only.
  */
 static void PostScriptBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                              int borderWidth, int relief, int fill) {
@@ -333,6 +415,12 @@ static void PostScriptBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double 
  * @ingroup postscript_backend
  *
  * Clearing emits paint through legacy helpers; it does not remove prior document content.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
  */
 static void PostScriptClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
     Rbc_ClearBackgroundToPostScript(POSTSCRIPT(ctx)->psToken);
@@ -345,6 +433,11 @@ static void PostScriptClearRectangle(Rbc_RenderContext *ctx, double x, double y,
  *
  * NULL color uses the clear-background policy. Otherwise selects background once, then emits all
  * borrowed rectangles in order.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] color Optional borrowed background color; NULL paints using the format clear-background policy.
+ * @param[in] rectangles Borrowed mapped rectangle array readable for count entries.
+ * @param[in] count Number of geometry records, not bytes.
  */
 static void PostScriptBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
                                            const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
@@ -367,6 +460,14 @@ static void PostScriptBackgroundRectangles(Rbc_RenderContext *ctx, const XColor 
  *
  * Selects the supplied font, constructs the region and paints via prolog Fill before gsave/clip. NULL
  * background uses the token's clear policy. PostScriptPlotEnd balances this plot scope.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] font Borrowed Tk font for plot setup.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Mapped rectangle width in display pixels.
+ * @param[in] height Mapped rectangle height in display pixels.
+ * @param[in] background Borrowed plot background color; NULL selects the format's clear-background policy.
  */
 static void PostScriptPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                                 const XColor *background) {
@@ -386,6 +487,8 @@ static void PostScriptPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, 
  *
  * Emits grestore separately from the common renderer's explicit clip-depth mechanism. Requires a
  * matching plot begin.
+ *
+ * @param[in,out] ctx Live Postscript context with a matching plot scope; common depth is not changed here.
  */
 static void PostScriptPlotEnd(Rbc_RenderContext *ctx) {
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "\n", "% Unset clipping\n", "grestore\n\n", (char *)NULL);
@@ -398,6 +501,16 @@ static void PostScriptPlotEnd(Rbc_RenderContext *ctx) {
  * Missing bitmap or nonpositive dimensions produce no output. Selects foreground/background according
  * to the flag, emits bitmap bytes through the legacy helper and balances gsave/grestore. Borrows
  * display, pixmap and color.
+ *
+ * @param[in,out] ctx Live Postscript renderer context borrowing the active export document.
+ * @param[in] display Borrowed display owning the source bitmap.
+ * @param[in] bitmap Borrowed one-bit pixmap readable over width by height pixels; None suppresses output.
+ * @param[in] x Mapped destination X coordinate in display pixels.
+ * @param[in] y Mapped destination Y coordinate in display pixels.
+ * @param[in] width Source bitmap width and mapped extent in pixels; nonpositive values emit nothing.
+ * @param[in] height Source bitmap height and mapped extent in pixels; nonpositive values emit nothing.
+ * @param[in] color Borrowed paint color; omission follows this helper's format-specific policy.
+ * @param[in] background Nonzero selects the legacy background-color policy; zero selects foreground.
  */
 static void PostScriptBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                                  int height, const XColor *color, int background) {
