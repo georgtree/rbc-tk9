@@ -70,21 +70,21 @@ backing-store redisplay. It does not draw synchronously. See :doc:`vectors` and
 Polar grid construction
 -----------------------
 
-``GetPolarRadiusRange`` requires linear mapped axes with finite increasing
+:c:func:`GetPolarRadiusRange` requires linear mapped axes with finite increasing
 bounds. It finds the minimum distance from the origin to the data viewport
 rectangle and the maximum distance to its farthest corner. This supports panned
 views where the origin is outside the visible rectangle. A separate helper,
-``PolarCompleteCircleRadius``, determines a fully contained circle for labels;
+:c:func:`PolarCompleteCircleRadius`, determines a fully contained circle for labels;
 these two radii serve different purposes.
 
-``MapPolarCircles`` obtains radial candidates from the mapped X axis's grid
+:c:func:`MapPolarCircles` obtains radial candidates from the mapped X axis's grid
 segments. It discards nonpositive radii and candidates outside the visible
 radial range. Each retained circle is approximated by 180 straight segments,
 with Cartesian points mapped through the selected axis pair. Temporary axis
 segments are freed, and the new array becomes ``gridPtr->x.segments``.
 
-``MapPolarSpokes`` reads the global grid's angular tick arrays. Major spokes are
-always considered; minor spokes follow the minor-grid setting. ``ClipPolarRay``
+:c:func:`MapPolarSpokes` reads the global grid's angular tick arrays. Major spokes are
+always considered; minor spokes follow the minor-grid setting. :c:func:`ClipPolarRay`
 intersects each forward ray with the data viewport before mapping endpoints.
 The retained spokes become ``gridPtr->y.segments``. Mapping allocates these
 arrays; the shared grid lifecycle clears old caches and owns final cleanup.
@@ -99,7 +99,7 @@ circles and reactance/susceptance arcs are generated in the Gamma plane and
 then screen-mapped. The normalized admittance grid negates both coordinates
 of the impedance construction, rotating it by 180 degrees.
 
-``SmithReactanceGamma`` parameterizes the nonnegative real component as
+:c:func:`SmithReactanceGamma` parameterizes the nonnegative real component as
 ``t/(1-t)``. The endpoint at ``t=1`` is supplied explicitly instead of dividing
 by zero: ``(+1,0)`` for impedance and ``(-1,0)`` for admittance. Current grid
 resolution uses 180 segments for circles and 90 for reactive arcs. These are
@@ -218,7 +218,7 @@ checks and Tcl_AttemptAlloc failures return silently, without a Tcl diagnostic.
 The next normal remapping starts from cleared caches again.
 
 Polar radial candidates are reconstructed from X-axis grid segments using
-PolarGridSegmentValue. Inverted graphs recover the tick from screen Y instead
+:c:func:`PolarGridSegmentValue`. Inverted graphs recover the tick from screen Y instead
 of screen X. Only finite positive radii within the viewport's minimum/maximum
 radial distances are retained. Circles are complete sampled polylines; rendering
 clips their strokes. Spokes instead intersect their forward data-space ray with
@@ -299,7 +299,7 @@ normal formatting. A successful empty result suppresses that label; an ordinary
 callback error is reported as a background exception and retains default text.
 The prior interpreter state is restored after callback evaluation.
 
-FormatGridLabel shares the existing axisFormatActive/axisFormatInvalid mechanism.
+:c:func:`FormatGridLabel` shares the existing axisFormatActive/axisFormatInvalid mechanism.
 While it evaluates Tcl, recursive snapshot and export requests are rejected before
 they change dimensions or renderer state. Layout recursion is likewise rejected;
 read-only operations that need no layout may still succeed. Redraw requests or
@@ -325,3 +325,64 @@ graph destruction, replacement tick arrays and axis font changes through screen
 snapshots and all three document exporters. They also check recursive rendering
 rejection and successful rendering after a cancelled pass. These tests belong to
 the normal suite; no private C harness or installed API extension is required.
+
+Geometry parameter domains and output storage
+---------------------------------------------
+
+The private geometry helpers consume already normalized grid values and prepared
+axis state. They are not replacements for validating arbitrary element data.
+:c:func:`SmithImpedanceToGamma` and :c:func:`SmithGridValueToGamma` perform no
+reference-impedance scaling and use unchecked squared terms. Callers must not
+interpret their void return as confirmation of a finite result.
+
+.. list-table:: Coordinate and buffer contracts
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Helpers
+     - Input and output space
+   * - :c:func:`ClipPolarRay`
+     - Degree angle in, near/far data-space ray endpoints out; output is valid only on TRUE.
+   * - :c:func:`MapPolarSpoke`
+     - Degree angle in, mapped pixel segment out; it does not independently validate endpoint finiteness.
+   * - :c:func:`MapCircle` / :c:func:`MapSmithResistanceCircle`
+     - Caller supplies buffers of POLAR_CIRCLE_SEGMENTS / SMITH_CIRCLE_SEGMENTS records respectively; outputs are mapped pixels.
+   * - :c:func:`MapSmithReactanceArc`
+     - Caller supplies SMITH_ARC_SEGMENTS records; normalized reactive input produces mapped pixel chords.
+   * - :c:func:`ClipSegmentToGridViewport`
+     - Finite data-space endpoints in and clipped data-space endpoints out; neither screen mapping nor stroke clipping occurs.
+   * - :c:func:`GetSmithReactiveEdgeAnchor`
+     - Expects mapped pixel endpoints, unlike the preceding data-space clipping helper.
+
+The allocating mappers publish owned arrays into the supplied grid cache.
+:c:func:`Rbc_MapPolarGrid` and :c:func:`Rbc_MapSmithGrid` require those caches to
+be empty before entry; the shared grid lifecycle releases old arrays. Tick
+selection and Smith domain settings come from the graph's global grid, even
+when a grid pointer is passed separately for axes and cache storage.
+
+:c:func:`GetPolarAngularLabelPosition`,
+:c:func:`GetPolarRadialLabelPosition` and
+:c:func:`GetSmithReactiveLabelPosition` expose success-only outputs. A failed
+call need not preserve the caller's old point or anchor. Check the return value
+before using either. Automatic circular anchors use normalized degree angles;
+cropped-view anchors derive their direction from mapped segments instead.
+
+Formatter storage and cancellation
+-----------------------------------
+
+:c:func:`FormatPolarAngleLabel` and :c:func:`FormatSmithLabel` initialize the
+supplied DString themselves. Pass storage that does not already own an allocated
+buffer. Their common helper, :c:func:`FormatGridLabel`, instead requires an
+initialized DString already containing default text. All three return a borrowed
+pointer into that string, or NULL when the drawing pass has been invalidated.
+
+The caller frees the DString on every path, including NULL. An empty non-NULL
+string means suppress this label and continue; NULL means stop the pass before
+accessing cached grid, axis or copied text-style resources again. The returned
+string does not retain any of those resources. The outer graph command or
+display wrapper must keep the graph record alive across callback evaluation.
+
+Screen and export loops share this cancellation rule. Their drawable and export
+context remain borrowed; ending a temporary text renderer does not free the
+screen destination or finalize the enclosing document. Geometry sampling itself
+does not invoke label commands or establish a callback-preservation scope.

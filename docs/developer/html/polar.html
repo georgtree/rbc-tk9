@@ -111,19 +111,19 @@ backing-store redisplay. It does not draw synchronously. See <a class="reference
 </section>
 <section id="polar-grid-construction">
 <h2>Polar grid construction<a class="headerlink" href="#polar-grid-construction" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">GetPolarRadiusRange</span></code> requires linear mapped axes with finite increasing
+<p><a class="reference internal" href="polar-reference.html#c.GetPolarRadiusRange" title="GetPolarRadiusRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarRadiusRange()</span></code></a> requires linear mapped axes with finite increasing
 bounds. It finds the minimum distance from the origin to the data viewport
 rectangle and the maximum distance to its farthest corner. This supports panned
 views where the origin is outside the visible rectangle. A separate helper,
-<code class="docutils literal notranslate"><span class="pre">PolarCompleteCircleRadius</span></code>, determines a fully contained circle for labels;
+<a class="reference internal" href="polar-reference.html#c.PolarCompleteCircleRadius" title="PolarCompleteCircleRadius"><code class="xref c c-func docutils literal notranslate"><span class="pre">PolarCompleteCircleRadius()</span></code></a>, determines a fully contained circle for labels;
 these two radii serve different purposes.</p>
-<p><code class="docutils literal notranslate"><span class="pre">MapPolarCircles</span></code> obtains radial candidates from the mapped X axis’s grid
+<p><a class="reference internal" href="polar-reference.html#c.MapPolarCircles" title="MapPolarCircles"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarCircles()</span></code></a> obtains radial candidates from the mapped X axis’s grid
 segments. It discards nonpositive radii and candidates outside the visible
 radial range. Each retained circle is approximated by 180 straight segments,
 with Cartesian points mapped through the selected axis pair. Temporary axis
 segments are freed, and the new array becomes <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;x.segments</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">MapPolarSpokes</span></code> reads the global grid’s angular tick arrays. Major spokes are
-always considered; minor spokes follow the minor-grid setting. <code class="docutils literal notranslate"><span class="pre">ClipPolarRay</span></code>
+<p><a class="reference internal" href="polar-reference.html#c.MapPolarSpokes" title="MapPolarSpokes"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarSpokes()</span></code></a> reads the global grid’s angular tick arrays. Major spokes are
+always considered; minor spokes follow the minor-grid setting. <a class="reference internal" href="polar-reference.html#c.ClipPolarRay" title="ClipPolarRay"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipPolarRay()</span></code></a>
 intersects each forward ray with the data viewport before mapping endpoints.
 The retained spokes become <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;y.segments</span></code>. Mapping allocates these
 arrays; the shared grid lifecycle clears old caches and owns final cleanup.
@@ -136,7 +136,7 @@ See <a class="reference internal" href="grids.html"><span class="doc">Grid mappi
 circles and reactance/susceptance arcs are generated in the Gamma plane and
 then screen-mapped. The normalized admittance grid negates both coordinates
 of the impedance construction, rotating it by 180 degrees.</p>
-<p><code class="docutils literal notranslate"><span class="pre">SmithReactanceGamma</span></code> parameterizes the nonnegative real component as
+<p><a class="reference internal" href="polar-reference.html#c.SmithReactanceGamma" title="SmithReactanceGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithReactanceGamma()</span></code></a> parameterizes the nonnegative real component as
 <code class="docutils literal notranslate"><span class="pre">t/(1-t)</span></code>. The endpoint at <code class="docutils literal notranslate"><span class="pre">t=1</span></code> is supplied explicitly instead of dividing
 by zero: <code class="docutils literal notranslate"><span class="pre">(+1,0)</span></code> for impedance and <code class="docutils literal notranslate"><span class="pre">(-1,0)</span></code> for admittance. Current grid
 resolution uses 180 segments for circles and 90 for reactive arcs. These are
@@ -240,7 +240,7 @@ a failed allocation can leave one family present and the other absent. Overflow
 checks and Tcl_AttemptAlloc failures return silently, without a Tcl diagnostic.
 The next normal remapping starts from cleared caches again.</p>
 <p>Polar radial candidates are reconstructed from X-axis grid segments using
-PolarGridSegmentValue. Inverted graphs recover the tick from screen Y instead
+<a class="reference internal" href="polar-reference.html#c.PolarGridSegmentValue" title="PolarGridSegmentValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">PolarGridSegmentValue()</span></code></a>. Inverted graphs recover the tick from screen Y instead
 of screen X. Only finite positive radii within the viewport’s minimum/maximum
 radial distances are retained. Circles are complete sampled polylines; rendering
 clips their strokes. Spokes instead intersect their forward data-space ray with
@@ -327,7 +327,7 @@ current Tcl context, matching axis formatters. A NULL or empty prefix retains
 normal formatting. A successful empty result suppresses that label; an ordinary
 callback error is reported as a background exception and retains default text.
 The prior interpreter state is restored after callback evaluation.</p>
-<p>FormatGridLabel shares the existing axisFormatActive/axisFormatInvalid mechanism.
+<p><a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a> shares the existing axisFormatActive/axisFormatInvalid mechanism.
 While it evaluates Tcl, recursive snapshot and export requests are rejected before
 they change dimensions or renderer state. Layout recursion is likewise rejected;
 read-only operations that need no layout may still succeed. Redraw requests or
@@ -350,6 +350,74 @@ graph destruction, replacement tick arrays and axis font changes through screen
 snapshots and all three document exporters. They also check recursive rendering
 rejection and successful rendering after a cancelled pass. These tests belong to
 the normal suite; no private C harness or installed API extension is required.</p>
+</section>
+<section id="geometry-parameter-domains-and-output-storage">
+<h2>Geometry parameter domains and output storage<a class="headerlink" href="#geometry-parameter-domains-and-output-storage" title="Link to this heading">¶</a></h2>
+<p>The private geometry helpers consume already normalized grid values and prepared
+axis state. They are not replacements for validating arbitrary element data.
+<a class="reference internal" href="polar-reference.html#c.SmithImpedanceToGamma" title="SmithImpedanceToGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithImpedanceToGamma()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.SmithGridValueToGamma" title="SmithGridValueToGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithGridValueToGamma()</span></code></a> perform no
+reference-impedance scaling and use unchecked squared terms. Callers must not
+interpret their void return as confirmation of a finite result.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Coordinate and buffer contracts</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 66.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Helpers</p></th>
+<th class="head"><p>Input and output space</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="polar-reference.html#c.ClipPolarRay" title="ClipPolarRay"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipPolarRay()</span></code></a></p></td>
+<td><p>Degree angle in, near/far data-space ray endpoints out; output is valid only on TRUE.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="polar-reference.html#c.MapPolarSpoke" title="MapPolarSpoke"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarSpoke()</span></code></a></p></td>
+<td><p>Degree angle in, mapped pixel segment out; it does not independently validate endpoint finiteness.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="polar-reference.html#c.MapCircle" title="MapCircle"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapCircle()</span></code></a> / <a class="reference internal" href="polar-reference.html#c.MapSmithResistanceCircle" title="MapSmithResistanceCircle"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapSmithResistanceCircle()</span></code></a></p></td>
+<td><p>Caller supplies buffers of POLAR_CIRCLE_SEGMENTS / SMITH_CIRCLE_SEGMENTS records respectively; outputs are mapped pixels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="polar-reference.html#c.MapSmithReactanceArc" title="MapSmithReactanceArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapSmithReactanceArc()</span></code></a></p></td>
+<td><p>Caller supplies SMITH_ARC_SEGMENTS records; normalized reactive input produces mapped pixel chords.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="polar-reference.html#c.ClipSegmentToGridViewport" title="ClipSegmentToGridViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipSegmentToGridViewport()</span></code></a></p></td>
+<td><p>Finite data-space endpoints in and clipped data-space endpoints out; neither screen mapping nor stroke clipping occurs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="polar-reference.html#c.GetSmithReactiveEdgeAnchor" title="GetSmithReactiveEdgeAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSmithReactiveEdgeAnchor()</span></code></a></p></td>
+<td><p>Expects mapped pixel endpoints, unlike the preceding data-space clipping helper.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The allocating mappers publish owned arrays into the supplied grid cache.
+<a class="reference internal" href="polar-reference.html#c.Rbc_MapPolarGrid" title="Rbc_MapPolarGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.Rbc_MapSmithGrid" title="Rbc_MapSmithGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a> require those caches to
+be empty before entry; the shared grid lifecycle releases old arrays. Tick
+selection and Smith domain settings come from the graph’s global grid, even
+when a grid pointer is passed separately for axes and cache storage.</p>
+<p><a class="reference internal" href="polar-reference.html#c.GetPolarAngularLabelPosition" title="GetPolarAngularLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarAngularLabelPosition()</span></code></a>,
+<a class="reference internal" href="polar-reference.html#c.GetPolarRadialLabelPosition" title="GetPolarRadialLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarRadialLabelPosition()</span></code></a> and
+<a class="reference internal" href="polar-reference.html#c.GetSmithReactiveLabelPosition" title="GetSmithReactiveLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSmithReactiveLabelPosition()</span></code></a> expose success-only outputs. A failed
+call need not preserve the caller’s old point or anchor. Check the return value
+before using either. Automatic circular anchors use normalized degree angles;
+cropped-view anchors derive their direction from mapped segments instead.</p>
+</section>
+<section id="formatter-storage-and-cancellation">
+<h2>Formatter storage and cancellation<a class="headerlink" href="#formatter-storage-and-cancellation" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="polar-reference.html#c.FormatPolarAngleLabel" title="FormatPolarAngleLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatPolarAngleLabel()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.FormatSmithLabel" title="FormatSmithLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatSmithLabel()</span></code></a> initialize the
+supplied DString themselves. Pass storage that does not already own an allocated
+buffer. Their common helper, <a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a>, instead requires an
+initialized DString already containing default text. All three return a borrowed
+pointer into that string, or NULL when the drawing pass has been invalidated.</p>
+<p>The caller frees the DString on every path, including NULL. An empty non-NULL
+string means suppress this label and continue; NULL means stop the pass before
+accessing cached grid, axis or copied text-style resources again. The returned
+string does not retain any of those resources. The outer graph command or
+display wrapper must keep the graph record alive across callback evaluation.</p>
+<p>Screen and export loops share this cancellation rule. Their drawable and export
+context remain borrowed; ending a temporary text renderer does not free the
+screen destination or finalize the enclosing document. Geometry sampling itself
+does not invoke label commands or establish a callback-preservation scope.</p>
 </section>
 </section>
 
@@ -375,6 +443,8 @@ the normal suite; no private C harness or installed API extension is required.</
 <li><a class="reference internal" href="#segment-cache-construction-and-failure-policy">Segment cache construction and failure policy</a></li>
 <li><a class="reference internal" href="#label-placement-in-full-and-cropped-views">Label placement in full and cropped views</a></li>
 <li><a class="reference internal" href="#formatter-callbacks-and-cancellation">Formatter callbacks and cancellation</a></li>
+<li><a class="reference internal" href="#geometry-parameter-domains-and-output-storage">Geometry parameter domains and output storage</a></li>
+<li><a class="reference internal" href="#formatter-storage-and-cancellation">Formatter storage and cancellation</a></li>
 </ul>
 </li>
 </ul>
